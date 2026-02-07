@@ -1,0 +1,27 @@
+version: "3.8"
+
+services:
+  # frontend:
+  #   container_name: toptyres-frontend
+  #   build:
+  #     context: ./web
+  #     dockerfile: Dockerfile.dev
+  #   command: npx next dev -p 3001
+  #   ports:
+  #     - "3001:3001"
+  #   volumes:
+  #     - ./web:/app
+
+  api:
+    container_name: wordrama-api-v3
+    build:
+      context: ./
+      dockerfile: Dockerfile.local
+    working_dir: /usr/src/app
+    env_file:
+      - .env
+    ports:
+      - "3005:3000"
+    volumes:
+      - ./:/usr/src/app
+    restart: always

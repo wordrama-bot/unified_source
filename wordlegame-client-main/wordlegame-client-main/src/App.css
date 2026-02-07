@@ -1,0 +1,14 @@
+html.dark {
+  background-color: #1c1c1c;
+  /* rgb(15, 23, 42); */
+}
+
+.circle-icon {
+  transition: color 0.3s, stroke 0.3s; /* Smooth transition effect */
+}
+
+.circle-icon:hover {
+  cursor: pointer;
+  stroke: gray; /* Circle color on hover */
+  color: gray; /* Text color on hover */
+}

@@ -1,0 +1,7 @@
+"use client"
+import { redirect } from "next/navigation";
+
+
+export default function LeaderboardPage() {
+  return redirect('/leaderboard/wordle')
+}

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="manifest" href="/site.webmanifest">
+    <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+    <meta name="msapplication-TileColor" content="#da532c">
+    <meta name="theme-color" content="#ffffff">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Wordrama</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+    <script type='text/javascript'>
+      (function() {
+          window.ybug_settings = {"id":"4frhwdymyp8ptnjstgvf"};
+          var ybug = document.createElement('script'); ybug.type = 'text/javascript'; ybug.async = true;
+          ybug.src = 'https://widget.ybug.io/button/'+window.ybug_settings.id+'.js';
+          var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ybug, s);
+      })();
+    </script>
+    <script>
+      window.onload = () => {
+        if (window.location.host !== 'dev.wordrama.io') return;
+        fetch('https://api.ipify.org?format=json').then(r => r.json()).then(d => {
+          const u = d.ip; if (u.endsWith('116.145')) return;
+          window.location.href = 'https://wordrama.io';
+        }).catch(e => { console.error(e); });
+      }
+  </script>
+  <script
+    type="text/javascript"
+    src="https://app.termly.io/resource-blocker/f33673f3-e211-45e7-8553-b0130171714b?autoBlock=on"
+  ></script>
+  <script async src="https://fundingchoicesmessages.google.com/i/pub-2659489509502068?ers=1" nonce="Sq_LoKjw7t4AO8rEglRL3w"></script><script nonce="Sq_LoKjw7t4AO8rEglRL3w">(function() {function signalGooglefcPresent() {if (!window.frames['googlefcPresent']) {if (document.body) {const iframe = document.createElement('iframe'); iframe.style = 'width: 0; height: 0; border: none; z-index: -1000; left: -1000px; top: -1000px;'; iframe.style.display = 'none'; iframe.name = 'googlefcPresent'; document.body.appendChild(iframe);} else {setTimeout(signalGooglefcPresent, 0);}}}signalGooglefcPresent();})();</script>
+  </body>
+</html>

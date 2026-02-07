@@ -1,0 +1,20 @@
+async function handle(func, ...props) {
+    try {
+        const data = await func(...props);
+        return [ data, null ];
+    } catch (err) {
+        return [ null, err ];
+    }
+}
+
+async function someFunc(word1, word2) {
+    return `${word1} ${word2}`
+} 
+
+(async () => {
+    const [data, error] = await handle(someFunc, 'Hello', 'World');
+    if (error){
+        console.error(error)
+    }
+    console.log(data)
+})()

@@ -1,0 +1,36 @@
+version: "3.5"
+
+services:
+  redis:
+    container_name: redis
+    hostname: redis
+    image: redis:6.2.5
+    ports:
+      - "127.0.0.1:6379:6379"
+    volumes:
+        - ./docker/redis_data:/data
+    networks:
+      - wordrama
+  dev:
+    container_name: wordrama-dev
+    hostname: wordrama-dev
+    build:
+      context: .
+    ports:
+      - "5001:5000"
+    env_file:
+      - .env
+    networks:
+      - wordrama
+  # prod:
+  #   container_name: wordrama
+  #   hostname: wordrama
+  #   image: wordrama-server:v1.4.6
+  #   ports:
+  #     - "5000:5000"
+  #   networks:
+  #     - wordrama
+
+networks:
+  wordrama:
+    external: true

@@ -1,0 +1,9 @@
+.circle-icon {
+  transition: color 0.3s, stroke 0.3s; /* Smooth transition effect */
+}
+
+.circle-icon:hover {
+  cursor: pointer;
+  stroke: gray; /* Circle color on hover */
+  color: gray; /* Text color on hover */
+}

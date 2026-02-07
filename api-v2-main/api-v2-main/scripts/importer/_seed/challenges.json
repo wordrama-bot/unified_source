@@ -1,0 +1,46 @@
+[
+  {
+    "id": "6e0b4736-434f-441a-bd15-f1e6af871a9c",
+    "name": "First Game of Wordle",
+    "description": "Play your first game of wordle",
+    "notification_message": "Achievement \"Play your first game of wordle [10xp]\": Complete",
+    "unlocks_at_level": 1,
+    "coins_to_unlock": 0,
+    "coin_reward": 0,
+    "xp_reward": 10,
+    "how_to_get": "Play your first game of wordrama",
+    "is_game_specific": true,
+    "game": "WORDLE",
+    "param": "games_played",
+    "comparator": ">",
+    "value": 1
+  },
+  {
+    "id": "31d9bd91-db54-488c-a9da-31a027cece30",
+    "name": "Win  of Wordle",
+    "description": "Play your first game of wordle",
+    "notification_message": "Achievement \"Play your first game of wordle [10xp]\": Complete",
+    "unlocks_at_level": 1,
+    "coins_to_unlock": 0,
+    "coin_reward": 0,
+    "xp_reward": 10,
+    "how_to_get": "Play your first game of wordrama",
+    "is_game_specific": true,
+    "game": "WORDLE",
+    "param": "games_played",
+    "comparator": ">",
+    "value": 1
+  },
+  {
+    "id": "4d8b44d9-c06d-4eb1-8a13-68273649acee",
+    "name": "First Game",
+    "description": "Play your first game",
+    "notification_message": "Achievement \"Play your first game [10xp]\": Complete",
+    "unlocks_at_level": 1,
+    "coins_to_unlock": 0,
+    "coin_reward": 0,
+    "xp_reward": 10,
+    "how_to_get": "Play your first game of wordrama",
+    "is_game_specific": false
+  }
+]

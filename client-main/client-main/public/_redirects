@@ -1,0 +1,9 @@
+/wordlegame /wordlegame/index.html 200
+/wordlegame/* /wordlegame/* 200
+/cookies /cookies.html 200
+/cookie-policy /cookies.html 200
+/privacy /privacy-policy.html 200
+/privacy-policy /privacy-policy.html 200
+/privacy-policy.html /privacy-policy.html 200
+/links https://link.wordrama.io 302
+/* /index.html 200

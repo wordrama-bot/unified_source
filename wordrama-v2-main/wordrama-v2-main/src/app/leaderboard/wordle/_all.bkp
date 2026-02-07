@@ -1,0 +1,395 @@
+"use client"
+import { useState } from "react";
+//import { getAppInsights } from "@/utils/appInsights";
+import { orderBy } from "lodash";
+import { LeaderboardNav } from "@/components/navbar/wordle-leaderboard";
+import Loading from '@/sections/loading';
+import { useGetAllTimeWordleLeaderboardQuery } from "@/redux/api/wordrama";
+import {
+  createColumnHelper,
+  useReactTable,
+  getCoreRowModel,
+  getSortedRowModel,
+  flexRender,
+} from '@tanstack/react-table';
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@/components/ui/hover-card"
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination"
+import {
+  Menubar,
+  MenubarContent,
+  MenubarItem,
+  MenubarMenu,
+  MenubarSeparator,
+  MenubarShortcut,
+  MenubarTrigger,
+} from "@/components/ui/menubar"
+import Link from 'next/link';
+import { useSearchParams } from "next/navigation";
+import { getWordleLeaderboardUiState } from '@/redux/ui/helpers';
+
+const columnHelper = createColumnHelper();
+
+const Leaderboard = ({ data, columns, children }) => {
+  const table = useReactTable({
+    data,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+  });
+
+  return (
+    <div className="p-4 max-w-2xl mx-auto">
+      <table className="min-w-full border-collapse">
+        <thead>
+          {table.getHeaderGroups().map(headerGroup => (
+            <tr key={headerGroup.id}>
+              {headerGroup.headers.map(header => (
+                <th
+                  key={header.id}
+                  className="border-b-2 p-4 text-left"
+                  onClick={header.column.getToggleSortingHandler()}
+                >
+                  {flexRender(
+                    header.column.columnDef.header,
+                    header.getContext()
+                  )}
+                  {{
+                    asc: ' 🔼',
+                    desc: ' 🔽',
+                  }[header.column.getIsSorted()] ?? null}
+                </th>
+              ))}
+            </tr>
+          ))}
+        </thead>
+        <tbody>
+          {table.getRowModel().rows.map(row => (
+            <tr key={row.id}>
+              {row.getVisibleCells().map(cell => (
+                <td key={cell.id} className="p-4 border-b">
+                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+};
+
+export default function WordleAllTimeLeaderboardPage() {
+  //getAppInsights().trackPageView({ name: 'Wordle All-Time Leaderboard' });
+  const searchParams = useSearchParams();
+  const uiState = getWordleLeaderboardUiState();
+  const { data, isLoading, error } = useGetAllTimeWordleLeaderboardQuery({ page: Number(searchParams.get('page') || 1), orderBy: 'alltime_rank' });
+  const leaderboardData = data?.data ? [...data?.data] : [];
+
+  function LeaderboardPagination() {
+    return (
+      <Pagination>
+        <PaginationContent>
+          <PaginationItem>
+            <PaginationPrevious
+              className="text-text dark:text-darkText"
+              href={`${window.location.pathname}?page=${data?.metadata?.previousPage}`}
+            />
+          </PaginationItem>
+          <PaginationItem>
+            <PaginationLink className="text-text dark:text-darkText" href={`${window.location.pathname}?page=${data?.metadata?.currentPage}`}>{ data?.metadata?.currentPage }</PaginationLink>
+          </PaginationItem>
+          <PaginationItem className="text-white">
+            <PaginationEllipsis className="text-text dark:text-darkText" />
+          </PaginationItem>
+          { data?.metadata?.currentPage < data?.metadata?.totalPages && (
+            <>
+              <PaginationItem>
+                <PaginationLink className="text-text dark:text-darkText" href={`${window.location.pathname}?page=${data?.metadata?.totalPages}`}>{ data?.metadata?.totalPages }</PaginationLink>
+              </PaginationItem>
+              <PaginationItem>
+                <PaginationNext
+                  className="text-text dark:text-darkText"
+                  href={`${window.location.pathname}?page=${data?.metadata?.nextPage}`}
+                />
+              </PaginationItem>
+            </>
+          )}
+        </PaginationContent>
+      </Pagination>
+    )
+  }
+
+  if (isLoading) return <Loading />;
+  return (
+    <div className="flex min-h-screen w-full flex-col">
+      <main className="flex min-h-[calc(100vh_-_theme(spacing.16))] flex-1 flex-col gap-4 bg-muted/40 p-4 md:gap-8 md:p-10">
+        <div className="mx-auto grid w-full max-w-6xl gap-2">
+          <h1 className="text-3xl text-text dark:text-darkText font-semibold">Wordle | All Time Leaderboard</h1>
+        </div>
+        <div className="mx-auto grid w-full max-w-6xl items-start gap-6 md:grid-cols-[180px_1fr] lg:grid-cols-[250px_1fr]">
+          <LeaderboardNav />
+          {
+            uiState.showAll && (
+              <>
+                <Card className="p-4 bg-bg">
+                  <CardHeader>All Modes</CardHeader>
+                    <CardContent>
+                      <Leaderboard data={orderBy(leaderboardData, 'alltimeRank')} columns={[
+                        columnHelper.accessor('alltimeRank', {
+                          header: 'Rank',
+                          cell: info => info.getValue(),
+                        }),
+                        // columnHelper.accessor('profileImage', {
+                        //   header: '',
+                        //   cell: info => {
+                        //     const value = info.getValue();
+                        //     return (
+                        //       <Link
+                        //         href={`/profile/${info.row.original.player}`}
+                        //       >
+                        //         <Avatar>
+                        //           {value ? <AvatarImage src={value} /> : <AvatarFallback></AvatarFallback>}
+                        //         </Avatar>
+                        //       </Link>
+                        //     );
+                        //   },
+                        // }),
+                        columnHelper.accessor('displayName', {
+                          header: 'Player',
+                          cell: info => (
+                              <HoverCard>
+                                <HoverCardTrigger asChild>
+                                  <Link href={`/player/${info.row.original.player}`}>{ info.getValue() }</Link>
+                                </HoverCardTrigger>
+                                <HoverCardContent className="w-80">
+                                  <div className="flex justify-between space-x-4">
+                                    <Avatar className="h-24 w-24">
+                                      <AvatarImage src={info.row.original.profileImage} className="h-24 w-24"/>
+                                      <AvatarFallback className="h-24 w-24">{ info.getValue() }</AvatarFallback>
+                                    </Avatar>
+                                    <div className="space-y-1">
+                                      <div className="text-lg font-semibold">{ info.getValue() }</div>
+                                      <h4 className="text-sm font-semibold">Level { info.row.original.players.levels.level }</h4>
+                                      <p className="text-sm">
+                                        <span className="font-semibold">Coins:</span> { info.row.original.players.ledger.coinBalance }
+                                      </p>
+                                    </div>
+                                  </div>
+                                </HoverCardContent>
+                              </HoverCard>
+                          )
+                        }),
+                        columnHelper.accessor('gamesWon', {
+                          header: 'Games Won',
+                          cell: info => info.getValue(),
+                        }),
+                        columnHelper.accessor('gamesLost', {
+                          header: 'Games Lost',
+                          cell: info => info.getValue(),
+                        }),
+                        columnHelper.accessor('overallBestStreak', {
+                          header: 'Best Streak',
+                          cell: info => info.getValue(),
+                        }),
+                      ]}/>
+                    </CardContent>
+                    <CardFooter>
+                      <LeaderboardPagination />
+                    </CardFooter>
+                </Card>
+                <br/>
+              </>
+            )
+          }
+          {
+            (uiState.showAll || uiState.showByWordLength) && (
+              <>
+                <Card className="p-4 bg-bg">
+                  <CardHeader>Five Letter</CardHeader>
+                    <CardContent>
+                      <Leaderboard data={orderBy(leaderboardData, 'alltimeRank_5Letter')} columns={[
+                        columnHelper.accessor('alltimeRank_5Letter', {
+                          header: 'Rank',
+                          cell: info => info.getValue(),
+                        }),
+                        columnHelper.accessor('displayName', {
+                          header: 'Name',
+                          cell: info => info.getValue(),
+                        }),
+                        columnHelper.accessor('fiveLetterGamesWon', {
+                          header: 'Games Won',
+                          cell: info => info.getValue(),
+                        }),
+                        columnHelper.accessor('fiveLetterGamesLost', {
+                          header: 'Games Lost',
+                          cell: info => info.getValue(),
+                        }),
+                      ]} />
+                    </CardContent>
+                </Card>
+                <br/>
+                <Card className="p-4 bg-bg">
+                  <CardHeader>Six Letter</CardHeader>
+                    <CardContent>
+                      <Leaderboard data={orderBy(leaderboardData, 'alltimeRank_6Letter')} columns={[
+                        columnHelper.accessor('alltimeRank_6Letter', {
+                          header: 'Rank',
+                          cell: info => info.getValue(),
+                        }),
+                        columnHelper.accessor('displayName', {
+                          header: 'Name',
+                          cell: info => info.getValue(),
+                        }),
+                        columnHelper.accessor('sixLetterGamesWon', {
+                          header: 'Games Won',
+                          cell: info => info.getValue(),
+                        }),
+                        columnHelper.accessor('sixLetterGamesLost', {
+                          header: 'Games Lost',
+                          cell: info => info.getValue(),
+                        }),
+                      ]} />
+                    </CardContent>
+                </Card>
+                <br/>
+                <Card className="p-4 bg-bg">
+                  <CardHeader>Seven Letter</CardHeader>
+                    <CardContent>
+                      <Leaderboard data={orderBy(leaderboardData, 'alltimeRank_7Letter')} columns={[
+                        columnHelper.accessor('alltimeRank_7Letter', {
+                          header: 'Rank',
+                          cell: info => info.getValue(),
+                        }),
+                        columnHelper.accessor('displayName', {
+                          header: 'Name',
+                          cell: info => info.getValue(),
+                        }),
+                        columnHelper.accessor('sevenLetterGamesWon', {
+                          header: 'Games Won',
+                          cell: info => info.getValue(),
+                        }),
+                        columnHelper.accessor('sevenLetterGamesLost', {
+                          header: 'Games Lost',
+                          cell: info => info.getValue(),
+                        }),
+                      ]} />
+                    </CardContent>
+                </Card>
+                <br/>
+                <Card className="p-4 bg-bg">
+                  <CardHeader>Eight Letter</CardHeader>
+                    <CardContent>
+                      <Leaderboard data={orderBy(leaderboardData, 'alltimeRank_8Letter')} columns={[
+                        columnHelper.accessor('alltimeRank_8Letter', {
+                          header: 'Rank',
+                          cell: info => info.getValue(),
+                        }),
+                        columnHelper.accessor('displayName', {
+                          header: 'Name',
+                          cell: info => info.getValue(),
+                        }),
+                        columnHelper.accessor('eightLetterGamesWon', {
+                          header: 'Games Won',
+                          cell: info => info.getValue(),
+                        }),
+                        columnHelper.accessor('eightLetterGamesLost', {
+                          header: 'Games Lost',
+                          cell: info => info.getValue(),
+                        }),
+                      ]} />
+                    </CardContent>
+                </Card>
+                <br/>
+                <Card className="p-4 bg-bg">
+                  <CardHeader>Nine Letter</CardHeader>
+                    <CardContent>
+                      <Leaderboard data={orderBy(leaderboardData, 'alltimeRank_9Letter')} columns={[
+                        columnHelper.accessor('alltimeRank_9Letter', {
+                          header: 'Rank',
+                          cell: info => info.getValue(),
+                        }),
+                        columnHelper.accessor('displayName', {
+                          header: 'Name',
+                          cell: info => info.getValue(),
+                        }),
+                        columnHelper.accessor('nineLetterGamesWon', {
+                          header: 'Games Won',
+                          cell: info => info.getValue(),
+                        }),
+                        columnHelper.accessor('nineLetterGamesLost', {
+                          header: 'Games Lost',
+                          cell: info => info.getValue(),
+                        }),
+                      ]} />
+                    </CardContent>
+                </Card>
+                <br/>
+                <Card className="p-4 bg-bg">
+                  <CardHeader>Ten Letter</CardHeader>
+                    <CardContent>
+                      <Leaderboard data={orderBy(leaderboardData, 'alltimeRank_10Letter')} columns={[
+                        columnHelper.accessor('alltimeRank_10Letter', {
+                          header: 'Rank',
+                          cell: info => info.getValue(),
+                        }),
+                        columnHelper.accessor('displayName', {
+                          header: 'Name',
+                          cell: info => info.getValue(),
+                        }),
+                        columnHelper.accessor('tenLetterGamesWon', {
+                          header: 'Games Won',
+                          cell: info => info.getValue(),
+                        }),
+                        columnHelper.accessor('tenLetterGamesLost', {
+                          header: 'Games Lost',
+                          cell: info => info.getValue(),
+                        }),
+                      ]} />
+                    </CardContent>
+                </Card>
+                <br/>
+                <Card className="p-4 bg-bg">
+                  <CardHeader>Eleven Letter</CardHeader>
+                    <CardContent>
+                      <Leaderboard data={orderBy(leaderboardData, 'alltimeRank_11Letter')} columns={[
+                        columnHelper.accessor('alltimeRank_11Letter', {
+                          header: 'Rank',
+                          cell: info => info.getValue(),
+                        }),
+                        columnHelper.accessor('displayName', {
+                          header: 'Name',
+                          cell: info => info.getValue(),
+                        }),
+                        columnHelper.accessor('elevenLetterGamesWon', {
+                          header: 'Games Won',
+                          cell: info => info.getValue(),
+                        }),
+                        columnHelper.accessor('elevenLetterGamesLost', {
+                          header: 'Games Lost',
+                          cell: info => info.getValue(),
+                        }),
+                      ]} />
+                    </CardContent>
+                </Card>
+              </>
+            )
+          }
+        </div>
+      </main>
+    </div>
+  )
+}

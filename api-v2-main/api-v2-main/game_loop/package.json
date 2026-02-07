@@ -1,0 +1,15 @@
+{
+  "name": "game_loop",
+  "version": "1.0.0",
+  "main": "send.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@azure/service-bus": "^7.9.5",
+    "@supabase/supabase-js": "^2.46.1"
+  }
+}
