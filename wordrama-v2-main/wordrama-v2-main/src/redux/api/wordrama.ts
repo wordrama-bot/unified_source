@@ -126,17 +126,17 @@ export const wordramaApiV3 = createApi({
       providesTags: ['Challenges']
     }),
     getChallengesByUserId: builder.query<any, any>({
-      query: ({ playerId, statusFilter }) => {
-        return {
-          url: `/api/v3/challenges/${playerId}?statusFilter=${statusFilter}`,
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          credentials: "include"
-        }
+  query: ({ statusFilter }) => {
+    return {
+      url: `/api/v3/challenges/me?statusFilter=${statusFilter}`,
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
       },
-    }),
+      credentials: "include",
+    };
+  },
+}),
     getStoreItems: builder.query<{
       id: string
       coinPrice: number
