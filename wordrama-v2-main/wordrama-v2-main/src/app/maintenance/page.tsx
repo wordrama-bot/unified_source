@@ -32,7 +32,7 @@ export default function MaintenancePage() {
               <div className="pb-6">
                 <h2 className="text-center text-3xl md:text-4xl font-bold">
                   <span className="bg-clip-text">
-                    This part of the website is under maintenance{" "}
+                    This part of the website is under maintenance. Jay says he has a plan...{" "}
                   </span>
                 </h2>
                 <p className="text-center text-xl text-muted-foreground mt-4">
