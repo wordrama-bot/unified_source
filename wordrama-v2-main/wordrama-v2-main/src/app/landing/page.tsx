@@ -39,9 +39,9 @@ export default function LandingPage() {
         { title: 'What is Wordrama?', content: 'Wordrama brings a new twist to the word game community by rebuilding well loved games with a modern style and adding competition. Made by the players for the players.' },
         { title: 'How do I play Wordrama?', content: 'Sign up. Select a game to play. WIN!' },
         { title: 'How do I level up?', content: 'Complete games to earn XP. The more XP you earn, the higher your level.' },
-        { title: 'What are beta features and releases?', content: 'Beta features and releases are new features and games that are still in development. Pro/Streamer subscribers can access these features and games before they are released to the wider community.' },
-        { title: 'What are word packs?', content: 'Word packs are collections of words that you can use to in games. Word packs are categorised e.g. Place names, football teams, foods etc. Pro/Streamer subscribers can access premium packs for free.'},
-        { title: 'What is streamer mode?', content: 'Streamer mode is a set of features to provide you more control over your Wordrama experience. For example adding your socials to your profile.' }
+        { title: 'What are beta features and releases?', content: 'Beta features and releases are new features and games that are still in development. Pro/Streamer subscribers may be granted early access these features and games before they are released to the wider community.' },
+        { title: 'What are word packs?', content: 'Word packs are collections of additional words that you can use to enrich your experience.'},
+        { title: 'What is streamer mode?', content: 'Streamer mode is a set of features we are working on to provide you with more control over your Wordrama experience. For example optimizing your stats display for live streaming.' }
       ]}/>
       <Footer />
       <ThemeSwitcher />
