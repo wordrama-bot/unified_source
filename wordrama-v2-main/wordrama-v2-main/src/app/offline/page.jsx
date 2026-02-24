@@ -15,7 +15,7 @@ export default function OfflineError() {
   return (
     <>
       <Header 
-        heroText="Oops... Something went wrong"
+        heroText="Oops... Jay broke something again"
         ctaText="Try again"
         ctaLink="/"
       />
