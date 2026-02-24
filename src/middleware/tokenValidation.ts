@@ -97,10 +97,29 @@ export function validateToken(
         message: 'Unauthorized from middleware',
       });
     }
-    const payload = jwt.verify(
-      token,
-      process?.env?.JWT_SECRET as string,
-    ) as User;
+    const jwtSecret =
+  (process.env.SUPABASE_JWT_SECRET || process.env.JWT_SECRET) as string;
+
+if (!jwtSecret) {
+  return res.status(500).json({
+    data: {},
+    count: 0,
+    status: 500,
+    message: "Server auth misconfigured: missing JWT secret",
+  });
+}
+
+let payload: User;
+try {
+  payload = jwt.verify(token, jwtSecret) as User;
+} catch (e) {
+  return res.status(401).json({
+    data: {},
+    count: 0,
+    status: 401,
+    message: "Invalid or unverifiable token",
+  });
+}
 
     // @ts-ignore
     if (payload.exp < Math.floor(Date.now() / 1000)) {
