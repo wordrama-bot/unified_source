@@ -17,7 +17,7 @@ const port = process.env.PORT || 3000;
 
 // Middleware
 app.use(helmet());
-app.use(express.urlencoded());
+app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cookieParser.default());
 app.use(express.static('public'));
@@ -47,6 +47,8 @@ app.use('/api/v3', v3PublicRouter);
 app.use('/api/v3', v3Router);
 
 // Initialise
-app.listen(port, () => {
-  console.log(`[server]: Server is running at http://localhost:${port}`);
+const host = '0.0.0.0';
+
+app.listen(Number(port), host, () => {
+  console.log(`[server]: Server is running at http://${host}:${port}`);
 });
