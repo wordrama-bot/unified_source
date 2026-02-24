@@ -30,7 +30,7 @@ export default function PrivacyPolicy() {
       />
       <div className="container mx-auto p-4">
         <h1 className="text-4xl font-bold mb-6">Privacy Policy</h1>
-        <p className="text-sm text-gray-500">Last updated October 30, 2024</p>
+        <p className="text-sm text-gray-500">Last updated February 24, 2026</p>
 
         {/* Introduction Section */}
         <section className="my-8">
@@ -241,7 +241,7 @@ export default function PrivacyPolicy() {
             <li><strong>Advertising, Direct Marketing, and Lead Generation</strong></li>
             Google AdSense
             <li><strong>AI Service Providers</strong></li>
-            Microsoft Azure AI
+            Microsoft Azure AI, OpenAI ChatGPT
             <li><strong>Allow Users to Connect to Their Third-Party Accounts</strong></li>
             Discord account
             <li><strong>Cloud Computing Services</strong></li>
@@ -249,7 +249,7 @@ export default function PrivacyPolicy() {
             <li><strong>Communicate and Chat with Users</strong></li>
             Discord and Email
             <li><strong>Functionality and Infrastructure Optimisation</strong></li>
-            Supabase, Microsoft Azure and Amazon Web Services
+            GitHub, Heroku, Supabase, Microsoft Azure and Amazon Web Services
             <li><strong>Invoice and Billing</strong></li>
             Stripe
             <li><strong>User Account Registration and Authentication</strong></li>
@@ -257,7 +257,7 @@ export default function PrivacyPolicy() {
             <li><strong>Web and Mobile Analytics</strong></li>
             Azure Application Insights
             <li><strong>Website Hosting</strong></li>
-            Vercel and Microsoft Azure
+            IONOS, Vercel and Microsoft Azure
             <li><strong>Website Performance Monitoring</strong></li>
             Azure Application Insights
             <li><strong>Website Testing</strong></li>
@@ -339,7 +339,7 @@ export default function PrivacyPolicy() {
             <i><strong>In Short</strong>: We do not knowingly collect data from or market to children under 18 years of age.</i>
           </p>
 
-          <p className='mt-4'>We do not knowingly collect, solicit data from, or market to children under 18 years of age, nor do we knowingly sell such personal information. By using the Services, you represent that you are at least 18 or that you are the parent or guardian of such a minor and consent to such minor dependent’s use of the Services. If we learn that personal information from users less than 18 years of age has been collected, we will deactivate the account and take reasonable measures to promptly delete such data from our records. If you become aware of any data we may have collected from children under age 18, please contact us at <a href="mailto:support@wordrama.io" className="text-blue-500 hover:underline">support@wordrama.io</a>.</p>
+          <p className='mt-4'>We recognize that people of all ages enjoy word puzzle games. We also believe there is educational value in the use of our platofrm. That said, ee do not knowingly collect, solicit data from, or primarily market to children under 18 years of age, nor do we knowingly sell such personal information. By using the Services, you represent that you are at least 18 or that you are the parent or guardian of such a minor and consent to such minor dependent’s use of the Services. If we learn that personal information from users less than 18 years of age has been collected without parental or guardian consent, we may deactivate the account and take reasonable measures to promptly delete such data from our records. If you become aware of any data we may have collected from children under age 18, please contact us at <a href="mailto:support@wordrama.io" className="text-blue-500 hover:underline">support@wordrama.io</a>.</p>
         </section>
 
         {/* WHAT ARE YOUR PRIVACY RIGHTS? */}
@@ -490,7 +490,7 @@ export default function PrivacyPolicy() {
           </ul>
 
           <h3 className="text-xl font-semibold mt-4">How to Exercise Your Rights</h3>
-          <p className='mt-4'>To exercise these rights, you can contact us by visiting <a href="https://forms.office.com/e/jemPRTFjmU" className="text-blue-200 hover:underline">Data Request Form</a>, by emailing us at <a href="mailto:support@wordrama.io" className='text-blue-500 hover:underline'>support@wordrama.io</a>, by visiting <a href="https://forms.office.com/e/WCW3FcsDgW" className='text-blue-200 hover:underline'>Contact Form</a>, or by referring to the contact details at the bottom of this document.</p>
+          <p className='mt-4'>To exercise these rights, you can email us at <a href="mailto:support@wordrama.io" className='text-blue-500 hover:underline'>support@wordrama.io</a>.</p>
           <p className='mt-4'>You can opt out from the selling of your personal information, targeted advertising, or profiling by disabling cookies in Cookie Preference Settings.</p>
           <p className='mt-4'>Under certain US state data protection laws, you can designate an authorised agent to make a request on your behalf. We may deny a request from an authorised agent that does not submit proof that they have been validly authorised to act on your behalf in accordance with applicable laws.</p>
 
@@ -549,14 +549,14 @@ export default function PrivacyPolicy() {
         <section className="my-8">
           <h2 id="contact" className="text-2xl font-semibold">16. How can you contact us about this notice?</h2>
 
-          <p className='mt-4'>If you have questions or comments about this notice, you may contact our Data Protection Officer (DPO) by email at <a href="mailto:support@wordrama.io" className="text-blue-500 hover:underline">support@wordrama.io</a></p>
+          <p className='mt-4'>If you have questions or comments about this notice, you may contact us by email at <a href="mailto:support@wordrama.io" className="text-blue-500 hover:underline">support@wordrama.io</a></p>
         </section>
 
         {/* HOW CAN YOU REVIEW, UPDATE, OR DELETE THE DATA WE COLLECT FROM YOU? */}
         <section className="my-8">
           <h2 id="request" className="text-2xl font-semibold">17. How can you review, update, or delete the data we collect from you?</h2>
 
-          <p className='mt-4'>Based on the applicable laws of your country or state of residence in the US, you may have the right to request access to the personal information we collect from you, details about how we have processed it, correct inaccuracies, or delete your personal information. You may also have the right to withdraw your consent to our processing of your personal information. These rights may be limited in some circumstances by applicable law. To request to review, update, or delete your personal information, please visit: <a href="https://forms.office.com/e/jemPRTFjmU" className="text-blue-200 hover:underline">Data Request Form</a>.</p>
+          <p className='mt-4'>Based on the applicable laws of your country or state of residence in the US, you may have the right to request access to the personal information we collect from you, details about how we have processed it, correct inaccuracies, or delete your personal information. You may also have the right to withdraw your consent to our processing of your personal information. These rights may be limited in some circumstances by applicable law. To request to review, update, or delete your personal information, please email us at: <a href="mailto:support@wordrama.io" className="text-blue-500 hover:underline">support@wordrama.io</a>.</p>
         </section>
       </div>
       <Footer />
