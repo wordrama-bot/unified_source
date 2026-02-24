@@ -1,4 +1,4 @@
-import express from 'express';
+notepad C:\wordrama\unified_source\api-v2-main\api-v2-main\src\routes\v3\index.tsimport express from 'express';
 import {
   validateToken,
   validateUserRole,
@@ -19,49 +19,60 @@ import { router as noRoleRouter } from './noRole';
 export const router = express.Router();
 
 // Mount routers
-router.use(validateToken);
+
+// Public routes (no token required)
+router.use('/leaderboard', leaderboardRouter);
+router.use('/', noRoleRouter);
+
+// Protected routes (token + role required)
 router.use(
   '/wrapped',
+  validateToken,
   validateUserRole(['PLAYER', 'STREAMER', 'SERVICE_TOKEN']),
   wrappedRouter,
 );
 router.use(
   '/player',
+  validateToken,
   validateUserRole(['PLAYER', 'STREAMER', 'SERVICE_TOKEN']),
   playerRouter,
 );
 router.use(
   '/team',
+  validateToken,
   validateUserRole(['PLAYER', 'STREAMER', 'SERVICE_TOKEN']),
   teamRouter,
 );
 router.use(
   '/game',
+  validateToken,
   validateUserRole(['PLAYER', 'STREAMER', 'SERVICE_TOKEN']),
   gameRouter,
 );
 router.use(
-  '/leaderboard',
-  validateUserRole(['PLAYER', 'STREAMER', 'SERVICE_TOKEN']),
-  leaderboardRouter,
-);
-router.use(
   '/streamer',
+  validateToken,
   validateUserRole(['STREAMER', 'SERVICE_TOKEN']),
   streamerRouter,
 );
 router.use(
   '/store',
+  validateToken,
   validateUserRole(['PLAYER', 'STREAMER', 'SERVICE_TOKEN']),
   storeRouter,
 );
 router.use(
   '/challenges',
+  validateToken,
   validateUserRole(['PLAYER', 'STREAMER', 'SERVICE_TOKEN']),
   challengesRouter,
 );
-router.use('/_system', validateUserRole(['SERVICE_TOKEN']), systemRouter);
-router.use('/', noRoleRouter);
+router.use(
+  '/_system',
+  validateToken,
+  validateUserRole(['SERVICE_TOKEN']),
+  systemRouter,
+);
 
 // Export
 export default router;
