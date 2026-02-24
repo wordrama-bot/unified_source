@@ -115,7 +115,7 @@ export const wordramaApiV3 = createApi({
     getMyChallenges: builder.query<any, string>({
       query: (filter) => {
         return {
-          url: `/api/v3/challenges/me?statusFilter=${filter}`,
+          url: `/api/v3/challenges/${playerId}?statusFilter=${filter}`,
           method: "GET",
           headers: {
             "Content-Type": "application/json"
@@ -128,7 +128,7 @@ export const wordramaApiV3 = createApi({
     getChallengesByUserId: builder.query<any, any>({
   query: ({ statusFilter }) => {
     return {
-      url: `/api/v3/challenges/me?statusFilter=${statusFilter}`,
+      url: `/api/v3/challenges/${playerId}?statusFilter=${statusFilter}`,
       method: "GET",
       headers: {
         "Content-Type": "application/json",
