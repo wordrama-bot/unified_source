@@ -9,6 +9,7 @@ import { router as wrappedRouter } from './wrapped';
 import { router as playerRouter } from './player';
 import { router as teamRouter } from './teams';
 import { router as gameRouter } from './game';
+import { router as uiRouter } from './ui';
 import { router as leaderboardRouter } from './leaderboard';
 import { router as streamerRouter } from './streamer';
 import { router as storeRouter } from './store';
@@ -48,6 +49,14 @@ router.use(
   validateToken,
   validateUserRole(['PLAYER', 'STREAMER', 'SERVICE_TOKEN']),
   gameRouter,
+);
+
+// ✅ UI state routes (fixes /api/v3/ui/state 404)
+router.use(
+  '/ui',
+  validateToken,
+  validateUserRole(['PLAYER', 'STREAMER', 'SERVICE_TOKEN']),
+  uiRouter,
 );
 
 router.use(
