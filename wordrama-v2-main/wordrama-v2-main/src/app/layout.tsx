@@ -134,7 +134,7 @@ export default function RootLayout({
         <link rel="apple-touch-icon" sizes="180x180" href="https://utfs.io/f/vieUBZcrouNZAQlt9XNmP3TuOXi7nZhtDBRLWH94oYU0IaCq" />
         <meta name="apple-mobile-web-app-title" content="Wordrama" />
         <link rel="manifest" href="/site.webmanifest" />
-        <link rel="preconnect" href="https://api.wordrama.io" />
+        <link rel="preconnect" href="https://wordrama-api-prod-dc5a257c0801.herokuapp.com" />
         <link rel="preconnect" href="https://pagead2.googlesyndication.com" />
         <link rel="preconnect" href="https://js.monitor.azure.com" />
         <link rel="preconnect" href="https://fundingchoicesmessages.google.com" />
