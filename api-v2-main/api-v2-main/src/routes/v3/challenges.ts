@@ -9,8 +9,5 @@ const authedPlayer = [
   validateUserRole(['PLAYER', 'STREAMER', 'SERVICE_TOKEN']),
 ] as const;
 
-// ✅ Authenticated "me" FIRST so it doesn't get swallowed by "/:playerId"
-router.get('/me', ...authedPlayer, challengeController.getAllMyChallenges);
-
-// ✅ Public by playerId
+router.get('/me', challengeController.getAllMyChallenges);
 router.get('/:playerId', challengeController.getAllMyChallenges);

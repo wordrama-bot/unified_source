@@ -19,13 +19,15 @@ async function getAllMyChallenges(req: ApiRequest, res: Response) {
     req.params.playerId || req.userId,
     req.query.statusFilter,
   );
-  if (!challenges || challenges.length === 0) return notFoundResponse(req, res);
+  if (!challenges || challenges.length === 0) {
+  return successfulResponse(req, res, [], "No challenges found", 0);
+  }
 
   return successfulResponse(
     req,
     res,
     challenges,
-    'Challenges Returned',
+    "Challenges Returned",
     challenges.length,
   );
 }
