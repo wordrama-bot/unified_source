@@ -9,12 +9,29 @@ import {
 
 import leaderboardService from '../services/leaderboard';
 
+function serviceUnavailable(res: Response, payload: unknown) {
+  console.error('Leaderboard service error / non-array response:', payload);
+  return res.status(503).json({
+    status: 503,
+    message: 'Leaderboard temporarily unavailable',
+    data: {},
+    count: 0,
+  });
+}
+
+function asNumber(value: unknown, fallback: number) {
+  const n = Number(value);
+  return Number.isFinite(n) && n > 0 ? n : fallback;
+}
+
 async function getLeaderboardPositionAllTime(req: ApiRequest, res: Response) {
   const userId = req.params.userId ? req.params.userId : req.userId;
 
   const leaderboard =
     await leaderboardService.getPlayerLeaderboardPositionAllTime(userId);
-  if (!leaderboard) return notFoundResponse(req, res);
+
+  if (!Array.isArray(leaderboard)) return serviceUnavailable(res, leaderboard);
+  if (leaderboard.length === 0) return notFoundResponse(req, res);
 
   return successfulResponse(
     req,
@@ -31,8 +48,9 @@ async function getLeaderboardPositionThisYear(req: ApiRequest, res: Response) {
 
   const leaderboard =
     await leaderboardService.getPlayerLeaderboardPositionThisYear(userId, year);
-  if (!leaderboard || leaderboard.length === 0)
-    return notFoundResponse(req, res);
+
+  if (!Array.isArray(leaderboard)) return serviceUnavailable(res, leaderboard);
+  if (leaderboard.length === 0) return notFoundResponse(req, res);
 
   return successfulResponse(
     req,
@@ -53,8 +71,9 @@ async function getLeaderboardPositionThisMonth(req: ApiRequest, res: Response) {
       month,
       year,
     );
-  if (!leaderboard || leaderboard.length === 0)
-    return notFoundResponse(req, res);
+
+  if (!Array.isArray(leaderboard)) return serviceUnavailable(res, leaderboard);
+  if (leaderboard.length === 0) return notFoundResponse(req, res);
 
   return successfulResponse(
     req,
@@ -75,8 +94,9 @@ async function getLeaderboardPositionThisWeek(req: ApiRequest, res: Response) {
       week,
       year,
     );
-  if (!leaderboard || leaderboard.length === 0)
-    return notFoundResponse(req, res);
+
+  if (!Array.isArray(leaderboard)) return serviceUnavailable(res, leaderboard);
+  if (leaderboard.length === 0) return notFoundResponse(req, res);
 
   return successfulResponse(
     req,
@@ -98,8 +118,9 @@ async function getLeaderboardPositionToday(req: ApiRequest, res: Response) {
       month,
       year,
     );
-  if (!leaderboard || leaderboard.length === 0)
-    return notFoundResponse(req, res);
+
+  if (!Array.isArray(leaderboard)) return serviceUnavailable(res, leaderboard);
+  if (leaderboard.length === 0) return notFoundResponse(req, res);
 
   return successfulResponse(
     req,
@@ -111,9 +132,9 @@ async function getLeaderboardPositionToday(req: ApiRequest, res: Response) {
 }
 
 async function getLeaderboardAllTime(req: ApiRequest, res: Response) {
-  const orderBy = req.query.orderBy || 'alltime_rank';
-  const page = Number(req.query.page) || 1;
-  const limit = Number(req.query.limit) || 10;
+  const orderBy = (req.query.orderBy as string) || 'alltime_rank';
+  const page = asNumber(req.query.page, 1);
+  const limit = asNumber(req.query.limit, 10);
   const offset = (page - 1) * limit;
 
   const leaderboardLength =
@@ -126,19 +147,17 @@ async function getLeaderboardAllTime(req: ApiRequest, res: Response) {
     page,
   );
 
-  if (!leaderboard || leaderboard.length === 0)
-    return notFoundResponse(req, res);
+  if (!Array.isArray(leaderboard)) return serviceUnavailable(res, leaderboard);
+  if (leaderboard.length === 0) return notFoundResponse(req, res);
 
-  const totalPages = Math.ceil(leaderboardLength / limit);
+  const totalPages = Math.max(1, Math.ceil(leaderboardLength / limit));
   return successfulResponse(
     req,
     res,
-    leaderboard.map((item, idx) => {
-      return {
-        ...item,
-        position: offset + idx + 1,
-      };
-    }),
+    leaderboard.map((item, idx) => ({
+      ...item,
+      position: offset + idx + 1,
+    })),
     'All Time Leaderboard Returned',
     leaderboard.length,
     {
@@ -152,9 +171,9 @@ async function getLeaderboardAllTime(req: ApiRequest, res: Response) {
 }
 
 async function getLeaderboardForTheYear(req: ApiRequest, res: Response) {
-  const orderBy = req.query.orderBy || 'yearly_rank';
-  const page = Number(req.query.page) || 1;
-  const limit = Number(req.query.limit) || 10;
+  const orderBy = (req.query.orderBy as string) || 'yearly_rank';
+  const page = asNumber(req.query.page, 1);
+  const limit = asNumber(req.query.limit, 10);
   const offset = (page - 1) * limit;
 
   const leaderboardLength =
@@ -166,19 +185,17 @@ async function getLeaderboardForTheYear(req: ApiRequest, res: Response) {
     limit,
   );
 
-  if (!leaderboard || leaderboard.length === 0)
-    return notFoundResponse(req, res);
+  if (!Array.isArray(leaderboard)) return serviceUnavailable(res, leaderboard);
+  if (leaderboard.length === 0) return notFoundResponse(req, res);
 
-  const totalPages = Math.ceil(leaderboardLength / limit);
+  const totalPages = Math.max(1, Math.ceil(leaderboardLength / limit));
   return successfulResponse(
     req,
     res,
-    leaderboard.map((item, idx) => {
-      return {
-        ...item,
-        position: offset + idx + 1,
-      };
-    }),
+    leaderboard.map((item, idx) => ({
+      ...item,
+      position: offset + idx + 1,
+    })),
     'Yearly Leaderboard Returned',
     leaderboard.length,
     {
@@ -192,9 +209,9 @@ async function getLeaderboardForTheYear(req: ApiRequest, res: Response) {
 }
 
 async function getLeaderboardForTheMonth(req: ApiRequest, res: Response) {
-  const orderBy = req.query.orderBy || 'monthly_rank';
-  const page = Number(req.query.page) || 1;
-  const limit = Number(req.query.limit) || 10;
+  const orderBy = (req.query.orderBy as string) || 'monthly_rank';
+  const page = asNumber(req.query.page, 1);
+  const limit = asNumber(req.query.limit, 10);
   const offset = (page - 1) * limit;
 
   const leaderboardLength =
@@ -205,19 +222,18 @@ async function getLeaderboardForTheMonth(req: ApiRequest, res: Response) {
     offset,
     limit,
   );
-  if (!leaderboard || leaderboard.length === 0)
-    return notFoundResponse(req, res);
 
-  const totalPages = Math.ceil(leaderboardLength / limit);
+  if (!Array.isArray(leaderboard)) return serviceUnavailable(res, leaderboard);
+  if (leaderboard.length === 0) return notFoundResponse(req, res);
+
+  const totalPages = Math.max(1, Math.ceil(leaderboardLength / limit));
   return successfulResponse(
     req,
     res,
-    leaderboard.map((item, idx) => {
-      return {
-        ...item,
-        position: offset + idx + 1,
-      };
-    }),
+    leaderboard.map((item, idx) => ({
+      ...item,
+      position: offset + idx + 1,
+    })),
     'Monthly Leaderboard Returned',
     leaderboard.length,
     {
@@ -231,9 +247,9 @@ async function getLeaderboardForTheMonth(req: ApiRequest, res: Response) {
 }
 
 async function getLeaderboardForThisWeek(req: ApiRequest, res: Response) {
-  const orderBy = req.query.orderBy || 'weekly_rank';
-  const page = Number(req.query.page) || 1;
-  const limit = req.query.limit || 10;
+  const orderBy = (req.query.orderBy as string) || 'weekly_rank';
+  const page = asNumber(req.query.page, 1);
+  const limit = asNumber(req.query.limit, 10);
   const offset = (page - 1) * limit;
 
   const leaderboardLength =
@@ -244,19 +260,18 @@ async function getLeaderboardForThisWeek(req: ApiRequest, res: Response) {
     offset,
     limit,
   );
-  if (!leaderboard || leaderboard.length === 0)
-    return notFoundResponse(req, res);
 
-  const totalPages = Math.ceil(leaderboardLength / limit);
+  if (!Array.isArray(leaderboard)) return serviceUnavailable(res, leaderboard);
+  if (leaderboard.length === 0) return notFoundResponse(req, res);
+
+  const totalPages = Math.max(1, Math.ceil(leaderboardLength / limit));
   return successfulResponse(
     req,
     res,
-    leaderboard.map((item, idx) => {
-      return {
-        ...item,
-        position: offset + idx + 1,
-      };
-    }),
+    leaderboard.map((item, idx) => ({
+      ...item,
+      position: offset + idx + 1,
+    })),
     'Weekly Leaderboard Returned',
     leaderboard.length,
     {
@@ -270,9 +285,9 @@ async function getLeaderboardForThisWeek(req: ApiRequest, res: Response) {
 }
 
 async function getLeaderboardForToday(req: ApiRequest, res: Response) {
-  const orderBy = req.query.orderBy || 'daily_rank';
-  const page = Number(req.query.page) || 1;
-  const limit = req.query.limit || 10;
+  const orderBy = (req.query.orderBy as string) || 'daily_rank';
+  const page = asNumber(req.query.page, 1);
+  const limit = asNumber(req.query.limit, 10);
   const offset = (page - 1) * limit;
 
   const leaderboardLength =
@@ -287,26 +302,20 @@ async function getLeaderboardForToday(req: ApiRequest, res: Response) {
     new Date().getFullYear(),
   );
 
-  if (!leaderboard) return notFoundResponse(req, res);
-  else if (leaderboard.length === 0)
-    return successfulResponse(
-      req,
-      res,
-      [],
-      'Daily Leaderboard Returned',
-      leaderboard.length,
-    );
+  if (!Array.isArray(leaderboard)) return serviceUnavailable(res, leaderboard);
 
-  const totalPages = Math.ceil(leaderboardLength / limit);
+  if (leaderboard.length === 0) {
+    return successfulResponse(req, res, [], 'Daily Leaderboard Returned', 0);
+  }
+
+  const totalPages = Math.max(1, Math.ceil(leaderboardLength / limit));
   return successfulResponse(
     req,
     res,
-    leaderboard.map((item, idx) => {
-      return {
-        ...item,
-        position: offset + idx + 1,
-      };
-    }),
+    leaderboard.map((item, idx) => ({
+      ...item,
+      position: offset + idx + 1,
+    })),
     'Daily Leaderboard Returned',
     leaderboard.length,
     {
