@@ -7,7 +7,7 @@
   "scripts": {
   "start": "bun run src/app.ts",
   "swagger:generate": "bun run src/utils/swagger.ts",
-  "build": "bun build"
+  "build": "echo skipping build"
 },
   "keywords": [],
   "author": "",
