@@ -1,4 +1,3 @@
-notepad C:\wordrama\unified_source\api-v2-main\api-v2-main\src\routes\v3\index.tsimport express from 'express';
 import {
   validateToken,
   validateUserRole,
