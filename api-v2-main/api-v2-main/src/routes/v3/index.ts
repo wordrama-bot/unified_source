@@ -1,8 +1,5 @@
 import { Router } from 'express';
-import {
-  validateToken,
-  validateUserRole,
-} from '../../middleware/tokenValidation';
+import { validateToken, validateUserRole } from '../../middleware/tokenValidation';
 
 // Routes
 import { router as wrappedRouter } from './wrapped';
@@ -19,76 +16,44 @@ import { router as noRoleRouter } from './noRole';
 
 export const router = Router();
 
-// Public routes (no token required)
-router.use('/leaderboard', leaderboardRouter);
-
-// Protected routes (token + role required)
-router.use(
-  '/wrapped',
+const authedPlayer = [
   validateToken,
   validateUserRole(['PLAYER', 'STREAMER', 'SERVICE_TOKEN']),
-  wrappedRouter,
-);
+] as const;
 
-router.use(
-  '/player',
-  validateToken,
-  validateUserRole(['PLAYER', 'STREAMER', 'SERVICE_TOKEN']),
-  playerRouter,
-);
-
-router.use(
-  '/team',
-  validateToken,
-  validateUserRole(['PLAYER', 'STREAMER', 'SERVICE_TOKEN']),
-  teamRouter,
-);
-
-router.use(
-  '/game',
-  validateToken,
-  validateUserRole(['PLAYER', 'STREAMER', 'SERVICE_TOKEN']),
-  gameRouter,
-);
-
-// ✅ UI state routes (fixes /api/v3/ui/state 404)
-router.use(
-  '/ui',
-  validateToken,
-  validateUserRole(['PLAYER', 'STREAMER', 'SERVICE_TOKEN']),
-  uiRouter,
-);
-
-router.use(
-  '/streamer',
+const authedStreamer = [
   validateToken,
   validateUserRole(['STREAMER', 'SERVICE_TOKEN']),
-  streamerRouter,
-);
+] as const;
 
-router.use(
-  '/store',
-  validateToken,
-  validateUserRole(['PLAYER', 'STREAMER', 'SERVICE_TOKEN']),
-  storeRouter,
-);
-
-router.use(
-  '/challenges',
-  validateToken,
-  validateUserRole(['PLAYER', 'STREAMER', 'SERVICE_TOKEN']),
-  challengesRouter,
-);
-
-router.use(
-  '/_system',
+const authedService = [
   validateToken,
   validateUserRole(['SERVICE_TOKEN']),
-  systemRouter,
-);
+] as const;
+
+// Public routes (no token required)
+router.use('/leaderboard', leaderboardRouter);
+router.use('/challenges', challengesRouter);
+
+// Protected routes (token + role required)
+router.use('/wrapped', ...authedPlayer, wrappedRouter);
+
+router.use('/player', ...authedPlayer, playerRouter);
+
+router.use('/team', ...authedPlayer, teamRouter);
+
+router.use('/game', ...authedPlayer, gameRouter);
+
+// UI state routes
+router.use('/ui', ...authedPlayer, uiRouter);
+
+router.use('/streamer', ...authedStreamer, streamerRouter);
+
+router.use('/store', ...authedPlayer, storeRouter);
+
+router.use('/_system', ...authedService, systemRouter);
 
 // Fallback / public misc routes (keep LAST so it doesn't swallow others)
 router.use('/', noRoleRouter);
 
-// Export
 export default router;
