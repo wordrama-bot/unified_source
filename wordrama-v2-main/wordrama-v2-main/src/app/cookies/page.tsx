@@ -14,7 +14,7 @@ export default function CookiePolicyPage() {
       />
       <div className="container mx-auto p-4">
         <h1 className="text-4xl font-bold mb-6">Cookie Policy</h1>
-        <p className="text-sm text-gray-500">Last updated October 26, 2024</p>
+        <p className="text-sm text-gray-500">Last updated February 24, 2026</p>
 
         <section className="my-8">
           <p className="mt-2">This Cookie Policy explains how Wordrama ("Company," "we," "us," and "our") uses cookies and similar technologies to recognize you when you visit our website at <a href="https://wordrama.io" className='text-blue-500 hover:underline'>https://wordrama.io</a> ("Website"). It explains what these technologies are and why we use them, as well as your rights to control our use of them.</p>
