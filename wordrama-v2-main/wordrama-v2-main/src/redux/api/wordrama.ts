@@ -5,7 +5,27 @@ import { API_BASE_URL } from '@/lib/config';
 // Setting up the API Slice
 export const wordramaApiV3 = createApi({
   reducerPath: "wordramaApi",
-  baseQuery: fetchBaseQuery({ baseUrl: API_BASE_URL, credentials: "include" }),
+  baseQuery: fetchBaseQuery({
+  baseUrl: API_BASE_URL,
+  credentials: "include",
+  prepareHeaders: async (headers) => {
+    try {
+      const { createClient } = await import("@supabase/supabase-js");
+
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+      const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+      const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+      const { data } = await supabase.auth.getSession();
+      const token = data?.session?.access_token;
+
+      if (token) headers.set("authorization", `Bearer ${token}`);
+    } catch (e) {
+      // ignore
+    }
+    return headers;
+  },
+}),
   tagTypes: [
     'Player',
     'Stats',
