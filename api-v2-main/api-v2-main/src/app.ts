@@ -2,7 +2,7 @@ import * as cookieParser from 'cookie-parser';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import express, { Express } from 'express';
-//import { pinoHttp as pino } from 'pino-http';
+// import { pinoHttp as pino } from 'pino-http';
 import helmet from 'helmet';
 import swaggerUi from 'swagger-ui-express';
 import swaggerFile from '../swagger.json';
@@ -21,14 +21,32 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cookieParser.default());
 app.use(express.static('public'));
+
+// CORS (supports comma-separated list in CORS_ORIGIN, e.g. "https://wordrama.io,https://www.wordrama.io")
+const allowedOrigins = (process.env.CORS_ORIGIN || '')
+  .split(',')
+  .map((o) => o.trim())
+  .filter(Boolean);
+
 app.use(
   cors({
-    origin: process.env.CORS_ORIGIN || 'https://wordrama.io',
+    origin: (origin, callback) => {
+      // Allow non-browser clients (curl, health checks)
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.length === 0) return callback(null, true);
+
+      if (allowedOrigins.includes(origin)) return callback(null, true);
+
+      return callback(new Error(`Not allowed by CORS: ${origin}`));
+    },
     credentials: true,
   }),
 );
+
 // Logging middleware
-/* app.use(
+/*
+app.use(
   pino({
     serializers: {
       req: (req) => ({
@@ -38,9 +56,10 @@ app.use(
       }),
     },
   }),
-); */
+);
+*/
 
-// Mount router
+// Routes
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerFile));
 app.get('/health', (req, res) => res.json({ status: 'ok' }));
 app.use('/api/v3', v3PublicRouter);
