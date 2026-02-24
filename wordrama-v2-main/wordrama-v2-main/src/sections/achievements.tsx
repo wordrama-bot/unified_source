@@ -20,7 +20,7 @@ import {
 
 import { useGetMyAccountQuery, useGetMyChallengesQuery } from "@/redux/api/wordrama";
 
-type StatusFilter = "ALL" | "LOCKED" | "IN_PROGRESS" | "COMPLETE";
+type StatusFilter = "ALL" | "LOCKED" | "IN_PROGRESS" | "COMPLETED";
 type ChallengeStatus = "LOCKED" | "UNLOCKED" | "IN_PROGRESS" | "COMPLETE" | string;
 
 function getRewardText(coinReward?: number, xpReward?: number) {
@@ -34,7 +34,7 @@ function getRewardText(coinReward?: number, xpReward?: number) {
 
 function getStatusLabel(status?: ChallengeStatus) {
   switch (status) {
-    case "COMPLETE":
+    case "COMPLETED":
       return "Complete";
     case "IN_PROGRESS":
       return "In Progress";
@@ -123,8 +123,8 @@ export default function Achievements() {
                   </div>
 
                   <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="COMPLETE" id="COMPLETE" />
-                    <Label htmlFor="COMPLETE">Complete</Label>
+                    <RadioGroupItem value="COMPLETED" id="COMPLETED" />
+                    <Label htmlFor="COMPLETED">Complete</Label>
                   </div>
                 </RadioGroup>
               </div>
@@ -185,7 +185,7 @@ export default function Achievements() {
                   <Separator className="mt-4 mb-4" />
                   <Progress value={numericProgress} className="w-[100%]" />
                 </>
-              ) : status === "COMPLETE" ? (
+              ) : status === "COMPLETED" ? (
                 <p className="text-center text-6xl">🏆</p>
               ) : null}
             </div>
