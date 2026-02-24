@@ -5,7 +5,7 @@ import { API_BASE_URL } from '@/lib/config';
 // Setting up the API Slice
 export const wordramaApiV3 = createApi({
   reducerPath: "wordramaApi",
-  baseQuery: fetchBaseQuery({ baseUrl: API_BASE_URL }),
+  baseQuery: fetchBaseQuery({ baseUrl: API_BASE_URL, credentials: "include" }),
   tagTypes: [
     'Player',
     'Stats',
