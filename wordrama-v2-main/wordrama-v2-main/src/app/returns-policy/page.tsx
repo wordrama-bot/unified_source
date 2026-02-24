@@ -14,7 +14,7 @@ export default function ReturnPolicyPage() {
       />
       <div className="container mx-auto p-4">
         <h1 className="text-4xl font-bold mb-6">Returns Policy</h1>
-        <p className="text-sm text-gray-500">Last updated October 26, 2024</p>
+        <p className="text-sm text-gray-500">Last updated February 24, 2026</p>
 
         <section className="my-8">
           <p className="mt-2">Thank you for your purchase. We hope you are happy with your purchase. However, if you are not completely satisfied with your purchase for any reason, you may return it to us for a full refund or store credit (in-game credit). Please see below for more information on our return policy.</p>
@@ -28,7 +28,7 @@ export default function ReturnPolicyPage() {
         <section id="process" className="my-8">
           <h2 className="text-2xl font-semibold">Return Process</h2>
           <p className="mt-2">
-            To return an item, please email customer service at support@wordrama.io to obtain a Return Merchandise Authorisation (RMA) number. After receiving a RMA number, please send an email with the RMA number in the subject to confirm the return
+            To return an item, please email customer service at <a href="mailto:support@wordrama.io" className="text-blue-500 hover:underline">support@wordrama.io</a> to obtain a Return Merchandise Authorisation (RMA) number. After receiving a RMA number, please send an email with the RMA number in the subject to confirm the return
           </p>
         </section>
 
@@ -61,7 +61,7 @@ export default function ReturnPolicyPage() {
         <section id="questions" className="my-8">
           <h2 className="text-2xl font-semibold">Questions</h2>
           <p className="mt-2">
-            If you have any questions concerning our return policy, please contact us at: <a href="mailto:support@wordrama.io" className="text-blue-500 hover:underline">support@wordrama.io</a>
+            If you have any questions concerning our return policy, please contact us at: <a href="mailto:support@wordrama.io" className="text-blue-500 hover:underline">support@wordrama.io</a>.
           </p>
         </section>
       </div>
