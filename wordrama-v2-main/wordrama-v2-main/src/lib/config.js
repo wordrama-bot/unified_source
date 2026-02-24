@@ -1,4 +1,4 @@
-export const API_BASE_URL = 'https://wordrama-api-prod.herokuapp.com'; // BUILD_MARKER_2026_02_23_1
+export const API_BASE_URL = 'https://wordrama-api-prod-dc5a257c0801.herokuapp.com'; // BUILD_MARKER_2026_02_23_1
 export const SOCKET_BASE_URL = 'http://localhost:4000';
 export const MAX_FILE_SIZE_MB = Number(process?.env?.NEXT_MAX_FILE_SIZE_MB) || 5;
 export const APP_INSIGHTS = 'InstrumentationKey=9375a2b1-6c08-423c-85df-9678bfaf4f5b;IngestionEndpoint=https://uksouth-1.in.applicationinsights.azure.com/;LiveEndpoint=https://uksouth.livediagnostics.monitor.azure.com/;ApplicationId=c51d62bf-88ef-423e-9798-b81203d56267'
