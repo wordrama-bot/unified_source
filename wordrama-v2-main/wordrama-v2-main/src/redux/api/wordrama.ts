@@ -8,21 +8,31 @@ export const wordramaApiV3 = createApi({
   baseQuery: fetchBaseQuery({
   baseUrl: API_BASE_URL,
   credentials: "include",
-  prepareHeaders: async (headers) => {
+  prepareHeaders: (headers) => {
     try {
-      const { createClient } = await import("@supabase/supabase-js");
+      // Supabase project ref (yours)
+      const projectRef = "qflfxxbnhwaxkxsygjqu";
 
-      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-      const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-      const supabase = createClient(supabaseUrl, supabaseAnonKey);
+      // Supabase stores the session JSON in localStorage under this key
+      const raw = localStorage.getItem(`sb-${projectRef}-auth-token`);
 
-      const { data } = await supabase.auth.getSession();
-      const token = data?.session?.access_token;
+      if (raw) {
+        const session = JSON.parse(raw);
 
-      if (token) headers.set("authorization", `Bearer ${token}`);
+        // session can be { access_token, token_type, ... } depending on Supabase version
+        const accessToken =
+          session?.access_token ||
+          session?.currentSession?.access_token ||
+          session?.data?.session?.access_token;
+
+        if (accessToken) {
+          headers.set("authorization", `Bearer ${accessToken}`);
+        }
+      }
     } catch (e) {
-      // ignore
+      // ignore parse errors
     }
+
     return headers;
   },
 }),
