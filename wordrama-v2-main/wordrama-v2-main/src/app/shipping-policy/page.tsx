@@ -14,7 +14,7 @@ export default function ShippingPolicyPage() {
       />
       <div className="container mx-auto p-4">
         <h1 className="text-4xl font-bold mb-6">Shipping & Delivery Policy</h1>
-        <p className="text-sm text-gray-500">Last updated October 26, 2024</p>
+        <p className="text-sm text-gray-500">Last updated febraury 24, 2026</p>
 
         <section className="my-8">
           <p className="mt-2">This Shipping & Delivery Policy is part of our Terms of Use ("Terms") and should be therefore read alongside our main Terms: <a href="https://wordrama.io/terms-of-use" className='text-blue-500 hover:underline'>https://wordrama.io/terms-of-use.</a></p>
