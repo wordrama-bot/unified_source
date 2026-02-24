@@ -490,7 +490,7 @@ export default function PrivacyPolicy() {
           </ul>
 
           <h3 className="text-xl font-semibold mt-4">How to Exercise Your Rights</h3>
-          <p className='mt-4'>To exercise these rights, you can contact us by visiting <a href="https://forms.office.com/e/jemPRTFjmU" className="text-blue-200 hover:underline">Data Request Form</a>, by emailing us at <a href="mailto:support@wordrama.io" className='text-blue-500 hover:underline'>support@wordrama.io</a>, by visiting <a href="https://forms.office.com/e/WCW3FcsDgW" className='text-blue-200 hover:underline'>Contact Form</a>, or by referring to the contact details at the bottom of this document.</p>
+          <p className='mt-4'>To exercise these rights, you can contact us by emailing us at <a href="mailto:support@wordrama.io" className='text-blue-500 hover:underline'>support@wordrama.io</a>.</p>
           <p className='mt-4'>You can opt out from the selling of your personal information, targeted advertising, or profiling by disabling cookies in Cookie Preference Settings.</p>
           <p className='mt-4'>Under certain US state data protection laws, you can designate an authorised agent to make a request on your behalf. We may deny a request from an authorised agent that does not submit proof that they have been validly authorised to act on your behalf in accordance with applicable laws.</p>
 
@@ -549,7 +549,7 @@ export default function PrivacyPolicy() {
         <section className="my-8">
           <h2 id="contact" className="text-2xl font-semibold">16. How can you contact us about this notice?</h2>
 
-          <p className='mt-4'>If you have questions or comments about this notice, you may contact our Data Protection Officer (DPO) by email at <a href="mailto:support@wordrama.io" className="text-blue-500 hover:underline">support@wordrama.io</a></p>
+          <p className='mt-4'>If you have questions or comments about this notice, you may contact us by email at <a href="mailto:support@wordrama.io" className="text-blue-500 hover:underline">support@wordrama.io</a></p>
         </section>
 
         {/* HOW CAN YOU REVIEW, UPDATE, OR DELETE THE DATA WE COLLECT FROM YOU? */}
