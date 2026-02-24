@@ -14,7 +14,7 @@ export default function Disclaimer() {
       />
       <div className="container mx-auto p-4">
         <h1 className="text-4xl font-bold mb-6">Disclaimers</h1>
-        <p className="text-sm text-gray-500">Last updated October 26, 2024</p>
+        <p className="text-sm text-gray-500">Last updated Febraury 24, 2026</p>
 
         <section className="my-8">
           <h2 className="text-2xl font-semibold">Website Diaclaimer</h2>
