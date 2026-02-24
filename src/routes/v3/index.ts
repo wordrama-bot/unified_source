@@ -1,3 +1,4 @@
+import { Router } from 'express';
 import {
   validateToken,
   validateUserRole,
@@ -15,13 +16,10 @@ import { router as challengesRouter } from './challenges';
 import { router as systemRouter } from './system';
 import { router as noRoleRouter } from './noRole';
 
-export const router = express.Router();
-
-// Mount routers
+export const router = Router();
 
 // Public routes (no token required)
 router.use('/leaderboard', leaderboardRouter);
-router.use('/', noRoleRouter);
 
 // Protected routes (token + role required)
 router.use(
@@ -30,48 +28,58 @@ router.use(
   validateUserRole(['PLAYER', 'STREAMER', 'SERVICE_TOKEN']),
   wrappedRouter,
 );
+
 router.use(
   '/player',
   validateToken,
   validateUserRole(['PLAYER', 'STREAMER', 'SERVICE_TOKEN']),
   playerRouter,
 );
+
 router.use(
   '/team',
   validateToken,
   validateUserRole(['PLAYER', 'STREAMER', 'SERVICE_TOKEN']),
   teamRouter,
 );
+
 router.use(
   '/game',
   validateToken,
   validateUserRole(['PLAYER', 'STREAMER', 'SERVICE_TOKEN']),
   gameRouter,
 );
+
 router.use(
   '/streamer',
   validateToken,
   validateUserRole(['STREAMER', 'SERVICE_TOKEN']),
   streamerRouter,
 );
+
 router.use(
   '/store',
   validateToken,
   validateUserRole(['PLAYER', 'STREAMER', 'SERVICE_TOKEN']),
   storeRouter,
 );
+
 router.use(
   '/challenges',
   validateToken,
   validateUserRole(['PLAYER', 'STREAMER', 'SERVICE_TOKEN']),
   challengesRouter,
 );
+
 router.use(
   '/_system',
   validateToken,
   validateUserRole(['SERVICE_TOKEN']),
   systemRouter,
 );
+
+// Fallback / public misc routes (keep LAST so it doesn't swallow others)
+router.use('/', noRoleRouter);
 
 // Export
 export default router;
