@@ -11,10 +11,15 @@ import { router as leaderboardRouter } from './leaderboard';
 import { router as streamerRouter } from './streamer';
 import { router as storeRouter } from './store';
 import { router as challengesRouter } from './challenges';
+import { router as migrateRouter } from './migrate';
 import { router as systemRouter } from './system';
 import { router as noRoleRouter } from './noRole';
 
 export const router = Router();
+
+/* ---------------------------------- */
+/* Role Middleware Groups             */
+/* ---------------------------------- */
 
 const authedPlayer = [
   validateToken,
@@ -31,11 +36,17 @@ const authedService = [
   validateUserRole(['SERVICE_TOKEN']),
 ] as const;
 
-// Public routes (no token required)
+/* ---------------------------------- */
+/* Public Routes                      */
+/* ---------------------------------- */
+
 router.use('/leaderboard', leaderboardRouter);
 router.use('/challenges', challengesRouter);
 
-// Protected routes (token + role required)
+/* ---------------------------------- */
+/* Protected Routes                   */
+/* ---------------------------------- */
+
 router.use('/wrapped', ...authedPlayer, wrappedRouter);
 
 router.use('/player', ...authedPlayer, playerRouter);
@@ -44,16 +55,26 @@ router.use('/team', ...authedPlayer, teamRouter);
 
 router.use('/game', ...authedPlayer, gameRouter);
 
-// UI state routes
 router.use('/ui', ...authedPlayer, uiRouter);
 
 router.use('/streamer', ...authedStreamer, streamerRouter);
 
 router.use('/store', ...authedPlayer, storeRouter);
 
+/* ---------------------------------- */
+/* SERVICE TOKEN ONLY ROUTES          */
+/* ---------------------------------- */
+
+// 🔥 Migration endpoint (challenge backfill lives here)
+router.use('/migrate', ...authedService, migrateRouter);
+
+// Existing internal system routes
 router.use('/_system', ...authedService, systemRouter);
 
-// Fallback / public misc routes (keep LAST so it doesn't swallow others)
+/* ---------------------------------- */
+/* Fallback (KEEP LAST)               */
+/* ---------------------------------- */
+
 router.use('/', noRoleRouter);
 
 export default router;
