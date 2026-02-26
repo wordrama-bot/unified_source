@@ -20,7 +20,7 @@ import {
 
 import { useGetMyAccountQuery, useGetMyChallengesQuery } from "@/redux/api/wordrama";
 
-type StatusFilter = "ALL" | "LOCKED" | "IN_PROGRESS" | "COMPLETED";
+type StatusFilter = "ALL" | "LOCKED" | "IN_PROGRESS" | "COMPLETE";
 type ChallengeStatus = "LOCKED" | "UNLOCKED" | "IN_PROGRESS" | "COMPLETE" | string;
 
 function getRewardText(coinReward?: number, xpReward?: number) {
@@ -34,7 +34,7 @@ function getRewardText(coinReward?: number, xpReward?: number) {
 
 function getStatusLabel(status?: ChallengeStatus) {
   switch (status) {
-    case "COMPLETED":
+    case "COMPLETE":
       return "Complete";
     case "IN_PROGRESS":
       return "In Progress";
@@ -103,7 +103,6 @@ export default function Achievements() {
                 <Label className="text-right">Status</Label>
 
                 <RadioGroup
-                  defaultValue="ALL"
                   value={statusFilter}
                   onValueChange={(value) => setStatusFilter(value as StatusFilter)}
                 >
@@ -123,8 +122,8 @@ export default function Achievements() {
                   </div>
 
                   <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="COMPLETED" id="COMPLETED" />
-                    <Label htmlFor="COMPLETED">Complete</Label>
+                    <RadioGroupItem value="COMPLETE" id="COMPLETE" />
+                    <Label htmlFor="COMPLETE">Completed</Label>
                   </div>
                 </RadioGroup>
               </div>
@@ -152,16 +151,15 @@ export default function Achievements() {
 
         {/* Cards */}
         {challenges.map((challenge: any, challengeIdx: number) => {
-          const { name, description, coinReward, xpReward, progress, status } =
-            challenge ?? {};
-
+          const { name, description, coinReward, xpReward, progress } = challenge ?? {};
+	  const status = String(challenge?.status ?? "").toUpperCase();
           const reward = getRewardText(coinReward, xpReward);
           const statusLabel = getStatusLabel(status);
           const numericProgress = Number(progress ?? 0);
 
           return (
             <div
-              key={challengeIdx}
+              key={`${challenge.challengeId ?? challenge.challenge_id ?? challengeIdx}-${statusFilter}`}
               className={`${
                 status === "LOCKED" ? "grayscale" : ""
               } border-2 border-border dark:border-darkBorder shadow-light dark:shadow-dark dark:bg-darkBg flex flex-col gap-3 rounded-base bg-bg p-5`}
@@ -185,7 +183,7 @@ export default function Achievements() {
                   <Separator className="mt-4 mb-4" />
                   <Progress value={numericProgress} className="w-[100%]" />
                 </>
-              ) : status === "COMPLETED" ? (
+              ) : status === "COMPLETE" ? (
                 <p className="text-center text-6xl">🏆</p>
               ) : null}
             </div>
