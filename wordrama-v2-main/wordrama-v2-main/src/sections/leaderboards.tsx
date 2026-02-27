@@ -399,7 +399,7 @@ export function Support() {
           <Heart className="h-6 w-6 fill-current" />
           <span className="text-lg font-semibold">Show your support</span>
         </div>
-        <a href="https://www.paypal.com/donate/?hosted_button_id=K7RSMZHM2FFLJ">
+        <a href="https://www.paypal.com/donate/?hosted_button_id=8HD7JB6ZSW47A">
           <Button className="bg-white text-purple-600 hover:bg-gray-100">
             Support Now
           </Button>
