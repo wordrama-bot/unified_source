@@ -4,7 +4,7 @@ import moment from 'moment-timezone';
 
 async function getPlayerLeaderboardPositionAllTime(userId: string) {
   const { data, error } = await db
-    .from('_v_wordle_alltime_leaderboard')
+    .from('_mv_wordle_alltime_leaderboard')
     .select('*')
     .eq('player', userId)
     .maybeSingle();
@@ -22,7 +22,7 @@ async function getPlayerLeaderboardPositionThisYear(
   year: number = new Date().getFullYear(),
 ) {
   const { data, error } = await db
-    .from('_v_wordle_yearly_leaderboard')
+    .from('_mv_wordle_yearly_leaderboard')
     .select('*')
     .eq('player', userId)
     .eq('year', year)
@@ -42,7 +42,7 @@ async function getPlayerLeaderboardPositionThisMonth(
   year: number = new Date().getFullYear(),
 ) {
   const { data, error } = await db
-    .from('_v_wordle_monthly_leaderboard')
+    .from('_mv_wordle_monthly_leaderboard')
     .select('*')
     .eq('player', userId)
     .eq('month', month)
@@ -63,7 +63,7 @@ async function getPlayerLeaderboardPositionThisWeek(
   year: number = new Date().getFullYear(),
 ) {
   const { data, error } = await db
-    .from('_v_wordle_weekly_leaderboard')
+    .from('_mv_wordle_weekly_leaderboard')
     .select('*')
     .eq('player', userId)
     .eq('week', week)
@@ -85,7 +85,7 @@ async function getPlayerLeaderboardPositionToday(
   year: number = new Date().getFullYear(),
 ) {
   const { data, error } = await db
-    .from('_v_wordle_daily_leaderboard')
+    .from('_mv_wordle_daily_leaderboard')
     .select('*')
     .eq('player', userId)
     .eq('day', day)
@@ -107,7 +107,7 @@ async function getPlayerLeaderboardAllTime(
   limit: number = 10,
 ) {
   const { data, error } = await db
-    .from('_v_wordle_alltime_leaderboard')
+    .from('_mv_wordle_alltime_leaderboard')
     .select('*')
     .order(orderBy, { ascending: true })
     .range(offset, offset + limit - 1);
@@ -127,7 +127,7 @@ async function getPlayerLeaderboardForTheYear(
   year: number = new Date().getFullYear(),
 ) {
   const { data, error } = await db
-    .from('_v_wordle_yearly_leaderboard')
+    .from('_mv_wordle_yearly_leaderboard')
     .select('*, _players ( _levels (level), _ledger (coin_balance))')
     .order(orderBy, { ascending: true })
     .range(offset, offset + limit - 1)
@@ -149,7 +149,7 @@ async function getPlayerLeaderboardForTheMonth(
   year: number = new Date().getFullYear(),
 ) {
   const { data, error } = await db
-    .from('_v_wordle_monthly_leaderboard')
+    .from('_mv_wordle_monthly_leaderboard')
     .select('*, _players ( _levels (level), _ledger (coin_balance))')
     .order(orderBy, { ascending: true })
     .range(offset, offset + limit - 1)
@@ -172,7 +172,7 @@ async function getPlayerLeaderboardForThisWeek(
   year: number = new Date().getFullYear(),
 ) {
   const { data, error } = await db
-    .from('_v_wordle_weekly_leaderboard')
+    .from('_mv_wordle_weekly_leaderboard')
     .select('*, _players ( _levels (level), _ledger (coin_balance))')
     .order(orderBy, { ascending: true })
     .range(offset, offset + limit - 1)
@@ -196,7 +196,7 @@ async function getPlayerLeaderboardForToday(
   year: number = new Date().getFullYear(),
 ) {
   const { data, error } = await db
-    .from('_v_wordle_daily_leaderboard')
+    .from('_mv_wordle_daily_leaderboard')
     .select('*, _players ( _levels (level), _ledger (coin_balance))')
     .order(orderBy, { ascending: true })
     .range(offset, offset + limit - 1)
@@ -214,7 +214,7 @@ async function getPlayerLeaderboardForToday(
 
 async function getPlayerLeaderboardAllTimeLength() {
   const { count, error } = await db
-    .from('_v_wordle_alltime_leaderboard')
+    .from('_mv_wordle_alltime_leaderboard')
     .select('*', { count: 'exact', head: true });
 
   if (error) {
@@ -227,7 +227,7 @@ async function getPlayerLeaderboardAllTimeLength() {
 
 async function getPlayerLeaderboardYearlyLength() {
   const { count, error } = await db
-    .from('_v_wordle_yearly_leaderboard')
+    .from('_mv_wordle_yearly_leaderboard')
     .select('*', { count: 'exact', head: true })
     .eq('year', new Date().getFullYear());
 
@@ -241,7 +241,7 @@ async function getPlayerLeaderboardYearlyLength() {
 
 async function getPlayerLeaderboardMonthlyLength() {
   const { count, error } = await db
-    .from('_v_wordle_monthly_leaderboard')
+    .from('_mv_wordle_monthly_leaderboard')
     .select('*', { count: 'exact', head: true })
     .eq('month', new Date().getMonth() + 1)
     .eq('year', new Date().getFullYear());
@@ -256,7 +256,7 @@ async function getPlayerLeaderboardMonthlyLength() {
 
 async function getPlayerLeaderboardWeeklyLength() {
   const { count, error } = await db
-    .from('_v_wordle_weekly_leaderboard')
+    .from('_mv_wordle_weekly_leaderboard')
     .select('*', { count: 'exact', head: true })
     .eq('week', moment().week())
     .eq('year', new Date().getFullYear());
@@ -271,7 +271,7 @@ async function getPlayerLeaderboardWeeklyLength() {
 
 async function getPlayerLeaderboardDailyLength() {
   const { count, error } = await db
-    .from('_v_wordle_daily_leaderboard')
+    .from('_mv_wordle_daily_leaderboard')
     .select('*', { count: 'exact', head: true })
     .eq('day', new Date().getDate())
     .eq('month', new Date().getMonth() + 1)
