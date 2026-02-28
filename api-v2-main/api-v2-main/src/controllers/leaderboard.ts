@@ -131,21 +131,34 @@ async function getLeaderboardPositionToday(req: ApiRequest, res: Response) {
   );
 }
 
+const QUERY_TIMEOUT_MS = 30000;
+
+function withTimeout<T>(promise: Promise<T>, ms: number, fallback: T): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<T>((resolve) => setTimeout(() => resolve(fallback), ms)),
+  ]);
+}
+
 async function getLeaderboardAllTime(req: ApiRequest, res: Response) {
   const orderBy = (req.query.orderBy as string) || 'alltime_rank';
   const page = asNumber(req.query.page, 1);
   const limit = asNumber(req.query.limit, 10);
   const offset = (page - 1) * limit;
 
-  const leaderboardLength =
-    await leaderboardService.getPlayerLeaderboardAllTimeLength();
-
-  const leaderboard = await leaderboardService.getPlayerLeaderboardAllTime(
-    orderBy,
-    offset,
-    limit,
-    page,
-  );
+  // Run both queries in parallel with timeout protection
+  const [leaderboardLength, leaderboard] = await Promise.all([
+    withTimeout(
+      leaderboardService.getPlayerLeaderboardAllTimeLength(),
+      QUERY_TIMEOUT_MS,
+      0,
+    ),
+    withTimeout(
+      leaderboardService.getPlayerLeaderboardAllTime(orderBy, offset, limit),
+      QUERY_TIMEOUT_MS,
+      {},
+    ),
+  ]);
 
   if (!Array.isArray(leaderboard)) return serviceUnavailable(res, leaderboard);
   if (leaderboard.length === 0) return notFoundResponse(req, res);
@@ -176,14 +189,19 @@ async function getLeaderboardForTheYear(req: ApiRequest, res: Response) {
   const limit = asNumber(req.query.limit, 10);
   const offset = (page - 1) * limit;
 
-  const leaderboardLength =
-    await leaderboardService.getPlayerLeaderboardYearlyLength();
-
-  const leaderboard = await leaderboardService.getPlayerLeaderboardForTheYear(
-    orderBy,
-    offset,
-    limit,
-  );
+  // Run both queries in parallel with timeout protection
+  const [leaderboardLength, leaderboard] = await Promise.all([
+    withTimeout(
+      leaderboardService.getPlayerLeaderboardYearlyLength(),
+      QUERY_TIMEOUT_MS,
+      0,
+    ),
+    withTimeout(
+      leaderboardService.getPlayerLeaderboardForTheYear(orderBy, offset, limit),
+      QUERY_TIMEOUT_MS,
+      {},
+    ),
+  ]);
 
   if (!Array.isArray(leaderboard)) return serviceUnavailable(res, leaderboard);
   if (leaderboard.length === 0) return notFoundResponse(req, res);
@@ -214,14 +232,19 @@ async function getLeaderboardForTheMonth(req: ApiRequest, res: Response) {
   const limit = asNumber(req.query.limit, 10);
   const offset = (page - 1) * limit;
 
-  const leaderboardLength =
-    await leaderboardService.getPlayerLeaderboardMonthlyLength();
-
-  const leaderboard = await leaderboardService.getPlayerLeaderboardForTheMonth(
-    orderBy,
-    offset,
-    limit,
-  );
+  // Run both queries in parallel with timeout protection
+  const [leaderboardLength, leaderboard] = await Promise.all([
+    withTimeout(
+      leaderboardService.getPlayerLeaderboardMonthlyLength(),
+      QUERY_TIMEOUT_MS,
+      0,
+    ),
+    withTimeout(
+      leaderboardService.getPlayerLeaderboardForTheMonth(orderBy, offset, limit),
+      QUERY_TIMEOUT_MS,
+      {},
+    ),
+  ]);
 
   if (!Array.isArray(leaderboard)) return serviceUnavailable(res, leaderboard);
   if (leaderboard.length === 0) return notFoundResponse(req, res);
@@ -252,14 +275,19 @@ async function getLeaderboardForThisWeek(req: ApiRequest, res: Response) {
   const limit = asNumber(req.query.limit, 10);
   const offset = (page - 1) * limit;
 
-  const leaderboardLength =
-    await leaderboardService.getPlayerLeaderboardWeeklyLength();
-
-  const leaderboard = await leaderboardService.getPlayerLeaderboardForThisWeek(
-    orderBy,
-    offset,
-    limit,
-  );
+  // Run both queries in parallel with timeout protection
+  const [leaderboardLength, leaderboard] = await Promise.all([
+    withTimeout(
+      leaderboardService.getPlayerLeaderboardWeeklyLength(),
+      QUERY_TIMEOUT_MS,
+      0,
+    ),
+    withTimeout(
+      leaderboardService.getPlayerLeaderboardForThisWeek(orderBy, offset, limit),
+      QUERY_TIMEOUT_MS,
+      {},
+    ),
+  ]);
 
   if (!Array.isArray(leaderboard)) return serviceUnavailable(res, leaderboard);
   if (leaderboard.length === 0) return notFoundResponse(req, res);
@@ -290,17 +318,26 @@ async function getLeaderboardForToday(req: ApiRequest, res: Response) {
   const limit = asNumber(req.query.limit, 10);
   const offset = (page - 1) * limit;
 
-  const leaderboardLength =
-    await leaderboardService.getPlayerLeaderboardDailyLength();
-
-  const leaderboard = await leaderboardService.getPlayerLeaderboardForToday(
-    orderBy,
-    offset,
-    limit,
-    new Date().getDate(),
-    new Date().getMonth() + 1,
-    new Date().getFullYear(),
-  );
+  // Run both queries in parallel with timeout protection
+  const [leaderboardLength, leaderboard] = await Promise.all([
+    withTimeout(
+      leaderboardService.getPlayerLeaderboardDailyLength(),
+      QUERY_TIMEOUT_MS,
+      0,
+    ),
+    withTimeout(
+      leaderboardService.getPlayerLeaderboardForToday(
+        orderBy,
+        offset,
+        limit,
+        new Date().getDate(),
+        new Date().getMonth() + 1,
+        new Date().getFullYear(),
+      ),
+      QUERY_TIMEOUT_MS,
+      {},
+    ),
+  ]);
 
   if (!Array.isArray(leaderboard)) return serviceUnavailable(res, leaderboard);
 
