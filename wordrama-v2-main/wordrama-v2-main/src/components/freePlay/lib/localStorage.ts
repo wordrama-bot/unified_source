@@ -129,7 +129,26 @@ export const setStoredIsConfettiEnabled = (isEnabled: boolean) => {
 
 export const getStoredIsHighContrastMode = () => {
   const highContrast = localStorage.getItem(highContrastKey)
-  return highContrast === '1'
+
+  // existing high contrast mode
+  if (highContrast === '1') {
+    return true
+  }
+
+  // check new colorblind mode stored in UI state
+  try {
+    const storedUiState = localStorage.getItem('ui')
+    if (storedUiState) {
+      const parsed = JSON.parse(storedUiState)
+      if (parsed?.wordleGame?.colorblindMode === true) {
+        return true
+      }
+    }
+  } catch (e) {
+    console.warn('Failed to parse UI state for colorblind mode')
+  }
+
+  return false
 }
 
 export const getStoredSwapEnterAndDelete = () => {
