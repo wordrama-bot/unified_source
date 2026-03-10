@@ -197,19 +197,21 @@ function App(){
   const [updateRemoteState] = useUpdateWordleSavedStateMutation();
   const [updateRemoteUiState] = useUpdateUiSavedStateMutation();
 
-  const [playWinSound] = useSound('https://stwordramaproduks001.blob.core.windows.net/sounds/win.wav?sp=r&st=2024-11-16T20:09:08Z&se=2099-11-17T04:09:08Z&spr=https&sv=2022-11-02&sr=c&sig=jHLMId1FMqQeSrWjzhTWm9eOC6vBCnCLC3Kx9EYJff0%3D', {
-    volume: 0.05,
-  });
-  const [playWinSoundChristmas] = useSound('https://stwordramaproduks001.blob.core.windows.net/sounds/christmas-win.wav?sp=r&st=2024-11-16T20:09:08Z&se=2099-11-17T04:09:08Z&spr=https&sv=2022-11-02&sr=c&sig=jHLMId1FMqQeSrWjzhTWm9eOC6vBCnCLC3Kx9EYJff0%3D', {
-    volume: 0.05,
-  });
-  
-  const [playLoseSound] = useSound('https://stwordramaproduks001.blob.core.windows.net/sounds/lost.mp3?sp=r&st=2024-11-16T20:09:08Z&se=2099-11-17T04:09:08Z&spr=https&sv=2022-11-02&sr=c&sig=jHLMId1FMqQeSrWjzhTWm9eOC6vBCnCLC3Kx9EYJff0%3D', {
-    volume: 0.05,
-  });
-  const [playLoseSoundChristmas] = useSound('https://stwordramaproduks001.blob.core.windows.net/sounds/christmas-lost.mp3?sp=r&st=2024-11-16T20:09:08Z&se=2099-11-17T04:09:08Z&spr=https&sv=2022-11-02&sr=c&sig=jHLMId1FMqQeSrWjzhTWm9eOC6vBCnCLC3Kx9EYJff0%3D', {
-    volume: 0.2,
-  });
+  const [playWinSound] = useSound('/sounds/win.mp3', {
+  volume: 0.05,
+});
+
+const [playWinSoundChristmas] = useSound('/sounds/christmas-win.mp3', {
+  volume: 0.05,
+});
+
+const [playLoseSound] = useSound('/sounds/lost.mp3', {
+  volume: 0.05,
+});
+
+const [playLoseSoundChristmas] = useSound('/sounds/christmas-lost.mp3', {
+  volume: 0.2,
+});
 
   // Local State
   const [gameLoading, setGameLoading] = useState(true);
