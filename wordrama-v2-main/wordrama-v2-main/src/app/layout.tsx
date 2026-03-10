@@ -139,7 +139,7 @@ export default function RootLayout({
         <link rel="preconnect" href="https://js.monitor.azure.com" />
         <link rel="preconnect" href="https://fundingchoicesmessages.google.com" />
         <link rel="preconnect" href="https://qflfxxbnhwaxkxsygjqu.supabase.co" />
-        <GoogleAdsense pId='2296158652555597'/>
+        <GoogleAdsense pId='8970369628667981' />
       </head>
       <body className={dmSans.className}>
         {/* <AppInsightsProvider> */}

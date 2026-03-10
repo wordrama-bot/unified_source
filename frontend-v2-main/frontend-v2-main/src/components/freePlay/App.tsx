@@ -553,7 +553,7 @@ function App(){
           <ins
             className="adsbygoogle"
             style={{ "display": "block"}}
-            data-ad-client="ca-pub-2296158652555597"
+            data-ad-client="ca-pub-8970369628667981"
             data-ad-slot="8219203779"
             data-ad-format="auto"
             data-full-width-responsive="true"
