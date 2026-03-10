@@ -2,6 +2,7 @@ import classnames from 'classnames'
 
 import { REVEAL_TIME_MS } from '../../constants/settings'
 import { getStoredIsHighContrastMode } from '../../lib/localStorage'
+import { getWordleGameUiState } from '@/redux/ui/helpers'
 import { CharStatus } from '../../lib/statuses'
 
 type Props = {
@@ -24,7 +25,9 @@ export const Cell = ({
   const isFilled = value && !isCompleted
   const shouldReveal = isRevealing && isCompleted
   const animationDelay = `${position * REVEAL_TIME_MS}ms`
-  const isHighContrast = getStoredIsHighContrastMode()
+  const gameUiState = getWordleGameUiState()
+  const isHighContrast =
+    getStoredIsHighContrastMode() || gameUiState?.colorblindMode === true
 
   //border-2 border-border dark:border-darkBorder shadow-light dark:shadow-dark
   const classes = classnames(

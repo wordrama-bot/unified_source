@@ -3,6 +3,7 @@ import { ReactNode } from 'react'
 
 import { REVEAL_TIME_MS } from '../../constants/settings'
 import { getStoredIsHighContrastMode } from '../../lib/localStorage'
+import { getWordleGameUiState } from '@/redux/ui/helpers'
 import { CharStatus } from '../../lib/statuses'
 
 type Props = {
@@ -29,7 +30,9 @@ export const Key = ({
   solution
 }: Props) => {
   const keyDelayMs = REVEAL_TIME_MS * solution.length
-  const isHighContrast = getStoredIsHighContrastMode()
+  const gameUiState = getWordleGameUiState()
+  const isHighContrast =
+    getStoredIsHighContrastMode() || gameUiState?.colorblindMode === true
 
   const classes = classnames(
     'xxshort:h-8 xxshort:w-8 xxshort:text-xxs xshort:w-10 xshort:h-10 flex short:h-12 h-12 items-center justify-center rounded mx-1 text-xs font-bold cursor-pointer select-none dark:text-white border-2 border-border dark:border-darkBorder shadow-light dark:shadow-dark hover:translate-x-boxShadowX hover:translate-y-boxShadowY hover:shadow-none dark:hover:shadow-none',
