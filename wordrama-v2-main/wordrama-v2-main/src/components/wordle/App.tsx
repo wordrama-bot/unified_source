@@ -265,6 +265,10 @@ const [playLoseSoundChristmas] = useSound('/sounds/christmas-lost.mp3', {
     return dispatch(setWordleGameUiState({ speedRunModeEnabled }))
   }
 
+  function handleColorblindModeEnabled(colorblindMode: boolean) {
+    return dispatch(setWordleGameUiState({ colorblindMode }))
+  }
+
   function enterGameMode(gameMode: string) {
     setShowConfetti(false);
     //appInsights.trackEvent({ name: 'switchedGameMode', properties: { gameMode, player: user.id } });
@@ -719,6 +723,10 @@ const [playLoseSoundChristmas] = useSound('/sounds/christmas-lost.mp3', {
                     Dark Mode
                   </Label>
                   <Switch checked={theme === 'dark'} onCheckedChange={checked => setTheme(theme === 'dark' ? 'light' : 'dark')}  />
+		  <Label htmlFor="colorblindMode" className="text-left">
+		    Colorblind Mode
+		  </Label>
+		  <Switch checked={gameUiState.colorblindMode || false} onCheckedChange={checked => handleColorblindModeEnabled(checked)} />
                   <Label htmlFor="gameSound" className="text-left">
                     Game Sound
                   </Label>

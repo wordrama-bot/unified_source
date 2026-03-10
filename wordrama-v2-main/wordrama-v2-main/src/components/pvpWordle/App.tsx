@@ -217,6 +217,10 @@ function App(){
     return dispatch(setWordleGameUiState({ speedRunModeEnabled }))
   }
 
+  function handleColorblindModeEnabled(colorblindMode: boolean) {
+    return dispatch(setWordleGameUiState({ colorblindMode }))
+  }
+
   function enterGameMode(gameMode: string) {
     setShowConfetti(false);
     //appInsights.trackEvent({ name: 'switchedGameMode', properties: { gameMode, player: user.id } });
@@ -617,6 +621,10 @@ function App(){
                   Dark Mode
                 </Label>
                 <Switch checked={theme === 'dark'} onCheckedChange={checked => setTheme(theme === 'dark' ? 'light' : 'dark')}  />
+		<Label htmlFor="colorblindMode" className="text-left">
+		  Colorblind Mode
+		</Label>
+		<Switch checked={gameUiState.colorblindMode || false} onCheckedChange={checked => handleColorblindModeEnabled(checked)} />
               </div>
             </div>
           </SheetContent>

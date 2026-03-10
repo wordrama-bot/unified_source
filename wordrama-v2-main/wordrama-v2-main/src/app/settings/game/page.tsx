@@ -10,6 +10,9 @@ import {
 } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { useDispatch } from 'react-redux';
+import { getWordleGameUiState } from '@/redux/ui/helpers';
+import { setWordleGameUiState } from '@/redux/ui/actions';
 import {
   Select,
   SelectContent,
@@ -22,6 +25,10 @@ import {
 import { SettingsNav } from "@/components/navbar/settings";
 
 export default function GameSettingsPage() {
+
+  const dispatch = useDispatch();
+  const gameUiState = getWordleGameUiState();
+
   return (
     <div className="flex min-h-screen w-full flex-col">
       <main className="flex min-h-[calc(100vh_-_theme(spacing.16))] flex-1 flex-col gap-4 bg-muted/40 p-4 md:gap-8 md:p-10">
@@ -41,9 +48,13 @@ export default function GameSettingsPage() {
               <CardContent>
                 <form>
                   <div className="flex items-center space-x-2 mt-2">
-                    <Switch id="colour-blind" />
-                    <Label htmlFor="colour-blind">Colour Blind Mode</Label>
-                  </div>
+		    <Switch
+		      id="colour-blind"
+		      checked={gameUiState.colorblindMode || false}
+		      onCheckedChange={(checked) => dispatch(setWordleGameUiState({ colorblindMode: checked }))}
+		    />
+		    <Label htmlFor="colour-blind">Color Blind Mode</Label>
+		  </div>
                   <div className="flex items-center space-x-2 mt-6">
                     <Switch id="hard-mode" />
                     <Label htmlFor="hard-mode">Hard Mode</Label>
