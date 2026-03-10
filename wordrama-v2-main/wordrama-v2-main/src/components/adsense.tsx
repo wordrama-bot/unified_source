@@ -1,31 +1,52 @@
-import Script from "next/script";
+"use client";
+
+import { useEffect } from "react";
 
 type Props = {
   pId: string;
 };
 
-const GoogleAdsense: React.FC<Props> = ({ pId }) => {
-  if (typeof window === "undefined") return null;
+declare global {
+  interface Window {
+    adsbygoogle?: unknown[];
+    google_ad_client?: string;
+  }
+}
 
-  if (localStorage.getItem("adConsent") === "personalized" || localStorage.getItem("cookiesAccepted") === "all") return (
-    <Script
-      async
-      src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-${pId}`}
-      crossOrigin="anonymous"
-      strategy="afterInteractive"
-     // data-adtest="on"
-    />
-  )
-  else if (localStorage.getItem("adConsent") === "non_personalized") return (
-    <Script
-      async
-      src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-${pId}`}
-      crossOrigin="anonymous"
-      strategy="afterInteractive"
-      //data-ad-format="autorelaxed"
-      //data-adtest="on"
-    />
-  )
+const SCRIPT_ID = "google-adsense-script";
+
+const GoogleAdsense: React.FC<Props> = ({ pId }) => {
+  useEffect(() => {
+    const adConsent = window.localStorage.getItem("adConsent");
+    const cookiesAccepted = window.localStorage.getItem("cookiesAccepted");
+
+    const allowPersonalized =
+      adConsent === "personalized" || cookiesAccepted === "all";
+
+    const allowNonPersonalized = adConsent === "non_personalized";
+
+    if (!allowPersonalized && !allowNonPersonalized) {
+      return;
+    }
+
+    if (document.getElementById(SCRIPT_ID)) {
+      return;
+    }
+
+    // For non-personalized ads, tell AdSense before loading/pushing ads
+    if (allowNonPersonalized) {
+      (window.adsbygoogle = window.adsbygoogle || []).requestNonPersonalizedAds = 1;
+    }
+
+    const script = document.createElement("script");
+    script.id = SCRIPT_ID;
+    script.async = true;
+    script.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-${pId}`;
+    script.crossOrigin = "anonymous";
+
+    document.head.appendChild(script);
+  }, [pId]);
+
   return null;
 };
 

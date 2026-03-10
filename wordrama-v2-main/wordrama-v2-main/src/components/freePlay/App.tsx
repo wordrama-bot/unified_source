@@ -103,6 +103,7 @@ import { Switch } from '../ui/switch';
 import { Separator } from '../ui/separator';
 import { ChartBarIcon } from '@heroicons/react/outline'
 import { useTheme } from 'next-themes'
+import GoogleAd from "../GoogleAd";
 
 function App(){
   const pathParams = useParams();
@@ -550,14 +551,12 @@ function App(){
             isRevealing={isRevealing}
             swapEnterAndDelete={gameUiState?.swapDeleteAndEnter || false}
           />
-          <ins
-            className="adsbygoogle"
-            style={{ "display": "block"}}
-            data-ad-client="ca-pub-2296158652555597"
-            data-ad-slot="8219203779"
-            data-ad-format="auto"
-            data-full-width-responsive="true"
-          />
+          <GoogleAd
+	    client="ca-pub-2296158652555597"
+	    slot="8219203779"
+	    format="auto"
+	    responsive="true"
+  	  />
 
           {
             isStatsModalOpen && isSignUpCTA && (
