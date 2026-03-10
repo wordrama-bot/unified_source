@@ -552,7 +552,7 @@ function App(){
             swapEnterAndDelete={gameUiState?.swapDeleteAndEnter || false}
           />
           <GoogleAd
-	    client="ca-pub-2296158652555597"
+	    client="ca-pub-8970369628667981"
 	    slot="8219203779"
 	    format="auto"
 	    responsive="true"
