@@ -10,7 +10,6 @@ import {
   DropdownMenuPortal,
 } from "@/components/ui/dropdown-menu";
 import Link from 'next/link';
-import { useTheme } from 'next-themes';
 import { useAuth } from '@/providers/auth-provider';
 import { useDispatch } from "react-redux";
 import { wordramaApiV3 } from '@/redux/api/wordrama';
@@ -28,24 +27,29 @@ export default function UserMenu({ username }: {
   return (
     <DropdownMenuContent align="end" className="bg-bg">
       <DropdownMenuLabel>
-        { username }
+        {username}
       </DropdownMenuLabel>
+
       <DropdownMenuSeparator />
+
       <Link href={`/player/${user?.id}`}>
         <DropdownMenuItem>
           Profile
         </DropdownMenuItem>
       </Link>
+
       <Link href="/friends">
-        <DropdownMenuItem >
+        <DropdownMenuItem>
           Friends
         </DropdownMenuItem>
       </Link>
+
       <Link href="/settings">
-        <DropdownMenuItem >
+        <DropdownMenuItem>
           Settings
         </DropdownMenuItem>
       </Link>
+
       <DropdownMenuSub>
         <DropdownMenuSubTrigger>
           More...
@@ -53,39 +57,72 @@ export default function UserMenu({ username }: {
         <DropdownMenuPortal>
           <DropdownMenuSubContent>
             <Link href="/about">
-              <DropdownMenuItem >
+              <DropdownMenuItem>
                 About
               </DropdownMenuItem>
             </Link>
-            <a href="https://forms.office.com/e/WCW3FcsDgW">
-              <DropdownMenuItem >
-                Contact Us
-              </DropdownMenuItem>
-            </a>
+
+            <DropdownMenuSub>
+              <DropdownMenuSubTrigger>
+                Guides
+              </DropdownMenuSubTrigger>
+              <DropdownMenuPortal>
+                <DropdownMenuSubContent>
+                  <Link href="/how-to-play">
+                    <DropdownMenuItem>
+                      How to Play
+                    </DropdownMenuItem>
+                  </Link>
+                  <Link href="/wordle-strategy">
+                    <DropdownMenuItem>
+                      Wordle Strategy
+                    </DropdownMenuItem>
+                  </Link>
+                  <Link href="/best-starting-words">
+                    <DropdownMenuItem>
+                      Best Starting Words
+                    </DropdownMenuItem>
+                  </Link>
+                  <Link href="/wordle-tips">
+                    <DropdownMenuItem>
+                      Wordle Tips
+                    </DropdownMenuItem>
+                  </Link>
+                </DropdownMenuSubContent>
+              </DropdownMenuPortal>
+            </DropdownMenuSub>
+
+            <a href="mailto:support@wordrama.io?subject=Wordrama Support Request">
+		<DropdownMenuItem>
+			Contact Us
+  		</DropdownMenuItem>
+	    </a>
+
             <DropdownMenuSub>
               <DropdownMenuSubTrigger>
                 Socials
               </DropdownMenuSubTrigger>
               <DropdownMenuPortal>
                 <DropdownMenuSubContent>
-                  <a href="https://instagram.com/wordrama.io">
-                    <DropdownMenuItem >
+                  <a href="https://instagram.com/wordrama.io" target="_blank" rel="noopener noreferrer">
+                    <DropdownMenuItem>
                       Instagram
                     </DropdownMenuItem>
                   </a>
-                  <a href="https://tiktik.com/@wordrama.io">
-                    <DropdownMenuItem >
+                  <a href="https://tiktok.com/@wordrama.io" target="_blank" rel="noopener noreferrer">
+                    <DropdownMenuItem>
                       TikTok
                     </DropdownMenuItem>
                   </a>
-                  <a href="https://discord.gg/cRunwK229g">
-                    <DropdownMenuItem >
+                  <a href="https://discord.gg/cRunwK229g" target="_blank" rel="noopener noreferrer">
+                    <DropdownMenuItem>
                       Discord
                     </DropdownMenuItem>
                   </a>
                 </DropdownMenuSubContent>
               </DropdownMenuPortal>
             </DropdownMenuSub>
+
             <DropdownMenuSub>
               <DropdownMenuSubTrigger>
                 Policies
@@ -93,47 +130,44 @@ export default function UserMenu({ username }: {
               <DropdownMenuPortal>
                 <DropdownMenuSubContent>
                   <Link href="/acceptable-use">
-                    <DropdownMenuItem >
+                    <DropdownMenuItem>
                       Acceptable Use
                     </DropdownMenuItem>
                   </Link>
                   <Link href="/cookies">
-                    <DropdownMenuItem >
+                    <DropdownMenuItem>
                       Cookies
                     </DropdownMenuItem>
                   </Link>
                   <Link href="/privacy-policy">
-                    <DropdownMenuItem >
+                    <DropdownMenuItem>
                       Privacy
                     </DropdownMenuItem>
                   </Link>
                   <Link href="/returns-policy">
-                    <DropdownMenuItem >
+                    <DropdownMenuItem>
                       Returns
                     </DropdownMenuItem>
                   </Link>
                   <Link href="/shipping-policy">
-                    <DropdownMenuItem >
+                    <DropdownMenuItem>
                       Shipping
                     </DropdownMenuItem>
                   </Link>
                   <Link href="/terms-of-use">
-                    <DropdownMenuItem >
+                    <DropdownMenuItem>
                       Terms of Service
                     </DropdownMenuItem>
                   </Link>
-                  {/* <a href="https://app.termly.io/notify/ec3dcd0a-99a4-4f51-b066-8cb9313f37b6">
-                    <DropdownMenuItem >
-                      DSAR
-                    </DropdownMenuItem>
-                  </a> */}
                 </DropdownMenuSubContent>
               </DropdownMenuPortal>
             </DropdownMenuSub>
           </DropdownMenuSubContent>
         </DropdownMenuPortal>
       </DropdownMenuSub>
+
       <DropdownMenuSeparator />
+
       <DropdownMenuItem
         onClick={e => {
           e.preventDefault();
