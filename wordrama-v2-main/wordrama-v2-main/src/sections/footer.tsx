@@ -1,25 +1,55 @@
+"use client"
+
 import Image from 'next/image';
 import Link from 'next/link';
 
 export default function Footer() {
   return (
     <footer className="m500:text-sm bg-bg dark:bg-darkBg z-30 px-5 py-5 text-center font-base">
-      © 2023-{new Date().getFullYear()} Wordrama. All rights reserved.<br />
-      <Link className="ml-2 mr-2 hover:underline" target="_blank" rel="noopener noreferrer" href="/about" passHref>
-        About
-      </Link>
-      <Link className="ml-2 mr-2 hover:underline" target="_blank" rel="noopener noreferrer" href="/privacy-policy" passHref>
-        Privacy Policy
-      </Link>
-      <Link className="ml-2 mr-2 hover:underline" target="_blank" rel="noopener noreferrer" href="/cookies">
-        Cookie Policy
-      </Link>
-      <Link className="ml-2 hover:underline" target="_blank" rel="noopener noreferrer" href="/terms-of-use">
-        Terms of Use
-      </Link>
-      <div className='flex justify-center items-center mt-4'>
-        <button className="termly-display-preferences"type="button"> Consent Preferences </button>
+      © 2023-{new Date().getFullYear()} Wordrama. All rights reserved.
+      <br />
+
+      <div className="flex flex-wrap justify-center items-center mt-4">
+        <Link className="ml-2 mr-2 hover:underline" href="/about">
+          About
+        </Link>
+        <Link className="ml-2 mr-2 hover:underline" href="/how-to-play">
+          How to Play
+        </Link>
+        <Link className="ml-2 mr-2 hover:underline" href="/wordle-strategy">
+          Wordle Strategy
+        </Link>
+        <Link className="ml-2 mr-2 hover:underline" href="/best-starting-words">
+          Best Starting Words
+        </Link>
+        <Link className="ml-2 mr-2 hover:underline" href="/wordle-tips">
+          Wordle Tips
+        </Link>
+        <Link className="ml-2 mr-2 hover:underline" href="/privacy-policy">
+          Privacy Policy
+        </Link>
+        <Link className="ml-2 mr-2 hover:underline" href="/cookies">
+          Cookie Policy
+        </Link>
+        <Link className="ml-2 mr-2 hover:underline" href="/terms-of-use">
+          Terms of Use
+        </Link>
       </div>
+
+      <div className="flex justify-center items-center mt-4">
+        <button
+          type="button"
+          className="hover:underline"
+          onClick={() => {
+            if (typeof window !== "undefined") {
+              window.dispatchEvent(new Event("open-cookie-preferences"));
+            }
+          }}
+        >
+          Consent Preferences
+        </button>
+      </div>
+
       <div className="flex justify-center items-center mt-4">
         <a
           className="mx-2"
@@ -27,7 +57,7 @@ export default function Footer() {
           target="_blank"
           rel="noopener noreferrer"
         >
-          <Image src="/tiktok.svg" alt='TikTok Logo' width={32} height={32}/>
+          <Image src="/tiktok.svg" alt="TikTok Logo" width={32} height={32} />
         </a>
         <a
           className="mx-2"
@@ -35,7 +65,7 @@ export default function Footer() {
           target="_blank"
           rel="noopener noreferrer"
         >
-          <Image src="/instagram.svg" alt='Instagram Icon' width={32} height={32}/>
+          <Image src="/instagram.svg" alt="Instagram Icon" width={32} height={32} />
         </a>
         <a
           className="mx-2"
@@ -43,7 +73,7 @@ export default function Footer() {
           target="_blank"
           rel="noopener noreferrer"
         >
-          <Image src="/discord.svg" alt='Discord Icon' width={32} height={32}/>
+          <Image src="/discord.svg" alt="Discord Icon" width={32} height={32} />
         </a>
       </div>
     </footer>

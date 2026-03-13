@@ -1,0 +1,165 @@
+"use client"
+import NavBar from '@/components/navbar/h-nav';
+import Footer from '@/sections/footer';
+
+export default function BestStartingWordsPage() {
+  const starterWords = [
+    "STARE",
+    "CRANE",
+    "SLATE",
+    "TRACE",
+    "RAISE",
+    "AUDIO",
+    "IRATE",
+    "LEAST",
+    "ROATE",
+    "ARISE",
+  ];
+
+  return (
+    <div className="flex min-h-screen w-full flex-col border:border dark:border-darkBorder bg-bg dark:bg-darkBg text-text dark:text-darkText">
+      <NavBar
+        links={[
+          { href: "/about", text: "About" },
+          { href: "/free-play", text: "Wordle" },
+          { href: "/signup", text: "SignUp" },
+        ]}
+      />
+
+      <div className="container mx-auto p-4">
+        <h1 className="text-4xl font-bold mb-6">Best Starting Words for Wordle</h1>
+        <p className="text-sm text-gray-500">Last updated March 13, 2026</p>
+
+        <p className="mt-4">
+          One of the most common questions in Wordle-style games is simple: what is the best starting word?
+          While there is no single perfect answer for every puzzle, some opening guesses consistently perform
+          better than others because they reveal useful letters and common patterns right away.
+        </p>
+
+        <section className="my-8">
+          <h2 className="text-2xl font-semibold">What makes a good starting word?</h2>
+          <p className="mt-4">
+            The best opening words usually include a mix of common vowels and high-frequency consonants.
+            Good starters help you learn quickly which letters belong in the word and which ones you can eliminate.
+            In most cases, you want a word that avoids repeating letters and covers as much useful ground as possible.
+          </p>
+          <ul className="list-disc ml-8 mt-4">
+            <li>Use common vowels like A, E, I, O</li>
+            <li>Use common consonants like R, S, T, N, L, C</li>
+            <li>Avoid repeated letters in the first guess</li>
+            <li>Prioritize information over luck</li>
+          </ul>
+        </section>
+
+        <section className="my-8">
+          <h2 className="text-2xl font-semibold">Top starting words to try</h2>
+          <div className="mt-4 overflow-x-auto">
+            <table className="min-w-full border border-gray-300 dark:border-darkBorder">
+              <thead>
+                <tr className="border-b border-gray-300 dark:border-darkBorder">
+                  <th className="text-left p-3">Word</th>
+                  <th className="text-left p-3">Why it works</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr className="border-b border-gray-300 dark:border-darkBorder">
+                  <td className="p-3 font-semibold">STARE</td>
+                  <td className="p-3">Tests very common letters and gives excellent early coverage.</td>
+                </tr>
+                <tr className="border-b border-gray-300 dark:border-darkBorder">
+                  <td className="p-3 font-semibold">CRANE</td>
+                  <td className="p-3">A balanced opener with strong consonants and a common vowel pattern.</td>
+                </tr>
+                <tr className="border-b border-gray-300 dark:border-darkBorder">
+                  <td className="p-3 font-semibold">SLATE</td>
+                  <td className="p-3">Popular because it includes common consonants and a useful vowel mix.</td>
+                </tr>
+                <tr className="border-b border-gray-300 dark:border-darkBorder">
+                  <td className="p-3 font-semibold">TRACE</td>
+                  <td className="p-3">Excellent for testing position and frequency of core letters.</td>
+                </tr>
+                <tr className="border-b border-gray-300 dark:border-darkBorder">
+                  <td className="p-3 font-semibold">RAISE</td>
+                  <td className="p-3">Vowel-heavy and great for quickly identifying a likely vowel structure.</td>
+                </tr>
+                <tr className="border-b border-gray-300 dark:border-darkBorder">
+                  <td className="p-3 font-semibold">AUDIO</td>
+                  <td className="p-3">Useful when you want to test many vowels at once.</td>
+                </tr>
+                <tr className="border-b border-gray-300 dark:border-darkBorder">
+                  <td className="p-3 font-semibold">IRATE</td>
+                  <td className="p-3">Strong letter mix with common vowels and frequent consonants.</td>
+                </tr>
+                <tr className="border-b border-gray-300 dark:border-darkBorder">
+                  <td className="p-3 font-semibold">LEAST</td>
+                  <td className="p-3">Covers a very practical set of high-value letters.</td>
+                </tr>
+                <tr className="border-b border-gray-300 dark:border-darkBorder">
+                  <td className="p-3 font-semibold">ROATE</td>
+                  <td className="p-3">A favorite among some puzzle solvers for broad letter coverage.</td>
+                </tr>
+                <tr>
+                  <td className="p-3 font-semibold">ARISE</td>
+                  <td className="p-3">Another solid opener that reveals valuable vowel-consonant combinations.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section className="my-8">
+          <h2 className="text-2xl font-semibold">Should you always use the same starting word?</h2>
+          <p className="mt-4">
+            Many players do, and there is nothing wrong with that. Using the same opening word every game
+            helps you compare results and develop a repeatable strategy. On the other hand, rotating between
+            a few strong starters can help you avoid getting locked into one pattern.
+          </p>
+          <p className="mt-4">
+            Some players prefer a vowel-heavy opener like <strong>AUDIO</strong>, while others prefer a more
+            balanced word like <strong>STARE</strong> or <strong>CRANE</strong>. The best choice depends on
+            how you like to solve.
+          </p>
+        </section>
+
+        <section className="my-8">
+          <h2 className="text-2xl font-semibold">A simple strategy for your first two guesses</h2>
+          <p className="mt-4">
+            One effective approach is to use a strong opening word and then follow with a second word that
+            introduces mostly new letters. This lets you eliminate possibilities quickly and gives you more
+            information before you start committing to a specific solution pattern.
+          </p>
+          <p className="mt-4">
+            For example, if your first word is <strong>STARE</strong> and it reveals only one useful clue,
+            your second guess can focus on letters like N, L, C, O, or I to widen your search.
+          </p>
+        </section>
+
+        <section className="my-8">
+          <h2 className="text-2xl font-semibold">Quick list of strong starter words</h2>
+          <ul className="list-disc ml-8 mt-4">
+            {starterWords.map((word) => (
+              <li key={word}>{word}</li>
+            ))}
+          </ul>
+        </section>
+
+        <section className="my-8">
+          <h2 className="text-2xl font-semibold">Final thoughts</h2>
+          <p className="mt-4">
+            The best starting words are the ones that help you gather useful information early. There is
+            no magic answer that wins every puzzle, but good openers improve your odds and make your solving
+            process more efficient. Try a few of these options in Wordrama and see which one fits your style. 
+	    And remember, your favorite method might not work for others. If you watch your favorite Wordle 
+	    streamer on TikTok, be sure to ask them how they like to play before trying to get them to use 
+	    your method. Chances are that they have already heard of it and tried it. Happy playing!
+          </p>
+          <p className="mt-4">
+            Want to test these starters out out? Jump into <a href="/free-play" className="text-blue-500 hover:underline">free play</a> and experiment with different opening words.
+          </p>
+        </section>
+      </div>
+
+      <Footer />
+    </div>
+  );
+}
