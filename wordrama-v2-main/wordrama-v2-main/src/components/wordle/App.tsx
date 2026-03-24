@@ -189,7 +189,10 @@ function App(){
 	  const wordleUi = uiSavedState?.data?.wordleGame;
 	  if (!wordleUi) return;
 	
-	  dispatch(setWordleGameUiState(wordleUi));
+	  dispatch(setWordleGameUiState({
+	    ...gameUiState,
+	    ...wordleUi,
+	  }));
 	}, [uiSavedState, isLoadingUiSavedState, dispatch]);
   const { data: wordleWordPack, isLoading: isLoadingWordPack, refetch: refetchWordPack  } = useGetWordleWordPackQuery(gameState.wordPack);
   const { data: wordOfTheDay, isLoading: isLoadingWoTD } = useGetWordleWoTDQuery(wordPack);
