@@ -711,7 +711,7 @@ const [playLoseSoundChristmas] = useSound('/sounds/christmas-lost.mp3', {
                       </TooltipContent>
                     </Tooltip>
                   </Label>
-                  <Switch defaultChecked={gameUiState.confettiEnabled || true} onCheckedChange={checked => handleConfettiEnabled(checked)}  />
+                  <Switch checked={gameUiState.confettiEnabled ?? true} onCheckedChange={checked => handleConfettiEnabled(checked)} />
                   <Label htmlFor="speedRun">
                     <Tooltip>
                       <TooltipTrigger className="text-left grid grid-cols-2 items-center gap-12">
@@ -735,7 +735,7 @@ const [playLoseSoundChristmas] = useSound('/sounds/christmas-lost.mp3', {
                       </TooltipContent>
                     </Tooltip>
                   </Label>
-                  <Switch defaultChecked={streamerMode || false} onCheckedChange={checked => setStreamerMode(checked)}  />
+                  <Switch checked={gameUiState.streamerModeEnabled ?? false} onCheckedChange={checked => dispatch(setWordleGameUiState({ streamerModeEnabled: checked }))} />
                   <Label htmlFor="theme" className="text-left">
                     Dark Mode
                   </Label>
@@ -747,7 +747,7 @@ const [playLoseSoundChristmas] = useSound('/sounds/christmas-lost.mp3', {
                   <Label htmlFor="gameSound" className="text-left">
                     Game Sound
                   </Label>
-                  <Switch checked={gameSoundEnabled} onCheckedChange={checked => setGameSoundEnabled(checked)}  />
+                  <Switch checked={gameUiState.gameSoundEnabled ?? true} onCheckedChange={checked => dispatch(setWordleGameUiState({ gameSoundEnabled: checked }))} />
                 </div>
                 <Separator />
               </div>
