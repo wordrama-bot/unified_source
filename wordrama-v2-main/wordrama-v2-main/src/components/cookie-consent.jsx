@@ -16,7 +16,7 @@ import CookieConsent from "react-cookie-consent";
 
 export default function CookieConsentBanner({
   forceOpen = false,
-}: CookieConsentBannerProps) {
+}) {
   const [consentGiven, setConsentGiven] = useState(false);
 
   useEffect(() => {
