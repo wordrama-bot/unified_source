@@ -123,6 +123,8 @@ function App(){
   const dispatch = useDispatch();
   const gameState = getWordleState();
   const gameUiState = getWordleGameUiState();
+  const streamerMode = gameUiState.streamerModeEnabled ?? false;
+  const gameSoundEnabled = gameUiState.gameSoundEnabled ?? true;
   const { gameMode, wordLength, wordPack, custom } = gameState;
   const isCustom = gameMode === 'CUSTOM' && custom.solution.length > 0;
   const currentGame = isCustom ? gameState.custom : gameState.modes[gameState.gameMode][gameState.wordPack];
@@ -189,7 +191,6 @@ function App(){
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false)
   const [isStatsModalOpen, setIsStatsModalOpen] = useState(false)
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false)
-  const [streamerMode, setStreamerMode] = useState(false);
   const [isRevealing, setIsRevealing] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
   const [currentGuess, setCurrentGuess] = useState('');
@@ -616,7 +617,12 @@ function App(){
                 <Label htmlFor="confetti" className="text-left">
                   Streamer Mode
                 </Label>
-                <Switch defaultChecked={streamerMode || false} onCheckedChange={checked => setStreamerMode(checked)}  />
+                <Switch
+		  checked={gameUiState.streamerModeEnabled ?? false}
+		  onCheckedChange={checked =>
+		    dispatch(setWordleGameUiState({ streamerModeEnabled: checked }))
+		  }
+		/>
                 <Label htmlFor="theme" className="text-left">
                   Dark Mode
                 </Label>

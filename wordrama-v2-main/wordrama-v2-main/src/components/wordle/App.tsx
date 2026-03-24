@@ -135,6 +135,8 @@ function App(){
   const dispatch = useDispatch();
   const gameState = getWordleState();
   const gameUiState = getWordleGameUiState();
+  const streamerMode = gameUiState.streamerModeEnabled ?? false;
+  const gameSoundEnabled = gameUiState.gameSoundEnabled ?? true;
   const { refetch: refetchProfile } = useGetMyAccountQuery();
   const { gameMode, wordLength, wordPack, custom } = gameState;
   const isCustom = gameMode === 'CUSTOM' && custom.solution.length > 0;
@@ -232,8 +234,6 @@ const [playLoseSoundChristmas] = useSound('/sounds/christmas-lost.mp3', {
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false)
   const [isStatsModalOpen, setIsStatsModalOpen] = useState(false)
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false)
-  const [streamerMode, setStreamerMode] = useState(false);
-  const [gameSoundEnabled, setGameSoundEnabled] = useState(true);
   const [isRevealing, setIsRevealing] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
   const [currentGuess, setCurrentGuess] = useState('');
