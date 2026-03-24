@@ -703,7 +703,7 @@ const [playLoseSoundChristmas] = useSound('/sounds/christmas-lost.mp3', {
                   <Label htmlFor="confetti">
                     <Tooltip>
                       <TooltipTrigger className="text-left grid grid-cols-2 items-center gap-16">
-                        Show Confettis
+                        Show Confetti
                         <InfoIcon className='w-4 h-4'/>
                       </TooltipTrigger>
                       <TooltipContent>
