@@ -14,10 +14,6 @@ import Cookies from "js-cookie";
 import React, { useEffect, useState } from "react";
 import CookieConsent from "react-cookie-consent";
 
-type CookieConsentBannerProps = {
-  forceOpen?: boolean;
-};
-
 export default function CookieConsentBanner({
   forceOpen = false,
 }: CookieConsentBannerProps) {
