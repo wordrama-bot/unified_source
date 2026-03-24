@@ -182,6 +182,15 @@ function App(){
   // API
   const { data: savedState, isLoading: isLoadingSavedState } = useGetWordleSavedStateQuery();
   const { data: uiSavedState, isLoading: isLoadingUiSavedState } = useGetUiSavedStateQuery();
+	useEffect(() => {
+	  if (isLoadingUiSavedState) return;
+	  if (!uiSavedState) return;
+	
+	  const wordleUi = uiSavedState?.data?.wordleGame;
+	  if (!wordleUi) return;
+	
+	  dispatch(setWordleGameUiState(wordleUi));
+	}, [uiSavedState, isLoadingUiSavedState, dispatch]);
   const { data: wordleWordPack, isLoading: isLoadingWordPack, refetch: refetchWordPack  } = useGetWordleWordPackQuery(gameState.wordPack);
   const { data: wordOfTheDay, isLoading: isLoadingWoTD } = useGetWordleWoTDQuery(wordPack);
   const { data: streakData, isLoading: isLoadingStreakData, isError: isErrorStreakData, refetch: refetchStreak } = useGetWordleStreakQuery({ gameMode, wordPack });
