@@ -317,6 +317,11 @@ const [playLoseSoundChristmas] = useSound('/sounds/christmas-lost.mp3', {
 
   function updateUiState(updatedState: UiState) {
     dispatch(setUiState(updatedState));
+  
+    updateRemoteUiState({
+      ...(uiSavedState?.data || {}),
+      wordleGame: updatedState,
+    });
   }
 
   function newInfiniteGame(){
