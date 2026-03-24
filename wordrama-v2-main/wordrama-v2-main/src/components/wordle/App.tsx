@@ -652,15 +652,15 @@ const [playLoseSoundChristmas] = useSound('/sounds/christmas-lost.mp3', {
                     </Select>
                   )}
                 </div>
-                { gameUiState?.boardColour && (
+                { false && (
                   <div className="grid grid-cols-4 items-center gap-4">
                     <Select>
                       <SelectTrigger className="col-span-4">
-                        <SelectValue placeholder="Select a board colour" />
+                        <SelectValue placeholder="Select a board color" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectGroup>
-                          <SelectLabel>Board Colour</SelectLabel>
+                          <SelectLabel>Board Color</SelectLabel>
                           <SelectItem key="bd_blue" value="blue">Blue</SelectItem>
                           <SelectItem key="bd_purple" value="purple">Purple</SelectItem>
                           <SelectItem key="bd_pink" value="pink">Pink</SelectItem>
@@ -669,15 +669,15 @@ const [playLoseSoundChristmas] = useSound('/sounds/christmas-lost.mp3', {
                     </Select>
                   </div>
                 )}
-                { gameUiState?.keyboardColour && (
+                { false && (
                 <div className="grid grid-cols-4 items-center gap-4">
                   <Select>
                     <SelectTrigger className="col-span-4">
-                      <SelectValue placeholder="Select a keyboard colour" />
+                      <SelectValue placeholder="Select a keyboard color" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
-                        <SelectLabel>Keyboard Colour</SelectLabel>
+                        <SelectLabel>Keyboard Color</SelectLabel>
                         <SelectItem key="kb_blue" value="blue">Blue</SelectItem>
                         <SelectItem key="kb_purple" value="purple">Purple</SelectItem>
                         <SelectItem key="kb_pink" value="pink">Pink</SelectItem>
