@@ -944,11 +944,7 @@ const [playLoseSoundChristmas] = useSound('/sounds/christmas-lost.mp3', {
                   <div className="mx-auto w-full max-w-screen-lg">
                     <DrawerHeader>
                       <DrawerTitle className="text-center text-4xl">
-                        {gameMode === 'DAILY'
-                          ? 'Daily Stats'
-                          : gameMode === 'INFINITE'
-                          ? 'Infinite Stats'
-                          : 'Statistics'}
+                        WORDLE AUTH TEST
                       </DrawerTitle>
                       {gameMode !== 'CUSTOM' && (
                         <p className="text-sm text-gray-500 dark:text-gray-400 text-center mb-2">

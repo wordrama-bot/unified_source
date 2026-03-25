@@ -616,8 +616,7 @@ function App(){
               <div className="mx-auto w-full max-w-screen-lg">
                 <DrawerHeader>
                   <DrawerTitle className="text-center text-4xl">
-                    { isGameWon && 'You won!' }
-                    { isGameLost && `You lost! - The answer was ${solution }` }
+                    FREEPLAY GUEST TEST
                   </DrawerTitle>
                 </DrawerHeader>
                 <DrawerDescription className="text-center text-xl">
