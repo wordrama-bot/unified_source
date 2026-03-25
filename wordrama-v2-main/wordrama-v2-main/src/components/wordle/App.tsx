@@ -943,7 +943,18 @@ const [playLoseSoundChristmas] = useSound('/sounds/christmas-lost.mp3', {
                   <DrawerContent className={streamerMode ? 'h-4/5 bg-bg' : 'bg-bg'}>
                   <div className="mx-auto w-full max-w-screen-lg">
                     <DrawerHeader>
-                      <DrawerTitle className="text-center text-4xl">Stats</DrawerTitle>
+                      <DrawerTitle className="text-center text-4xl">
+                        {gameMode === 'DAILY'
+                          ? 'Daily Stats'
+                          : gameMode === 'INFINITE'
+                          ? 'Infinite Stats'
+                          : 'Statistics'}
+                      </DrawerTitle>
+                      {gameMode !== 'CUSTOM' && (
+                        <p className="text-sm text-gray-500 dark:text-gray-400 text-center mb-2">
+                          Viewing current mode stats
+                        </p>
+                      )}
                     </DrawerHeader>
                     <DrawerDescription>
                       { isGameWon && (
