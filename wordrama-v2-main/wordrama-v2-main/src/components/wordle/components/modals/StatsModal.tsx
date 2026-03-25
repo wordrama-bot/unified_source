@@ -144,6 +144,15 @@ export const StatsModal = ({
 
   const timeframe = timeframeData[statsTimeframe].friendlyText || '';
   const isCustomGame = gameMode === 'CUSTOM';
+
+  // NEW: Determine mode label
+  const modeLabel =
+    gameMode === 'DAILY'
+      ? 'Daily'
+      : gameMode === 'INFINITE'
+      ? 'Infinite'
+      : '';
+
   const gameStats: GameStat = {
     winDistribution: timeframeData[statsTimeframe].winDistribution || [],
     gamesFailed: timeframeData[statsTimeframe].gamesLost || 0,
@@ -155,12 +164,25 @@ export const StatsModal = ({
   if (gameStats.totalGames <= 0) {
     return (
       <BaseModal
-        title={isCustomGame ? CUSTOM_GAME_TITLE : timeframe ? `${timeframe} ${STATISTICS_TITLE}` : STATISTICS_TITLE }
+        title={
+          isCustomGame
+            ? CUSTOM_GAME_TITLE
+            : modeLabel
+              ? `${modeLabel} ${STATISTICS_TITLE}`
+              : timeframe
+                ? `${timeframe} ${STATISTICS_TITLE}`
+                : STATISTICS_TITLE
+        }
         isOpen={isOpen}
         handleClose={handleClose}
         showTimeframe={!isCustomGame}
         toggleTimeFrame={toggleTimeframe}
       >
+      {!isCustomGame && timeframe && timeframe !== modeLabel && (
+        <p className="text-sm text-gray-500 dark:text-gray-400 text-center mb-2">
+          {timeframe} stats
+        </p>
+      )}
         <StatBar gameStats={gameStats} />
       </BaseModal>
     )
@@ -170,25 +192,29 @@ export const StatsModal = ({
   const tomorrow = new Date(now.setHours(0, 0, 0, 0)).setDate(now.getDate() + 1);
   return (
     <BaseModal
-      title={isCustomGame ? CUSTOM_GAME_TITLE : timeframe ? `${timeframe} ${STATISTICS_TITLE}` : STATISTICS_TITLE }
+      title={
+        isCustomGame
+          ? CUSTOM_GAME_TITLE
+          : modeLabel
+            ? `${modeLabel} ${STATISTICS_TITLE}`
+            : timeframe
+              ? `${timeframe} ${STATISTICS_TITLE}`
+              : STATISTICS_TITLE
+      }
       isOpen={isOpen}
       handleClose={handleClose}
       showTimeframe={!isCustomGame}
       toggleTimeFrame={toggleTimeframe}
     >
+      {!isCustomGame && timeframe && timeframe !== modeLabel && (
+        <p className="text-sm text-gray-500 dark:text-gray-400 text-center mb-2">
+          {timeframe} stats
+        </p>
+      )}
+
       {!isCustomGame && (
         <>
           <StatBar gameStats={gameStats} />
-          <h4 className="text-lg font-medium leading-6 text-gray-900 dark:text-gray-100">
-            {GUESS_DISTRIBUTION_TEXT}
-          </h4>
-          {
-            <Histogram
-              gameStats={gameStats}
-              isGameWon={isGameWon}
-              numberOfGuessesMade={guesses.length}
-            />
-          }
         </>
       )}
       {(isGameWon || isGameLost) && (
