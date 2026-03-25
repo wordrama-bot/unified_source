@@ -459,25 +459,24 @@ export default function ProfilePage() {
           //${avatarBorder}
         }
         <Avatar
-          className={`relative overflow-visible w-64 h-64`}
-        >
-          { positions?.allTime?.alltimeRank === 1 && (
-            <div className="absolute top-[-145px] md:top-[-125px] left-1/2 -translate-x-1/2 flex h-64 w-64 items-center justify-center z-10">
-              <CrownIcon className="h-24 w-24 fill-yellow-500" />
-            </div>
-          )}
-          {
-            //avatar ||
-          }
-          <AvatarImage
-            className='overflow-hidden rounded-full'
-            src={data?.data?.profileImage}
-            alt={data?.data?.displayName}
-            width={250}
-            height={250}
-          />
-          <AvatarFallback>{data?.data?.displayName}</AvatarFallback>
-        </Avatar>
+	  className={`relative overflow-visible w-64 h-64`}
+	>
+	  {positions?.allTime?.alltimeRank === 1 && (
+	    <div className="absolute top-[-145px] md:top-[-125px] left-1/2 -translate-x-1/2 flex h-64 w-64 items-center justify-center z-10">
+	      <CrownIcon className="h-24 w-24 fill-yellow-500" />
+	    </div>
+	  )}
+	  <AvatarImage
+	    className='overflow-hidden rounded-full'
+	    src={data?.profileImage}
+	    alt={data?.displayName || data?.username || 'Player'}
+	    width={250}
+	    height={250}
+	  />
+	  <AvatarFallback>
+	    {data?.displayName || data?.username || 'Player'}
+	  </AvatarFallback>
+	</Avatar>
         <div className="mx-auto w-container max-w-full px-5 text-center">
           <p className="mb-1 mt-8 text-lg font-normal leading-relaxed md:text-4xl lg:text-5xl lg:leading-relaxed">
             { data?.data?.displayName }
