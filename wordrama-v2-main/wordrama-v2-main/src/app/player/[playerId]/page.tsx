@@ -43,6 +43,7 @@ import {
 } from "@/components/ui/chart"
 import { useToast } from '@/components/ui/use-toast';
 import { Badge } from "@/components/ui/badge"
+import { wordleWordPackConfig } from '@/lib/config';
 //import { getAppInsights } from '@/utils/appInsights';
 
 function CrownIcon(props) {
@@ -91,17 +92,22 @@ export default function ProfilePage() {
   //getAppInsights().trackPageView({ name: 'Player Profile' });
   const { user } = useAuth();
   const { playerId } = useParams();
+  const normalizedPlayerId = Array.isArray(playerId) ? playerId[0] : playerId;
+
+  const { data: summaryResp, error, isLoading } = useGetPublicPlayerSummaryQuery(normalizedPlayerId, {
+    skip: !normalizedPlayerId,
+  });
+
   const [timeFrame, setTimeframe] = useState('alltime');
   const [wordLength, setWordLength] = useState('ALL');
-  const { data: summaryResp, error, isLoading } = useGetPublicPlayerSummaryQuery(playerId);
-
-  const summary = summaryResp?.data;
+  
+  const summary = summaryResp?.data ?? null;
   const data = summary;
-  const levels = summary?.levels;
-  const stats = summary?.stats;
-  const streak = summary?.streak;
-  const positions = summary?.leaderboardPositions;
-  const distribution = summary?.guessDistribution;
+  const levels = summary?.levels ?? null;
+  const stats = summary?.stats ?? null;
+  const streak = summary?.streak ?? null;
+  const positions = summary?.leaderboardPositions ?? null;
+  const distribution = summary?.guessDistribution ?? null;
   const { toast } = useToast();
   const { data: friends, isError } = useGetMyFriendsQuery(undefined, {
     skip: !user?.id,
@@ -111,6 +117,12 @@ export default function ProfilePage() {
   });
   const friendList = !isError && friends ? friends?.data?.map(friend => friend.players.id): [];
   const [inviteFriend] = useInviteFriendMutation();
+  const profileWordPackTabs = Object.entries(wordleWordPackConfig.friendlyNameByName).map(
+    ([value, label]) => ({
+      value,
+      label,
+    })
+  );
 
   async function sendFriendRequest() {
     const resp = await inviteFriend(playerId);
@@ -127,7 +139,7 @@ export default function ProfilePage() {
     }
   }
 
-  const chartConfig = {
+    const chartConfig = {
     'wins': {
       label: "Wins",
     },
@@ -156,288 +168,99 @@ export default function ProfilePage() {
       color: "#90C7FE",
     },
   }
-  let chartData = [];
+
+  const getWordPackPrefix = (pack: string) =>
+    pack.toLowerCase().replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
+
+  type ChartDataItem = {
+    wonIn: string;
+    wins: number;
+    fill: string;
+  };
+
+  let chartData: ChartDataItem[] = [];
   let gamesPlayed = 0;
   let gamesWon = 0;
-  let tfData = {};
-  if (timeFrame === 'alltime') {
-  tfData = positions?.allTime;
-} else if (timeFrame === 'daily') {
-  tfData = positions?.daily;
-} else if (timeFrame === 'weekly') {
-  tfData = positions?.weekly;
-} else if (timeFrame === 'monthly') {
-  tfData = positions?.monthly;
-} else if (timeFrame === 'yearly') {
-  tfData = positions?.yearly;
-}
+  let currentStreakValue = 0;
+  let bestStreakValue = 0;
 
-  if (tfData) {
-    switch (wordLength) {
-      case 'ALL':
-        gamesWon = tfData.gamesWon || 0;
-        gamesPlayed = tfData.gamesPlayed || 0;
-        chartData = [{
-          wonIn: '1',
-          wins: tfData.gamesWonIn_1 || 0,
-          fill: chartConfig['1'].color
-        }, {
-          wonIn: '2',
-          wins: tfData.gamesWonIn_2 || 0,
-          fill: chartConfig['2'].color
-        }, {
-          wonIn: '3',
-          wins: tfData.gamesWonIn_3 || 0,
-          fill: chartConfig['3'].color
-        }, {
-          wonIn: '4',
-          wins: tfData.gamesWonIn_4 || 0,
-          fill: chartConfig['4'].color
-        }, {
-          wonIn: '5',
-          wins: tfData.gamesWonIn_5 || 0,
-          fill: chartConfig['5'].color
-        }, {
-          wonIn: '6',
-          wins: tfData.gamesWonIn_6 || 0,
-          fill: chartConfig['6'].color
-        }]
-        break;
-      case 'FIVE_LETTER':
-        gamesWon = tfData.fiveLetterGamesWon || 0;
-        gamesPlayed = tfData.fiveLetterGamesWon + tfData.fiveLetterGamesLost || 0;
-        chartData = [{
-          wonIn: '1',
-          wins: tfData.fiveLetterGamesWonIn_1 || 0,
-          fill: chartConfig['1'].color
-        },{
-          wonIn: '2',
-          wins: tfData.fiveLetterGamesWonIn_2 || 0,
-          fill: chartConfig['2'].color
-        },{
-          wonIn: '3',
-          wins: tfData.fiveLetterGamesWonIn_3 || 0,
-          fill: chartConfig['3'].color
-        },{
-          wonIn: '4',
-          wins: tfData.fiveLetterGamesWonIn_4 || 0,
-          fill: chartConfig['4'].color
-        },{
-          wonIn: '5',
-          wins: tfData.fiveLetterGamesWonIn_5 || 0,
-          fill: chartConfig['5'].color
-        },{
-          wonIn: '6',
-          wins: tfData.fiveLetterGamesWonIn_6 || 0,
-          fill: chartConfig['6'].color
-        }]
-        break;
-      case 'SIX_LETTER':
-        gamesWon = tfData.sixLetterGamesWon || 0;
-        gamesPlayed = tfData.sixLetterGamesWon + tfData.sixLetterGamesLost;
-        chartData = [{
-          wonIn: '1',
-          wins: tfData.sixLetterGamesWonIn_1 || 0,
-          fill: chartConfig['1'].color
-        },{
-          wonIn: '2',
-          wins: tfData.sixLetterGamesWonIn_2 || 0,
-          fill: chartConfig['2'].color
-        },{
-          wonIn: '3',
-          wins: tfData.sixLetterGamesWonIn_3 || 0,
-          fill: chartConfig['3'].color
-        },{
-          wonIn: '4',
-          wins: tfData.sixLetterGamesWonIn_4 || 0,
-          fill: chartConfig['4'].color
-        },{
-          wonIn: '5',
-          wins: tfData.sixLetterGamesWonIn_5 || 0,
-          fill: chartConfig['5'].color
-        },{
-          wonIn: '6',
-          wins: tfData.sixLetterGamesWonIn_6 || 0,
-          fill: chartConfig['6'].color
-        }]
-        break;
-      case 'SEVEN_LETTER':
-        gamesWon = tfData.sevenLetterGamesWon || 0;
-        gamesPlayed = tfData.sevenLetterGamesWon + tfData.sevenLetterGamesLost;
-        chartData = [{
-          wonIn: '1',
-          wins: tfData.sevenLetterGamesWonIn_1 || 0,
-          fill: chartConfig['1'].color
-        },{
-          wonIn: '2',
-          wins: tfData.sevenLetterGamesWonIn_2 || 0,
-          fill: chartConfig['2'].color
-        },{
-          wonIn: '3',
-          wins: tfData.sevenLetterGamesWonIn_3 || 0,
-          fill: chartConfig['3'].color
-        },{
-          wonIn: '4',
-          wins: tfData.sevenLetterGamesWonIn_4 || 0,
-          fill: chartConfig['4'].color
-        },{
-          wonIn: '5',
-          wins: tfData.sevenLetterGamesWonIn_5 || 0,
-          fill: chartConfig['5'].color
-        },{
-          wonIn: '6',
-          wins: tfData.sevenLetterGamesWonIn_6 || 0,
-          fill: chartConfig['6'].color
-        }]
-        break;
-      case 'EIGHT_LETTER':
-        gamesWon = tfData.eightLetterGamesWon || 0;
-        gamesPlayed = tfData.eightLetterGamesWon + tfData.eightLetterGamesLost;
-        chartData = [{
-          wonIn: '1',
-          wins: tfData.eightLetterGamesWonIn_1 || 0,
-          fill: chartConfig['1'].color
-        },{
-          wonIn: '2',
-          wins: tfData.eightLetterGamesWonIn_2 || 0,
-          fill: chartConfig['2'].color
-        },{
-          wonIn: '3',
-          wins: tfData.eightLetterGamesWonIn_3 || 0,
-          fill: chartConfig['3'].color
-        },{
-          wonIn: '4',
-          wins: tfData.eightLetterGamesWonIn_4 || 0,
-          fill: chartConfig['4'].color
-        },{
-          wonIn: '5',
-          wins: tfData.eightLetterGamesWonIn_5 || 0,
-          fill: chartConfig['5'].color
-        },{
-          wonIn: '6',
-          wins: tfData.eightLetterGamesWonIn_6 || 0,
-          fill: chartConfig['6'].color
-        }]
-        break;
-      case 'NINE_LETTER':
-        gamesWon = tfData.nineLetterGamesWon || 0;
-        gamesPlayed = tfData.nineLetterGamesPlayed + tfData.nineLetterGamesLost;
-        chartData = [{
-          wonIn: '1',
-          wins: tfData.nineLetterGamesWonIn_1 || 0,
-          fill: chartConfig['1'].color
-        },{
-          wonIn: '2',
-          wins: tfData.nineLetterGamesWonIn_2 || 0,
-          fill: chartConfig['2'].color
-        },{
-          wonIn: '3',
-          wins: tfData.nineLetterGamesWonIn_3 || 0,
-          fill: chartConfig['3'].color
-        },{
-          wonIn: '4',
-          wins: tfData.nineLetterGamesWonIn_4 || 0,
-          fill: chartConfig['4'].color
-        },{
-          wonIn: '5',
-          wins: tfData.nineLetterGamesWonIn_5 || 0,
-          fill: chartConfig['5'].color
-        },{
-          wonIn: '6',
-          wins: tfData.nineLetterGamesWonIn_6 || 0,
-          fill: chartConfig['6'].color
-        }]
-        break;
-      case 'TEN_LETTER':
-        gamesWon = tfData.tenLetterGamesWon || 0;
-        gamesPlayed = tfData.tenLetterGamesPlayed + tfData.tenLetterGamesLost;
-        chartData = [{
-          wonIn: '1',
-          wins: tfData.tenLetterGamesWonIn_1 || 0,
-          fill: chartConfig['1'].color
-        },{
-          wonIn: '2',
-          wins: tfData.tenLetterGamesWonIn_2 || 0,
-          fill: chartConfig['2'].color
-        },{
-          wonIn: '3',
-          wins: tfData.tenLetterGamesWonIn_3 || 0,
-          fill: chartConfig['3'].color
-        },{
-          wonIn: '4',
-          wins: tfData.tenLetterGamesWonIn_4 || 0,
-          fill: chartConfig['4'].color
-        },{
-          wonIn: '5',
-          wins: tfData.tenLetterGamesWonIn_5 || 0,
-          fill: chartConfig['5'].color
-        },{
-          wonIn: '6',
-          wins: tfData.tenLetterGamesWonIn_6 || 0,
-          fill: chartConfig['6'].color
-        }]
-        break;
-      case 'ELEVEN_LETTER':
-        gamesWon = tfData.elevenLetterGamesWon || 0;
-        gamesPlayed = tfData.elevenLetterGamesPlayed + tfData.elevenLetterGamesLost;
-        chartData = [{
-          wonIn: '1',
-          wins: tfData.elevenLetterGamesWonIn_1 || 0,
-          fill: chartConfig['1'].color
-        },{
-          wonIn: '2',
-          wins: tfData.elevenLetterGamesWonIn_2 || 0,
-          fill: chartConfig['2'].color
-        },{
-          wonIn: '3',
-          wins: tfData.elevenLetterGamesWonIn_3 || 0,
-          fill: chartConfig['3'].color
-        },{
-          wonIn: '4',
-          wins: tfData.elevenLetterGamesWonIn_4 || 0,
-          fill: chartConfig['4'].color
-        },{
-          wonIn: '5',
-          wins: tfData.elevenLetterGamesWonIn_5 || 0,
-          fill: chartConfig['5'].color
-        },{
-          wonIn: '6',
-          wins: tfData.elevenLetterGamesWonIn_6 || 0,
-          fill: chartConfig['6'].color
-        }]
-        break;
-      default:
-        gamesWon = 0;
-        gamesPlayed = 0;
-        chartData = [{
-          wonIn: '1',
-          wins: 0,
-          fill: chartConfig['1'].color
-        },{
-          wonIn: '2',
-          wins: 0,
-          fill: chartConfig['2'].color
-        },{
-          wonIn: '3',
-          wins: 0,
-          fill: chartConfig['3'].color
-        },{
-          wonIn: '4',
-          wins: 0,
-          fill: chartConfig['4'].color
-        },{
-          wonIn: '5',
-          wins:  0,
-          fill: chartConfig['5'].color
-        },{
-          wonIn: '6',
-          wins: 0,
-          fill: chartConfig['6'].color
-        }]
-        break;
+  let tfData: Record<string, any> | null = null;
+
+  // Map timeframe → correct dataset
+  switch (timeFrame) {
+    case 'alltime':
+      tfData = positions?.allTime ?? null;
+      break;
+    case 'daily':
+      tfData = positions?.daily ?? null;
+      break;
+    case 'weekly':
+      tfData = positions?.weekly ?? null;
+      break;
+    case 'monthly':
+      tfData = positions?.monthly ?? null;
+      break;
+    case 'yearly':
+      tfData = positions?.yearly ?? null;
+      break;
+    default:
+      tfData = null;
+  }
+
+  // Guard: ensure object actually has data
+  const hasTfData = tfData && Object.keys(tfData).length > 0;
+
+  if (hasTfData) {
+    if (wordLength === 'ALL') {
+      // --- GLOBAL STATS ---
+      gamesWon = Number(tfData.gamesWon ?? 0);
+      gamesPlayed = Number(tfData.gamesPlayed ?? 0);
+
+      currentStreakValue = Number(summary?.streak?.currentStreak ?? 0);
+      bestStreakValue = Number(summary?.streak?.bestStreak ?? 0);
+
+      chartData = [1, 2, 3, 4, 5, 6].map(num => ({
+        wonIn: String(num),
+        wins: Number(tfData[`gamesWonIn_${num}`] ?? 0),
+        fill: chartConfig[String(num) as keyof typeof chartConfig].color,
+      }));
+    } else {
+      // --- WORD LENGTH SPECIFIC ---
+      const prefix = getWordPackPrefix(wordLength);
+
+      const wonKey = `${prefix}GamesWon`;
+      const lostKey = `${prefix}GamesLost`;
+      const currentStreakKey = `${prefix}CurrentStreak`;
+      const bestStreakKey = `${prefix}BestStreak`;
+
+      gamesWon = Number(tfData[wonKey] ?? 0);
+      gamesPlayed =
+        Number(tfData[wonKey] ?? 0) +
+        Number(tfData[lostKey] ?? 0);
+
+      currentStreakValue = Number(tfData[currentStreakKey] ?? 0);
+      bestStreakValue = Number(tfData[bestStreakKey] ?? 0);
+
+      chartData = [1, 2, 3, 4, 5, 6].map(num => ({
+        wonIn: String(num),
+        wins: Number(tfData[`${prefix}GamesWonIn_${num}`] ?? 0),
+        fill: chartConfig[String(num) as keyof typeof chartConfig].color,
+      }));
     }
   }
 
+  console.log('PROFILE DEBUG', {
+    normalizedPlayerId,
+    summaryResp,
+    summary,
+    positions,
+    allTime: positions?.allTime,
+    timeFrame,
+    wordLength,
+    tfData,
+    gamesPlayed,
+    gamesWon,
+  });
 
   //@ts-ignore
   //const [ equiptData ] = data?.data?.equiptItems.filter(({ items }) => items.type === 'AVATAR') || [{}];
@@ -452,7 +275,7 @@ export default function ProfilePage() {
   return (
     <div className="flex min-h-screen w-full flex-col border:border dark:border-darkBorder bg-bg dark:bg-darkBg text-text dark:text-darkText">
       <header
-        className="dark:bg-darkBg inset-0 flex min-h-[75dvh] w-full flex-col items-center justify-center bg-bg bg-[linear-gradient(to_right,#80808033_1px,transparent_1px),linear-gradient(to_bottom,#80808033_1px,transparent_1px)] bg-[size:70px_70px]"
+        className="dark:bg-darkBg inset-0 pb-12 pt-4 flex w-full flex-col items-center justify-start bg-bg bg-[linear-gradient(to_right,#80808033_1px,transparent_1px),linear-gradient(to_bottom,#80808033_1px,transparent_1px)] bg-[size:70px_70px]"
         onContextMenu={(e) => e.preventDefault()}
       >
         {
@@ -478,8 +301,8 @@ export default function ProfilePage() {
 	  </AvatarFallback>
 	</Avatar>
         <div className="mx-auto w-container max-w-full px-5 text-center">
-          <p className="mb-1 mt-8 text-lg font-normal leading-relaxed md:text-4xl lg:text-5xl lg:leading-relaxed">
-            { data?.data?.displayName }
+          <p className="mb-1 mt-4 text-lg font-normal leading-relaxed md:text-4xl lg:text-5xl lg:leading-relaxed">
+            { data?.displayName }
           </p>
           { (levels?.prestige ?? 0) > 0 && (
   <Link href={`/progression?playerId=${playerId}`}>
@@ -518,7 +341,7 @@ export default function ProfilePage() {
            friendList &&
            !friendList.includes(playerId) && user?.id !== playerId &&
            !sentRequests?.data.find(req => req.players.id === playerId) &&  (
-            <div className="flex items-center justify-center mt-10">
+            <div className="flex items-center justify-center mt-4">
               <Button
                 onClick={() => sendFriendRequest()}
               >
@@ -529,7 +352,7 @@ export default function ProfilePage() {
         }
       </header>
       <div
-        className="dark:bg-darkBg inset-0 pb-12 flex min-h-[60dvh] w-full flex-col items-center justify-center bg-bg bg-[linear-gradient(to_right,#80808033_1px,transparent_1px),linear-gradient(to_bottom,#80808033_1px,transparent_1px)] bg-[size:70px_70px]"
+        className="dark:bg-darkBg inset-0 pb-12 pt-4 flex w-full flex-col items-center justify-start bg-bg bg-[linear-gradient(to_right,#80808033_1px,transparent_1px),linear-gradient(to_bottom,#80808033_1px,transparent_1px)] bg-[size:70px_70px]"
       >
         <Tabs defaultValue="alltime" value={timeFrame} onValueChange={value => setTimeframe(value)}>
           <TabsList className="grid w-full grid-cols-5">
@@ -540,198 +363,204 @@ export default function ProfilePage() {
             <TabsTrigger value="yearly">Yearly</TabsTrigger>
           </TabsList>
           <TabsContent value="alltime">
-  <div id="fullWidthTabContent" className='p-4 border-gray-200 dark:border-gray-600'>
-    <div className="p-4 bg-bg rounded-lg md:p-8 dark:bg-gray-800" id="stats" role="tabpanel" aria-labelledby="stats-tab">
-      <dl className={`grid ${wordLength === 'ALL' ? 'sm:grid-cols-3 xl:grid-cols-3 grid-cols-2' : 'sm:grid-cols-3 xl:grid-cols-5 grid-cols-2'} p-4 mx-auto text-gray-900 gap-8 max-w-screen-xl dark:text-white sm:p-8`}>
-        <div className="flex flex-col items-center justify-center">
-          <dt className="mb-2 text-3xl font-extrabold">{ stats?.gamesPlayed ?? 0 }</dt>
-          <dd className="text-gray-500 dark:text-gray-400">🕹️ Games Played</dd>
-        </div>
-        <div className="flex flex-col items-center justify-center">
-          <dt className="mb-2 text-3xl font-extrabold">{ stats?.gamesWon ?? 0 }</dt>
-          <dd className="text-gray-500 dark:text-gray-400">🏆 Games Won</dd>
-        </div>
-        {
-          wordLength !== 'ALL' && (
-            <div className="flex flex-col items-center justify-center">
-              <dt className="mb-2 text-3xl font-extrabold">{ streak?.currentStreak ?? 0 }</dt>
-              <dd className="text-gray-500 dark:text-gray-400">🔥 Current Streak</dd>
+            <div id="fullWidthTabContent" className='p-4 border-gray-200 dark:border-gray-600'>
+              <div className="p-4 bg-bg rounded-lg md:p-8 dark:bg-gray-800" id="stats" role="tabpanel" aria-labelledby="stats-tab">
+                <dl className={`grid ${wordLength === 'ALL' ? 'sm:grid-cols-3 xl:grid-cols-3 grid-cols-2' : 'sm:grid-cols-3 xl:grid-cols-5 grid-cols-2'} p-4 mx-auto text-gray-900 gap-4 max-w-screen-xl dark:text-white sm:p-8`}>
+                  <div className="flex flex-col items-center justify-center">
+                    <dt className="mb-2 text-3xl font-extrabold">{ gamesPlayed }</dt>
+                    <dd className="text-gray-500 dark:text-gray-400">🕹️ Games Played</dd>
+                  </div>
+                  <div className="flex flex-col items-center justify-center">
+                    <dt className="mb-2 text-3xl font-extrabold">{ gamesWon }</dt>
+                    <dd className="text-gray-500 dark:text-gray-400">🏆 Games Won</dd>
+                  </div>
+                  {
+                    wordLength !== 'ALL' && timeFrame === 'alltime' && (
+                      <div className="flex flex-col items-center justify-center">
+                        <dt className="mb-2 text-3xl font-extrabold">{ currentStreakValue }</dt>
+                        <dd className="text-gray-500 dark:text-gray-400">🔥 Current Streak</dd>
+                      </div>
+                    )
+                  }
+                  {
+                    wordLength !== 'ALL' && timeFrame === 'alltime' && (
+                      <div className="flex flex-col items-center justify-center">
+                        <dt className="mb-2 text-3xl font-extrabold">{ bestStreakValue }</dt>
+                        <dd className="text-gray-500 dark:text-gray-400">💎 Best Streak</dd>
+                      </div>
+                    )
+                  }
+                  <div className="flex flex-col items-center justify-center">
+                    <dt className="mb-2 text-3xl font-extrabold">{ gamesPlayed > 0 ? Math.round((gamesWon / gamesPlayed) * 100) : 0 }%</dt>
+                    <dd className="text-gray-500 dark:text-gray-400">📈 % of Wins</dd>
+                  </div>
+                </dl>
+              </div>
             </div>
-          )
-        }
-        {
-          wordLength !== 'ALL' && (
-            <div className="flex flex-col items-center justify-center">
-              <dt className="mb-2 text-3xl font-extrabold">{ streak?.bestStreak ?? 0 }</dt>
-              <dd className="text-gray-500 dark:text-gray-400">💎 Best Streak</dd>
+          </TabsContent>
+          <TabsContent value="daily">
+            <div id="fullWidthTabContent" className='p-4 border-gray-200 dark:border-gray-600'>
+              <div className="p-4 bg-bg rounded-lg md:p-8 dark:bg-gray-800" id="stats" role="tabpanel" aria-labelledby="stats-tab">
+                <dl className={`grid ${wordLength === 'ALL' ? 'sm:grid-cols-3 xl:grid-cols-3 grid-cols-2' : 'sm:grid-cols-3 xl:grid-cols-5 grid-cols-2'} p-4 mx-auto text-gray-900 gap-4 max-w-screen-xl dark:text-white sm:p-8`}>
+                  <div className="flex flex-col items-center justify-center">
+                    <dt className="mb-2 text-3xl font-extrabold">{ gamesPlayed }</dt>
+                    <dd className="text-gray-500 dark:text-gray-400">🕹️ Games Played</dd>
+                  </div>
+                  <div className="flex flex-col items-center justify-center">
+                    <dt className="mb-2 text-3xl font-extrabold">{ gamesWon }</dt>
+                    <dd className="text-gray-500 dark:text-gray-400">🏆 Games Won</dd>
+                  </div>
+                  {
+                    wordLength !== 'ALL' && timeFrame === 'alltime' && (
+                      <div className="flex flex-col items-center justify-center">
+                        <dt className="mb-2 text-3xl font-extrabold">{ currentStreakValue }</dt>
+                        <dd className="text-gray-500 dark:text-gray-400">🔥 Current Streak</dd>
+                      </div>
+                    )
+                  }
+                  {
+                    wordLength !== 'ALL' && timeFrame === 'alltime' && (
+                      <div className="flex flex-col items-center justify-center">
+                        <dt className="mb-2 text-3xl font-extrabold">{ bestStreakValue }</dt>
+                        <dd className="text-gray-500 dark:text-gray-400">💎 Best Streak</dd>
+                      </div>
+                    )
+                  }
+                  <div className="flex flex-col items-center justify-center">
+                    <dt className="mb-2 text-3xl font-extrabold">{ gamesPlayed > 0 ? Math.round((gamesWon / gamesPlayed) * 100) : 0 }%</dt>
+                    <dd className="text-gray-500 dark:text-gray-400">📈 % of Wins</dd>
+                  </div>
+                </dl>
+              </div>
             </div>
-          )
-        }
-        <div className="flex flex-col items-center justify-center">
-          <dt className="mb-2 text-3xl font-extrabold">{ stats?.winPercentage ?? 0 }%</dt>
-          <dd className="text-gray-500 dark:text-gray-400">📈 % of Wins</dd>
-        </div>
-      </dl>
-    </div>
-  </div>
-</TabsContent>
-<TabsContent value="daily">
-  <div id="fullWidthTabContent" className='p-4 border-gray-200 dark:border-gray-600'>
-    <div className="p-4 bg-bg rounded-lg md:p-8 dark:bg-gray-800" id="stats" role="tabpanel" aria-labelledby="stats-tab">
-      <dl className={`grid ${wordLength === 'ALL' ? 'sm:grid-cols-3 xl:grid-cols-3 grid-cols-2' : 'sm:grid-cols-3 xl:grid-cols-5 grid-cols-2'} p-4 mx-auto text-gray-900 gap-8 max-w-screen-xl dark:text-white sm:p-8`}>
-        <div className="flex flex-col items-center justify-center">
-          <dt className="mb-2 text-3xl font-extrabold">{ stats?.gamesPlayed ?? 0 }</dt>
-          <dd className="text-gray-500 dark:text-gray-400">🕹️ Games Played</dd>
-        </div>
-        <div className="flex flex-col items-center justify-center">
-          <dt className="mb-2 text-3xl font-extrabold">{ stats?.gamesWon ?? 0 }</dt>
-          <dd className="text-gray-500 dark:text-gray-400">🏆 Games Won</dd>
-        </div>
-        {
-          wordLength !== 'ALL' && (
-            <div className="flex flex-col items-center justify-center">
-              <dt className="mb-2 text-3xl font-extrabold">{ streak?.currentStreak ?? 0 }</dt>
-              <dd className="text-gray-500 dark:text-gray-400">🔥 Current Streak</dd>
+          </TabsContent>
+          <TabsContent value="weekly">
+            <div id="fullWidthTabContent" className='p-4 border-gray-200 dark:border-gray-600'>
+              <div className="p-4 bg-bg rounded-lg md:p-8 dark:bg-gray-800" id="stats" role="tabpanel" aria-labelledby="stats-tab">
+                <dl className={`grid ${wordLength === 'ALL' ? 'sm:grid-cols-3 xl:grid-cols-3 grid-cols-2' : 'sm:grid-cols-3 xl:grid-cols-5 grid-cols-2'} p-4 mx-auto text-gray-900 gap-4 max-w-screen-xl dark:text-white sm:p-8`}>
+                  <div className="flex flex-col items-center justify-center">
+                    <dt className="mb-2 text-3xl font-extrabold">{ gamesPlayed }</dt>
+                    <dd className="text-gray-500 dark:text-gray-400">🕹️ Games Played</dd>
+                  </div>
+                  <div className="flex flex-col items-center justify-center">
+                    <dt className="mb-2 text-3xl font-extrabold">{ gamesWon }</dt>
+                    <dd className="text-gray-500 dark:text-gray-400">🏆 Games Won</dd>
+                  </div>
+                  {
+                    wordLength !== 'ALL' && timeFrame === 'alltime' && (
+                      <div className="flex flex-col items-center justify-center">
+                        <dt className="mb-2 text-3xl font-extrabold">{ currentStreakValue }</dt>
+                        <dd className="text-gray-500 dark:text-gray-400">🔥 Current Streak</dd>
+                      </div>
+                    )
+                  }
+                  {
+                    wordLength !== 'ALL' && timeFrame === 'alltime' && (
+                      <div className="flex flex-col items-center justify-center">
+                        <dt className="mb-2 text-3xl font-extrabold">{ bestStreakValue }</dt>
+                        <dd className="text-gray-500 dark:text-gray-400">💎 Best Streak</dd>
+                      </div>
+                    )
+                  }
+                  <div className="flex flex-col items-center justify-center">
+                    <dt className="mb-2 text-3xl font-extrabold">{ gamesPlayed > 0 ? Math.round((gamesWon / gamesPlayed) * 100) : 0 }%</dt>
+                    <dd className="text-gray-500 dark:text-gray-400">📈 % of Wins</dd>
+                  </div>
+                </dl>
+              </div>
             </div>
-          )
-        }
-        {
-          wordLength !== 'ALL' && (
-            <div className="flex flex-col items-center justify-center">
-              <dt className="mb-2 text-3xl font-extrabold">{ streak?.bestStreak ?? 0 }</dt>
-              <dd className="text-gray-500 dark:text-gray-400">💎 Best Streak</dd>
+          </TabsContent>
+          <TabsContent value="monthly">
+            <div id="fullWidthTabContent" className='p-4 border-gray-200 dark:border-gray-600'>
+              <div className="p-4 bg-bg rounded-lg md:p-8 dark:bg-gray-800" id="stats" role="tabpanel" aria-labelledby="stats-tab">
+                <dl className={`grid ${wordLength === 'ALL' ? 'sm:grid-cols-3 xl:grid-cols-3 grid-cols-2' : 'sm:grid-cols-3 xl:grid-cols-5 grid-cols-2'} p-4 mx-auto text-gray-900 gap-4 max-w-screen-xl dark:text-white sm:p-8`}>
+                  <div className="flex flex-col items-center justify-center">
+                    <dt className="mb-2 text-3xl font-extrabold">{ gamesPlayed }</dt>
+                    <dd className="text-gray-500 dark:text-gray-400">🕹️ Games Played</dd>
+                  </div>
+                  <div className="flex flex-col items-center justify-center">
+                    <dt className="mb-2 text-3xl font-extrabold">{ gamesWon }</dt>
+                    <dd className="text-gray-500 dark:text-gray-400">🏆 Games Won</dd>
+                  </div>
+                  {
+                    wordLength !== 'ALL' && timeFrame === 'alltime' && (
+                      <div className="flex flex-col items-center justify-center">
+                        <dt className="mb-2 text-3xl font-extrabold">{ currentStreakValue }</dt>
+                        <dd className="text-gray-500 dark:text-gray-400">🔥 Current Streak</dd>
+                      </div>
+                    )
+                  }
+                  {
+                    wordLength !== 'ALL' && timeFrame === 'alltime' && (
+                      <div className="flex flex-col items-center justify-center">
+                        <dt className="mb-2 text-3xl font-extrabold">{ bestStreakValue }</dt>
+                        <dd className="text-gray-500 dark:text-gray-400">💎 Best Streak</dd>
+                      </div>
+                    )
+                  }
+                  <div className="flex flex-col items-center justify-center">
+                    <dt className="mb-2 text-3xl font-extrabold">{ gamesPlayed > 0 ? Math.round((gamesWon / gamesPlayed) * 100) : 0 }%</dt>
+                    <dd className="text-gray-500 dark:text-gray-400">📈 % of Wins</dd>
+                  </div>
+                </dl>
+              </div>
             </div>
-          )
-        }
-        <div className="flex flex-col items-center justify-center">
-          <dt className="mb-2 text-3xl font-extrabold">{ stats?.winPercentage ?? 0 }%</dt>
-          <dd className="text-gray-500 dark:text-gray-400">📈 % of Wins</dd>
-        </div>
-      </dl>
-    </div>
-  </div>
-</TabsContent>
-<TabsContent value="weekly">
-  <div id="fullWidthTabContent" className='p-4 border-gray-200 dark:border-gray-600'>
-    <div className="p-4 bg-bg rounded-lg md:p-8 dark:bg-gray-800" id="stats" role="tabpanel" aria-labelledby="stats-tab">
-      <dl className={`grid ${wordLength === 'ALL' ? 'sm:grid-cols-3 xl:grid-cols-3 grid-cols-2' : 'sm:grid-cols-3 xl:grid-cols-5 grid-cols-2'} p-4 mx-auto text-gray-900 gap-8 max-w-screen-xl dark:text-white sm:p-8`}>
-        <div className="flex flex-col items-center justify-center">
-          <dt className="mb-2 text-3xl font-extrabold">{ stats?.gamesPlayed ?? 0 }</dt>
-          <dd className="text-gray-500 dark:text-gray-400">🕹️ Games Played</dd>
-        </div>
-        <div className="flex flex-col items-center justify-center">
-          <dt className="mb-2 text-3xl font-extrabold">{ stats?.gamesWon ?? 0 }</dt>
-          <dd className="text-gray-500 dark:text-gray-400">🏆 Games Won</dd>
-        </div>
-        {
-          wordLength !== 'ALL' && (
-            <div className="flex flex-col items-center justify-center">
-              <dt className="mb-2 text-3xl font-extrabold">{ streak?.currentStreak ?? 0 }</dt>
-              <dd className="text-gray-500 dark:text-gray-400">🔥 Current Streak</dd>
+          </TabsContent>
+          <TabsContent value="yearly">
+            <div id="fullWidthTabContent" className='p-4 border-gray-200 dark:border-gray-600'>
+              <div className="p-4 bg-bg rounded-lg md:p-8 dark:bg-gray-800" id="stats" role="tabpanel" aria-labelledby="stats-tab">
+                <dl className={`grid ${wordLength === 'ALL' ? 'sm:grid-cols-3 xl:grid-cols-3 grid-cols-2' : 'sm:grid-cols-3 xl:grid-cols-5 grid-cols-2'} p-4 mx-auto text-gray-900 gap-4 max-w-screen-xl dark:text-white sm:p-8`}>
+                  <div className="flex flex-col items-center justify-center">
+                    <dt className="mb-2 text-3xl font-extrabold">{ gamesPlayed }</dt>
+                    <dd className="text-gray-500 dark:text-gray-400">🕹️ Games Played</dd>
+                  </div>
+                  <div className="flex flex-col items-center justify-center">
+                    <dt className="mb-2 text-3xl font-extrabold">{ gamesWon }</dt>
+                    <dd className="text-gray-500 dark:text-gray-400">🏆 Games Won</dd>
+                  </div>
+                  {
+                    wordLength !== 'ALL' && timeFrame === 'alltime' && (
+                      <div className="flex flex-col items-center justify-center">
+                        <dt className="mb-2 text-3xl font-extrabold">{ currentStreakValue }</dt>
+                        <dd className="text-gray-500 dark:text-gray-400">🔥 Current Streak</dd>
+                      </div>
+                    )
+                  }
+                  {
+                    wordLength !== 'ALL' && timeFrame === 'alltime' && (
+                      <div className="flex flex-col items-center justify-center">
+                        <dt className="mb-2 text-3xl font-extrabold">{ bestStreakValue }</dt>
+                        <dd className="text-gray-500 dark:text-gray-400">💎 Best Streak</dd>
+                      </div>
+                    )
+                  }
+                  <div className="flex flex-col items-center justify-center">
+                    <dt className="mb-2 text-3xl font-extrabold">{ gamesPlayed > 0 ? Math.round((gamesWon / gamesPlayed) * 100) : 0 }%</dt>
+                    <dd className="text-gray-500 dark:text-gray-400">📈 % of Wins</dd>
+                  </div>
+                </dl>
+              </div>
             </div>
-          )
-        }
-        {
-          wordLength !== 'ALL' && (
-            <div className="flex flex-col items-center justify-center">
-              <dt className="mb-2 text-3xl font-extrabold">{ streak?.bestStreak ?? 0 }</dt>
-              <dd className="text-gray-500 dark:text-gray-400">💎 Best Streak</dd>
-            </div>
-          )
-        }
-        <div className="flex flex-col items-center justify-center">
-          <dt className="mb-2 text-3xl font-extrabold">{ stats?.winPercentage ?? 0 }%</dt>
-          <dd className="text-gray-500 dark:text-gray-400">📈 % of Wins</dd>
-        </div>
-      </dl>
-    </div>
-  </div>
-</TabsContent>
-<TabsContent value="monthly">
-  <div id="fullWidthTabContent" className='p-4 border-gray-200 dark:border-gray-600'>
-    <div className="p-4 bg-bg rounded-lg md:p-8 dark:bg-gray-800" id="stats" role="tabpanel" aria-labelledby="stats-tab">
-      <dl className={`grid ${wordLength === 'ALL' ? 'sm:grid-cols-3 xl:grid-cols-3 grid-cols-2' : 'sm:grid-cols-3 xl:grid-cols-5 grid-cols-2'} p-4 mx-auto text-gray-900 gap-8 max-w-screen-xl dark:text-white sm:p-8`}>
-        <div className="flex flex-col items-center justify-center">
-          <dt className="mb-2 text-3xl font-extrabold">{ stats?.gamesPlayed ?? 0 }</dt>
-          <dd className="text-gray-500 dark:text-gray-400">🕹️ Games Played</dd>
-        </div>
-        <div className="flex flex-col items-center justify-center">
-          <dt className="mb-2 text-3xl font-extrabold">{ stats?.gamesWon ?? 0 }</dt>
-          <dd className="text-gray-500 dark:text-gray-400">🏆 Games Won</dd>
-        </div>
-        {
-          wordLength !== 'ALL' && (
-            <div className="flex flex-col items-center justify-center">
-              <dt className="mb-2 text-3xl font-extrabold">{ streak?.currentStreak ?? 0 }</dt>
-              <dd className="text-gray-500 dark:text-gray-400">🔥 Current Streak</dd>
-            </div>
-          )
-        }
-        {
-          wordLength !== 'ALL' && (
-            <div className="flex flex-col items-center justify-center">
-              <dt className="mb-2 text-3xl font-extrabold">{ streak?.bestStreak ?? 0 }</dt>
-              <dd className="text-gray-500 dark:text-gray-400">💎 Best Streak</dd>
-            </div>
-          )
-        }
-        <div className="flex flex-col items-center justify-center">
-          <dt className="mb-2 text-3xl font-extrabold">{ stats?.winPercentage ?? 0 }%</dt>
-          <dd className="text-gray-500 dark:text-gray-400">📈 % of Wins</dd>
-        </div>
-      </dl>
-    </div>
-  </div>
-</TabsContent>
-<TabsContent value="yearly">
-  <div id="fullWidthTabContent" className='p-4 border-gray-200 dark:border-gray-600'>
-    <div className="p-4 bg-bg rounded-lg md:p-8 dark:bg-gray-800" id="stats" role="tabpanel" aria-labelledby="stats-tab">
-      <dl className={`grid ${wordLength === 'ALL' ? 'sm:grid-cols-3 xl:grid-cols-3 grid-cols-2' : 'sm:grid-cols-3 xl:grid-cols-5 grid-cols-2'} p-4 mx-auto text-gray-900 gap-8 max-w-screen-xl dark:text-white sm:p-8`}>
-        <div className="flex flex-col items-center justify-center">
-          <dt className="mb-2 text-3xl font-extrabold">{ stats?.gamesPlayed ?? 0 }</dt>
-          <dd className="text-gray-500 dark:text-gray-400">🕹️ Games Played</dd>
-        </div>
-        <div className="flex flex-col items-center justify-center">
-          <dt className="mb-2 text-3xl font-extrabold">{ stats?.gamesWon ?? 0 }</dt>
-          <dd className="text-gray-500 dark:text-gray-400">🏆 Games Won</dd>
-        </div>
-        {
-          wordLength !== 'ALL' && (
-            <div className="flex flex-col items-center justify-center">
-              <dt className="mb-2 text-3xl font-extrabold">{ streak?.currentStreak ?? 0 }</dt>
-              <dd className="text-gray-500 dark:text-gray-400">🔥 Current Streak</dd>
-            </div>
-          )
-        }
-        {
-          wordLength !== 'ALL' && (
-            <div className="flex flex-col items-center justify-center">
-              <dt className="mb-2 text-3xl font-extrabold">{ streak?.bestStreak ?? 0 }</dt>
-              <dd className="text-gray-500 dark:text-gray-400">💎 Best Streak</dd>
-            </div>
-          )
-        }
-        <div className="flex flex-col items-center justify-center">
-          <dt className="mb-2 text-3xl font-extrabold">{ stats?.winPercentage ?? 0 }%</dt>
-          <dd className="text-gray-500 dark:text-gray-400">📈 % of Wins</dd>
-        </div>
-      </dl>
-    </div>
-  </div>
-</TabsContent>
+          </TabsContent>
         </Tabs>
-
+      </div>
+      <div className="w-full overflow-hidden">
         <Tabs defaultValue="ALL" value={wordLength} onValueChange={value => setWordLength(value)}>
-          <TabsList className="grid w-full grid-cols-8">
-            <TabsTrigger value="ALL">All</TabsTrigger>
-            <TabsTrigger value="FIVE_LETTER">5 Letter</TabsTrigger>
-            <TabsTrigger value="SIX_LETTER">6 Letter</TabsTrigger>
-            <TabsTrigger value="SEVEN_LETTER">7 Letter</TabsTrigger>
-            <TabsTrigger value="EIGHT_LETTER">8 Letter</TabsTrigger>
-            <TabsTrigger value="NINE_LETTER">9 Letter</TabsTrigger>
-            <TabsTrigger value="TEN_LETTER">10 Letter</TabsTrigger>
-            <TabsTrigger value="ELEVEN_LETTER">11 Letter</TabsTrigger>
-          </TabsList>
+          <div className="w-full overflow-x-auto pb-2">
+            <TabsList className="flex w-max min-w-max gap-2 px-2 whitespace-nowrap">
+              <TabsTrigger value="ALL">All</TabsTrigger>
+
+              {profileWordPackTabs.map(tab => (
+                <TabsTrigger
+                  key={tab.value}
+                  value={tab.value}
+                >
+                  {tab.label}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </div>
+
           <TabsContent value="ALL">
             <Card>
               <CardHeader>
@@ -767,252 +596,45 @@ export default function ProfilePage() {
               </CardContent>
             </Card>
           </TabsContent>
-          <TabsContent value="FIVE_LETTER">
-            <Card>
-              <CardHeader>
-                <CardTitle>5 Letter</CardTitle>
-                <CardDescription>Game Win Distribution</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ChartContainer config={chartConfig}>
-                  <BarChart
-                    accessibilityLayer
-                    data={chartData}
-                    layout="vertical"
-                    margin={{
-                      left: 0,
-                    }}
-                  >
-                    <YAxis
-                      dataKey="wonIn"
-                      type="category"
-                      tickLine={false}
-                      tickMargin={10}
-                      axisLine={false}
-                      tickFormatter={(value) => chartConfig[value as keyof typeof chartConfig]?.label}
-                    />
-                    <XAxis dataKey="wins" type="number" hide />
-                    <ChartTooltip
-                      cursor={false}
-                      content={<ChartTooltipContent hideLabel />}
-                    />
-                    <Bar dataKey="wins" layout="vertical" radius={5} />
-                  </BarChart>
-                </ChartContainer>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          <TabsContent value="SIX_LETTER">
-            <Card>
-              <CardHeader>
-                <CardTitle>6 Letter</CardTitle>
-                <CardDescription>Game Win Distribution</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ChartContainer config={chartConfig}>
-                  <BarChart
-                    accessibilityLayer
-                    data={chartData}
-                    layout="vertical"
-                    margin={{
-                      left: 0,
-                    }}
-                  >
-                    <YAxis
-                      dataKey="wonIn"
-                      type="category"
-                      tickLine={false}
-                      tickMargin={10}
-                      axisLine={false}
-                      tickFormatter={(value) => chartConfig[value as keyof typeof chartConfig]?.label}
-                    />
-                    <XAxis dataKey="wins" type="number" hide />
-                    <ChartTooltip
-                      cursor={false}
-                      content={<ChartTooltipContent hideLabel />}
-                    />
-                    <Bar dataKey="wins" layout="vertical" radius={5} />
-                  </BarChart>
-                </ChartContainer>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          <TabsContent value="SEVEN_LETTER">
-            <Card>
-              <CardHeader>
-                <CardTitle>7 Letter</CardTitle>
-                <CardDescription>Game Win Distribution</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ChartContainer config={chartConfig}>
-                  <BarChart
-                    accessibilityLayer
-                    data={chartData}
-                    layout="vertical"
-                    margin={{
-                      left: 0,
-                    }}
-                  >
-                    <YAxis
-                      dataKey="wonIn"
-                      type="category"
-                      tickLine={false}
-                      tickMargin={10}
-                      axisLine={false}
-                      tickFormatter={(value) => chartConfig[value as keyof typeof chartConfig]?.label}
-                    />
-                    <XAxis dataKey="wins" type="number" hide />
-                    <ChartTooltip
-                      cursor={false}
-                      content={<ChartTooltipContent hideLabel />}
-                    />
-                    <Bar dataKey="wins" layout="vertical" radius={5} />
-                  </BarChart>
-                </ChartContainer>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          <TabsContent value="EIGHT_LETTER">
-            <Card>
-              <CardHeader>
-                <CardTitle>8 Letter</CardTitle>
-                <CardDescription>Game Win Distribution</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ChartContainer config={chartConfig}>
-                  <BarChart
-                    accessibilityLayer
-                    data={chartData}
-                    layout="vertical"
-                    margin={{
-                      left: 0,
-                    }}
-                  >
-                    <YAxis
-                      dataKey="wonIn"
-                      type="category"
-                      tickLine={false}
-                      tickMargin={10}
-                      axisLine={false}
-                      tickFormatter={(value) => chartConfig[value as keyof typeof chartConfig]?.label}
-                    />
-                    <XAxis dataKey="wins" type="number" hide />
-                    <ChartTooltip
-                      cursor={false}
-                      content={<ChartTooltipContent hideLabel />}
-                    />
-                    <Bar dataKey="wins" layout="vertical" radius={5} />
-                  </BarChart>
-                </ChartContainer>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          <TabsContent value="NINE_LETTER">
-            <Card>
-              <CardHeader>
-                <CardTitle>9 Letter</CardTitle>
-                <CardDescription>Game Win Distribution</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ChartContainer config={chartConfig}>
-                  <BarChart
-                    accessibilityLayer
-                    data={chartData}
-                    layout="vertical"
-                    margin={{
-                      left: 0,
-                    }}
-                  >
-                    <YAxis
-                      dataKey="wonIn"
-                      type="category"
-                      tickLine={false}
-                      tickMargin={10}
-                      axisLine={false}
-                      tickFormatter={(value) => chartConfig[value as keyof typeof chartConfig]?.label}
-                    />
-                    <XAxis dataKey="wins" type="number" hide />
-                    <ChartTooltip
-                      cursor={false}
-                      content={<ChartTooltipContent hideLabel />}
-                    />
-                    <Bar dataKey="wins" layout="vertical" radius={5} />
-                  </BarChart>
-                </ChartContainer>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          <TabsContent value="TEN_LETTER">
-            <Card>
-              <CardHeader>
-                <CardTitle>10 Letter</CardTitle>
-                <CardDescription>Game Win Distribution</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ChartContainer config={chartConfig}>
-                  <BarChart
-                    accessibilityLayer
-                    data={chartData}
-                    layout="vertical"
-                    margin={{
-                      left: 0,
-                    }}
-                  >
-                    <YAxis
-                      dataKey="wonIn"
-                      type="category"
-                      tickLine={false}
-                      tickMargin={10}
-                      axisLine={false}
-                      tickFormatter={(value) => chartConfig[value as keyof typeof chartConfig]?.label}
-                    />
-                    <XAxis dataKey="wins" type="number" hide />
-                    <ChartTooltip
-                      cursor={false}
-                      content={<ChartTooltipContent hideLabel />}
-                    />
-                    <Bar dataKey="wins" layout="vertical" radius={5} />
-                  </BarChart>
-                </ChartContainer>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          <TabsContent value="ELEVEN_LETTER">
-            <Card>
-              <CardHeader>
-                <CardTitle>11 Letter</CardTitle>
-                <CardDescription>Game Win Distribution</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ChartContainer config={chartConfig}>
-                  <BarChart
-                    accessibilityLayer
-                    data={chartData}
-                    layout="vertical"
-                    margin={{
-                      left: 0,
-                    }}
-                  >
-                    <YAxis
-                      dataKey="wonIn"
-                      type="category"
-                      tickLine={false}
-                      tickMargin={10}
-                      axisLine={false}
-                      tickFormatter={(value) => chartConfig[value as keyof typeof chartConfig]?.label}
-                    />
-                    <XAxis dataKey="wins" type="number" hide />
-                    <ChartTooltip
-                      cursor={false}
-                      content={<ChartTooltipContent hideLabel />}
-                    />
-                    <Bar dataKey="wins" layout="vertical" radius={5} />
-                  </BarChart>
-                </ChartContainer>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+
+          {profileWordPackTabs.map(tab => (
+            <TabsContent key={tab.value} value={tab.value}>
+              <Card>
+                <CardHeader>
+                  <CardTitle>{tab.label}</CardTitle>
+                  <CardDescription>Game Win Distribution</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ChartContainer config={chartConfig}>
+                    <BarChart
+                      accessibilityLayer
+                      data={chartData}
+                      layout="vertical"
+                      margin={{
+                        left: 0,
+                      }}
+                    >
+                      <YAxis
+                        dataKey="wonIn"
+                        type="category"
+                        tickLine={false}
+                        tickMargin={10}
+                        axisLine={false}
+                        tickFormatter={(value) => chartConfig[value as keyof typeof chartConfig]?.label}
+                      />
+                      <XAxis dataKey="wins" type="number" hide />
+                      <ChartTooltip
+                        cursor={false}
+                        content={<ChartTooltipContent hideLabel />}
+                      />
+                      <Bar dataKey="wins" layout="vertical" radius={5} />
+                    </BarChart>
+                  </ChartContainer>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          ))}
+        </Tabs>  
       </div>
 
       <Footer />
