@@ -19,7 +19,11 @@ export default function ProgressionPage() {
 
   return (
     <div className="flex min-h-screen w-full flex-col bg-bg dark:bg-darkBg text-text dark:text-darkText">
-      <Header />
+      <Header
+	compact
+	heroText=""
+	showLogo={false}
+      />
 
       <main className="flex-1 px-4 py-8 md:px-8">
         <div className="mx-auto max-w-5xl space-y-8">
