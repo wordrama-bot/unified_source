@@ -249,19 +249,6 @@ export default function ProfilePage() {
     }
   }
 
-  console.log('PROFILE DEBUG', {
-    normalizedPlayerId,
-    summaryResp,
-    summary,
-    positions,
-    allTime: positions?.allTime,
-    timeFrame,
-    wordLength,
-    tfData,
-    gamesPlayed,
-    gamesWon,
-  });
-
   //@ts-ignore
   //const [ equiptData ] = data?.data?.equiptItems.filter(({ items }) => items.type === 'AVATAR') || [{}];
   //const avatar = getItem(equiptData?.items?.id)
