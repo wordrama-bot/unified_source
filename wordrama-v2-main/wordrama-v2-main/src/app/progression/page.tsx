@@ -21,34 +21,62 @@ export default function ProgressionPage() {
     <div className="flex min-h-screen w-full flex-col bg-bg dark:bg-darkBg text-text dark:text-darkText">
       <Header />
 
-      <main className="flex-1 px-4 py-10 md:px-8">
-        <div className="mx-auto max-w-4xl space-y-8">
-          <div className="text-center space-y-3">
-            <h1 className="text-4xl font-bold tracking-tight">
+      <main className="flex-1 px-4 py-8 md:px-8">
+        <div className="mx-auto max-w-5xl space-y-8">
+          <div className="text-center space-y-4 pt-6">
+            <h1 className="text-4xl md:text-5xl font-bold tracking-tight">
               How XP, Levels, and Prestige Work
             </h1>
-            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+            <p className="text-muted-foreground text-lg max-w-3xl mx-auto">
               Wordrama rewards consistent play, strong performance, and long-term
-              progression. Here’s how the system works.
+              progression. Here’s how XP works today and how your profile level
+              and prestige are calculated.
             </p>
           </div>
 
           <Card>
             <CardHeader>
-              <CardTitle>XP</CardTitle>
+              <CardTitle>XP for Wordle Solves</CardTitle>
               <CardDescription>
-                XP is the experience you earn while playing.
+                Fewer guesses earn more XP.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4 text-sm md:text-base">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                <div className="rounded-xl border p-4 text-center">
+                  <div className="text-2xl font-bold">1000 XP</div>
+                  <div className="text-muted-foreground">Solved in 1</div>
+                </div>
+                <div className="rounded-xl border p-4 text-center">
+                  <div className="text-2xl font-bold">150 XP</div>
+                  <div className="text-muted-foreground">Solved in 2</div>
+                </div>
+                <div className="rounded-xl border p-4 text-center">
+                  <div className="text-2xl font-bold">100 XP</div>
+                  <div className="text-muted-foreground">Solved in 3</div>
+                </div>
+                <div className="rounded-xl border p-4 text-center">
+                  <div className="text-2xl font-bold">50 XP</div>
+                  <div className="text-muted-foreground">Solved in 4</div>
+                </div>
+                <div className="rounded-xl border p-4 text-center">
+                  <div className="text-2xl font-bold">30 XP</div>
+                  <div className="text-muted-foreground">Solved in 5</div>
+                </div>
+                <div className="rounded-xl border p-4 text-center">
+                  <div className="text-2xl font-bold">20 XP</div>
+                  <div className="text-muted-foreground">Solved in 6</div>
+                </div>
+              </div>
+
               <p>
-                XP is awarded based on your gameplay results. Winning efficiently,
-                completing challenges, and continuing to play all contribute to
-                your progress.
+                In general, the better your solve, the more XP you earn. A
+                one-guess solve gives a huge reward, while later solves still
+                move your progress forward.
               </p>
               <p>
-                As your XP increases, you move through levels. The amount of XP
-                required for each new level increases as you climb higher.
+                Some other game systems, such as challenges and rewards, can also
+                contribute XP on top of your normal gameplay earnings.
               </p>
             </CardContent>
           </Card>
@@ -57,17 +85,18 @@ export default function ProgressionPage() {
             <CardHeader>
               <CardTitle>Levels</CardTitle>
               <CardDescription>
-                Levels represent your progress within your current prestige tier.
+                Levels track your progress inside your current prestige tier.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4 text-sm md:text-base">
               <p>
-                Your visible level is the level you are currently working through
-                right now.
+                Every time you earn enough XP, you level up. The amount of XP
+                needed for the next level increases as you climb higher.
               </p>
               <p>
-                The progress bar on your profile shows how much XP you have toward
-                your next level and how much remains before you level up again.
+                The XP bar on your profile shows how much XP you currently have
+                toward the next level and how much remains before you level up
+                again.
               </p>
             </CardContent>
           </Card>
@@ -76,42 +105,42 @@ export default function ProgressionPage() {
             <CardHeader>
               <CardTitle>Prestige</CardTitle>
               <CardDescription>
-                Prestige reflects your long-term progression beyond a single level cycle.
+                Prestige shows your long-term progression beyond a single 100-level cycle.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4 text-sm md:text-base">
               <p>
-                Every 100 total levels, your prestige tier increases.
+                Prestige increases every 100 total levels.
               </p>
               <p>
-                For example, if your total level is 197, your profile shows:
+                For example, if your total level is 197, your profile will show:
               </p>
               <ul className="list-disc pl-6 space-y-2">
                 <li>Prestige 1</li>
                 <li>Level 97</li>
               </ul>
               <p>
-                This means you’ve already completed one full 100-level prestige
-                cycle and are 97 levels into the next one.
+                That means you completed one full 100-level prestige cycle and
+                are now 97 levels into the next one.
               </p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader>
-              <CardTitle>Why it matters</CardTitle>
+              <CardTitle>Why Progression Matters</CardTitle>
               <CardDescription>
                 Progression gives players visible goals and long-term recognition.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4 text-sm md:text-base">
               <p>
-                Levels and prestige help show experience, consistency, and status
-                within the Wordrama community.
+                Your level and prestige help show your experience, consistency,
+                and long-term commitment to Wordrama.
               </p>
               <p>
-                In future updates, progression may also connect to unlocks,
-                badges, cosmetics, and premium features.
+                In future updates, progression may connect to badges, cosmetics,
+                unlocks, and premium features.
               </p>
             </CardContent>
           </Card>
