@@ -40,6 +40,11 @@ router.get(
   playerController.getPublicPlayerProfile,
 );
 router.get(
+  '/players/by-playerid/:playerId/summary',
+  //limiter,
+  playerController.getPublicPlayerSummary,
+);
+router.get(
   '/referral/:referralCode/check-validity',
   referralLimiter,
   referralsController.checkValidity,

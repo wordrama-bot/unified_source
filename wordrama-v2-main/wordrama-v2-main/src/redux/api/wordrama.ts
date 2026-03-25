@@ -527,6 +527,15 @@ export const wordramaApiV3 = createApi({
       providesTags: ["PublicProfile"],
     }),
 
+    getPublicPlayerSummary: builder.query<any, string>({
+      query: (playerId) => ({
+        url: `/api/v3/players/by-playerid/${playerId}/summary`,
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+      }),
+      providesTags: ["PublicProfile", "Stats", "Leaderboard", "Player"],
+    }),
+
     getPublicPlayerByUsername: builder.query<any, string>({
       query: (username) => ({
         url: `/api/v3/players/by-username?username=${username}`,
@@ -672,6 +681,7 @@ export const {
   useGetCustomWorldeQuery,
   useGetTopPlayersQuery,
   useGetPublicPlayerQuery,
+  useGetPublicPlayerSummaryQuery,
   useGetPublicPlayerByUsernameQuery,
   useGetMyAccountQuery,
   useCreateAccountMutation,

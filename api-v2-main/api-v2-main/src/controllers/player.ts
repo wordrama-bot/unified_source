@@ -15,6 +15,7 @@ import {
 } from '../utils/responses';
 
 import playerService from '../services/player';
+import playerSummaryService from '../services/playerSummary';
 
 async function getPlayerProfile(req: ApiRequest, res: Response) {
   //@ts-ignore
@@ -34,6 +35,16 @@ async function getPublicPlayerProfile(req: ApiRequest, res: Response) {
   if (!player || !player?.id) return notFoundResponse(req, res);
 
   return successfulResponse(req, res, player, 'Player found', 1);
+}
+
+async function getPublicPlayerSummary(req: ApiRequest, res: Response) {
+  const { playerId } = req.params;
+  if (!playerId) return badRequest(req, res, 'No player id provided');
+
+  const summary = await playerSummaryService.getPublicPlayerSummary(playerId);
+  if (!summary) return notFoundResponse(req, res);
+
+  return successfulResponse(req, res, summary, 'Player summary found', 1);
 }
 
 async function getPublicPlayerProfileByUsername(
@@ -117,6 +128,7 @@ async function migratePlayer(req: ApiRequest, res: Response) {
 export default {
   getPlayerProfile,
   getPublicPlayerProfile,
+  getPublicPlayerSummary,
   getPublicPlayerProfileByUsername,
   addPlayer,
   updatePlayer,

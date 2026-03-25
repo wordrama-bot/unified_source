@@ -64,23 +64,23 @@ function AuthProvider({ children }: any) {
     } = supabase.auth.onAuthStateChange((_event: any, _session: any) => {
 
       if (_event === "INITIAL_SESSION") {
-        setSession(_session);
-        setUser(_session.user);
-        setAuth(true);
-        setRole(_session.user?.user_metadata?.role || 'PLAYER');
-        setLoading(false);
+	setSession(_session);
+	setUser(_session?.user ?? null);
+	setAuth(!!_session?.user);
+	setRole(_session?.user?.user_metadata?.role || 'PLAYER');
+	setLoading(false);
       } else if (_event === "SIGNED_IN") {
-        setSession(_session);
-        setUser(_session.user);
-        setAuth(true);
-        setRole(_session.user?.user_metadata?.role || 'PLAYER');
-        setLoading(false);
+	setSession(_session);
+	setUser(_session?.user ?? null);
+	setAuth(!!_session?.user);
+	setRole(_session?.user?.user_metadata?.role || 'PLAYER');
+	setLoading(false);
       } else if (_event === "SIGNED_OUT") {
-        setSession(null);
-        setUser(null);
-        setAuth(false);
-        setRole(_session.user?.user_metadata?.role || 'PLAYER');
-        setLoading(false);
+	setSession(null);
+	setUser(null);
+	setAuth(false);
+	setRole('PLAYER');
+	setLoading(false);
       }
     })
 
