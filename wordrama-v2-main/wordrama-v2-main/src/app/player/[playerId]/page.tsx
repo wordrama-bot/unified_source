@@ -482,18 +482,18 @@ export default function ProfilePage() {
             { data?.data?.displayName }
           </p>
           { (levels?.prestige ?? 0) > 0 && (
-  <Link href={`/achievements/${playerId}`}>
+  <Link href={`/progression?playerId=${playerId}`}>
     <Badge className='mb-12 mr-3'>
       Prestige { levels?.prestige ?? 0 }
     </Badge>
   </Link>
 )}
-<Link href={`/achievements/${playerId}`}>
+<Link href={`/progression?playerId=${playerId}`}>
   <Badge className='mb-12'>
     Level { (levels?.level ?? 0) % 100 }
   </Badge>
 </Link>
-<Link href={`/achievements/${playerId}`}>
+<Link href={`/progression?playerId=${playerId}`}>
   <div className='flex items-center justify-center'>
     <Badge className="mr-5">
       { levels?.xp ?? 0 }xp
