@@ -6,13 +6,7 @@ import Footer from '@/sections/footer';
 import Loading from '@/sections/loading';
 import { Button } from '@/components/ui/button';
 import {
-  useGetPublicPlayerQuery,
-  useGetAllTimeWordleLeaderboardPostitionByUserIdQuery,
-  useGetDailyWordleLeaderboardPostitionByUserIdQuery,
-  useGetWeeklyWordleLeaderboardPostitionByUserIdQuery,
-  useGetMonthlyWordleLeaderboardPostitionByUserIdQuery,
-  useGetYearlyWordleLeaderboardPostitionByUserIdQuery,
-  useGetWordleStreakByUserIdQuery,
+  useGetPublicPlayerSummaryQuery,
 } from '@/redux/api/wordrama';
 import {
   useGetMyFriendsQuery,
@@ -99,16 +93,22 @@ export default function ProfilePage() {
   const { playerId } = useParams();
   const [timeFrame, setTimeframe] = useState('alltime');
   const [wordLength, setWordLength] = useState('ALL');
-  const { data, error, isLoading } = useGetPublicPlayerQuery(playerId);
-  const { data: streakData, isError: streakIsError } = useGetWordleStreakByUserIdQuery({ wordPack: wordLength, gameMode: 'INFINITE', playerId });
-  const { data: allTime } = useGetAllTimeWordleLeaderboardPostitionByUserIdQuery(playerId);
-  const { data: daily } = useGetDailyWordleLeaderboardPostitionByUserIdQuery(playerId);
-  const { data: weekly } = useGetWeeklyWordleLeaderboardPostitionByUserIdQuery(playerId);
-  const { data: monthly } = useGetMonthlyWordleLeaderboardPostitionByUserIdQuery(playerId);
-  const { data: yearly } = useGetYearlyWordleLeaderboardPostitionByUserIdQuery(playerId);
+  const { data: summaryResp, error, isLoading } = useGetPublicPlayerSummaryQuery(playerId);
+
+  const summary = summaryResp?.data;
+  const data = summary;
+  const levels = summary?.levels;
+  const stats = summary?.stats;
+  const streak = summary?.streak;
+  const positions = summary?.leaderboardPositions;
+  const distribution = summary?.guessDistribution;
   const { toast } = useToast();
-  const { data: friends, isError } = useGetMyFriendsQuery();
-  const { data: sentRequests, isError: sentRequestsIsError } = useGetSentFriendRequestsQuery();
+  const { data: friends, isError } = useGetMyFriendsQuery(undefined, {
+    skip: !user?.id,
+  });
+  const { data: sentRequests, isError: sentRequestsIsError } = useGetSentFriendRequestsQuery(undefined, {
+    skip: !user?.id,
+  });
   const friendList = !isError && friends ? friends?.data?.map(friend => friend.players.id): [];
   const [inviteFriend] = useInviteFriendMutation();
 
@@ -161,16 +161,16 @@ export default function ProfilePage() {
   let gamesWon = 0;
   let tfData = {};
   if (timeFrame === 'alltime') {
-    tfData = allTime?.data;
-  } else if (timeFrame === 'daily') {
-    tfData = daily?.data;
-  } else if (timeFrame === 'weekly') {
-    tfData = weekly?.data;
-  } else if (timeFrame === 'monthly') {
-    tfData = monthly?.data;
-  } else if (timeFrame === 'yearly') {
-    tfData = yearly?.data;
-  }
+  tfData = positions?.allTime;
+} else if (timeFrame === 'daily') {
+  tfData = positions?.daily;
+} else if (timeFrame === 'weekly') {
+  tfData = positions?.weekly;
+} else if (timeFrame === 'monthly') {
+  tfData = positions?.monthly;
+} else if (timeFrame === 'yearly') {
+  tfData = positions?.yearly;
+}
 
   if (tfData) {
     switch (wordLength) {
@@ -461,7 +461,7 @@ export default function ProfilePage() {
         <Avatar
           className={`relative overflow-visible w-64 h-64`}
         >
-          { allTime?.data?.alltimeRank === 1 && (
+          { positions?.allTime?.alltimeRank === 1 && (
             <div className="absolute top-[-145px] md:top-[-125px] left-1/2 -translate-x-1/2 flex h-64 w-64 items-center justify-center z-10">
               <CrownIcon className="h-24 w-24 fill-yellow-500" />
             </div>
@@ -482,50 +482,38 @@ export default function ProfilePage() {
           <p className="mb-1 mt-8 text-lg font-normal leading-relaxed md:text-4xl lg:text-5xl lg:leading-relaxed">
             { data?.data?.displayName }
           </p>
-          { data?.data?.levels?.prestige > 0 && (
-            <Link href={`/achievements/${playerId}`}>
-              <Badge className='mb-12 mr-3'>
-                Prestige { data?.data?.levels?.prestige }
-              </Badge>
-            </Link>
-          )}
-          <Link href={`/achievements/${playerId}`}>
-            <Badge className='mb-12'>
-              Level { data?.data?.levels?.level % 100 }
-            </Badge>
-          </Link>
-          { friendList && friendList.includes(playerId) && user?.id !== playerId && (
-            <Link href='/friends'>
-              <Badge className='ml-5'>Friend</Badge>
-            </Link>
-          )}
-          { sentRequests && sentRequests?.data.find(req => req.players.id === playerId) && (
-            <Link href='/friends/sent-requests'>
-              <Badge className='ml-5'>Friend request pending</Badge>
-            </Link>
-          )}
-          { data?.data?.teamMember?.teams?.id && (
-            <Link href={`/teams/${data?.data?.teamMember?.teams?.id}`}>
-              <Badge className='ml-5'>Team: {data?.data?.teamMember?.teams?.name}</Badge>
-            </Link>
-          )}
-          <Link href={`/achievements/${playerId}`}>
-            <div className='flex items-center justify-center'>
-              <Badge className="mr-5">
-                {data?.data?.levels?.xp}xp
-              </Badge>
-              <Progress
-                value={
-                  data?.data?.levels?.xpToNextLevel - data?.data?.levels?.xp < 0 ? 100 :
-                    Math.floor((data?.data?.levels?.xp / data?.data?.levels?.xpToNextLevel) * 100)
-                  }
-                className="md:w-1/2 lg:w-1/3 h-4 bg-gray-200 rounded-full"
-              />
-              <Badge className='ml-5'>
-              { data?.data?.levels?.xpToNextLevel - data?.data?.levels?.xp < 0 ? 0 : data?.data?.levels?.xpToNextLevel - data?.data?.levels?.xp }xp to go
-              </Badge>
-            </div>
-          </Link>
+          { (levels?.prestige ?? 0) > 0 && (
+  <Link href={`/achievements/${playerId}`}>
+    <Badge className='mb-12 mr-3'>
+      Prestige { levels?.prestige ?? 0 }
+    </Badge>
+  </Link>
+)}
+<Link href={`/achievements/${playerId}`}>
+  <Badge className='mb-12'>
+    Level { (levels?.level ?? 0) % 100 }
+  </Badge>
+</Link>
+<Link href={`/achievements/${playerId}`}>
+  <div className='flex items-center justify-center'>
+    <Badge className="mr-5">
+      { levels?.xp ?? 0 }xp
+    </Badge>
+    <Progress
+      value={
+        (levels?.xpToNextLevel ?? 0) - (levels?.xp ?? 0) < 0
+          ? 100
+          : Math.floor(((levels?.xp ?? 0) / (levels?.xpToNextLevel ?? 1)) * 100)
+      }
+      className="md:w-1/2 lg:w-1/3 h-4 bg-gray-200 rounded-full"
+    />
+    <Badge className='ml-5'>
+      { (levels?.xpToNextLevel ?? 0) - (levels?.xp ?? 0) < 0
+        ? 0
+        : (levels?.xpToNextLevel ?? 0) - (levels?.xp ?? 0) }xp to go
+    </Badge>
+  </div>
+</Link>
         </div>
         {
            friendList &&
@@ -553,185 +541,185 @@ export default function ProfilePage() {
             <TabsTrigger value="yearly">Yearly</TabsTrigger>
           </TabsList>
           <TabsContent value="alltime">
-            <div id="fullWidthTabContent" className='p-4 border-gray-200 dark:border-gray-600'>
-              <div className="p-4 bg-bg rounded-lg md:p-8 dark:bg-gray-800" id="stats" role="tabpanel" aria-labelledby="stats-tab">
-                <dl className={`grid ${wordLength === 'ALL' ? 'sm:grid-cols-3 xl:grid-cols-3 grid-cols-2' : 'sm:grid-cols-3 xl:grid-cols-5 grid-cols-2'} p-4 mx-auto text-gray-900 gap-8 max-w-screen-xl dark:text-white sm:p-8`}>
-                  <div className="flex flex-col items-center justify-center">
-                    <dt className="mb-2 text-3xl font-extrabold">{ gamesPlayed }</dt>
-                    <dd className="text-gray-500 dark:text-gray-400">🕹️ Games Played</dd>
-                  </div>
-                  <div className="flex flex-col items-center justify-center">
-                      <dt className="mb-2 text-3xl font-extrabold">{ gamesWon }</dt>
-                      <dd className="text-gray-500 dark:text-gray-400">🏆 Games Won</dd>
-                  </div>
-                  {
-                    wordLength !== 'ALL' && (
-                      <div className="flex flex-col items-center justify-center">
-                        <dt className="mb-2 text-3xl font-extrabold">{ !streakIsError && streakData?.data?.currentStreak || 0}</dt>
-                        <dd className="text-gray-500 dark:text-gray-400">🔥 Current Streak</dd>
-                      </div>
-                    )
-                  }
-                  {
-                    wordLength !== 'ALL' && (
-                      <div className="flex flex-col items-center justify-center">
-                        <dt className="mb-2 text-3xl font-extrabold">{ !streakIsError && streakData?.data?.bestStreak || 0}</dt>
-                        <dd className="text-gray-500 dark:text-gray-400">💎 Best Streak</dd>
-                      </div>
-                    )
-                  }
-                  <div className="flex flex-col items-center justify-center">
-                    <dt className="mb-2 text-3xl font-extrabold">{ Math.floor((gamesWon / gamesPlayed) * 100) || 0}%</dt>
-                    <dd className="text-gray-500 dark:text-gray-400">📈 % of Wins</dd>
-                  </div>
-                </dl>
-              </div>
+  <div id="fullWidthTabContent" className='p-4 border-gray-200 dark:border-gray-600'>
+    <div className="p-4 bg-bg rounded-lg md:p-8 dark:bg-gray-800" id="stats" role="tabpanel" aria-labelledby="stats-tab">
+      <dl className={`grid ${wordLength === 'ALL' ? 'sm:grid-cols-3 xl:grid-cols-3 grid-cols-2' : 'sm:grid-cols-3 xl:grid-cols-5 grid-cols-2'} p-4 mx-auto text-gray-900 gap-8 max-w-screen-xl dark:text-white sm:p-8`}>
+        <div className="flex flex-col items-center justify-center">
+          <dt className="mb-2 text-3xl font-extrabold">{ stats?.gamesPlayed ?? 0 }</dt>
+          <dd className="text-gray-500 dark:text-gray-400">🕹️ Games Played</dd>
+        </div>
+        <div className="flex flex-col items-center justify-center">
+          <dt className="mb-2 text-3xl font-extrabold">{ stats?.gamesWon ?? 0 }</dt>
+          <dd className="text-gray-500 dark:text-gray-400">🏆 Games Won</dd>
+        </div>
+        {
+          wordLength !== 'ALL' && (
+            <div className="flex flex-col items-center justify-center">
+              <dt className="mb-2 text-3xl font-extrabold">{ streak?.currentStreak ?? 0 }</dt>
+              <dd className="text-gray-500 dark:text-gray-400">🔥 Current Streak</dd>
             </div>
-          </TabsContent>
-          <TabsContent value="daily">
-            <div id="fullWidthTabContent" className='p-4 border-gray-200 dark:border-gray-600'>
-              <div className="p-4 bg-bg rounded-lg md:p-8 dark:bg-gray-800" id="stats" role="tabpanel" aria-labelledby="stats-tab">
-                <dl className={`grid ${wordLength === 'ALL' ? 'sm:grid-cols-3 xl:grid-cols-3 grid-cols-2' : 'sm:grid-cols-3 xl:grid-cols-5 grid-cols-2'} p-4 mx-auto text-gray-900 gap-8 max-w-screen-xl dark:text-white sm:p-8`}>
-                  <div className="flex flex-col items-center justify-center">
-                    <dt className="mb-2 text-3xl font-extrabold">{ daily?.data?.gamesPlayed || 0}</dt>
-                    <dd className="text-gray-500 dark:text-gray-400">🕹️ Games Played</dd>
-                  </div>
-                  <div className="flex flex-col items-center justify-center">
-                      <dt className="mb-2 text-3xl font-extrabold">{ daily?.data?.gamesWon || 0}</dt>
-                      <dd className="text-gray-500 dark:text-gray-400">🏆 Games Won</dd>
-                  </div>
-                  {
-                    wordLength !== 'ALL' && (
-                      <div className="flex flex-col items-center justify-center">
-                        <dt className="mb-2 text-3xl font-extrabold">{ !streakIsError && streakData?.data?.currentStreak || 0}</dt>
-                        <dd className="text-gray-500 dark:text-gray-400">🔥 Current Streak</dd>
-                      </div>
-                    )
-                  }
-                  {
-                    wordLength !== 'ALL' && (
-                      <div className="flex flex-col items-center justify-center">
-                        <dt className="mb-2 text-3xl font-extrabold">{ !streakIsError && streakData?.data?.bestStreak || 0}</dt>
-                        <dd className="text-gray-500 dark:text-gray-400">💎 Best Streak</dd>
-                      </div>
-                    )
-                  }
-                  <div className="flex flex-col items-center justify-center">
-                    <dt className="mb-2 text-3xl font-extrabold">{ Math.floor((daily?.data?.gamesWon / daily?.data?.gamesPlayed) * 100) || 0}%</dt>
-                    <dd className="text-gray-500 dark:text-gray-400">📈 % of Wins</dd>
-                  </div>
-                </dl>
-              </div>
+          )
+        }
+        {
+          wordLength !== 'ALL' && (
+            <div className="flex flex-col items-center justify-center">
+              <dt className="mb-2 text-3xl font-extrabold">{ streak?.bestStreak ?? 0 }</dt>
+              <dd className="text-gray-500 dark:text-gray-400">💎 Best Streak</dd>
             </div>
-          </TabsContent>
-          <TabsContent value="weekly">
-            <div id="fullWidthTabContent" className='p-4 border-gray-200 dark:border-gray-600'>
-              <div className="p-4 bg-bg rounded-lg md:p-8 dark:bg-gray-800" id="stats" role="tabpanel" aria-labelledby="stats-tab">
-                <dl className={`grid ${wordLength === 'ALL' ? 'sm:grid-cols-3 xl:grid-cols-3 grid-cols-2' : 'sm:grid-cols-3 xl:grid-cols-5 grid-cols-2'} p-4 mx-auto text-gray-900 gap-8 max-w-screen-xl dark:text-white sm:p-8`}>
-                  <div className="flex flex-col items-center justify-center">
-                    <dt className="mb-2 text-3xl font-extrabold">{ weekly?.data?.gamesPlayed || 0}</dt>
-                    <dd className="text-gray-500 dark:text-gray-400">🕹️ Games Played</dd>
-                  </div>
-                  <div className="flex flex-col items-center justify-center">
-                      <dt className="mb-2 text-3xl font-extrabold">{ weekly?.data?.gamesWon || 0}</dt>
-                      <dd className="text-gray-500 dark:text-gray-400">🏆 Games Won</dd>
-                  </div>
-                  {
-                    wordLength !== 'ALL' && (
-                      <div className="flex flex-col items-center justify-center">
-                        <dt className="mb-2 text-3xl font-extrabold">{ !streakIsError && streakData?.data?.currentStreak || 0}</dt>
-                        <dd className="text-gray-500 dark:text-gray-400">🔥 Current Streak</dd>
-                      </div>
-                    )
-                  }
-                  {
-                    wordLength !== 'ALL' && (
-                      <div className="flex flex-col items-center justify-center">
-                        <dt className="mb-2 text-3xl font-extrabold">{ !streakIsError && streakData?.data?.bestStreak || 0}</dt>
-                        <dd className="text-gray-500 dark:text-gray-400">💎 Best Streak</dd>
-                      </div>
-                    )
-                  }
-                  <div className="flex flex-col items-center justify-center">
-                    <dt className="mb-2 text-3xl font-extrabold">{ Math.floor((weekly?.data?.gamesWon / weekly?.data?.gamesPlayed) * 100) || 0}%</dt>
-                    <dd className="text-gray-500 dark:text-gray-400">📈 % of Wins</dd>
-                  </div>
-                </dl>
-              </div>
+          )
+        }
+        <div className="flex flex-col items-center justify-center">
+          <dt className="mb-2 text-3xl font-extrabold">{ stats?.winPercentage ?? 0 }%</dt>
+          <dd className="text-gray-500 dark:text-gray-400">📈 % of Wins</dd>
+        </div>
+      </dl>
+    </div>
+  </div>
+</TabsContent>
+<TabsContent value="daily">
+  <div id="fullWidthTabContent" className='p-4 border-gray-200 dark:border-gray-600'>
+    <div className="p-4 bg-bg rounded-lg md:p-8 dark:bg-gray-800" id="stats" role="tabpanel" aria-labelledby="stats-tab">
+      <dl className={`grid ${wordLength === 'ALL' ? 'sm:grid-cols-3 xl:grid-cols-3 grid-cols-2' : 'sm:grid-cols-3 xl:grid-cols-5 grid-cols-2'} p-4 mx-auto text-gray-900 gap-8 max-w-screen-xl dark:text-white sm:p-8`}>
+        <div className="flex flex-col items-center justify-center">
+          <dt className="mb-2 text-3xl font-extrabold">{ stats?.gamesPlayed ?? 0 }</dt>
+          <dd className="text-gray-500 dark:text-gray-400">🕹️ Games Played</dd>
+        </div>
+        <div className="flex flex-col items-center justify-center">
+          <dt className="mb-2 text-3xl font-extrabold">{ stats?.gamesWon ?? 0 }</dt>
+          <dd className="text-gray-500 dark:text-gray-400">🏆 Games Won</dd>
+        </div>
+        {
+          wordLength !== 'ALL' && (
+            <div className="flex flex-col items-center justify-center">
+              <dt className="mb-2 text-3xl font-extrabold">{ streak?.currentStreak ?? 0 }</dt>
+              <dd className="text-gray-500 dark:text-gray-400">🔥 Current Streak</dd>
             </div>
-          </TabsContent>
-          <TabsContent value="monthly">
-            <div id="fullWidthTabContent" className='p-4 border-gray-200 dark:border-gray-600'>
-              <div className="p-4 bg-bg rounded-lg md:p-8 dark:bg-gray-800" id="stats" role="tabpanel" aria-labelledby="stats-tab">
-                <dl className={`grid ${wordLength === 'ALL' ? 'sm:grid-cols-3 xl:grid-cols-3 grid-cols-2' : 'sm:grid-cols-3 xl:grid-cols-5 grid-cols-2'} p-4 mx-auto text-gray-900 gap-8 max-w-screen-xl dark:text-white sm:p-8`}>
-                  <div className="flex flex-col items-center justify-center">
-                    <dt className="mb-2 text-3xl font-extrabold">{ monthly?.data?.gamesPlayed || 0}</dt>
-                    <dd className="text-gray-500 dark:text-gray-400">🕹️ Games Played</dd>
-                  </div>
-                  <div className="flex flex-col items-center justify-center">
-                      <dt className="mb-2 text-3xl font-extrabold">{ monthly?.data?.gamesWon || 0}</dt>
-                      <dd className="text-gray-500 dark:text-gray-400">🏆 Games Won</dd>
-                  </div>
-                  {
-                    wordLength !== 'ALL' && (
-                      <div className="flex flex-col items-center justify-center">
-                        <dt className="mb-2 text-3xl font-extrabold">{ !streakIsError && streakData?.data?.currentStreak || 0}</dt>
-                        <dd className="text-gray-500 dark:text-gray-400">🔥 Current Streak</dd>
-                      </div>
-                    )
-                  }
-                  {
-                    wordLength !== 'ALL' && (
-                      <div className="flex flex-col items-center justify-center">
-                        <dt className="mb-2 text-3xl font-extrabold">{ !streakIsError && streakData?.data?.bestStreak || 0}</dt>
-                        <dd className="text-gray-500 dark:text-gray-400">💎 Best Streak</dd>
-                      </div>
-                    )
-                  }
-                  <div className="flex flex-col items-center justify-center">
-                    <dt className="mb-2 text-3xl font-extrabold">{ Math.floor((monthly?.data?.gamesWon / monthly?.data?.gamesPlayed) * 100) || 0}%</dt>
-                    <dd className="text-gray-500 dark:text-gray-400">📈 % of Wins</dd>
-                  </div>
-                </dl>
-              </div>
+          )
+        }
+        {
+          wordLength !== 'ALL' && (
+            <div className="flex flex-col items-center justify-center">
+              <dt className="mb-2 text-3xl font-extrabold">{ streak?.bestStreak ?? 0 }</dt>
+              <dd className="text-gray-500 dark:text-gray-400">💎 Best Streak</dd>
             </div>
-          </TabsContent>
-          <TabsContent value="yearly">
-            <div id="fullWidthTabContent" className='p-4 border-gray-200 dark:border-gray-600'>
-              <div className="p-4 bg-bg rounded-lg md:p-8 dark:bg-gray-800" id="stats" role="tabpanel" aria-labelledby="stats-tab">
-                <dl className={`grid ${wordLength === 'ALL' ? 'sm:grid-cols-3 xl:grid-cols-3 grid-cols-2' : 'sm:grid-cols-3 xl:grid-cols-5 grid-cols-2'} p-4 mx-auto text-gray-900 gap-8 max-w-screen-xl dark:text-white sm:p-8`}>
-                  <div className="flex flex-col items-center justify-center">
-                    <dt className="mb-2 text-3xl font-extrabold">{ yearly?.data?.gamesPlayed || 0}</dt>
-                    <dd className="text-gray-500 dark:text-gray-400">🕹️ Games Played</dd>
-                  </div>
-                  <div className="flex flex-col items-center justify-center">
-                      <dt className="mb-2 text-3xl font-extrabold">{ yearly?.data?.gamesWon || 0}</dt>
-                      <dd className="text-gray-500 dark:text-gray-400">🏆 Games Won</dd>
-                  </div>
-                  {
-                    wordLength !== 'ALL' && (
-                      <div className="flex flex-col items-center justify-center">
-                        <dt className="mb-2 text-3xl font-extrabold">{ !streakIsError && streakData?.data?.currentStreak || 0}</dt>
-                        <dd className="text-gray-500 dark:text-gray-400">🔥 Current Streak</dd>
-                      </div>
-                    )
-                  }
-                  {
-                    wordLength !== 'ALL' && (
-                      <div className="flex flex-col items-center justify-center">
-                        <dt className="mb-2 text-3xl font-extrabold">{ !streakIsError && streakData?.data?.bestStreak || 0}</dt>
-                        <dd className="text-gray-500 dark:text-gray-400">💎 Best Streak</dd>
-                      </div>
-                    )
-                  }
-                  <div className="flex flex-col items-center justify-center">
-                    <dt className="mb-2 text-3xl font-extrabold">{ Math.floor((yearly?.data?.gamesWon / yearly?.data?.gamesPlayed) * 100) || 0}%</dt>
-                    <dd className="text-gray-500 dark:text-gray-400">📈 % of Wins</dd>
-                  </div>
-                </dl>
-              </div>
+          )
+        }
+        <div className="flex flex-col items-center justify-center">
+          <dt className="mb-2 text-3xl font-extrabold">{ stats?.winPercentage ?? 0 }%</dt>
+          <dd className="text-gray-500 dark:text-gray-400">📈 % of Wins</dd>
+        </div>
+      </dl>
+    </div>
+  </div>
+</TabsContent>
+<TabsContent value="weekly">
+  <div id="fullWidthTabContent" className='p-4 border-gray-200 dark:border-gray-600'>
+    <div className="p-4 bg-bg rounded-lg md:p-8 dark:bg-gray-800" id="stats" role="tabpanel" aria-labelledby="stats-tab">
+      <dl className={`grid ${wordLength === 'ALL' ? 'sm:grid-cols-3 xl:grid-cols-3 grid-cols-2' : 'sm:grid-cols-3 xl:grid-cols-5 grid-cols-2'} p-4 mx-auto text-gray-900 gap-8 max-w-screen-xl dark:text-white sm:p-8`}>
+        <div className="flex flex-col items-center justify-center">
+          <dt className="mb-2 text-3xl font-extrabold">{ stats?.gamesPlayed ?? 0 }</dt>
+          <dd className="text-gray-500 dark:text-gray-400">🕹️ Games Played</dd>
+        </div>
+        <div className="flex flex-col items-center justify-center">
+          <dt className="mb-2 text-3xl font-extrabold">{ stats?.gamesWon ?? 0 }</dt>
+          <dd className="text-gray-500 dark:text-gray-400">🏆 Games Won</dd>
+        </div>
+        {
+          wordLength !== 'ALL' && (
+            <div className="flex flex-col items-center justify-center">
+              <dt className="mb-2 text-3xl font-extrabold">{ streak?.currentStreak ?? 0 }</dt>
+              <dd className="text-gray-500 dark:text-gray-400">🔥 Current Streak</dd>
             </div>
-          </TabsContent>
+          )
+        }
+        {
+          wordLength !== 'ALL' && (
+            <div className="flex flex-col items-center justify-center">
+              <dt className="mb-2 text-3xl font-extrabold">{ streak?.bestStreak ?? 0 }</dt>
+              <dd className="text-gray-500 dark:text-gray-400">💎 Best Streak</dd>
+            </div>
+          )
+        }
+        <div className="flex flex-col items-center justify-center">
+          <dt className="mb-2 text-3xl font-extrabold">{ stats?.winPercentage ?? 0 }%</dt>
+          <dd className="text-gray-500 dark:text-gray-400">📈 % of Wins</dd>
+        </div>
+      </dl>
+    </div>
+  </div>
+</TabsContent>
+<TabsContent value="monthly">
+  <div id="fullWidthTabContent" className='p-4 border-gray-200 dark:border-gray-600'>
+    <div className="p-4 bg-bg rounded-lg md:p-8 dark:bg-gray-800" id="stats" role="tabpanel" aria-labelledby="stats-tab">
+      <dl className={`grid ${wordLength === 'ALL' ? 'sm:grid-cols-3 xl:grid-cols-3 grid-cols-2' : 'sm:grid-cols-3 xl:grid-cols-5 grid-cols-2'} p-4 mx-auto text-gray-900 gap-8 max-w-screen-xl dark:text-white sm:p-8`}>
+        <div className="flex flex-col items-center justify-center">
+          <dt className="mb-2 text-3xl font-extrabold">{ stats?.gamesPlayed ?? 0 }</dt>
+          <dd className="text-gray-500 dark:text-gray-400">🕹️ Games Played</dd>
+        </div>
+        <div className="flex flex-col items-center justify-center">
+          <dt className="mb-2 text-3xl font-extrabold">{ stats?.gamesWon ?? 0 }</dt>
+          <dd className="text-gray-500 dark:text-gray-400">🏆 Games Won</dd>
+        </div>
+        {
+          wordLength !== 'ALL' && (
+            <div className="flex flex-col items-center justify-center">
+              <dt className="mb-2 text-3xl font-extrabold">{ streak?.currentStreak ?? 0 }</dt>
+              <dd className="text-gray-500 dark:text-gray-400">🔥 Current Streak</dd>
+            </div>
+          )
+        }
+        {
+          wordLength !== 'ALL' && (
+            <div className="flex flex-col items-center justify-center">
+              <dt className="mb-2 text-3xl font-extrabold">{ streak?.bestStreak ?? 0 }</dt>
+              <dd className="text-gray-500 dark:text-gray-400">💎 Best Streak</dd>
+            </div>
+          )
+        }
+        <div className="flex flex-col items-center justify-center">
+          <dt className="mb-2 text-3xl font-extrabold">{ stats?.winPercentage ?? 0 }%</dt>
+          <dd className="text-gray-500 dark:text-gray-400">📈 % of Wins</dd>
+        </div>
+      </dl>
+    </div>
+  </div>
+</TabsContent>
+<TabsContent value="yearly">
+  <div id="fullWidthTabContent" className='p-4 border-gray-200 dark:border-gray-600'>
+    <div className="p-4 bg-bg rounded-lg md:p-8 dark:bg-gray-800" id="stats" role="tabpanel" aria-labelledby="stats-tab">
+      <dl className={`grid ${wordLength === 'ALL' ? 'sm:grid-cols-3 xl:grid-cols-3 grid-cols-2' : 'sm:grid-cols-3 xl:grid-cols-5 grid-cols-2'} p-4 mx-auto text-gray-900 gap-8 max-w-screen-xl dark:text-white sm:p-8`}>
+        <div className="flex flex-col items-center justify-center">
+          <dt className="mb-2 text-3xl font-extrabold">{ stats?.gamesPlayed ?? 0 }</dt>
+          <dd className="text-gray-500 dark:text-gray-400">🕹️ Games Played</dd>
+        </div>
+        <div className="flex flex-col items-center justify-center">
+          <dt className="mb-2 text-3xl font-extrabold">{ stats?.gamesWon ?? 0 }</dt>
+          <dd className="text-gray-500 dark:text-gray-400">🏆 Games Won</dd>
+        </div>
+        {
+          wordLength !== 'ALL' && (
+            <div className="flex flex-col items-center justify-center">
+              <dt className="mb-2 text-3xl font-extrabold">{ streak?.currentStreak ?? 0 }</dt>
+              <dd className="text-gray-500 dark:text-gray-400">🔥 Current Streak</dd>
+            </div>
+          )
+        }
+        {
+          wordLength !== 'ALL' && (
+            <div className="flex flex-col items-center justify-center">
+              <dt className="mb-2 text-3xl font-extrabold">{ streak?.bestStreak ?? 0 }</dt>
+              <dd className="text-gray-500 dark:text-gray-400">💎 Best Streak</dd>
+            </div>
+          )
+        }
+        <div className="flex flex-col items-center justify-center">
+          <dt className="mb-2 text-3xl font-extrabold">{ stats?.winPercentage ?? 0 }%</dt>
+          <dd className="text-gray-500 dark:text-gray-400">📈 % of Wins</dd>
+        </div>
+      </dl>
+    </div>
+  </div>
+</TabsContent>
         </Tabs>
 
         <Tabs defaultValue="ALL" value={wordLength} onValueChange={value => setWordLength(value)}>
