@@ -859,7 +859,20 @@ const [playLoseSoundChristmas] = useSound('/sounds/christmas-lost.mp3', {
               <AlertDialog open={isStatsModalOpen}>
                 <AlertDialogContent className="max-w-lg">
                   <AlertDialogHeader>
-                    <AlertDialogTitle className='text-center'>{ isCustom ? 'Custom Game' : 'Stats'}</AlertDialogTitle>
+                    <AlertDialogTitle className='text-center'>
+                      {isCustom
+                        ? 'Custom Game'
+                        : gameMode === 'DAILY'
+                          ? 'Daily Stats'
+                          : gameMode === 'INFINITE'
+                            ? 'Infinite Stats'
+                            : 'Statistics'}
+                    </AlertDialogTitle>
+                    {!isCustom && (
+                      <p className="text-sm text-gray-500 dark:text-gray-400 text-center">
+                        Viewing current mode stats
+                      </p>
+                    )}
                   </AlertDialogHeader>
                   <AlertDialogDescription>
                     { isGameWon && (
@@ -944,7 +957,11 @@ const [playLoseSoundChristmas] = useSound('/sounds/christmas-lost.mp3', {
                   <div className="mx-auto w-full max-w-screen-lg">
                     <DrawerHeader>
                       <DrawerTitle className="text-center text-4xl">
-                        WORDLE AUTH TEST
+                        {gameMode === 'DAILY'
+                          ? 'Daily Stats'
+                          : gameMode === 'INFINITE'
+                          ? 'Infinite Stats'
+                          : 'Statistics'}
                       </DrawerTitle>
                       {gameMode !== 'CUSTOM' && (
                         <p className="text-sm text-gray-500 dark:text-gray-400 text-center mb-2">
