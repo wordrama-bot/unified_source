@@ -113,6 +113,9 @@ async function getPlayerLeaderboardAllTime(
       display_name,
       profile_image,
       games_won,
+      games_lost,
+      games_played,
+      overall_best_streak,
       alltime_rank
     `)
     .order(orderBy, { ascending: true })
@@ -123,7 +126,22 @@ async function getPlayerLeaderboardAllTime(
     return {};
   }
 
-  return data.map((row: any) => changeKeys.camelCase(row, 10));
+  return data.map((row: any) => {
+    const camel = changeKeys.camelCase(row, 10) as any;
+
+    return {
+      ...camel,
+      bestStreak: camel.overallBestStreak ?? 0,
+      players: {
+        levels: {
+          level: camel.level ?? 0,
+        },
+        ledger: {
+          coinBalance: camel.coinBalance ?? 0,
+        },
+      },
+    };
+  });
 }
 
 async function getPlayerLeaderboardForTheYear(
