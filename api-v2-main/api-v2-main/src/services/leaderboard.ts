@@ -224,8 +224,8 @@ async function getPlayerLeaderboardForThisWeek(
   year: number = new Date().getFullYear(),
 ) {
   const { data, error } = await db
-    .from('_v_wordle_weekly_leaderboard')
-    .select('*, _players ( _levels (level), _ledger (coin_balance))')
+    .from('_mv_wordle_weekly_leaderboard')
+    .select('*')
     .order(orderBy, { ascending: true })
     .range(offset, offset + limit - 1)
     .eq('week', week)
@@ -236,32 +236,56 @@ async function getPlayerLeaderboardForThisWeek(
     return {};
   }
 
-  return data.map((row: any) => changeKeys.camelCase(row, 10));
+  return data.map((row: any) => {
+    const camel = changeKeys.camelCase(row, 10) as any;
+
+    return {
+      ...camel,
+      players: {
+        levels: {
+          level: camel.level ?? 0,
+        },
+        ledger: {
+          coinBalance: camel.coinBalance ?? 0,
+        },
+      },
+    };
+  });
 }
 
 async function getPlayerLeaderboardForToday(
   orderBy: string = 'daily_rank',
   offset: number = 0,
   limit: number = 10,
-  day: number = new Date().getDate(),
-  month: number = new Date().getMonth() + 1,
-  year: number = new Date().getFullYear(),
+  date: string = moment().format('YYYY-MM-DD'),
 ) {
   const { data, error } = await db
-    .from('_v_wordle_daily_leaderboard')
-    .select('*, _players ( _levels (level), _ledger (coin_balance))')
+    .from('_mv_wordle_daily_leaderboard')
+    .select('*')
     .order(orderBy, { ascending: true })
     .range(offset, offset + limit - 1)
-    .eq('day', day)
-    .eq('month', month)
-    .eq('year', year);
+    .eq('date', date);
 
   if (error) {
     console.error(error);
     return {};
   }
 
-  return data.map((row: any) => changeKeys.camelCase(row, 10));
+  return data.map((row: any) => {
+    const camel = changeKeys.camelCase(row, 10) as any;
+
+    return {
+      ...camel,
+      players: {
+        levels: {
+          level: camel.level ?? 0,
+        },
+        ledger: {
+          coinBalance: camel.coinBalance ?? 0,
+        },
+      },
+    };
+  });
 }
 
 async function getPlayerLeaderboardAllTimeLength() {
