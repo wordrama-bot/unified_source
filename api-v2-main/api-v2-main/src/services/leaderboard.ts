@@ -108,7 +108,13 @@ async function getPlayerLeaderboardAllTime(
 ) {
   const { data, error } = await db
     .from('_v_wordle_alltime_leaderboard')
-    .select('*')
+    .select(`
+      player,
+      display_name,
+      profile_image,
+      games_won,
+      alltime_rank
+    `)
     .order(orderBy, { ascending: true })
     .range(offset, offset + limit - 1);
 
