@@ -133,8 +133,8 @@ async function getPlayerLeaderboardForTheYear(
   year: number = new Date().getFullYear(),
 ) {
   const { data, error } = await db
-    .from('_v_wordle_yearly_leaderboard')
-    .select('*, _players ( _levels (level), _ledger (coin_balance))')
+    .from('_mv_wordle_yearly_leaderboard')
+    .select('*')
     .order(orderBy, { ascending: true })
     .range(offset, offset + limit - 1)
     .eq('year', year);
@@ -144,7 +144,21 @@ async function getPlayerLeaderboardForTheYear(
     return {};
   }
 
-  return data.map((row: any) => changeKeys.camelCase(row, 10));
+  return data.map((row: any) => {
+    const camel = changeKeys.camelCase(row, 10) as any;
+
+    return {
+      ...camel,
+      players: {
+        levels: {
+          level: camel.level ?? 0,
+        },
+        ledger: {
+          coinBalance: camel.coinBalance ?? 0,
+        },
+      },
+    };
+  });
 }
 
 async function getPlayerLeaderboardForTheMonth(
