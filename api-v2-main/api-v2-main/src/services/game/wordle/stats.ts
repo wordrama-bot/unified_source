@@ -60,8 +60,7 @@ async function getPlayerWeeklyStats(
 
 async function getPlayerMonthlyStats(
   userId: string,
-  // NOTE: keeping your original default (0-based) to avoid behavior changes.
-  month: number = new Date().getMonth(),
+  month: number = new Date().getMonth() + 1,
   year: number = new Date().getFullYear(),
 ) {
   if (!guardUserId(userId, 'getPlayerMonthlyStats')) return {};
