@@ -257,14 +257,18 @@ async function getPlayerLeaderboardForToday(
   orderBy: string = 'daily_rank',
   offset: number = 0,
   limit: number = 10,
-  date: string = moment().format('YYYY-MM-DD'),
+  day: number = new Date().getDate(),
+  month: number = new Date().getMonth() + 1,
+  year: number = new Date().getFullYear(),
 ) {
   const { data, error } = await db
     .from('_mv_wordle_daily_leaderboard')
     .select('*')
     .order(orderBy, { ascending: true })
     .range(offset, offset + limit - 1)
-    .eq('date', date);
+    .eq('day', day)
+    .eq('month', month)
+    .eq('year', year);
 
   if (error) {
     console.error(error);
