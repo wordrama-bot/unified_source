@@ -133,14 +133,8 @@ async function getPlayerLeaderboardForTheYear(
   year: number = new Date().getFullYear(),
 ) {
   const { data, error } = await db
-    .from('_mv_wordle_yearly_leaderboard')
-    .select(`
-      player,
-      display_name,
-      profile_image,
-      games_won,
-      yearly_rank
-    `)
+    .from('_v_wordle_yearly_leaderboard')
+    .select('*, _players ( _levels (level), _ledger (coin_balance))')
     .order(orderBy, { ascending: true })
     .range(offset, offset + limit - 1)
     .eq('year', year);
