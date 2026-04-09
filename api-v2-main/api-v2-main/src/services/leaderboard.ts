@@ -107,7 +107,7 @@ async function getPlayerLeaderboardAllTime(
   limit: number = 10,
 ) {
   const { data, error } = await db
-    .from('_v_wordle_alltime_leaderboard')
+    .from('_mv_wordle_alltime_leaderboard')
     .select(`
       player,
       display_name,
@@ -133,8 +133,14 @@ async function getPlayerLeaderboardForTheYear(
   year: number = new Date().getFullYear(),
 ) {
   const { data, error } = await db
-    .from('_v_wordle_yearly_leaderboard')
-    .select('*, _players ( _levels (level), _ledger (coin_balance))')
+    .from('_mv_wordle_yearly_leaderboard')
+    .select(`
+      player,
+      display_name,
+      profile_image,
+      games_won,
+      yearly_rank
+    `)
     .order(orderBy, { ascending: true })
     .range(offset, offset + limit - 1)
     .eq('year', year);
