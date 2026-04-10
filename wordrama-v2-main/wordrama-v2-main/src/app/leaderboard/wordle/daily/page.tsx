@@ -381,7 +381,6 @@ export default function WordleDailyLeaderboardPage() {
                         <TableCell className="text-right">
                           {prefix ? (entry[`${prefix}GamesLost`] ?? 0) : (entry.gamesLost ?? 0)}
                         </TableCell>
-                        )}
                       </TableRow>
                     ))
                   ) : (
