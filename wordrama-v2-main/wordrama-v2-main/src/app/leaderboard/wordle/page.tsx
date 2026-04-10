@@ -69,13 +69,13 @@ export default function WordleAllTimeLeaderboardPage() {
 
   const include2024 = searchParams.get('include2024') === 'true';
   
-  const effectiveWordPack = include2024 ? 'all' : wordPack;
-  
-  const [timePeriod, setTimePeriod] = useState(
+    const [timePeriod, setTimePeriod] = useState(
     searchParams.get('include2024') === 'true' ? 'alltime-2024' : '/'
   )
   const [wordPack, setWordPack] = useState((searchParams.get('wordPack') || "all").toLowerCase())
   const [sortBy, setSortBy] = useState((searchParams.get('sortBy') || "rank").toLowerCase())//useState<SortKey>("score")
+
+  const effectiveWordPack = include2024 ? 'all' : wordPack;
   
   const supportedWordPackLengths = Array.from({ length: 20 }, (_, i) => i + 4); // 4 through 23
 
@@ -446,7 +446,7 @@ export default function WordleAllTimeLeaderboardPage() {
                             ? '—'
                             : (prefix ? entry[`${prefix}GamesLost`] : entry.gamesLost)}
                         </TableCell>
-                        {wordPack !== 'all' && (
+                        {!include2024 && effectiveWordPack !== 'all' && (
                           <TableCell className="text-right">
                             { entry[`${prefix}CurrentStreak`] }
                           </TableCell>
