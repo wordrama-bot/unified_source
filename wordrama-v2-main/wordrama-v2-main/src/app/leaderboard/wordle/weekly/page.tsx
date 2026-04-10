@@ -70,6 +70,8 @@ export default function WordleWeeklyLeaderboardPage() {
   const [wordPack, setWordPack] = useState((searchParams.get('wordPack') || "all").toLowerCase())
   const [sortBy, setSortBy] = useState((searchParams.get('sortBy') || "rank").toLowerCase())//useState<SortKey>("score")
 
+  const supportedWordPackLengths = Array.from({ length: 19 }, (_, i) => i + 4); // 4 through 22
+
   const WORD_NUMBER_WORDS = [
     "",
     "one",
@@ -111,9 +113,8 @@ export default function WordleWeeklyLeaderboardPage() {
 
   const prefix = getWordPackPrefix(wordPack);
   const numberPrefix = getWordPackNumberPrefix(wordPack);
-
   const getSortBy = (sortBy: string, pack: string) => {
-    const number = parseInt(pack.split(" ")[0], 10);
+  const number = parseInt(pack.split(" ")[0], 10);
 
     if (sortBy === "rank") {
       if (pack === "all") return "weekly_rank";
@@ -287,11 +288,19 @@ export default function WordleWeeklyLeaderboardPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Word Packs</SelectItem>
-                  {Array.from({ length: 20 }, (_, i) => i + 4).map((length) => (
-                    <SelectItem key={length} value={`${length} letter`}>
-                      {length} letter
-                    </SelectItem>
-                  ))}
+                  {Array.from({ length: 20 }, (_, i) => i + 4).map((length) => {
+                    const supported = supportedWordPackLengths.includes(length);
+
+                    return (
+                      <SelectItem
+                        key={length}
+                        value={`${length} letter`}
+                        disabled={!supported}
+                      >
+                        {length} letter {!supported ? "(unavailable)" : ""}
+                      </SelectItem>
+                    );
+                  })}
                 </SelectContent>
               </Select>
               <DropdownMenu>
