@@ -206,6 +206,43 @@ async function getPlayerLeaderboardPositionToday(
   return changeKeys.camelCase(data, 10);
 }
 
+async function getPlayerLeaderboardAllTimeIncluding2024(
+  offset: number = 0,
+  limit: number = 10,
+) {
+  const { data, error } = await db
+    .from('_mv_wordle_alltime_including_2024')
+    .select('*')
+    .order('total_games_played', { ascending: false })
+    .range(offset, offset + limit - 1);
+
+  if (error) {
+    console.error(error);
+    return {};
+  }
+
+  return data.map((row: any, index: number) => {
+    const camel = changeKeys.camelCase(row, 10) as any;
+
+    return {
+      ...camel,
+      alltimeRank: offset + index + 1,
+      alltimeIncluding2024Rank: offset + index + 1,
+      gamesPlayed: camel.totalGamesPlayed ?? 0,
+      bestStreak: camel.bestStreak ?? 0,
+      overallBestStreak: camel.bestStreak ?? 0,
+      players: {
+        levels: {
+          level: 0,
+        },
+        ledger: {
+          coinBalance: 0,
+        },
+      },
+    };
+  });
+}
+
 async function getPlayerLeaderboardAllTime(
   orderBy: string = 'alltime_rank',
   offset: number = 0,
@@ -403,6 +440,19 @@ async function getPlayerLeaderboardForToday(
   });
 }
 
+async function getPlayerLeaderboardAllTimeIncluding2024Length() {
+  const { count, error } = await db
+    .from('_mv_wordle_alltime_including_2024')
+    .select('player', { count: 'exact', head: true });
+
+  if (error) {
+    console.error(error);
+    return 0;
+  }
+
+  return count || 0;
+}
+
 async function getPlayerLeaderboardAllTimeLength(
   orderBy: string = 'alltime_rank',
 ) {
@@ -502,11 +552,13 @@ async function getPlayerLeaderboardDailyLength(
 }
 
 export default {
+  getPlayerLeaderboardAllTimeIncluding2024Length,
   getPlayerLeaderboardAllTimeLength,
   getPlayerLeaderboardYearlyLength,
   getPlayerLeaderboardMonthlyLength,
   getPlayerLeaderboardWeeklyLength,
   getPlayerLeaderboardDailyLength,
+  getPlayerLeaderboardAllTimeIncluding2024,
   getPlayerLeaderboardPositionAllTime,
   getPlayerLeaderboardPositionThisYear,
   getPlayerLeaderboardPositionThisMonth,

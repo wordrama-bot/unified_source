@@ -67,7 +67,13 @@ export default function WordleAllTimeLeaderboardPage() {
   //return redirect('/leaderboard/wordle/yearly')
   //type SortKey = "games_won" | "games_lost" | "games_played" | "losses" | "bestStreak" | "level" | "gamesWon1" | "gamesWon2" | "gamesWon3" | "gamesWon4" | "gamesWon5" | "gamesWon6"
 
-  const [timePeriod, setTimePeriod] = useState('/')
+  const effectiveWordPack = include2024 ? 'all' : wordPack;
+  
+  const include2024 = searchParams.get('include2024') === 'true';\
+
+  const [timePeriod, setTimePeriod] = useState(
+    searchParams.get('include2024') === 'true' ? 'alltime-2024' : '/'
+  )
   const [wordPack, setWordPack] = useState((searchParams.get('wordPack') || "all").toLowerCase())
   const [sortBy, setSortBy] = useState((searchParams.get('sortBy') || "rank").toLowerCase())//useState<SortKey>("score")
   
@@ -112,8 +118,8 @@ export default function WordleAllTimeLeaderboardPage() {
     return `${number}Letter`;
   };
 
-  const prefix = getWordPackPrefix(wordPack);
-  const numberPrefix = getWordPackNumberPrefix(wordPack);
+  const prefix = getWordPackPrefix(effectiveWordPack);
+  const numberPrefix = getWordPackNumberPrefix(effectiveWordPack);
 
   const getSortBy = (sortBy: string, pack: string) => {
     const number = parseInt(pack.split(" ")[0], 10);
@@ -153,12 +159,12 @@ export default function WordleAllTimeLeaderboardPage() {
     return "alltime_rank";
   };
 
-  const sortByKey = getSortBy(sortBy, wordPack);
+  const sortByKey = getSortBy(sortBy, effectiveWordPack);
 
   const [leaderboardData, setLeaderboardData] = useState({ data: [] });
 
-  const { data: allTimeData, isLoading: isLoadingAllTime, error: allTimeError } = useGetAllTimeWordleLeaderboardQuery({ page: Number(searchParams.get('page') || 1), orderBy: sortByKey });
-  const { data: allTimeTop3Data, isLoading: isLoadingTop3AllTime, error: allTimeTop3Error } = useGetAllTimeWordleLeaderboardQuery({ page: 1, orderBy: sortByKey });
+  const { data: allTimeData, isLoading: isLoadingAllTime, error: allTimeError } = useGetAllTimeWordleLeaderboardQuery({  page: Number(searchParams.get('page') || 1),  orderBy: sortByKey,  include2024: searchParams.get('include2024') === 'true', });
+  const { data: allTimeTop3Data, isLoading: isLoadingTop3AllTime, error: allTimeTop3Error } = useGetAllTimeWordleLeaderboardQuery({  page: 1,  orderBy: sortByKey,  include2024: searchParams.get('include2024') === 'true', });
 
   useEffect(() => {
     if (allTimeError) {
@@ -175,11 +181,24 @@ export default function WordleAllTimeLeaderboardPage() {
   }, [allTimeData, allTimeError, sortByKey]);
 
   function handleTimePeriodChange(value: string) {
+    setTimePeriod(value);
+
     if (value === '/') {
-      return router.push('/leaderboard/wordle/');
+      const params = new URLSearchParams(window.location.search);
+      params.delete('include2024');
+      return router.push(`/leaderboard/wordle/?${params.toString()}`);
     }
 
-    return router.push(`/leaderboard/wordle/${value}`);
+    if (value === 'alltime-2024') {
+      const params = new URLSearchParams(window.location.search);
+      params.set('include2024', 'true');
+      return router.push(`/leaderboard/wordle/?${params.toString()}`);
+    }
+
+    const params = new URLSearchParams(window.location.search);
+    params.delete('include2024');
+
+    return router.push(`/leaderboard/wordle/${value}?${params.toString()}`);
   }
 
   function LeaderboardPagination() {
@@ -189,11 +208,16 @@ export default function WordleAllTimeLeaderboardPage() {
           <PaginationItem>
             <PaginationPrevious
               className="text-text dark:text-darkText"
-              href={`${window.location.pathname}?page=${allTimeData?.metadata?.previousPage}`}
+              href={buildPageHref(allTimeData?.metadata?.previousPage)}
             />
           </PaginationItem>
           <PaginationItem>
-            <PaginationLink className="text-text dark:text-darkText" href={`${window.location.pathname}?page=${allTimeData?.metadata?.currentPage}`}>{ allTimeData?.metadata?.currentPage }</PaginationLink>
+            <PaginationLink
+              className="text-text dark:text-darkText"
+              href={buildPageHref(allTimeData?.metadata?.currentPage)}
+            >
+              {allTimeData?.metadata?.currentPage}
+            </PaginationLink>
           </PaginationItem>
           <PaginationItem className="text-white">
             <PaginationEllipsis className="text-text dark:text-darkText" />
@@ -201,12 +225,17 @@ export default function WordleAllTimeLeaderboardPage() {
           { allTimeData?.metadata?.currentPage < allTimeData?.metadata?.totalPages && (
             <>
               <PaginationItem>
-                <PaginationLink className="text-text dark:text-darkText" href={`${window.location.pathname}?page=${allTimeData?.metadata?.totalPages}`}>{ allTimeData?.metadata?.totalPages }</PaginationLink>
+                <PaginationLink
+                  className="text-text dark:text-darkText"
+                  href={buildPageHref(allTimeData?.metadata?.totalPages)}
+                >
+                  {allTimeData?.metadata?.totalPages}
+                </PaginationLink>
               </PaginationItem>
               <PaginationItem>
                 <PaginationNext
                   className="text-text dark:text-darkText"
-                  href={`${window.location.pathname}?page=${allTimeData?.metadata?.nextPage}`}
+                  href={buildPageHref(allTimeData?.metadata?.nextPage)}
                 />
               </PaginationItem>
             </>
@@ -214,6 +243,12 @@ export default function WordleAllTimeLeaderboardPage() {
         </PaginationContent>
       </Pagination>
     )
+  }
+
+  function buildPageHref(page: number) {
+    const params = new URLSearchParams(window.location.search);
+    params.set('page', String(page));
+    return `${window.location.pathname}?${params.toString()}`;
   }
 
   if (
@@ -245,8 +280,13 @@ export default function WordleAllTimeLeaderboardPage() {
                           <span className="text-2xl font-bold"></span>
                         </div>
                         <div className="mt-2 text-sm text-muted-foreground">
-                          <p>Wins: { prefix ? player[`${prefix}GamesWon`] : player.gamesWon  } | Losses: { prefix ? player[`${prefix}GamesLost`] : player.gamesLost  }</p>
-                          <p>Best Streak: {prefix ? player[`bestStreak${prefix}`] : player.overallBestStreak}</p>
+                          <p>
+                            {include2024
+                              ? `Games Played: ${player.gamesPlayed ?? 0}`
+                              : `Wins: ${prefix ? player[`${prefix}GamesWon`] : player.gamesWon} | Losses: ${prefix ? player[`${prefix}GamesLost`] : player.gamesLost}`
+                            }
+                          </p>
+                          <p>Best Streak: {include2024 ? (player.overallBestStreak ?? 0) : (prefix ? player[`${prefix}BestStreak`] : player.overallBestStreak)}</p>
                         </div>
                       </CardContent>
                     </HoverCardTrigger>
@@ -276,15 +316,20 @@ export default function WordleAllTimeLeaderboardPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="/">All Time</SelectItem>
+                  <SelectItem value="alltime-2024">All Time (Legacy Users)</SelectItem>
                   <SelectItem value="daily">Today</SelectItem>
                   <SelectItem value="weekly">This Week</SelectItem>
                   <SelectItem value="monthly">This Month</SelectItem>
                   <SelectItem value="yearly">This Year</SelectItem>
                 </SelectContent>
               </Select>
-              <Select value={wordPack} onValueChange={(value) => {
-                setWordPack(value);
-              }}>
+              <Select
+                value={effectiveWordPack}
+                onValueChange={(value) => {
+                  if (!include2024) setWordPack(value);
+                }}
+                disabled={include2024}
+              >
                 <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="Select word pack" />
                 </SelectTrigger>
@@ -345,7 +390,7 @@ export default function WordleAllTimeLeaderboardPage() {
                     <TableHead className="text-right">Games Played</TableHead>
                     <TableHead className="text-right">Won</TableHead>
                     <TableHead className="text-right">Lost</TableHead>
-                    { wordPack !== 'all' && (
+                    { !include2024 && effectiveWordPack !== 'all' && (
                       <TableHead className="text-right">Current Streak</TableHead>
                     )}
                     <TableHead className="text-right">Best Streak</TableHead>
@@ -386,9 +431,21 @@ export default function WordleAllTimeLeaderboardPage() {
                             </HoverCardContent>
                           </HoverCard>
                         </TableCell>
-                        <TableCell className="text-right">{ prefix ? entry[`${prefix}GamesWon`] + entry[`${prefix}GamesLost`] : entry.gamesPlayed  }</TableCell>
-                        <TableCell className="text-right">{ prefix ? entry[`${prefix}GamesWon`] : entry.gamesWon  }</TableCell>
-                        <TableCell className="text-right">{ prefix ? entry[`${prefix}GamesLost`] : entry.gamesLost  }</TableCell>
+                        <TableCell className="text-right">
+                          {include2024
+                            ? (entry.gamesPlayed ?? 0)
+                            : (prefix ? entry[`${prefix}GamesWon`] + entry[`${prefix}GamesLost`] : entry.gamesPlayed)}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {include2024
+                            ? '—'
+                            : (prefix ? entry[`${prefix}GamesWon`] : entry.gamesWon)}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {include2024
+                            ? '—'
+                            : (prefix ? entry[`${prefix}GamesLost`] : entry.gamesLost)}
+                        </TableCell>
                         {wordPack !== 'all' && (
                           <TableCell className="text-right">
                             { entry[`${prefix}CurrentStreak`] }
@@ -408,7 +465,7 @@ export default function WordleAllTimeLeaderboardPage() {
                     ))
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={wordPack !== 'all' ? 7 : 6} className="text-center py-8 text-muted-foreground">
+                      <TableCell colSpan={!include2024 && effectiveWordPack !== 'all' ? 7 : 6} className="text-center py-8 text-muted-foreground">
                         No leaderboard data is available for this word pack and timeframe.
                       </TableCell>
                     </TableRow>
