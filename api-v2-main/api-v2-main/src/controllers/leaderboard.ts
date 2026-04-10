@@ -138,13 +138,12 @@ async function getLeaderboardAllTime(req: ApiRequest, res: Response) {
   const offset = (page - 1) * limit;
 
   const leaderboardLength =
-    await leaderboardService.getPlayerLeaderboardAllTimeLength();
+    await leaderboardService.getPlayerLeaderboardAllTimeLength(orderBy);
 
   const leaderboard = await leaderboardService.getPlayerLeaderboardAllTime(
     orderBy,
     offset,
     limit,
-    page,
   );
 
   if (!Array.isArray(leaderboard)) return serviceUnavailable(res, leaderboard);
@@ -177,7 +176,7 @@ async function getLeaderboardForTheYear(req: ApiRequest, res: Response) {
   const offset = (page - 1) * limit;
 
   const leaderboardLength =
-    await leaderboardService.getPlayerLeaderboardYearlyLength();
+    await leaderboardService.getPlayerLeaderboardYearlyLength(orderBy);
 
   const leaderboard = await leaderboardService.getPlayerLeaderboardForTheYear(
     orderBy,
@@ -215,7 +214,7 @@ async function getLeaderboardForTheMonth(req: ApiRequest, res: Response) {
   const offset = (page - 1) * limit;
 
   const leaderboardLength =
-    await leaderboardService.getPlayerLeaderboardMonthlyLength();
+    await leaderboardService.getPlayerLeaderboardMonthlyLength(orderBy);
 
   const leaderboard = await leaderboardService.getPlayerLeaderboardForTheMonth(
     orderBy,
@@ -253,7 +252,7 @@ async function getLeaderboardForThisWeek(req: ApiRequest, res: Response) {
   const offset = (page - 1) * limit;
 
   const leaderboardLength =
-    await leaderboardService.getPlayerLeaderboardWeeklyLength();
+    await leaderboardService.getPlayerLeaderboardWeeklyLength(orderBy);
 
   const leaderboard = await leaderboardService.getPlayerLeaderboardForThisWeek(
     orderBy,
@@ -291,7 +290,7 @@ async function getLeaderboardForToday(req: ApiRequest, res: Response) {
   const offset = (page - 1) * limit;
 
   const leaderboardLength =
-    await leaderboardService.getPlayerLeaderboardDailyLength();
+    await leaderboardService.getPlayerLeaderboardDailyLength(orderBy);
 
   const leaderboard = await leaderboardService.getPlayerLeaderboardForToday(
     orderBy,
