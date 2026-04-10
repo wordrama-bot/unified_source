@@ -370,13 +370,17 @@ export default function WordleDailyLeaderboardPage() {
                             </HoverCardContent>
                           </HoverCard>
                         </TableCell>
-                        <TableCell className="text-right">{ prefix ? entry[`${prefix}GamesWon`] + entry[`${prefix}GamesLost`] : entry.gamesPlayed }</TableCell>
-                        <TableCell className="text-right">{ prefix ? entry[`${prefix}GamesWon`] : entry.gamesWon }</TableCell>
-                        <TableCell className="text-right">{ prefix ? entry[`${prefix}GamesLost`] : entry.gamesLost }</TableCell>
-                        { sortBy.includes('games_won_in') && (
-                          <TableCell className="text-right">
-                            {prefix ? entry[`${prefix}GamesWonIn_${sortBy.substr(-1)}`] : entry[`gamesWonIn_${sortBy.substr(-1)}`]}
-                          </TableCell>
+                        <TableCell className="text-right">
+                          {prefix
+                            ? (entry[`${prefix}GamesWon`] ?? 0) + (entry[`${prefix}GamesLost`] ?? 0)
+                            : (entry.gamesPlayed ?? 0)}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {prefix ? (entry[`${prefix}GamesWon`] ?? 0) : (entry.gamesWon ?? 0)}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {prefix ? (entry[`${prefix}GamesLost`] ?? 0) : (entry.gamesLost ?? 0)}
+                        </TableCell>
                         )}
                       </TableRow>
                     ))
