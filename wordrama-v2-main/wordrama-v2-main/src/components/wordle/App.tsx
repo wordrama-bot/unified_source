@@ -629,24 +629,20 @@ const [playLoseSoundChristmas] = useSound('/sounds/christmas-lost.mp3', {
                 <div className="grid grid-cols-4 items-center gap-4">
                   { gameMode !== 'CUSTOM' && (
                     <Select defaultValue={wordPack} onValueChange={value => useWordPack(value)}>
-                      <SelectTrigger className=" col-span-4">
+                      <SelectTrigger className="col-span-4">
                         <SelectValue placeholder="Select a WordPack" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="max-h-[60vh] overflow-y-auto">
                         <SelectGroup>
                           <SelectLabel>WordPacks</SelectLabel>
-                          { !isLoadingWordPacks && availableWordPacks.map((wordPack, idx) => {
-                            if (!isTablet && isMobile && idx > 4) return;
-                            if (isTablet && idx > 12) return;
-                            return (
-                              <SelectItem
-                                key={wordPack}
-                                value={wordPack}
-                              >
-                                { wordleWordPackConfig.friendlyNameByName[wordPack] }
-                              </SelectItem>
-                            )
-                          })}
+                          {!isLoadingWordPacks && availableWordPacks.map((wordPack) => (
+                            <SelectItem
+                              key={wordPack}
+                              value={wordPack}
+                            >
+                              {wordleWordPackConfig.friendlyNameByName[wordPack]}
+                            </SelectItem>
+                          ))}
                         </SelectGroup>
                       </SelectContent>
                     </Select>
