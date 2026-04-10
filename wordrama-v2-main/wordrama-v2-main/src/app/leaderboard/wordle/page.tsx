@@ -70,6 +70,7 @@ export default function WordleAllTimeLeaderboardPage() {
   const [timePeriod, setTimePeriod] = useState('/')
   const [wordPack, setWordPack] = useState((searchParams.get('wordPack') || "all").toLowerCase())
   const [sortBy, setSortBy] = useState((searchParams.get('sortBy') || "rank").toLowerCase())//useState<SortKey>("score")
+  const supportedWordPackLengths = [5, 6, 7, 8, 9, 10, 11];
 
   const WORD_NUMBER_WORDS = [
     "",
@@ -288,11 +289,19 @@ export default function WordleAllTimeLeaderboardPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Word Packs</SelectItem>
-                  {Array.from({ length: 20 }, (_, i) => i + 4).map((length) => (
-                    <SelectItem key={length} value={`${length} letter`}>
-                      {length} letter
-                    </SelectItem>
-                  ))}
+                  {Array.from({ length: 20 }, (_, i) => i + 4).map((length) => {
+                    const supported = supportedWordPackLengths.includes(length);
+
+                    return (
+                      <SelectItem
+                        key={length}
+                        value={`${length} letter`}
+                        disabled={!supported}
+                      >
+                        {length} letter {!supported ? "(unavailable)" : ""}
+                      </SelectItem>
+                    );
+                  })}
                 </SelectContent>
               </Select>
               <DropdownMenu>
