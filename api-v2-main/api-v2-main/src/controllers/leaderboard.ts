@@ -137,31 +137,15 @@ async function getLeaderboardAllTime(req: ApiRequest, res: Response) {
   const limit = asNumber(req.query.limit, 10);
   const offset = (page - 1) * limit;
 
-  const include2024 = req.query.include2024 === 'true';
+  const leaderboardLength =
+    await leaderboardService.getPlayerLeaderboardAllTimeLength(orderBy);
 
-  let leaderboardLength;
-  let leaderboard;
+  const leaderboard = await leaderboardService.getPlayerLeaderboardAllTime(
+    orderBy,
+    offset,
+    limit,
+  );
 
-  if (include2024) {
-    leaderboardLength =
-      await leaderboardService.getPlayerLeaderboardAllTimeIncluding2024Length();
-
-    leaderboard =
-      await leaderboardService.getPlayerLeaderboardAllTimeIncluding2024(
-        offset,
-        limit,
-      );
-  } else {
-    leaderboardLength =
-      await leaderboardService.getPlayerLeaderboardAllTimeLength(orderBy);
-
-    leaderboard =
-      await leaderboardService.getPlayerLeaderboardAllTime(
-        orderBy,
-        offset,
-        limit,
-      );
-  }
   if (!Array.isArray(leaderboard)) return serviceUnavailable(res, leaderboard);
   if (leaderboard.length === 0) return notFoundResponse(req, res);
 
