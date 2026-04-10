@@ -69,7 +69,7 @@ export default function WordleDailyLeaderboardPage() {
   const [wordPack, setWordPack] = useState((searchParams.get('wordPack') || "all").toLowerCase())
   const [sortBy, setSortBy] = useState((searchParams.get('sortBy') || "rank").toLowerCase())//useState<SortKey>("score")
 
-  const supportedWordPackLengths = [5, 6, 7, 8, 9, 10, 11];
+  const supportedWordPackLengths = Array.from({ length: 20 }, (_, i) => i + 4); // 4 through 23
 
   const WORD_NUMBER_WORDS = [
     "",
