@@ -159,13 +159,18 @@ export default function WordleAllTimeLeaderboardPage() {
   const { data: allTimeTop3Data, isLoading: isLoadingTop3AllTime, error: allTimeTop3Error } = useGetAllTimeWordleLeaderboardQuery({ page: 1, orderBy: sortByKey });
 
   useEffect(() => {
-    if (!allTimeError) {
-
-      setLeaderboardData(allTimeData);
-    } else {
+    if (allTimeError) {
       setLeaderboardData({ data: [] });
+      return;
     }
-  }, [allTimeData]);
+
+    if (allTimeData?.data) {
+      setLeaderboardData(allTimeData);
+      return;
+    }
+
+    setLeaderboardData({ data: [] });
+  }, [allTimeData, allTimeError, sortByKey]);
 
   function handleTimePeriodChange(value: string) {
     if (value === '/') {
@@ -340,56 +345,64 @@ export default function WordleAllTimeLeaderboardPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  { leaderboardData?.data?.map((entry, index) => (
-                    <TableRow key={entry?.id}>
-                      <TableCell className="font-medium">
-                        { sortBy === 'rank' ?
-                          (numberPrefix ? entry[`alltimeRank_${numberPrefix}`] : entry.alltimeRank) :
-                          entry.position
-                        }
-                      </TableCell>
-                      <TableCell>
-                        <HoverCard>
-                          <HoverCardTrigger asChild>
-                            <Link className="hover:underline" href={`/player/${entry?.player}`}>{ entry?.displayName }</Link>
-                          </HoverCardTrigger>
-                          <HoverCardContent className="w-80">
-                            <div className="flex justify-between space-x-4">
-                              <Avatar className="h-24 w-24">
-                                <AvatarImage src={entry?.profileImage} className="h-24 w-24"/>
-                                <AvatarFallback className="h-24 w-24">{ entry?.displayName }</AvatarFallback>
-                              </Avatar>
-                              <div className="space-y-1">
-                                <div className="text-lg font-semibold">{ entry?.displayName }</div>
-                                <h4 className="text-sm font-semibold">Level { entry?.level }</h4>
-                                <p className="text-sm">
-                                  <span className="font-semibold">Coins:</span> { entry?.coinBalance }
-                                </p>
-                              </div>
-                            </div>
-                          </HoverCardContent>
-                        </HoverCard>
-                      </TableCell>
-                      <TableCell className="text-right">{ prefix ? entry[`${prefix}GamesWon`] + entry[`${prefix}GamesLost`] : entry.gamesPlayed  }</TableCell>
-                      <TableCell className="text-right">{ prefix ? entry[`${prefix}GamesWon`] : entry.gamesWon  }</TableCell>
-                      <TableCell className="text-right">{ prefix ? entry[`${prefix}GamesLost`] : entry.gamesLost  }</TableCell>
-                      {wordPack !== 'all' && (
-                        <TableCell className="text-right">
-                          { entry[`${prefix}CurrentStreak`] }
-                        </TableCell>
-                      )}
-                      <TableCell className="text-right">
-                        { prefix ? entry[`${prefix}BestStreak`] : entry.overallBestStreak  }
-                      </TableCell>
-                      { sortBy.includes('games_won_in') && (
-                        <TableCell className="text-right">
-                          {
-                            prefix ? entry[`${prefix}GamesWonIn_${sortBy.substr(-1)}`] : entry[`gamesWonIn_${sortBy.substr(-1)}`]
+                  {leaderboardData?.data?.length ? (
+                    leaderboardData.data.map((entry, index) => (
+                      <TableRow key={entry?.id}>
+                        <TableCell className="font-medium">
+                          { sortBy === 'rank' ?
+                            (numberPrefix ? entry[`alltimeRank_${numberPrefix}`] : entry.alltimeRank) :
+                            entry.position
                           }
                         </TableCell>
-                      )}
+                        <TableCell>
+                          <HoverCard>
+                            <HoverCardTrigger asChild>
+                              <Link className="hover:underline" href={`/player/${entry?.player}`}>{ entry?.displayName }</Link>
+                            </HoverCardTrigger>
+                            <HoverCardContent className="w-80">
+                              <div className="flex justify-between space-x-4">
+                                <Avatar className="h-24 w-24">
+                                  <AvatarImage src={entry?.profileImage} className="h-24 w-24"/>
+                                  <AvatarFallback className="h-24 w-24">{ entry?.displayName }</AvatarFallback>
+                                </Avatar>
+                                <div className="space-y-1">
+                                  <div className="text-lg font-semibold">{ entry?.displayName }</div>
+                                  <h4 className="text-sm font-semibold">Level { entry?.level }</h4>
+                                  <p className="text-sm">
+                                    <span className="font-semibold">Coins:</span> { entry?.coinBalance }
+                                  </p>
+                                </div>
+                              </div>
+                            </HoverCardContent>
+                          </HoverCard>
+                        </TableCell>
+                        <TableCell className="text-right">{ prefix ? entry[`${prefix}GamesWon`] + entry[`${prefix}GamesLost`] : entry.gamesPlayed  }</TableCell>
+                        <TableCell className="text-right">{ prefix ? entry[`${prefix}GamesWon`] : entry.gamesWon  }</TableCell>
+                        <TableCell className="text-right">{ prefix ? entry[`${prefix}GamesLost`] : entry.gamesLost  }</TableCell>
+                        {wordPack !== 'all' && (
+                          <TableCell className="text-right">
+                            { entry[`${prefix}CurrentStreak`] }
+                          </TableCell>
+                        )}
+                        <TableCell className="text-right">
+                          { prefix ? entry[`${prefix}BestStreak`] : entry.overallBestStreak  }
+                        </TableCell>
+                        { sortBy.includes('games_won_in') && (
+                          <TableCell className="text-right">
+                            {
+                              prefix ? entry[`${prefix}GamesWonIn_${sortBy.substr(-1)}`] : entry[`gamesWonIn_${sortBy.substr(-1)}`]
+                            }
+                          </TableCell>
+                        )}
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={wordPack !== 'all' ? 7 : 6} className="text-center py-8 text-muted-foreground">
+                        No leaderboard data is available for this word pack and timeframe.
+                      </TableCell>
                     </TableRow>
-                  ))}
+                  )}
                 </TableBody>
               </Table>
             </div>
