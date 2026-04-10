@@ -69,52 +69,86 @@ export default function WordleMonthlyLeaderboardPage() {
   const [wordPack, setWordPack] = useState((searchParams.get('wordPack') || "all").toLowerCase())
   const [sortBy, setSortBy] = useState((searchParams.get('sortBy') || "rank").toLowerCase())//useState<SortKey>("score")
 
+  const WORD_NUMBER_WORDS = [
+    "",
+    "one",
+    "two",
+    "three",
+    "four",
+    "five",
+    "six",
+    "seven",
+    "eight",
+    "nine",
+    "ten",
+    "eleven",
+    "twelve",
+    "thirteen",
+    "fourteen",
+    "fifteen",
+    "sixteen",
+    "seventeen",
+    "eighteen",
+    "nineteen",
+    "twenty",
+    "twentyone",
+    "twentytwo",
+    "twentythree",
+  ];
+
   const getWordPackPrefix = (pack: string) => {
     if (pack === "all") return "";
-    const number = parseInt(pack.split(" ")[0]);
-    return ["", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", 'eleven'][number] + "Letter";
-  }
+    const number = parseInt(pack.split(" ")[0], 10);
+    return `${WORD_NUMBER_WORDS[number]}Letter`;
+  };
+
   const getWordPackNumberPrefix = (pack: string) => {
     if (pack === "all") return "";
-    const number = parseInt(pack.split(" ")[0]);
-    return ["", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", '11'][number] + "Letter";
-  }
+    const number = parseInt(pack.split(" ")[0], 10);
+    return `${number}Letter`;
+  };
+
   const prefix = getWordPackPrefix(wordPack);
   const numberPrefix = getWordPackNumberPrefix(wordPack);
+
   const getSortBy = (sortBy: string, pack: string) => {
-    const number = parseInt(pack.split(" ")[0]);
+    const number = parseInt(pack.split(" ")[0], 10);
+
     if (sortBy === "rank") {
-      if (pack === "all") return 'monthly_rank';
-      return "monthly_rank_" + number + "_letter";
-    } else if (sortBy === 'games_won') {
-      if (pack === "all") return 'games_won';
-      return ["", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", 'eleven'][number] + "_letter_games_won";
-    } else if (sortBy === 'games_lost') {
-      if (pack === "all") return 'games_lost';
-      return ["", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", 'eleven'][number] + "_letter_games_lost";
-    } else if (sortBy === 'games_won_in_1') {
-      if (pack === "all") return 'games_won_in_1';
-      return ["", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", 'eleven'][number] + "_letter_games_won_in_1";
-    } else if (sortBy === 'games_won_in_2') {
-      if (pack === "all") return 'games_won_in_2';
-      return ["", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", 'eleven'][number] + "_letter_games_won_in_2";
-    } else if (sortBy === 'games_won_in_3') {
-      if (pack === "all") return 'games_won_in_3';
-      return ["", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", 'eleven'][number] + "_letter_games_won_in_3";
-    } else if (sortBy === 'games_won_in_4') {
-      if (pack === "all") return 'games_won_in_4';
-      return ["", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", 'eleven'][number] + "_letter_games_won_in_4";
-    } else if (sortBy === 'games_won_in_5') {
-      if (pack === "all") return 'games_won_in_5';
-      return ["", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", 'eleven'][number] + "_letter_games_won_in_5";
-    } else if (sortBy === 'games_won_in_6') {
-      if (pack === "all") return 'games_won_in_6';
-      return ["", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", 'eleven'][number] + "_letter_games_won_in_6";
-    } else if (sortBy === 'best_streak') {
-      if (pack === "all") return 'overall_best_streak_rank';
-      return ["", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", 'eleven'][number] + "_letter_best_streak_rank";
+      if (pack === "all") return "monthly_rank";
+      return `monthly_rank_${number}_letter`;
+    } else if (sortBy === "games_won") {
+      if (pack === "all") return "games_won";
+      return `${WORD_NUMBER_WORDS[number]}_letter_games_won`;
+    } else if (sortBy === "games_lost") {
+      if (pack === "all") return "games_lost";
+      return `${WORD_NUMBER_WORDS[number]}_letter_games_lost`;
+    } else if (sortBy === "games_won_in_1") {
+      if (pack === "all") return "games_won_in_1";
+      return `${WORD_NUMBER_WORDS[number]}_letter_games_won_in_1`;
+    } else if (sortBy === "games_won_in_2") {
+      if (pack === "all") return "games_won_in_2";
+      return `${WORD_NUMBER_WORDS[number]}_letter_games_won_in_2`;
+    } else if (sortBy === "games_won_in_3") {
+      if (pack === "all") return "games_won_in_3";
+      return `${WORD_NUMBER_WORDS[number]}_letter_games_won_in_3`;
+    } else if (sortBy === "games_won_in_4") {
+      if (pack === "all") return "games_won_in_4";
+      return `${WORD_NUMBER_WORDS[number]}_letter_games_won_in_4`;
+    } else if (sortBy === "games_won_in_5") {
+      if (pack === "all") return "games_won_in_5";
+      return `${WORD_NUMBER_WORDS[number]}_letter_games_won_in_5`;
+    } else if (sortBy === "games_won_in_6") {
+      if (pack === "all") return "games_won_in_6";
+      return `${WORD_NUMBER_WORDS[number]}_letter_games_won_in_6`;
+    } else if (sortBy === "best_streak") {
+      if (pack === "all") return "overall_best_streak_rank";
+      return `${WORD_NUMBER_WORDS[number]}_letter_best_streak_rank`;
     }
-  }
+
+    return "monthly_rank";
+  };
+
   const sortByKey = getSortBy(sortBy, wordPack);
 
   const [leaderboardData, setLeaderboardData] = useState({ data: [] });
@@ -123,18 +157,18 @@ export default function WordleMonthlyLeaderboardPage() {
   const { data: monthlyTop3Data, isLoading: isLoadingTop3Monthly, error: monthlyTop3Error } = useGetMonthlyWordleLeaderboardQuery({ page: 1, orderBy: sortByKey });
 
   useEffect(() => {
-    if (!monthlyError) {
-
-      setLeaderboardData(monthlyData);
-    } else {
-      setLeaderboardData([]);
+    if (monthlyError) {
+      setLeaderboardData({ data: [] });
+      return;
     }
-  }, [monthlyData]);
 
-  function handleTimePeriodChange(value: string) {
-    if (value === '/') router.push('/leaderboard/wordle/');
-    return router.push(`/leaderboard/wordle/${value}`)
-  }
+    if (monthlyData?.data) {
+      setLeaderboardData(monthlyData);
+      return;
+    }
+
+    setLeaderboardData({ data: [] });
+  }, [monthlyData, monthlyError, sortByKey]);
 
   function LeaderboardPagination() {
     return (
@@ -168,6 +202,14 @@ export default function WordleMonthlyLeaderboardPage() {
         </PaginationContent>
       </Pagination>
     )
+  }
+
+  function handleTimePeriodChange(value: string) {
+    if (value === '/') {
+      return router.push('/leaderboard/wordle/');
+    }
+
+    return router.push(`/leaderboard/wordle/${value}`);
   }
 
   if (
@@ -244,7 +286,7 @@ export default function WordleMonthlyLeaderboardPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Word Packs</SelectItem>
-                  {Array.from({ length: 7 }, (_, i) => i + 5).map((length) => (
+                  {Array.from({ length: 20 }, (_, i) => i + 4).map((length) => (
                     <SelectItem key={length} value={`${length} letter`}>
                       {length} letter
                     </SelectItem>
@@ -297,48 +339,54 @@ export default function WordleMonthlyLeaderboardPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  { leaderboardData?.data?.map((entry, index) => (
-                    <TableRow key={entry?.id}>
-                      <TableCell className="font-medium">
-                        { sortBy === 'rank' ?
-                          (numberPrefix ? entry[`monthlyRank_${numberPrefix}`] : entry.monthlyRank) :
-                          entry.position
-                        }
-                      </TableCell>
-                      <TableCell>
-                        <HoverCard>
-                          <HoverCardTrigger asChild>
-                            <Link className="hover:underline" href={`/player/${entry?.player}`}>{ entry?.displayName }</Link>
-                          </HoverCardTrigger>
-                          <HoverCardContent className="w-80">
-                            <div className="flex justify-between space-x-4">
-                              <Avatar className="h-24 w-24">
-                                <AvatarImage src={entry?.profileImage} className="h-24 w-24"/>
-                                <AvatarFallback className="h-24 w-24">{ entry?.displayName }</AvatarFallback>
-                              </Avatar>
-                              <div className="space-y-1">
-                                <div className="text-lg font-semibold">{ entry?.displayName }</div>
-                                <h4 className="text-sm font-semibold">Level { entry?.players?.levels?.level }</h4>
-                                <p className="text-sm">
-                                  <span className="font-semibold">Coins:</span> { entry?.players?.ledger?.coinBalance }
-                                </p>
-                              </div>
-                            </div>
-                          </HoverCardContent>
-                        </HoverCard>
-                      </TableCell>
-                      <TableCell className="text-right">{ prefix ? entry[`${prefix}GamesWon`] + entry[`${prefix}GamesLost`] : entry.gamesPlayed  }</TableCell>
-                      <TableCell className="text-right">{ prefix ? entry[`${prefix}GamesWon`] : entry.gamesWon  }</TableCell>
-                      <TableCell className="text-right">{ prefix ? entry[`${prefix}GamesLost`] : entry.gamesLost  }</TableCell>
-                      { sortBy.includes('games_won_in') && (
-                        <TableCell className="text-right">
-                          {
-                            prefix ? entry[`${prefix}GamesWonIn_${sortBy.substr(-1)}`] : entry[`gamesWonIn_${sortBy.substr(-1)}`]
+                  {leaderboardData?.data?.length ? (
+                    leaderboardData.data.map((entry, index) => (
+                      <TableRow key={entry?.id}>
+                        <TableCell className="font-medium">
+                          { sortBy === 'rank' ?
+                            (numberPrefix ? entry[`monthlyRank_${numberPrefix}`] : entry.monthlyRank) :
+                            entry.position
                           }
                         </TableCell>
-                      )}
+                        <TableCell>
+                          <HoverCard>
+                            <HoverCardTrigger asChild>
+                              <Link className="hover:underline" href={`/player/${entry?.player}`}>{ entry?.displayName }</Link>
+                            </HoverCardTrigger>
+                            <HoverCardContent className="w-80">
+                              <div className="flex justify-between space-x-4">
+                                <Avatar className="h-24 w-24">
+                                  <AvatarImage src={entry?.profileImage} className="h-24 w-24"/>
+                                  <AvatarFallback className="h-24 w-24">{ entry?.displayName }</AvatarFallback>
+                                </Avatar>
+                                <div className="space-y-1">
+                                  <div className="text-lg font-semibold">{ entry?.displayName }</div>
+                                  <h4 className="text-sm font-semibold">Level { entry?.players?.levels?.level }</h4>
+                                  <p className="text-sm">
+                                    <span className="font-semibold">Coins:</span> { entry?.players?.ledger?.coinBalance }
+                                  </p>
+                                </div>
+                              </div>
+                            </HoverCardContent>
+                          </HoverCard>
+                        </TableCell>
+                        <TableCell className="text-right">{ prefix ? entry[`${prefix}GamesWon`] + entry[`${prefix}GamesLost`] : entry.gamesPlayed }</TableCell>
+                        <TableCell className="text-right">{ prefix ? entry[`${prefix}GamesWon`] : entry.gamesWon }</TableCell>
+                        <TableCell className="text-right">{ prefix ? entry[`${prefix}GamesLost`] : entry.gamesLost }</TableCell>
+                        { sortBy.includes('games_won_in') && (
+                          <TableCell className="text-right">
+                            {prefix ? entry[`${prefix}GamesWonIn_${sortBy.substr(-1)}`] : entry[`gamesWonIn_${sortBy.substr(-1)}`]}
+                          </TableCell>
+                        )}
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={sortBy.includes('games_won_in') ? 6 : 5} className="text-center py-8 text-muted-foreground">
+                        No leaderboard data is available for this word pack and timeframe.
+                      </TableCell>
                     </TableRow>
-                  ))}
+                  )}
                 </TableBody>
               </Table>
             </div>
