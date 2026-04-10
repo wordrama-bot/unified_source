@@ -67,10 +67,10 @@ export default function WordleAllTimeLeaderboardPage() {
   //return redirect('/leaderboard/wordle/yearly')
   //type SortKey = "games_won" | "games_lost" | "games_played" | "losses" | "bestStreak" | "level" | "gamesWon1" | "gamesWon2" | "gamesWon3" | "gamesWon4" | "gamesWon5" | "gamesWon6"
 
+  const include2024 = searchParams.get('include2024') === 'true';
+  
   const effectiveWordPack = include2024 ? 'all' : wordPack;
   
-  const include2024 = searchParams.get('include2024') === 'true';\
-
   const [timePeriod, setTimePeriod] = useState(
     searchParams.get('include2024') === 'true' ? 'alltime-2024' : '/'
   )
