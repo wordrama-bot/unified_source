@@ -388,12 +388,9 @@ export const wordramaApiV3 = createApi({
       providesTags: ["Leaderboard", "LeaderboardYearly"],
     }),
 
-    getAllTimeWordleLeaderboard: builder.query<
-      any,
-      { page: number; orderBy: string; include2024?: boolean }
-    >({
-      query: ({ page, orderBy, include2024 }) => ({
-        url: `/api/v3/leaderboard/wordle/all-time?page=${page || 1}&orderBy=${orderBy || "alltime_rank"}${include2024 ? "&include2024=true" : ""}`,
+    getAllTimeWordleLeaderboard: builder.query<any, { page: number; orderBy: string }>({
+      query: ({ page, orderBy }) => ({
+        url: `/api/v3/leaderboard/wordle/all-time?page=${page || 1}&orderBy=${orderBy || "alltime_rank"}`,
         method: "GET",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
