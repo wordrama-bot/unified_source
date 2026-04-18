@@ -37,7 +37,8 @@ async function incrementWordleStreak(
   bestStreak?: number;
 }> {
   let streak = await getStreak(userId, wordPack, type);
-  if (!streak) {
+
+  if (!streak || streak.currentStreak === undefined) {
     const { data, error } = await db
       .from('_wordle_streak')
       .insert({
@@ -69,13 +70,16 @@ async function incrementWordleStreak(
 
   const { data, error } = await db
     .from('_wordle_streak')
-    .update({
-      current_streak: newStreak,
-      best_streak: bestStreak,
-    })
-    .eq('player', userId)
-    .eq('word_pack', wordPack)
-    .eq('type', type)
+    .upsert(
+      {
+        player: userId,
+        word_pack: wordPack,
+        type,
+        current_streak: newStreak,
+        best_streak: bestStreak,
+      },
+      { onConflict: 'player,word_pack,type' },
+    )
     .select('best_streak, current_streak')
     .maybeSingle();
 
@@ -95,14 +99,20 @@ async function resetWordleStreak(
   wordPack: string,
   type: string,
 ) {
+  const existing = await getStreak(userId, wordPack, type);
+
   const { data, error } = await db
     .from('_wordle_streak')
-    .update({
-      current_streak: 0,
-    })
-    .eq('player', userId)
-    .eq('word_pack', wordPack)
-    .eq('type', type)
+    .upsert(
+      {
+        player: userId,
+        word_pack: wordPack,
+        type,
+        current_streak: 0,
+        best_streak: existing?.bestStreak || 0,
+      },
+      { onConflict: 'player,word_pack,type' },
+    )
     .select('best_streak, current_streak')
     .maybeSingle();
 
