@@ -1,4 +1,4 @@
-import type { CatalogItem } from '@/types/marketplaceV2'
+import type { CatalogItem } from '../../types/marketplaceV2'
 
 const CATALOG: CatalogItem[] = [
   {

@@ -89,7 +89,7 @@ export function validateToken(
 
   if (authorizationHeader) {
     const [type, token] = authorizationHeader.split(' ');
-    if (type.toLowerCase() !== 'bearer' && !token) {
+    if (type.toLowerCase() !== 'bearer' || !token) {
       return res.status(401).json({
         data: {},
         count: 0,
@@ -109,10 +109,10 @@ if (!jwtSecret) {
   });
 }
 
-let payload: User;
+let payload: any;
 try {
   payload = jwt.verify(token, jwtSecret) as User;
-} catch (e) {
+} catch (e: any) {
   return res.status(401).json({
     data: {},
     count: 0,

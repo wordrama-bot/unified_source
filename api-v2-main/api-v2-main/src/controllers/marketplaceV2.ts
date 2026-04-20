@@ -1,12 +1,21 @@
 import type { Request, Response } from 'express'
-import { getPlayerCoinBalance } from '@/services/marketplaceV2/balances'
-import { getPlayerEntitlements } from '@/services/marketplaceV2/entitlements'
-import { getPlayerOrders } from '@/services/marketplaceV2/orders'
-import { checkoutWithCoins } from '@/services/marketplaceV2/checkout'
+import { getPlayerCoinBalance } from '../services/marketplaceV2/balances'
+import { getPlayerEntitlements } from '../services/marketplaceV2/entitlements'
+import { getPlayerOrders } from '../services/marketplaceV2/orders'
+import { checkoutWithCoins } from '../services/marketplaceV2/checkout'
+import type { ApiRequest } from '../types/auth.types'
 
-export async function getCoinBalanceController(req: Request, res: Response) {
+export async function getCoinBalanceController(req: ApiRequest, res: Response) {
   try {
-    const playerId = (req as any).user?.id
+    const playerId = req.userId
+
+    if (!playerId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Missing player id',
+      })
+    }
+
     const data = await getPlayerCoinBalance(playerId)
     return res.status(200).json({ success: true, data })
   } catch (error: any) {
@@ -17,9 +26,17 @@ export async function getCoinBalanceController(req: Request, res: Response) {
   }
 }
 
-export async function getEntitlementsController(req: Request, res: Response) {
+export async function getEntitlementsController(req: ApiRequest, res: Response) {
   try {
-    const playerId = (req as any).user?.id
+    const playerId = req.userId
+
+    if (!playerId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Missing player id',
+      })
+    }
+
     const data = await getPlayerEntitlements(playerId)
     return res.status(200).json({ success: true, data })
   } catch (error: any) {
@@ -30,9 +47,17 @@ export async function getEntitlementsController(req: Request, res: Response) {
   }
 }
 
-export async function getOrderHistoryController(req: Request, res: Response) {
+export async function getOrderHistoryController(req: ApiRequest, res: Response) {
   try {
-    const playerId = (req as any).user?.id
+    const playerId = req.userId
+
+    if (!playerId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Missing player id',
+      })
+    }
+
     const data = await getPlayerOrders(playerId)
     return res.status(200).json({ success: true, data })
   } catch (error: any) {
@@ -43,10 +68,17 @@ export async function getOrderHistoryController(req: Request, res: Response) {
   }
 }
 
-export async function checkoutWithCoinsController(req: Request, res: Response) {
+export async function checkoutWithCoinsController(req: ApiRequest, res: Response) {
   try {
-    const playerId = (req as any).user?.id
+    const playerId = req.userId
     const { items, idempotencyKey } = req.body
+
+    if (!playerId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Missing player id',
+      })
+    }
 
     const data = await checkoutWithCoins({
       playerId,

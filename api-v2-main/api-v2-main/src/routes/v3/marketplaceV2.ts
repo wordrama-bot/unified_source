@@ -4,7 +4,7 @@ import {
   getEntitlementsController,
   getOrderHistoryController,
   checkoutWithCoinsController,
-} from '@/controllers/marketplaceV2'
+} from '../../controllers/marketplaceV2'
 import { validateToken } from '../../middleware/tokenValidation'
 
 const router = Router()

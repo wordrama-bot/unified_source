@@ -1,6 +1,6 @@
-import { pgPool } from '@/lib/postgres'
-import { getCatalogItemsByIds } from '@/services/marketplaceV2/catalog'
-import type { CheckoutCartItemInput } from '@/types/marketplaceV2'
+import { pgPool } from '../../lib/postgres'
+import { getCatalogItemsByIds } from './catalog'
+import type { CheckoutCartItemInput } from '../../types/marketplaceV2'
 
 class AppError extends Error {
   statusCode: number
@@ -259,6 +259,9 @@ export async function checkoutWithCoins({
 
     const balanceAfter = balanceBefore - total
 
+    const primaryOrderItemId =
+      createdOrderItems.length === 1 ? createdOrderItems[0].id : null
+
     await client.query(
       `
       insert into public._coin_ledger (
@@ -271,6 +274,7 @@ export async function checkoutWithCoins({
         balance_before,
         balance_after,
         order_id,
+        order_item_id,
         idempotency_key,
         metadata
       )
@@ -285,7 +289,8 @@ export async function checkoutWithCoins({
         $4,
         $5,
         $6,
-        $7::jsonb
+        $7,
+        $8::jsonb
       )
       `,
       [
@@ -294,6 +299,7 @@ export async function checkoutWithCoins({
         balanceBefore,
         balanceAfter,
         orderId,
+        primaryOrderItemId,
         idempotencyKey,
         JSON.stringify({
           checkoutVersion: 'v2',

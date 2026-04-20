@@ -1,7 +1,7 @@
-import { supabase } from '@/lib/supabase'
+import { db } from '../../models'
 
 export async function getPlayerEntitlements(playerId: string) {
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('_player_entitlements')
     .select('*')
     .eq('player_id', playerId)

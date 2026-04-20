@@ -1,7 +1,7 @@
-import { supabase } from '@/lib/supabase'
+import { db } from '../../models'
 
 export async function getPlayerCoinBalance(playerId: string) {
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('_player_coin_balances')
     .select('*')
     .eq('player_id', playerId)
