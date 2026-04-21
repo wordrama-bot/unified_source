@@ -6,6 +6,7 @@ import { systemApi } from './api/system';
 import { liveApi } from './api/live';
 import { friendsApi } from './api/friends';
 import { teamApi } from './api/teams';
+import { marketplaceV2Api } from './api/marketplaceV2';
 import wordleReducer from './wordle/reducers';
 import freePlayReducer from './wordleFreePlay/reducers';
 import uiReducer from './ui/reducers';
@@ -19,6 +20,7 @@ const appReducer = combineReducers({
   friendsApi: friendsApi.reducer,
   teamApi: teamApi.reducer,
   wrappedApi: wrappedApi.reducer,
+  marketplaceV2Api: marketplaceV2Api.reducer,
   wordleGameState: wordleReducer,
   freePlayGameState: freePlayReducer,
   uiState: uiReducer,
