@@ -87,7 +87,6 @@ export default function FirstLogin() {
       firstName,
       lastName,
       username,
-      profileImage,
     });
 
     setUserLoading(false);
