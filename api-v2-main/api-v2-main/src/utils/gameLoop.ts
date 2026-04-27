@@ -19,13 +19,16 @@ export function createMessage(type = '', content) {
 }
 
 export async function enqueue(messages) {
-  //console.log(`[GAME LOOP] Processing message`);
+  if (!connectionString) {
+    console.warn('[GAME LOOP] SERVICE_BUS_CONNECTION_STRING missing, skipping enqueue');
+    return;
+  }
+
   const sbClient = new ServiceBusClient(connectionString);
   const sender = sbClient.createSender('game-loop');
 
   try {
     if (messages.length === 1) {
-      // console.log(`[GAME LOOP] Sending single message`);
       await sender.sendMessages(messages);
       await sender.close();
       await sbClient.close();

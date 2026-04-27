@@ -22,7 +22,9 @@ export default function FirstLogin() {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [referralCode, setReferralCode] = useState('');
-  const { isSuccess: usernameTaken } = useGetPublicPlayerByUsernameQuery(username);
+  const { isSuccess: usernameTaken } = useGetPublicPlayerByUsernameQuery(username, {
+    skip: username.trim().length < 2,
+  });
 
   useEffect(() => {
     if (referralCode.length > 0 && referralCode.length !== 8) return setFormReady(false);
@@ -80,12 +82,14 @@ export default function FirstLogin() {
     }
 
     setUserLoading(true);
+
     const { data, error } = await createAccount({
       firstName,
       lastName,
       username,
       profileImage,
     });
+
     setUserLoading(false);
 
     if (error) return toast({
