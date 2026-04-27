@@ -129,9 +129,13 @@ async function getLeaderboardPositions(playerId: string) {
   }
 
   try {
+    const now = new Date();
+
     dailyPosition = await leaderboardService.getPlayerLeaderboardPositionToday(
       playerId,
-      new Date().toISOString().slice(0, 10),
+      now.getDate(),
+      now.getMonth() + 1,
+      now.getFullYear(),
     );
   } catch (e) {
     console.error('[playerSummary] daily position error:', e);
