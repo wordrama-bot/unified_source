@@ -229,6 +229,11 @@ export default function WordleAllTimeLeaderboardPage() {
         <Card className="w-full max-w-6xl mx-auto">
           <CardHeader>
             <CardTitle className="text-2xl font-bold">Leaderboard</CardTitle>
+            {wordPack === "all" && (
+              <p className="text-sm text-muted-foreground">
+                All-time Games Played now includes restored legacy totals prior to January 1, 2025. Some historical detail-level stats were not recoverable, so wins, losses, streaks, and word-pack breakdowns may not add up to Games Played.
+              </p>
+            )}
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
