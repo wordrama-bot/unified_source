@@ -34,8 +34,8 @@ export default function Product({
       <div>
         <div className="flex items-center justify-between">
           <h3 className="text-2xl font-heading">{name}</h3>
-          {(isPopular || isPurchased) && (
-            <span className="rounded-base border-2 bg-green-600 text-white px-2 py-0.5 text-sm">
+          {isPopular || isPurchased && (
+            <span className="border-border text-text dark:border-darkBorder rounded-base border-2 bg-main px-2 py-0.5 text-sm">
               {isPopular ? 'Popular' : isPurchased ? 'Purchased' : ''}
             </span>
           )}
@@ -69,7 +69,7 @@ export default function Product({
       { !isPurchased && !isInCart && (
         <Button
           size={isPopular ? 'lg' : 'default'}
-          className={cn('mt-12 w-full')}
+          className={cn('mt-12 w-full', isPopular && 'bg-[#FF6663]')}
           onClick={ e => {
             e.preventDefault()
             addItemToCard(itemId);
@@ -81,7 +81,7 @@ export default function Product({
         { !isPurchased && isInCart && (
           <Button
             size={isPopular ? 'lg' : 'default'}
-            className={cn('mt-12 w-full')}
+            className={cn('mt-12 w-full', isPopular && 'bg-[#FF6663]')}
             onClick={ e => {
               e.preventDefault()
               removeItemFromCard(itemId);

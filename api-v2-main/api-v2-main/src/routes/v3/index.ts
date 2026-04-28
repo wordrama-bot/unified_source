@@ -15,8 +15,6 @@ import { router as migrateRouter } from './migrate';
 import { router as systemRouter } from './system';
 import { router as noRoleRouter } from './noRole';
 
-import marketplaceV2Router from './marketplaceV2';
-
 export const router = Router();
 
 /* ---------------------------------- */
@@ -50,13 +48,18 @@ router.use('/challenges', challengesRouter);
 /* ---------------------------------- */
 
 router.use('/wrapped', ...authedPlayer, wrappedRouter);
+
 router.use('/player', ...authedPlayer, playerRouter);
+
 router.use('/team', ...authedPlayer, teamRouter);
+
 router.use('/game', ...authedPlayer, gameRouter);
+
 router.use('/ui', ...authedPlayer, uiRouter);
+
 router.use('/streamer', ...authedStreamer, streamerRouter);
+
 router.use('/store', ...authedPlayer, storeRouter);
-router.use('/marketplace-v2', marketplaceV2Router);
 
 /* ---------------------------------- */
 /* SERVICE TOKEN ONLY ROUTES          */

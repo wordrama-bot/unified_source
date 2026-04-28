@@ -10,7 +10,6 @@ import { systemApi } from '../api/system';
 import { liveApi } from "../api/live";
 import { friendsApi } from "../api/friends";
 import { teamApi } from "../api/teams";
-import { marketplaceV2Api } from "../api/marketplaceV2";
 import { rootReducer } from "../rootReducer";
 
 export type IRootState = ReturnType<typeof store.getState>;
@@ -32,7 +31,6 @@ export const store = configureStore({
     middleware.push(friendsApi.middleware);
     middleware.push(teamApi.middleware);
     middleware.push(wrappedApi.middleware);
-    middleware.push(marketplaceV2Api.middleware);
 
     return middleware;
   },

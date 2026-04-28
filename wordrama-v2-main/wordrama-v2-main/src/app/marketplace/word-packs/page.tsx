@@ -39,28 +39,6 @@
   import { useGetStoreItemsQuery, useGetPurchasesQuery, useGetMyAccountQuery, usePurchaseItemsWithCoinsMutation } from '@/redux/api/wordrama';
   import { useEffect } from 'react';
 
-  const MARKETPLACE_WORD_PACK_SORT_ORDER: { [key: string]: number } = {
-    'ba8671aa-7481-43e5-a1ac-f2b73433a315': 4,
-    'b1b96d0e-5b1a-403e-80be-88f3d2bae873': 11.5,
-    '7f06b10e-d52a-4ae3-b77f-a7e9a7c5e5fb': 12,
-    'b8c73f14-79ad-4495-9fd9-a4be65d5fcbc': 13,
-    '3159552d-8c96-4bb5-aafa-ebf36aa5a2c2': 14,
-    'fef67eba-96db-4f5e-8b25-81487a1dbc9d': 15,
-    '1ee2de50-072f-4718-b8ac-7663f3069f2e': 16,
-    '80e197a9-0829-4074-8e85-a88e6e8b7ea0': 17,
-    '425c96ab-beff-40ef-9774-feb6db135644': 18,
-    '1d348c05-c51e-4ea3-a888-d4823436704f': 19,
-    '6e66a620-8e17-4f75-aa0b-1c282aafb9d8': 20,
-    '72215e5b-6638-4388-84bc-55dcd36c0e05': 21,
-    'db526774-11da-47de-b410-5b47a4168db8': 22,
-    'ab14511c-f2ac-4b16-a8ef-7cb8ed61a2cc': 23,
-    '3d3ff93b-65c1-4d36-902e-3a889c71ac86': 999,
-  };
-
-  function getMarketplaceSortOrder(item: any): number {
-    return MARKETPLACE_WORD_PACK_SORT_ORDER[item.id] ?? 500;
-  }
-
   function ShoppingCartIcon(props) {
     return (
       <svg
@@ -261,16 +239,12 @@
             </div>
           )}
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[...(storeItems?.data || [])]
-              .sort((a, b) => getMarketplaceSortOrder(a) - getMarketplaceSortOrder(b))
-              .map((item) => {
-              
+            {storeItems?.data.map((item) => {
               const isCashPrice = false;
               const subItems = [];
               const cashPrice = '1';
               return (
                 <Product
-                  key={item.id}
                   itemId={item.id}
                   name={item.name}
                   type={item.type}
