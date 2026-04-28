@@ -7,7 +7,7 @@ const CATALOG: CatalogItem[] = [
     itemType: 'WORD_PACK',
     itemName: '4 Letter Pack',
     priceCoins: 1000,
-    entitlementKey: 'WORD_PACK:FOUR_LETTER'
+    entitlementKey: 'WORD_PACK:FOUR_LETTER',
     entitlementType: 'WORD_PACK',
     isPurchasable: true,
   },

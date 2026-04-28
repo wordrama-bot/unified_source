@@ -2,6 +2,8 @@ import * as changeKeys from 'change-case/keys';
 import moment from 'moment';
 import { db } from '../../../models';
 
+import { getPlayerEntitlements } from '../../marketplaceV2/entitlements';
+
 import FOUR_LETTER from '../../../utils/wordPacks/FOUR_LETTER';
 import FIVE_LETTER from '../../../utils/wordPacks/FIVE_LETTER';
 import SIX_LETTER from '../../../utils/wordPacks/SIX_LETTER';
@@ -35,6 +37,38 @@ type WordPacks = {
     DAILY_WORD_LIST_LENGTH: number;
   };
 };
+
+const MARKETPLACE_ENTITLEMENT_WORDPACK_MAP: { [key: string]: string } = {
+  'WORD_PACK:FOUR_LETTER': 'FOUR_LETTER',
+  'WORD_PACK:ELEVEN_LETTER_EXPANSION': 'ELEVEN_LETTER_EXTENDED',
+  'WORD_PACK:TWELVE_LETTER': 'TWELVE_LETTER',
+  'WORD_PACK:THIRTEEN_LETTER': 'THIRTEEN_LETTER',
+  'WORD_PACK:FOURTEEN_LETTER': 'FOURTEEN_LETTER',
+  'WORD_PACK:FIFTEEN_LETTER': 'FIFTEEN_LETTER',
+  'WORD_PACK:SIXTEEN_LETTER': 'SIXTEEN_LETTER',
+  'WORD_PACK:SEVENTEEN_LETTER': 'SEVENTEEN_LETTER',
+  'WORD_PACK:EIGHTEEN_LETTER': 'EIGHTEEN_LETTER',
+  'WORD_PACK:NINETEEN_LETTER': 'NINETEEN_LETTER',
+  'WORD_PACK:TWENTY_LETTER': 'TWENTY_LETTER',
+  'WORD_PACK:TWENTYONE_LETTER': 'TWENTYONE_LETTER',
+  'WORD_PACK:TWENTYTWO_LETTER': 'TWENTYTWO_LETTER',
+  'WORD_PACK:TWENTYTHREE_LETTER': 'TWENTYTHREE_LETTER',
+};
+
+const MEGA_PACK_WORDPACKS = [
+  'TWELVE_LETTER',
+  'THIRTEEN_LETTER',
+  'FOURTEEN_LETTER',
+  'FIFTEEN_LETTER',
+  'SIXTEEN_LETTER',
+  'SEVENTEEN_LETTER',
+  'EIGHTEEN_LETTER',
+  'NINETEEN_LETTER',
+  'TWENTY_LETTER',
+  'TWENTYONE_LETTER',
+  'TWENTYTWO_LETTER',
+  'TWENTYTHREE_LETTER',
+];
 
 const wordPacks: WordPacks = {
   FOUR_LETTER,
@@ -103,8 +137,66 @@ const FREE_WORDPACKS = [
   'ELEVEN_LETTER',
 ];
 
+const WORDPACK_ORDER = [
+  'FOUR_LETTER',
+  'FIVE_LETTER',
+  'SIX_LETTER',
+  'SEVEN_LETTER',
+  'EIGHT_LETTER',
+  'NINE_LETTER',
+  'TEN_LETTER',
+  'ELEVEN_LETTER',
+  'ELEVEN_LETTER_EXTENDED',
+  'TWELVE_LETTER',
+  'THIRTEEN_LETTER',
+  'FOURTEEN_LETTER',
+  'FIFTEEN_LETTER',
+  'SIXTEEN_LETTER',
+  'SEVENTEEN_LETTER',
+  'EIGHTEEN_LETTER',
+  'NINETEEN_LETTER',
+  'TWENTY_LETTER',
+  'TWENTYONE_LETTER',
+  'TWENTYTWO_LETTER',
+  'TWENTYTHREE_LETTER',
+];
+
+function sortWordPacks(wordPacks: string[]): string[] {
+  return Array.from(new Set(wordPacks)).sort(
+    (a, b) => WORDPACK_ORDER.indexOf(a) - WORDPACK_ORDER.indexOf(b),
+  );
+}
+
+async function getMarketplaceV2WordPacks(userId: string): Promise<string[]> {
+  try {
+    const entitlements = await getPlayerEntitlements(userId);
+
+    const packs = entitlements.flatMap((entitlement: any) => {
+      if (
+        entitlement.entitlement_key ===
+        'WORD_PACK:TWELVE_TO_TWENTYTHREE_LETTER'
+      ) {
+        return MEGA_PACK_WORDPACKS;
+      }
+
+      const pack =
+        MARKETPLACE_ENTITLEMENT_WORDPACK_MAP[entitlement.entitlement_key];
+
+      return pack ? [pack] : [];
+    });
+
+    return sortWordPacks(packs);
+  } catch (error) {
+    console.error('Error fetching Marketplace V2 entitlements', error);
+    return [];
+  }
+}
+
 async function getPurchasedWordPacks(userId: string): Promise<string[]> {
   const playersPacks: string[] = [...FREE_WORDPACKS];
+
+  const marketplaceV2Packs = await getMarketplaceV2WordPacks(userId);
+  playersPacks.push(...marketplaceV2Packs);
 
   const { data, error } = await db
     .from('_purchased_items')
@@ -112,11 +204,11 @@ async function getPurchasedWordPacks(userId: string): Promise<string[]> {
     .eq('player_id', userId);
 
   if (error) {
-    console.error('Error fetching purchased items', error);
-    return playersPacks;
+    console.error('Error fetching legacy purchased items', error);
+    return sortWordPacks(playersPacks);
   }
 
-  const purchasedWordPacks = data.reduce(
+  const purchasedWordPacks = (data ?? []).reduce(
     (acc: string[], curr: { item_id: string }) => [...acc, curr.item_id],
     [],
   );
@@ -126,8 +218,7 @@ async function getPurchasedWordPacks(userId: string): Promise<string[]> {
   }
 
   if (purchasedWordPacks.includes('3d3ff93b-65c1-4d36-902e-3a889c71ac86')) {
-    playersPacks.push(...Object.keys(wordPackItemIdMap));
-    if (playersPacks.length >= 19) return playersPacks;
+    playersPacks.push(...MEGA_PACK_WORDPACKS);
   }
 
   Object.keys(itemIdWordPackMap).forEach((itemId) => {
@@ -136,7 +227,7 @@ async function getPurchasedWordPacks(userId: string): Promise<string[]> {
     }
   });
 
-  return playersPacks;
+  return sortWordPacks(playersPacks);
 }
 
 async function checkIfUserHasAccessToWordPack(
@@ -145,34 +236,9 @@ async function checkIfUserHasAccessToWordPack(
 ): Promise<boolean> {
   if (FREE_WORDPACKS.includes(wordPack)) return true;
 
-  const { data, error } = await db
-    .from('_purchased_items')
-    .select('item_id')
-    .eq('player_id', userId);
+  const accessibleWordPacks = await getPurchasedWordPacks(userId);
 
-  if (error) {
-    console.error('Error fetching purchased items', error);
-    return false;
-  }
-
-  const purchasedWordPacks = data.reduce(
-    (acc: string[], curr: { item_id: string }) => [...acc, curr.item_id],
-    [],
-  );
-
-  if (
-    wordPack === 'FOUR_LETTER' &&
-    purchasedWordPacks.includes('ba8671aa-7481-43e5-a1ac-f2b73433a315')
-  )
-    return true;
-
-  if (
-    wordPack !== 'FOUR_LETTER' &&
-    purchasedWordPacks.includes('3d3ff93b-65c1-4d36-902e-3a889c71ac86')
-  )
-    return true;
-
-  return purchasedWordPacks.includes(wordPackItemIdMap[wordPack]);
+  return accessibleWordPacks.includes(wordPack);
 }
 
 async function getWordPack(wordPack: string) {
