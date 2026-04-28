@@ -5,6 +5,8 @@ import ledgerService from './ledger';
 import { enqueue, sendMessage } from '../utils/gameLoop';
 import { createMessage } from '../utils/gameLoop.js';
 
+import { getPlayerEntitlements } from './marketplaceV2/entitlements';
+
 async function getPurchases(playerId: string) {
   const { data, error } = await db
     .from('_purchased_items')
@@ -41,9 +43,25 @@ async function getPurchases(playerId: string) {
 }
 
 async function getPurchasedItems(playerId: string) {
-  const items = await getPurchases(playerId);
+  const legacyItems = await getPurchases(playerId);
 
-  return items.filter((item) => item.items.id).map((item) => item.items.id);
+  const legacyItemIds = legacyItems
+    .filter((item) => item.items?.id)
+    .map((item) => item.items.id);
+
+  let marketplaceV2ItemIds: string[] = [];
+
+  try {
+    const entitlements = await getPlayerEntitlements(playerId);
+
+    marketplaceV2ItemIds = entitlements
+      .map((entitlement: any) => entitlement.metadata?.catalogItemId)
+      .filter(Boolean);
+  } catch (error) {
+    console.error('Error fetching Marketplace V2 entitlements for store items', error);
+  }
+
+  return Array.from(new Set([...legacyItemIds, ...marketplaceV2ItemIds]));
 }
 
 async function getStoreItems(playerId: string, filters) {
