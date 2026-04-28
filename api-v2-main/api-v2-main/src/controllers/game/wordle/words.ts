@@ -84,6 +84,18 @@ async function getTodaysWord(req: ApiRequest, res: Response) {
   const isValidWordPack = checkIfValidWordPack(wordPack);
   if (!isValidWordPack) return badRequest(req, res, {}, 'Invalid Word Pack', 0);
 
+  const hasAccess = await wordsService.checkIfUserHasAccessToWordPack(
+    req.userId,
+    wordPack,
+  );
+
+  if (!hasAccess)
+  return badRequest(
+    req,
+    res,
+    'User does not have access to this word pack',
+  );
+
   // Word of The Day
   const wotd = await wordsService.getTodaysWord(wordPack);
   if (!wotd) return notFoundResponse(req, res);
