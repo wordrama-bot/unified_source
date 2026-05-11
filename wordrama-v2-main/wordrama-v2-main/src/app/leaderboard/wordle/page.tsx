@@ -232,7 +232,8 @@ export default function WordleAllTimeLeaderboardPage() {
             {wordPack === "all" && (
               <p className="text-sm text-muted-foreground">
                 All-time Games Played now includes restored legacy totals prior to January 1, 2025. Some historical detail-level stats were not recoverable, so wins, losses, streaks, and word-pack breakdowns may not add up to Games Played.
-              </p>
+                Please also note that leaderboards update at regular intervals to allow for faster loading times and managable data costs. The daily refreshes every 10 minutes, weekly is every 15, monthly every 30, yearly every hour, and all-time is every 2 hours.
+              </p>              
             )}
           </CardHeader>
           <CardContent>

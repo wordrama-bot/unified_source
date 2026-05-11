@@ -82,7 +82,7 @@ function PublicHome() {
           <section className="my-8  flex flex-col items-center justify-center">
             <h2 className="text-2xl font-semibold">Wordrama is the ultimate word-guessing site?!</h2>
             <p className="mt-2 text-center">While we’re not affiliated with the original Wordle, we bring a fresh take by implementing exciting features like cross-device stats, streaks, 4-23 letter word packs, leaderboards, a friends system, a leveling system, and even streamer teams. With many TikTok streamers already on our platform, Wordrama offers a unique and social twist on the classic game you know and love.</p>
-            <p className="mt-4 text-center">Playing Wordrama is easy to start but endlessly rewarding. For each game, you’ll see a word of a chosen length, and your goal is to guess it. With each attempt, feedback is provided such as, letters that are in the correct position light up in green, letters that are part of the word but in the wrong position turn yellow, and incorrect letters are greyed out. This hint-based system helps you narrow down the word with each guess.</p>
+            <p className="mt-4 text-center">Playing Wordrama is easy to start but endlessly rewarding. For each game, you’ll see a word of a chosen length, and your goal is to guess it. With each attempt, feedback is provided such as, letters that are in the correct position light up in green, letters that are part of the word but in the wrong position turn yellow, and incorrect letters are greyed out. This hint-based system helps you narrow down the word with each guess. We also offer a color blind mode to ensure inclusion for everyone!</p>
           </section>
 
           <section className="my-8  flex flex-col items-center justify-center">
@@ -134,7 +134,7 @@ function PublicHome() {
                   <li className="mt-2">GREEN</li>
               </ul>
 
-              <p className="mt-4 text-center">Utilise the colour coding: Create a list of possible words using letters marked in green and yellow with a focus on vowels and consonants that commonly go together.</p>
+              <p className="mt-4 text-center">Utilise the color coding: Create a list of possible words using letters marked in green and yellow with a focus on vowels and consonants that commonly go together.</p>
           </section>
 
 
