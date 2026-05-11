@@ -25,6 +25,7 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 import React from "react";
+import Link from "next/link";
 import { useGetMyAccountQuery, useGetMyDailyWordleStatsQuery } from '@/redux/api/wordrama';
 import { useGetMyFriendsQuery } from '@/redux/api/friends';
 
@@ -69,7 +70,14 @@ export function FriendLeaderboard() {
   return (
     <Card className="bg-bg border-black">
       <CardHeader>
-        <CardTitle>Friends</CardTitle>
+        <CardTitle>
+          <Link
+            href="/friends"
+            className="hover:underline transition-colors"
+          >
+            Friends
+          </Link>
+        </CardTitle>
         <CardDescription></CardDescription>
       </CardHeader>
       <CardContent>
