@@ -230,10 +230,15 @@ export default function WordleAllTimeLeaderboardPage() {
           <CardHeader>
             <CardTitle className="text-2xl font-bold">Leaderboard</CardTitle>
             {wordPack === "all" && (
-              <p className="text-sm text-muted-foreground">
-                All-time Games Played now includes restored legacy totals prior to January 1, 2025. Some historical detail-level stats were not recoverable, so wins, losses, streaks, and word-pack breakdowns may not add up to Games Played.
-                Please also note that leaderboards update at regular intervals to allow for faster loading times and managable data costs. The daily refreshes every 10 minutes, weekly is every 15, monthly every 30, yearly every hour, and all-time is every 2 hours.
-              </p>              
+              <div className="space-y-2">
+                <p className="text-sm text-muted-foreground">
+                  All-time Games Played now includes restored legacy totals prior to January 1, 2025. Some historical detail-level stats were not recoverable, so wins, losses, streaks, and word-pack breakdowns may not add up to Games Played.
+                </p>
+
+                <p className="text-sm text-muted-foreground">
+                  Please also note that leaderboards update at regular intervals to allow for faster loading times and manageable data costs. Daily leaderboards refresh every 10 minutes, weekly every 15 minutes, monthly every 30 minutes, yearly every hour, and all-time every 2 hours.
+                </p>
+              </div>
             )}
           </CardHeader>
           <CardContent>
