@@ -520,8 +520,16 @@ const [playLoseSoundChristmas] = useSound('/sounds/christmas-lost.mp3', {
   useEffect(() => {
     if (gameLoading) return;
     if (gameMode !== 'DAILY') return;
-    if (solution === wordOfTheDay?.data?.todaysWord) return;
-    const newSolution: string = wordOfTheDay?.data?.todaysWord;
+    if (!wordOfTheDay?.data?.todaysWord) return;
+    if (solution === wordOfTheDay.data.todaysWord) return;
+
+    const newSolution: string = wordOfTheDay.data.todaysWord;
+
+    setShowConfetti(false);
+    setIsStatsModalOpen(false);
+    setCurrentRowClass('');
+    setCurrentGuess('');
+
     //appInsights.trackEvent({ name: 'newDailyGame', properties: { wordPack, solution: newSolution, player: user.id } });
     updateGameState({
       solution: newSolution,
@@ -529,8 +537,9 @@ const [playLoseSoundChristmas] = useSound('/sounds/christmas-lost.mp3', {
       isGameWon: false,
       isGameLost: false,
       isGameInProgress: false,
-    })
-  }, [gameLoading, gameMode, wordPack, wordOfTheDay, isLoadingWoTD]);
+      resultSave: false,
+    });
+  }, [gameLoading, gameMode, wordPack, wordOfTheDay, solution]);
 
   useEffect(() => {
     if (gameLoading) return;
