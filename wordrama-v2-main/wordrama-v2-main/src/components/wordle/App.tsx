@@ -13,6 +13,8 @@ import Link from 'next/link';
 import { AlertContainer } from './components/alerts/AlertContainer'
 import { Grid } from './components/grid/Grid'
 import { Keyboard } from './components/keyboard/Keyboard'
+import { getAppearanceTheme } from '@/config/themes';
+import { appearanceThemes } from '@/config/themes';
 import { InfoModal } from './components/modals/InfoModal'
 import Loader, { Loading } from '../../sections/loading';
 import {
@@ -135,6 +137,11 @@ function App(){
   const dispatch = useDispatch();
   const gameState = getWordleState();
   const gameUiState = getWordleGameUiState();
+
+  const appearanceTheme = getAppearanceTheme(
+    gameUiState?.appearanceThemeId
+  );
+
   const streamerMode = gameUiState.streamerModeEnabled ?? false;
   const gameSoundEnabled = gameUiState.gameSoundEnabled ?? true;
   const { refetch: refetchProfile } = useGetMyAccountQuery();
@@ -196,6 +203,7 @@ function App(){
 	    ...wordleUi,
 	  }));
 	}, [uiSavedState, isLoadingUiSavedState, dispatch]);
+
   const { data: wordleWordPack, isLoading: isLoadingWordPack, refetch: refetchWordPack  } = useGetWordleWordPackQuery(gameState.wordPack);
   const { data: wordOfTheDay, isLoading: isLoadingWoTD } = useGetWordleWoTDQuery(wordPack);
   const { data: streakData, isLoading: isLoadingStreakData, isError: isErrorStreakData, refetch: refetchStreak } = useGetWordleStreakQuery({ gameMode, wordPack });
@@ -657,6 +665,7 @@ const [playLoseSoundChristmas] = useSound('/sounds/christmas-lost.mp3', {
                     </Select>
                   )}
                 </div>
+                
                 { false && (
                   <div className="grid grid-cols-4 items-center gap-4">
                     <Select>
@@ -691,69 +700,131 @@ const [playLoseSoundChristmas] = useSound('/sounds/christmas-lost.mp3', {
                   </Select>
                 </div>
                 )}
+
+                <Select
+                  value={gameUiState?.appearanceThemeId || 'theme.default'}
+                  onValueChange={(value) =>
+                    dispatch(setWordleGameUiState({ appearanceThemeId: value }))
+                  }
+                >
+                  <SelectTrigger id="appearanceTheme">
+                    <SelectValue placeholder="Select a theme" />
+                  </SelectTrigger>
+
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectLabel>Themes</SelectLabel>
+                      {appearanceThemes.map((theme) => (
+                        <SelectItem key={theme.id} value={theme.id}>
+                          {theme.name}
+                          {theme.premium ? ' ✨' : ''}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+
                 <Separator />
-                <div className="grid grid-cols-4 items-center gap-8">
-                  <Label htmlFor="swapDeleteAndEnter">
-                    <Tooltip>
-                      <TooltipTrigger className="text-left grid grid-cols-2 items-center gap-12">
-                        Swap Keys
-                        <InfoIcon className='w-4 h-4'/>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        Swap the delete and enter keys on the on-screen keyboard
-                      </TooltipContent>
-                    </Tooltip>
-                  </Label>
-                  <Switch defaultChecked={gameUiState.swapDeleteAndEnter || false} onCheckedChange={checked => handleSwapDeleteAndEnter(checked)}/>
-                  <Label htmlFor="confetti">
-                    <Tooltip>
-                      <TooltipTrigger className="text-left grid grid-cols-2 items-center gap-16">
-                        Show Confetti
-                        <InfoIcon className='w-4 h-4'/>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        Enable or disable confetti when you win a game
-                      </TooltipContent>
-                    </Tooltip>
-                  </Label>
-                  <Switch checked={gameUiState.confettiEnabled ?? true} onCheckedChange={checked => handleConfettiEnabled(checked)} />
-                  <Label htmlFor="speedRun">
-                    <Tooltip>
-                      <TooltipTrigger className="text-left grid grid-cols-2 items-center gap-12">
-                        Speed Run
-                        <InfoIcon className='w-4 h-4'/>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        Speed run mode, disables the stats popup after a game
-                      </TooltipContent>
-                    </Tooltip>
-                  </Label>
-                  <Switch defaultChecked={gameUiState.speedRunModeEnabled || false} onCheckedChange={checked => handleSpeedRunEnabled(checked)}  />
-                  <Label htmlFor="streamerMode">
-                    <Tooltip>
-                      <TooltipTrigger className="text-left grid grid-cols-2 items-center gap-16">
-                        Streamer Mode
-                        <InfoIcon className='w-4 h-4'/>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        Speed run mode, disables the stats popup after a game
-                      </TooltipContent>
-                    </Tooltip>
-                  </Label>
-                  <Switch checked={gameUiState.streamerModeEnabled ?? false} onCheckedChange={checked => dispatch(setWordleGameUiState({ streamerModeEnabled: checked }))} />
-                  <Label htmlFor="theme" className="text-left">
-                    Dark Mode
-                  </Label>
-                  <Switch checked={theme === 'dark'} onCheckedChange={checked => setTheme(theme === 'dark' ? 'light' : 'dark')}  />
-		  <Label htmlFor="colorblindMode" className="text-left">
-		    Colorblind Mode
-		  </Label>
-		  <Switch checked={gameUiState.colorblindMode || false} onCheckedChange={checked => handleColorblindModeEnabled(checked)} />
-                  <Label htmlFor="gameSound" className="text-left">
-                    Game Sound
-                  </Label>
-                  <Switch checked={gameUiState.gameSoundEnabled ?? true} onCheckedChange={checked => dispatch(setWordleGameUiState({ gameSoundEnabled: checked }))} />
+
+                <div className="grid grid-cols-2 gap-x-10 gap-y-6 py-2">
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-2">
+                      <Label htmlFor="swapDeleteAndEnter" className="leading-tight">
+                        Swap<br />Keys
+                      </Label>
+                      <InfoIcon className="h-4 w-4" />
+                    </div>
+
+                    <Switch
+                      id="swapDeleteAndEnter"
+                      checked={gameUiState.swapDeleteAndEnter || false}
+                      onCheckedChange={(checked) => handleSwapDeleteAndEnter(checked)}
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-2">
+                      <Label htmlFor="confettiEnabled" className="leading-tight">
+                        Show<br />Confetti
+                      </Label>
+                      <InfoIcon className="h-4 w-4" />
+                    </div>
+
+                    <Switch
+                      id="confettiEnabled"
+                      checked={gameUiState.confettiEnabled || false}
+                      onCheckedChange={(checked) => handleConfettiEnabled(checked)}
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-2">
+                      <Label htmlFor="speedRunModeEnabled" className="leading-tight">
+                        Speed<br />Run
+                      </Label>
+                      <InfoIcon className="h-4 w-4" />
+                    </div>
+
+                    <Switch
+                      id="speedRunModeEnabled"
+                      checked={gameUiState.speedRunModeEnabled || false}
+                      onCheckedChange={(checked) => handleSpeedRunEnabled(checked)}
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between gap-4">
+                    <Label htmlFor="streamerModeEnabled" className="leading-tight">
+                      Streamer<br />Mode
+                    </Label>
+
+                    <Switch
+                      id="streamerModeEnabled"
+                      checked={gameUiState.streamerModeEnabled || false}
+                      onCheckedChange={(checked) =>
+                        dispatch(setWordleGameUiState({ streamerModeEnabled: checked }))
+                      }
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between gap-4">
+                    <Label htmlFor="theme" className="leading-tight">
+                      Dark<br />Mode
+                    </Label>
+
+                    <Switch
+                      id="theme"
+                      checked={theme === 'dark'}
+                      onCheckedChange={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between gap-4">
+                    <Label htmlFor="colorblindMode" className="leading-tight">
+                      Colorblind<br />Mode
+                    </Label>
+
+                    <Switch
+                      id="colorblindMode"
+                      checked={gameUiState.colorblindMode || false}
+                      onCheckedChange={(checked) => handleColorblindModeEnabled(checked)}
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between gap-4">
+                    <Label htmlFor="gameSoundEnabled" className="leading-tight">
+                      Game<br />Sound
+                    </Label>
+
+                    <Switch
+                      id="gameSoundEnabled"
+                      checked={gameUiState.gameSoundEnabled || false}
+                      onCheckedChange={(checked) =>
+                        dispatch(setWordleGameUiState({ gameSoundEnabled: checked }))
+                      }
+                    />
+                  </div>
                 </div>
+
                 <Separator />
               </div>
             </SheetContent>

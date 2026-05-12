@@ -14,6 +14,7 @@ export const wordleLeaderboardUiDefaultState: WordleLeaderboardUiState = {
 export const wordleGameUiDefaultState: WordleGameUiState = {
   boardColour: undefined,
   keyboardColour: undefined,
+  appearanceThemeId: 'theme.default',
   swapDeleteAndEnter: false,
   confettiEnabled: true,
   speedRunModeEnabled: false,
