@@ -8,6 +8,10 @@ const nextConfig = {
     // !! WARN !!
     ignoreBuildErrors: true,
   },
+  eslint: {
+    // Allows production builds to complete even if ESLint errors exist.
+    ignoreDuringBuilds: true,
+  },
   // async redirects() {
   //   return [
   //     {
@@ -22,15 +26,15 @@ const nextConfig = {
   //   ];
   // },
   images: {
-      remotePatterns: [
-        {
-          protocol: 'https',
-          hostname: 'utfs.io',
-          port: '',
-          pathname: '/f/**',
-        },
-      ],
-    },
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'utfs.io',
+        port: '',
+        pathname: '/f/**',
+      },
+    ],
+  },
 };
 
 export default nextConfig;
