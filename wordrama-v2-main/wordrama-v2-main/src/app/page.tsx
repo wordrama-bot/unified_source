@@ -69,11 +69,14 @@ import Snowfall from '@/components/Snowflake';
 function PublicHome() {
   return (
     <>
-      <PublicNav links={[
-        { href: '/about', text: 'About' },
-        { href: '/login', text: 'Login' },
-        { href: '/signup', text: 'Sign Up' },
-      ]}/>
+      <PublicNav
+        links={[
+          { href: "/", text: "Home" },
+          { href: "/free-play", text: "Free Play" },
+          { href: "/about", text: "About" },
+          { href: "/signup", text: "Sign Up" },
+        ]}
+      />
         <div className="min-h-screen w-full bg-darkBg">
             <div className="container mx-auto p-4 flex flex-col items-center justify-center">
               <h1 className="text-4xl font-bold mb-6">Wordrama: The Best Wordle Site</h1>
@@ -224,6 +227,96 @@ function PublicHome() {
                       and community-focused word game experience.
                     </p>
                   </Link>
+
+                </div>
+              </section>
+
+              <section className="my-16 w-full max-w-5xl">
+                <h2 className="text-3xl font-bold text-center">
+                  Frequently Asked Questions
+                </h2>
+
+                <div className="mt-10 space-y-8">
+
+                  <div>
+                    <h3 className="text-xl font-semibold">
+                      What makes Wordrama different from Wordle?
+                    </h3>
+
+                    <p className="mt-2 text-gray-300">
+                      Wordrama expands on the classic daily word puzzle format by adding
+                      additional gameplay modes, longer word lengths, player progression,
+                      leaderboards, multiplayer experiences, and customizable word packs.
+                      While inspired by traditional word guessing games, Wordrama focuses
+                      on replayability, strategy, competition, and community features.
+                    </p>
+                  </div>
+
+                  <div>
+                    <h3 className="text-xl font-semibold">
+                      Is Wordrama free to play?
+                    </h3>
+
+                    <p className="mt-2 text-gray-300">
+                      Yes. Players can enjoy free daily puzzles, infinite play modes,
+                      and a variety of word game experiences without purchasing a
+                      subscription. Optional premium features and marketplace content
+                      are available for players who want expanded customization and
+                      gameplay options.
+                    </p>
+                  </div>
+
+                  <div>
+                    <h3 className="text-xl font-semibold">
+                      Can word puzzle games help improve vocabulary?
+                    </h3>
+
+                    <p className="mt-2 text-gray-300">
+                      Many players use word puzzle games to strengthen spelling,
+                      vocabulary recognition, pattern matching, and deductive reasoning.
+                      Daily puzzle practice can also encourage critical thinking and
+                      familiarity with less common word structures over time.
+                    </p>
+                  </div>
+
+                  <div>
+                    <h3 className="text-xl font-semibold">
+                      What are word packs in Wordrama?
+                    </h3>
+
+                    <p className="mt-2 text-gray-300">
+                      Word packs allow players to explore different categories,
+                      difficulty levels, and word-length experiences. Wordrama supports
+                      puzzles ranging from short beginner-friendly formats to much
+                      longer and more challenging word lengths for advanced players.
+                    </p>
+                  </div>
+
+                  <div>
+                    <h3 className="text-xl font-semibold">
+                      How do streaks and player statistics work?
+                    </h3>
+
+                    <p className="mt-2 text-gray-300">
+                      Wordrama tracks gameplay performance including wins, streaks,
+                      guess efficiency, and leaderboard rankings. These statistics help
+                      players monitor improvement over time and compare results with
+                      friends and the wider community.
+                    </p>
+                  </div>
+
+                  <div>
+                    <h3 className="text-xl font-semibold">
+                      What strategies help solve difficult puzzles?
+                    </h3>
+
+                    <p className="mt-2 text-gray-300">
+                      Strong starting words, balanced vowel usage, eliminating unlikely
+                      letters, and recognizing common letter combinations are all useful
+                      strategies. Many experienced players also focus on narrowing
+                      possibilities efficiently rather than guessing randomly.
+                    </p>
+                  </div>
 
                 </div>
               </section>
