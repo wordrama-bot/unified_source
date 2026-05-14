@@ -150,6 +150,13 @@ export default function WordleStrategyPage() {
           >
             Wordle Tips
           </Link>
+
+          <Link
+            href="/benefits-of-word-games"
+            className="rounded-lg border border-white/20 px-4 py-2 font-semibold text-white"
+          >
+            Benefits of Word Games
+          </Link>
         </div>
       </section>
 

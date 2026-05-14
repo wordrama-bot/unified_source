@@ -113,13 +113,6 @@ export default function BenefitsOfWordGamesPage() {
             </Link>
 
             <Link
-              href="/wordle-tips"
-              className="rounded-lg border border-white/20 px-4 py-2 font-semibold text-white"
-            >
-              Wordle Tips
-            </Link>
-
-            <Link
               href="/wordle-strategy"
               className="rounded-lg border border-white/20 px-4 py-2 font-semibold text-white"
             >
@@ -131,6 +124,13 @@ export default function BenefitsOfWordGamesPage() {
               className="rounded-lg border border-white/20 px-4 py-2 font-semibold text-white"
             >
               Best Starting Words
+            </Link>
+
+            <Link
+              href="/wordle-tips"
+              className="rounded-lg border border-white/20 px-4 py-2 font-semibold text-white"
+            >
+              Wordle Tips
             </Link>
           </div>
         </section>
