@@ -93,6 +93,35 @@ export default function RootLayout({
           content="https://utfs.io/f/vieUBZcrouNZecqr9f6GFUI7HjZNEsYv0gwLPp1f8ory5MSW"
         />
 
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Organization",
+              name: "Wordrama",
+              url: "https://wordrama.io",
+              logo: "https://utfs.io/f/vieUBZcrouNZrmip0kaZeu5pTQIN4qBcCkAntERPya0X3zbF",
+              description:
+                "Wordrama is an online word puzzle and vocabulary game platform featuring daily puzzles, multiplayer gameplay, leaderboards, statistics, and educational word game content."
+            }),
+          }}
+        />
+
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "WebSite",
+              name: "Wordrama",
+              url: "https://wordrama.io",
+              description:
+                "Play Wordrama online and explore daily word puzzles, strategy guides, multiplayer word games, and vocabulary-building gameplay."
+            }),
+          }}
+        />
+
         <link
           rel="icon"
           type="image/png"

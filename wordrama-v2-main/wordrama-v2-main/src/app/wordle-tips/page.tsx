@@ -1,15 +1,16 @@
 "use client"
-import NavBar from '@/components/navbar/h-nav';
+import PublicNav from '@/components/navbar/public-nav';
 import Footer from '@/sections/footer';
 
 export default function WordleTipsPage() {
   return (
     <div className="flex min-h-screen w-full flex-col border:border dark:border-darkBorder bg-bg dark:bg-darkBg text-text dark:text-darkText">
-      <NavBar
+      <PublicNav
         links={[
+          { href: "/", text: "Home" },
+          { href: "/free-play", text: "Free Play" },
           { href: "/about", text: "About" },
-          { href: "/free-play", text: "Wordle" },
-          { href: "/signup", text: "SignUp" },
+          { href: "/signup", text: "Sign Up" },
         ]}
       />
 

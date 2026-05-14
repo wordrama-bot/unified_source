@@ -1,6 +1,7 @@
 "use client"
 import Header from '@/sections/header';
-import NavBar from "@/components/navbar/public-nav";
+import NavBar from "@/components/navbar/h-nav";
+import PublicNav from "@/components/navbar/public-nav";
 import { cn } from '@/lib/utils';
 import aboutImg from './about.png';
 import { useAuth } from '@/providers/auth-provider';
@@ -67,22 +68,27 @@ export default function AboutPage() {
   };
 
   return (
-    <div className="flex min-h-screen w-full flex-col border:border dark:border-darkBorder bg-bg dark:bg-darkBg text-text dark:text-darkText">
+    <div className="flex min-h-screen w-full flex-col border dark:border-darkBorder bg-bg dark:bg-darkBg text-text dark:text-darkText">
       { showChristmas && <Snowfall /> }
-      <NavBar
-        links={user ? [
-          { href: "/games", text: "Games" },
-          { href: "/leaderboard", text: "Leaderboard" },
-          { href: "/marketplace", text: "Marketplace" },
-          { href: "/achievements", text: "Achievements" },
-          //{ href: "/teams", text: "Teams" },
-        ] : [
+      {user ? (
+        <NavBar
+          links={[
+            { href: "/games", text: "Games" },
+            { href: "/leaderboard", text: "Leaderboard" },
+            { href: "/marketplace", text: "Marketplace" },
+            { href: "/achievements", text: "Achievements" },
+          ]}
+        />
+      ) : (
+        <PublicNav
+          links={[
+            { href: "/", text: "Home" },
+            { href: "/free-play", text: "Free Play" },
             { href: "/about", text: "About" },
-            { href: "/free-play", text: "Wordle" },
-            { href: "/signup", text: "SignUp" },
-          ]
-        }
-      />
+            { href: "/signup", text: "Sign Up" },
+          ]}
+        />
+      )}
       <section
         id="about"
         className="py-24 sm:py-32 mx-10"
