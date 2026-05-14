@@ -163,7 +163,7 @@ export default function WordleTipsPage() {
         <div className="mt-6 flex flex-wrap gap-4">
           <Link
             href="/how-to-play"
-            className="rounded-lg bg-white px-4 py-2 font-semibold text-darkBg"
+            className="rounded-lg border border-white/20 px-4 py-2 font-semibold text-white"
           >
             How to Play
           </Link>
@@ -180,6 +180,13 @@ export default function WordleTipsPage() {
             className="rounded-lg border border-white/20 px-4 py-2 font-semibold text-white"
           >
             Best Starting Words
+          </Link>
+
+          <Link
+            href="/wordle-tips"
+            className="rounded-lg bg-white px-4 py-2 font-semibold text-darkBg"
+          >
+            Wordle Tips
           </Link>
 
           <Link

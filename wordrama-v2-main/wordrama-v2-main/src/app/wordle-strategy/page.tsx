@@ -132,9 +132,16 @@ export default function WordleStrategyPage() {
         <div className="mt-6 flex flex-wrap gap-4">
           <Link
             href="/how-to-play"
-            className="rounded-lg bg-white px-4 py-2 font-semibold text-darkBg"
+            className="rounded-lg border border-white/20 px-4 py-2 font-semibold text-white"
           >
             How to Play
+          </Link>
+
+          <Link
+            href="/wordle-strategy"
+            className="rounded-lg bg-white px-4 py-2 font-semibold text-darkBg"
+          >
+            Strategy Guide
           </Link>
 
           <Link

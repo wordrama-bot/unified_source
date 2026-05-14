@@ -107,7 +107,7 @@ export default function BenefitsOfWordGamesPage() {
           <div className="mt-6 flex flex-wrap gap-4">
             <Link
               href="/how-to-play"
-              className="rounded-lg bg-white px-4 py-2 font-semibold text-darkBg"
+              className="rounded-lg border border-white/20 px-4 py-2 font-semibold text-white"
             >
               How to Play
             </Link>
@@ -131,6 +131,13 @@ export default function BenefitsOfWordGamesPage() {
               className="rounded-lg border border-white/20 px-4 py-2 font-semibold text-white"
             >
               Wordle Tips
+            </Link>
+
+            <Link
+              href="/benefits-of-word-games"
+              className="rounded-lg bg-white px-4 py-2 font-semibold text-darkBg"
+            >
+              Benefits of Word Games
             </Link>
           </div>
         </section>
