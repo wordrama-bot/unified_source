@@ -1,4 +1,5 @@
 "use client"
+import Link from "next/link";
 import PublicNav from '@/components/navbar/public-nav';
 import Footer from '@/sections/footer';
 
@@ -16,7 +17,10 @@ export default function WordleStrategyPage() {
 
       <div className="container mx-auto p-4">
         <h1 className="text-4xl font-bold mb-6">Wordle Strategy Guide</h1>
-        <p className="text-sm text-gray-500">Last updated March 13, 2026</p>
+
+        <p className="mt-2 text-sm text-gray-400">
+          Last updated: May 14, 2026
+        </p>
 
         <p className="mt-4">
           If you want to improve at Wordle-style games, the best place to start is with strategy.
@@ -115,6 +119,39 @@ export default function WordleStrategyPage() {
           </p>
         </section>
       </div>
+
+      <section className="mt-14 rounded-2xl border border-white/10 bg-white/5 p-6">
+        <h2 className="text-2xl font-semibold">
+          Continue Learning
+        </h2>
+
+        <p className="mt-3 text-gray-300">
+          Explore more Wordrama guides to improve your guesses, starting words, and puzzle-solving habits.
+        </p>
+
+        <div className="mt-6 flex flex-wrap gap-4">
+          <Link
+            href="/how-to-play"
+            className="rounded-lg bg-white px-4 py-2 font-semibold text-darkBg"
+          >
+            How to Play
+          </Link>
+
+          <Link
+            href="/best-starting-words"
+            className="rounded-lg border border-white/20 px-4 py-2 font-semibold text-white"
+          >
+            Best Starting Words
+          </Link>
+
+          <Link
+            href="/wordle-tips"
+            className="rounded-lg border border-white/20 px-4 py-2 font-semibold text-white"
+          >
+            Wordle Tips
+          </Link>
+        </div>
+      </section>
 
       <Footer />
     </div>
