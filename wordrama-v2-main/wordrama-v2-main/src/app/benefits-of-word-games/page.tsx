@@ -1,5 +1,6 @@
 import Link from "next/link";
 import PublicNav from '@/components/navbar/public-nav';
+import Footer from '@/sections/footer';
 
 export default function BenefitsOfWordGamesPage() {
   return (
@@ -21,6 +22,10 @@ export default function BenefitsOfWordGamesPage() {
         <h1 className="mt-3 text-4xl font-bold">
           The Educational Benefits of Word Games
         </h1>
+
+        <p className="mt-2 text-sm text-gray-400">
+          Last updated: May 14, 2026
+        </p>
 
         <p className="mt-6 text-lg text-gray-300">
           Word games are more than quick entertainment. They encourage pattern
@@ -108,6 +113,13 @@ export default function BenefitsOfWordGamesPage() {
             </Link>
 
             <Link
+              href="/wordle-tips"
+              className="rounded-lg border border-white/20 px-4 py-2 font-semibold text-white"
+            >
+              Wordle Tips
+            </Link>
+
+            <Link
               href="/wordle-strategy"
               className="rounded-lg border border-white/20 px-4 py-2 font-semibold text-white"
             >
@@ -123,6 +135,7 @@ export default function BenefitsOfWordGamesPage() {
           </div>
         </section>
       </section>
+      <Footer />
     </main>
   );
 }

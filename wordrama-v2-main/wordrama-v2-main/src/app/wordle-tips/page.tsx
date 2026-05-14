@@ -1,4 +1,5 @@
 "use client"
+import Link from "next/link";
 import PublicNav from '@/components/navbar/public-nav';
 import Footer from '@/sections/footer';
 
@@ -16,7 +17,10 @@ export default function WordleTipsPage() {
 
       <div className="container mx-auto p-4">
         <h1 className="text-4xl font-bold mb-6">Wordle Tips for Better Scores</h1>
-        <p className="text-sm text-gray-500">Last updated March 13, 2026</p>
+
+        <p className="mt-2 text-sm text-gray-400">
+          Last updated: May 14, 2026
+        </p>
 
         <p className="mt-4">
           Looking for a few easy ways to improve your game? These Wordle tips can help you solve puzzles
@@ -106,6 +110,79 @@ export default function WordleTipsPage() {
           </p>
         </section>
       </div>
+
+      <section className="mt-10">
+        <h2 className="text-2xl font-semibold">
+          Beginner vs Advanced Wordrama Strategies
+        </h2>
+
+        <p className="mt-3 text-gray-300">
+          New players often focus on finding the answer as quickly as possible,
+          while experienced players focus on gathering information efficiently.
+          Advanced strategy usually involves testing high-value letters early,
+          avoiding unnecessary repeats, and narrowing the puzzle systematically.
+        </p>
+
+        <p className="mt-3 text-gray-300">
+          Strong players also adapt based on puzzle difficulty. Some words are solved
+          quickly through vowel discovery, while others require identifying repeated
+          letters, unusual consonant combinations, or less common endings. Patience
+          and flexible thinking are often more important than speed alone.
+        </p>
+      </section>
+
+      <section className="mt-10">
+        <h2 className="text-2xl font-semibold">
+          Tips for Improving Consistency
+        </h2>
+
+        <p className="mt-3 text-gray-300">
+          Consistent improvement comes from reviewing previous guesses carefully.
+          Instead of rushing into the next attempt, take a moment to evaluate which
+          letters have already been eliminated and which combinations remain possible.
+          Small adjustments in approach can significantly improve long-term results.
+        </p>
+
+        <p className="mt-3 text-gray-300">
+          Many players also benefit from practicing across different word lengths.
+          Longer puzzles encourage deeper pattern recognition and expose players to a
+          wider variety of prefixes, suffixes, and uncommon letter structures that
+          may not appear in shorter games.
+        </p>
+      </section>
+
+      <section className="mt-14 rounded-2xl border border-white/10 bg-white/5 p-6">
+        <h2 className="text-2xl font-semibold">
+          Continue Learning
+        </h2>
+
+        <p className="mt-3 text-gray-300">
+          Explore additional Wordrama guides covering strategy, vocabulary improvement, and smarter puzzle-solving techniques.
+        </p>
+
+        <div className="mt-6 flex flex-wrap gap-4">
+          <Link
+            href="/how-to-play"
+            className="rounded-lg bg-white px-4 py-2 font-semibold text-darkBg"
+          >
+            How to Play
+          </Link>
+
+          <Link
+            href="/wordle-strategy"
+            className="rounded-lg border border-white/20 px-4 py-2 font-semibold text-white"
+          >
+            Strategy Guide
+          </Link>
+
+          <Link
+            href="/best-starting-words"
+            className="rounded-lg border border-white/20 px-4 py-2 font-semibold text-white"
+          >
+            Best Starting Words
+          </Link>
+        </div>
+      </section>
 
       <Footer />
     </div>

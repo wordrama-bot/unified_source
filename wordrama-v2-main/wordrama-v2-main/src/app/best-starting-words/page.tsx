@@ -1,4 +1,5 @@
 "use client"
+import Link from "next/link";
 import PublicNav from '@/components/navbar/public-nav';
 import Footer from '@/sections/footer';
 
@@ -29,7 +30,10 @@ export default function BestStartingWordsPage() {
 
       <div className="container mx-auto p-4">
         <h1 className="text-4xl font-bold mb-6">Best Starting Words for Wordle</h1>
-        <p className="text-sm text-gray-500">Last updated March 13, 2026</p>
+        
+        <p className="mt-2 text-sm text-gray-400">
+          Last updated: May 14, 2026
+        </p>
 
         <p className="mt-4">
           One of the most common questions in Wordle-style games is simple: what is the best starting word?
@@ -159,6 +163,81 @@ export default function BestStartingWordsPage() {
           </p>
         </section>
       </div>
+
+      <section className="mt-10">
+        <h2 className="text-2xl font-semibold">
+          Why Starting Words Matter
+        </h2>
+
+        <p className="mt-3 text-gray-300">
+          A strong starting word gives you useful information early. The goal is not
+          always to guess the answer immediately, but to reveal common letters,
+          identify vowels, and eliminate unlikely options. Words with a balanced mix
+          of vowels and frequent consonants can make the second guess much easier.
+        </p>
+
+        <p className="mt-3 text-gray-300">
+          Beginners often focus only on words they hope might be correct. More
+          experienced players usually treat the first guess as a scouting move. A
+          good opener helps narrow the puzzle quickly, especially when paired with a
+          second guess that tests different letters instead of repeating too many
+          known misses.
+        </p>
+      </section>
+
+      <section className="mt-10">
+        <h2 className="text-2xl font-semibold">
+          Common Starting Word Mistakes
+        </h2>
+
+        <p className="mt-3 text-gray-300">
+          One common mistake is using a word with repeated letters too early. Repeated
+          letters can be useful later, but they usually reveal less information on the
+          first turn. Another mistake is ignoring yellow letters. If a letter appears
+          in yellow, it belongs in the word, but it needs to be tested in a new
+          position.
+        </p>
+
+        <p className="mt-3 text-gray-300">
+          Strong play comes from combining information across guesses. Green letters
+          should usually stay fixed, yellow letters should move to new positions, and
+          gray letters should be avoided unless you are testing a very specific word
+          pattern.
+        </p>
+      </section>
+
+      <section className="mt-14 rounded-2xl border border-white/10 bg-white/5 p-6">
+        <h2 className="text-2xl font-semibold">
+          Continue Learning
+        </h2>
+
+        <p className="mt-3 text-gray-300">
+          Learn how experienced Wordrama players approach opening guesses, deduction, and puzzle strategy.
+        </p>
+
+        <div className="mt-6 flex flex-wrap gap-4">
+          <Link
+            href="/how-to-play"
+            className="rounded-lg bg-white px-4 py-2 font-semibold text-darkBg"
+          >
+            How to Play
+          </Link>
+
+          <Link
+            href="/wordle-strategy"
+            className="rounded-lg border border-white/20 px-4 py-2 font-semibold text-white"
+          >
+            Strategy Guide
+          </Link>
+
+          <Link
+            href="/benefits-of-word-games"
+            className="rounded-lg border border-white/20 px-4 py-2 font-semibold text-white"
+          >
+            Benefits of Word Games
+          </Link>
+        </div>
+      </section>
 
       <Footer />
     </div>
