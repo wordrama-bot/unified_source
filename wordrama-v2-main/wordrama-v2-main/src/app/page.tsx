@@ -77,7 +77,7 @@ function PublicHome() {
           { href: "/signup", text: "Sign Up" },
         ]}
       />
-        <div className="min-h-screen w-full bg-darkBg">
+        <main className="min-h-screen w-full bg-darkBg">
             <div className="container mx-auto p-4 flex flex-col items-center justify-center">
               <h1 className="text-4xl font-bold mb-6">Wordrama: The Best Wordle Site</h1>
               <p className="text-sm text-gray-500">(Not affiliated with the NYT Wordle website.)</p>
@@ -327,7 +327,7 @@ function PublicHome() {
                 <p className="mt-2 text-center">Whether you’re a casual player or a seasoned word puzzle enthusiast, Wordrama is here to provide hours of challenging, engaging, and social gameplay that’s fun for all ages. Start playing today, and see how Wordrama redefines the word puzzle experience!</p>
               </section>
           </div>
-        </div>
+        </main>
       <Footer />
       <Link href="/login">
         <Button
