@@ -559,12 +559,15 @@ function App(){
             isRevealing={isRevealing}
             swapEnterAndDelete={gameUiState?.swapDeleteAndEnter || false}
           />
-          <GoogleAd
-	    client="ca-pub-8970369628667981"
-	    slot="8219203779"
-	    format="auto"
-	    responsive="true"
-  	  />
+          <div className="mt-6 flex w-full justify-center">
+            <GoogleAd
+              client="ca-pub-8970369628667981"
+              slot="8219203779"
+              format="auto"
+              responsive="true"
+              minHeight={250}
+            />
+          </div>
 
           {
             isStatsModalOpen && isSignUpCTA && (

@@ -2,7 +2,13 @@
 
 import { useEffect, useRef } from "react";
 
-const GoogleAd = ({ client, slot, format = "auto", responsive = "true" }) => {
+const GoogleAd = ({
+  client,
+  slot,
+  format = "auto",
+  responsive = "true",
+  minHeight = 280,
+}) => {
   const adRef = useRef(null);
   const initializedRef = useRef(false);
 
@@ -19,15 +25,24 @@ const GoogleAd = ({ client, slot, format = "auto", responsive = "true" }) => {
   }, []);
 
   return (
-    <ins
-      ref={adRef}
-      className="adsbygoogle"
-      style={{ display: "block" }}
-      data-ad-client={client}
-      data-ad-slot={slot}
-      data-ad-format={format}
-      data-full-width-responsive={responsive}
-    />
+    <div
+      className="w-full overflow-hidden"
+      style={{ minHeight: `${minHeight}px` }}
+      aria-label="Advertisement"
+    >
+      <ins
+        ref={adRef}
+        className="adsbygoogle"
+        style={{
+          display: "block",
+          minHeight: `${minHeight}px`,
+        }}
+        data-ad-client={client}
+        data-ad-slot={slot}
+        data-ad-format={format}
+        data-full-width-responsive={responsive}
+      />
+    </div>
   );
 };
 

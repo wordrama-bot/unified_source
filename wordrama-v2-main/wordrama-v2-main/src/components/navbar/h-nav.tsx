@@ -38,7 +38,7 @@ export default function NavBar({
                 ? "https://utfs.io/f/vieUBZcrouNZHgZwgWPc5QTiy9PYrsMqS3jRhEFC148IZDw0"
                 : "https://utfs.io/f/vieUBZcrouNZQrdaKfbRj7hpV6g4Axl20D3nvSc9I1BEkdqr"
             }
-            width={isFirstLogin || error ? 250 : 500}
+            width={250}
             height={50}
             alt="Wordrama Logo"
           />
