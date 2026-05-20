@@ -198,7 +198,13 @@ export default function AvatarMarketplacePage() {
       </Sheet>
       <Sheet>
         <SheetTrigger asChild>
-          <Button className='fixed top-20 right-5' variant='default'><FilterIcon className='w-6 h-6'/></Button>
+          <Button
+            className='fixed top-20 right-5'
+            variant='default'
+            aria-label='Open marketplace filters'
+          >
+            <FilterIcon className='w-6 h-6'/>
+          </Button>
         </SheetTrigger>
         <SheetContent className="bg-bg">
           <SheetHeader>

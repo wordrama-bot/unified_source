@@ -63,6 +63,7 @@ export default function NavBar({
               variant="outline"
               size="icon"
               className="shrink-0 md:hidden"
+              aria-label="Open navigation menu"
             >
               <Menu className="h-5 w-5 dark:text-darkText" />
               <span className="sr-only">Toggle navigation menu</span>
@@ -187,7 +188,7 @@ export default function NavBar({
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="secondary" size="icon" className="rounded-full">
+              <Button variant="secondary" size="icon" className="rounded-full" aria-label="Open user menu">
                 {user?.data?.profileImage ? (
                   <Image
                     src={user?.data?.profileImage}

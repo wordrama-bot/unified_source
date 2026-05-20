@@ -70,7 +70,12 @@ export default function NavBar({
 
       <Sheet>
         <SheetTrigger asChild>
-          <Button variant="outline" size="icon" className="shrink-0 md:hidden">
+          <Button
+            variant="outline"
+            size="icon"
+            className="shrink-0 md:hidden"
+            aria-label="Open navigation menu"
+          >
             <Menu className="h-5 w-5 dark:text-darkText" />
             <span className="sr-only">Toggle navigation menu</span>
           </Button>
