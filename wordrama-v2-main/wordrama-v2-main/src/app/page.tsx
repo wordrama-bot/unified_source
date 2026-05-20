@@ -159,7 +159,7 @@ function PublicHome() {
                   Learn & Improve Your Word Game Skills
                 </h2>
 
-                <p className="mt-4 text-center text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+                <p className="mt-4 text-center text-gray-100 max-w-3xl mx-auto">
                   Wordrama is more than a daily puzzle game. Explore strategy guides,
                   gameplay tips, beginner tutorials, and educational resources designed
                   to help players improve vocabulary, deduction skills, and overall
@@ -174,7 +174,7 @@ function PublicHome() {
                   >
                     <h3 className="text-xl font-semibold">How to Play Wordrama</h3>
 
-                    <p className="mt-3 text-sm text-gray-600 dark:text-gray-300">
+                    <p className="mt-3 text-sm text-gray-100">
                       Learn the rules, color system, guessing mechanics, and gameplay
                       modes available in Wordrama.
                     </p>
@@ -186,7 +186,7 @@ function PublicHome() {
                   >
                     <h3 className="text-xl font-semibold">Wordle Strategy Guide</h3>
 
-                    <p className="mt-3 text-sm text-gray-600 dark:text-gray-300">
+                    <p className="mt-3 text-sm text-gray-100">
                       Improve your deduction strategy, eliminate possibilities faster,
                       and learn how experienced players approach difficult puzzles.
                     </p>
@@ -198,7 +198,7 @@ function PublicHome() {
                   >
                     <h3 className="text-xl font-semibold">Best Starting Words</h3>
 
-                    <p className="mt-3 text-sm text-gray-600 dark:text-gray-300">
+                    <p className="mt-3 text-sm text-gray-100">
                       Explore strong opening words that maximize letter coverage,
                       identify vowels quickly, and improve early-game positioning.
                     </p>
@@ -210,7 +210,7 @@ function PublicHome() {
                   >
                     <h3 className="text-xl font-semibold">Word Puzzle Tips</h3>
 
-                    <p className="mt-3 text-sm text-gray-600 dark:text-gray-300">
+                    <p className="mt-3 text-sm text-gray-100">
                       Discover practical techniques for solving challenging word puzzles
                       while improving consistency and streak performance.
                     </p>
@@ -222,7 +222,7 @@ function PublicHome() {
                   >
                     <h3 className="text-xl font-semibold">About Wordrama</h3>
 
-                    <p className="mt-3 text-sm text-gray-600 dark:text-gray-300">
+                    <p className="mt-3 text-sm text-gray-100">
                       Learn about Wordrama’s mission, features, educational approach,
                       and community-focused word game experience.
                     </p>
@@ -329,10 +329,11 @@ function PublicHome() {
           </div>
         </main>
       <Footer />
-      <Link href="/login">
+      <Link href="/login" aria-label="Log in">
         <Button
           size="icon"
           className="fixed left-4 top-20 z-50"
+          aria-label="Log in"
         >
           <User className="stroke-text h-6 w-6 w500:h-4 w500:w-4" />
         </Button>
