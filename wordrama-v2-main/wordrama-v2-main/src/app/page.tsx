@@ -77,7 +77,7 @@ function PublicHome() {
           { href: "/signup", text: "Sign Up" },
         ]}
       />
-        <main className="min-h-screen w-full bg-darkBg">
+        <main className="min-h-screen w-full bg-darkBg text-white">
             <div className="container mx-auto p-4 flex flex-col items-center justify-center">
               <h1 className="text-4xl font-bold mb-6">Wordrama: The Best Wordle Site</h1>
               <p className="text-sm text-gray-300">(Not affiliated with the NYT Wordle website.)</p>
