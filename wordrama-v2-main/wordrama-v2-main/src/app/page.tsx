@@ -80,7 +80,7 @@ function PublicHome() {
         <main className="min-h-screen w-full bg-darkBg">
             <div className="container mx-auto p-4 flex flex-col items-center justify-center">
               <h1 className="text-4xl font-bold mb-6">Wordrama: The Best Wordle Site</h1>
-              <p className="text-sm text-gray-500">(Not affiliated with the NYT Wordle website.)</p>
+              <p className="text-sm text-gray-300">(Not affiliated with the NYT Wordle website.)</p>
 
               <div className="mt-6 flex flex-wrap items-center justify-center gap-4">
                 <Link href="/free-play">
@@ -116,7 +116,7 @@ function PublicHome() {
                   <ul className="mt-2 list-disc list-inside text-center">
                       <li className="mt-2"><strong className='text-green-400'>Green:</strong> Letters that are in the correct position are highlighted in green. This indicates that you’ve guessed that letter correctly and placed it in the right spot.</li>
                       <li className="mt-2"><strong className='text-yellow-300'>Yellow:</strong> Letters that are part of the word but in the wrong position are marked in yellow. This tells you that the letter is in the word, but you need to find its correct placement.</li>
-                      <li className="mt-2"><strong className='text-slate-500'>Grey:</strong> Incorrect letters are greyed out, meaning they are not part of the word at all. Use this information to eliminate possibilities and refine your guesses.</li>
+                      <li className="mt-2"><strong className='text-slate-300'>Grey:</strong> Incorrect letters are greyed out, meaning they are not part of the word at all. Use this information to eliminate possibilities and refine your guesses.</li>
                   </ul>
 
                   <Image src="https://utfs.io/f/vieUBZcrouNZl1Z6dPEXuxhLbEmnAdrKYfCloM98G04ykiPz" alt="Wordrama gameplay" width={600} height={200} className="mt-4 border-hidden" />
