@@ -14,7 +14,7 @@ export default function AcceptableUsePolicyPage() {
       />
       <div className="container mx-auto p-4">
         <h1 className="text-4xl font-bold mb-6">Acceptable Use</h1>
-        <p className="text-sm text-gray-500">Last updated October 26, 2024</p>
+        <p className="text-sm text-gray-500">Last updated May 27, 2026</p>
 
         <section className="my-8">
           <p className="mt-2">This Acceptable Use Policy ('Policy') is part of our Terms of Use ('Legal Terms') and should therefore be read alongside our main Legal Terms: <a href="https://wordrama.io/terms-of-use" className="text-blue-500 hover:underline">Terms of Use</a>. When you use the AI-powered services provided by Wordrama.io ('AI Products'), you warrant that you will comply with this document, our Legal Terms and all applicable laws and regulations governing AI. Your usage of our AI Products signifies your agreement to engage with our platform in a lawful, ethical, and responsible manner that respects the rights and dignity of all individuals. If you do not agree with these Legal Terms, please refrain from using our Services. Your continued use of our Services implies acceptance of these Legal Terms.</p>
@@ -29,7 +29,7 @@ export default function AcceptableUsePolicyPage() {
 
         <section className="my-8">
           <h2 className="text-2xl font-semibold">Who we are</h2>
-          <p className="mt-2 ml-8">We are Wordrama.io ('Company', 'we', 'us', or 'our'), a part of DEVVY LTD a company registered in England at 128 City Road, London EC1V 2NX.</p>
+          <p className="mt-2 ml-8">We are Wordrama.io ('Company', 'we', 'us', or 'our'), a part of Unhinged Creations, LLC, a company registered in the United States at 7427 Matthews Mint Hill Road, Suite 105-369, Mint Hill, North Carolina, 28227.</p>
         </section>
 
         <section className="my-8">
@@ -38,16 +38,16 @@ export default function AcceptableUsePolicyPage() {
           <p className="mt-4 ml-8">You also acknowledge that you may not:</p>
           <ul className="list-disc ml-16 list-inside mt-2">
             <li>Systematically retrieve data or other content from the Services to create or compile, directly or indirectly, a collection, compilation, database, or directory without written permission from us.</li>
-            <li>Make any unauthorised use of the Services, including collecting usernames and/or email addresses of users by electronic or other means for the purpose of sending unsolicited email, or creating user accounts by automated means or under false pretences.</li>
+            <li>Make any unauthorized use of the Services, including collecting usernames and/or email addresses of users by electronic or other means for the purpose of sending unsolicited email, or creating user accounts by automated means or under false pretences.</li>
             <li>Circumvent, disable, or otherwise interfere with security-related features of the Services, including features that prevent or restrict the use or copying of any Content or enforce limitations on the use of the Services and/or the Content contained therein.</li>
-            <li>Engage in unauthorised framing of or linking to the Services.</li>
+            <li>Engage in unauthorized framing of or linking to the Services.</li>
             <li>Trick, defraud, or mislead us and other users, especially in any attempt to learn sensitive account information such as user passwords.</li>
             <li>Make improper use of our Services, including our support services or submit false reports of abuse or misconduct.</li>
             <li>Engage in any automated use of the Services, such as using scripts to send comments or messages, or using any data mining, robots, or similar data gathering and extraction tools.</li>
             <li>Interfere with, disrupt, or create an undue burden on the Services or the networks or the Services connected.</li>
             <li>Attempt to impersonate another user or person or use the username of another user.</li>
             <li>Use any information obtained from the Services in order to harass, abuse, or harm another person.</li>
-            <li>Use the Services as part of any effort to compete with us or otherwise use the Services and/or the Content for any revenue-generating endeavour or commercial enterprise.</li>
+            <li>Use the Services as part of any effort to compete with us or otherwise use the Services and/or the Content for any revenue-generating endeavor or commercial enterprise.</li>
             <li>Decipher, decompile, disassemble, or reverse engineer any of the software comprising or in any way making up a part of the Services, except as expressly permitted by applicable law.</li>
             <li>Attempt to bypass any measures of the Services designed to prevent or restrict access to the Services, or any portion of the Services.</li>
             <li>Harass, annoy, intimidate, or threaten any of our employees or agents engaged in providing any portion of the Services to you.</li>
@@ -75,11 +75,11 @@ export default function AcceptableUsePolicyPage() {
           <h3 className="text-xl font-semibold ml-8 mt-4">AI Products</h3>
           <p className='mt-2 ml-8'>When you use the AI Products provided by Wordrama.io, you warrant that you will not:</p>
           <ul className="list-disc ml-16 list-inside mt-2">
-            <li>Deploy AI techniques that utilise subliminal, manipulative, or deceptive methods designed to distort behaviour and impair informed decision-making, particularly when such actions cause significant harm to individuals.</li>
-            <li>Exploit vulnerabilities related to age, disability, or socio-economic circumstances through AI in a way that distorts behaviour or decision-making, especially if this results in significant harm to the individual.</li>
+            <li>Deploy AI techniques that utilise subliminal, manipulative, or deceptive methods designed to distort behavior and impair informed decision-making, particularly when such actions cause significant harm to individuals.</li>
+            <li>Exploit vulnerabilities related to age, disability, or socio-economic circumstances through AI in a way that distorts behavior or decision-making, especially if this results in significant harm to the individual.</li>
             <li>Use AI systems for biometric categorization that infer sensitive attributes such as race, political opinions, trade union membership, religious or philosophical beliefs, sex life, or sexual orientation, except in limited cases, such as labelling or filtering lawfully acquired datasets, or specific law enforcement activities.</li>
-            <li>Implement AI-based social scoring systems that evaluate or classify individuals or groups based on their social behaviour or personal traits in a manner that causes harm, discrimination, or unfair treatment.</li>
-            <li>Assess the risk of an individual committing criminal offenses based solely on profiling, personality traits, or other non-behavioural factors, except in narrowly defined circumstances where legal safeguards are in place.</li>
+            <li>Implement AI-based social scoring systems that evaluate or classify individuals or groups based on their social behavior or personal traits in a manner that causes harm, discrimination, or unfair treatment.</li>
+            <li>Assess the risk of an individual committing criminal offenses based solely on profiling, personality traits, or other non-behavioral factors, except in narrowly defined circumstances where legal safeguards are in place.</li>
             <li>Not compile facial recognition databases through untargeted scraping of facial images from the internet, social media, or CCTV footage, unless it is part of a legally compliant and narrowly defined purpose.</li>
             <li>Use AI to infer emotions in sensitive environments such as workplaces, educational institutions, or any other context where such analysis could lead to discrimination, unfair treatment, or privacy violations.</li>
             <li>Engage in real-time remote biometric identification in public places for law enforcement purposes, except in specific situations where there are strong legal justifications and oversight mechanisms.</li>
@@ -97,7 +97,7 @@ export default function AcceptableUsePolicyPage() {
             <li>No attempting to bypass the chat filter.</li>
             <li>No promoting any content including channel's, extraneous servers, dm Advertising, etc. Unless through parthership or content creator role.</li>
             <li>You're not allowed to attempt evade punishment, such as using an alternate account to bypass restrictions.</li>
-            <li>Please stick to English in all channels</li>
+            <li>Please stick to English in all channels.</li>
           </ol>
         </section>
 
@@ -158,7 +158,7 @@ export default function AcceptableUsePolicyPage() {
             <li>promotes, facilitates, or assists anyone in promoting and facilitating acts of terrorism;</li>
             <li>infringes, or assists anyone in infringing, a third party's intellectual property rights or publicity or privacy rights;</li>
             <li>is deceitful, misrepresents your identity or affiliation with any person and/or misleads anyone as to your relationship with us or implies that the Contribution was made by someone else than you;</li>
-            <li>contains unsolicited or unauthorised advertising, promotional materials, pyramid schemes, chain letters, spam, mass mailings, or other forms of solicitation that has been 'paid for', whether with monetary compensation or in kind; or</li>
+            <li>contains unsolicited or unauthorized advertising, promotional materials, pyramid schemes, chain letters, spam, mass mailings, or other forms of solicitation that has been 'paid for', whether with monetary compensation or in kind; or</li>
             <li>misrepresents your identity or who the Contribution is from.</li>
           </ul>
         </section>
