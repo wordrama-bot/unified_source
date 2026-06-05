@@ -38,8 +38,6 @@ export const Key = ({
     gameUiState?.appearanceThemeId
   )
 
-  console.log('keyboard theme:', appearanceTheme.id, appearanceTheme.keyboard.key)
-
   const isHighContrast =
     getStoredIsHighContrastMode() || gameUiState?.colorblindMode === true
 

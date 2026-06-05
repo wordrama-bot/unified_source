@@ -142,6 +142,13 @@ function App(){
     gameUiState?.appearanceThemeId
   );
 
+  const gameSurfaceThemeClasses =
+    appearanceTheme.id === 'theme.midnight'
+      ? 'bg-slate-950/70 border border-slate-700 shadow-2xl'
+      : appearanceTheme.id === 'theme.rose-gold'
+        ? 'border border-rose-300 shadow-2xl'
+        : ''
+
   const streamerMode = gameUiState.streamerModeEnabled ?? false;
   const gameSoundEnabled = gameUiState.gameSoundEnabled ?? true;
   const { refetch: refetchProfile } = useGetMyAccountQuery();
@@ -868,29 +875,31 @@ const [playLoseSoundChristmas] = useSound('/sounds/christmas-lost.mp3', {
           </Sheet>
 
           <div className="mx-auto flex w-full grow flex-col px-1 pt-20 pb-8 sm:px-6 md:max-w-7xl lg:px-8 short:pb-2 short:pt-2">
-            <div className={`flex flex-col justify-center pb-6 short:pb-2`}>
-              <Grid
+            <div className={`mx-auto flex w-full max-w-xl flex-col rounded-2xl px-3 py-4 transition-colors ${gameSurfaceThemeClasses}`}>
+              <div className={`flex flex-col justify-center pb-6 short:pb-2`}>
+                <Grid
+                  solution={isCustom ? gameState.custom.solution : gameState.modes[gameState.gameMode][gameState.wordPack].solution}
+                  guesses={isCustom ? gameState.custom.guesses : gameState.modes[gameState.gameMode][gameState.wordPack].guesses || []}
+                  currentGuess={currentGuess}
+                  isRevealing={isRevealing}
+                  currentRowClassName={currentRowClass}
+                />
+                { isCustom && gameState?.custom?.hint && (
+                  <div className="pt-2 pb-6 short:pb-2 text-center text-white">
+                    Hint: { gameState.custom.hint }
+                  </div>
+                )}
+              </div>
+              <Keyboard
+                onChar={onChar}
+                onDelete={onDelete}
+                onEnter={onEnter}
                 solution={isCustom ? gameState.custom.solution : gameState.modes[gameState.gameMode][gameState.wordPack].solution}
                 guesses={isCustom ? gameState.custom.guesses : gameState.modes[gameState.gameMode][gameState.wordPack].guesses || []}
-                currentGuess={currentGuess}
                 isRevealing={isRevealing}
-                currentRowClassName={currentRowClass}
+                swapEnterAndDelete={gameUiState?.swapDeleteAndEnter || false}
               />
-              { isCustom && gameState?.custom?.hint && (
-                <div className="pt-2 pb-6 short:pb-2 text-center text-white">
-                  Hint: { gameState.custom.hint }
-                </div>
-              )}
             </div>
-            <Keyboard
-              onChar={onChar}
-              onDelete={onDelete}
-              onEnter={onEnter}
-              solution={isCustom ? gameState.custom.solution : gameState.modes[gameState.gameMode][gameState.wordPack].solution}
-              guesses={isCustom ? gameState.custom.guesses : gameState.modes[gameState.gameMode][gameState.wordPack].guesses || []}
-              isRevealing={isRevealing}
-              swapEnterAndDelete={gameUiState?.swapDeleteAndEnter || false}
-            />
             <div className='flex justify-center items-center pt-10'>
               { !isCustom && (
                 <Button
