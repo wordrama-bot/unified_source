@@ -1,14 +1,33 @@
 import { Cell } from '../grid/Cell'
 import { BaseModal } from './BaseModal'
 
+import { getAppearanceTheme } from '@/config/themes'
+import { getWordleGameUiState } from '@/redux/ui/helpers'
+import { getModalThemeClasses } from '@/config/themeStyles'
+
 type Props = {
   isOpen: boolean
   handleClose: () => void
 }
 
 export const InfoModal = ({ isOpen, handleClose }: Props) => {
+  const gameUiState = getWordleGameUiState()
+
+  const appearanceTheme = getAppearanceTheme(
+    gameUiState?.appearanceThemeId
+  )
+
+  const modalThemeClasses = getModalThemeClasses(appearanceTheme.id)
+  
   return (
-    <BaseModal title="How to play" isOpen={isOpen} handleClose={handleClose}>
+    <BaseModal
+      title="How to play"
+      isOpen={isOpen}
+      handleClose={handleClose}
+      modalClassName={modalThemeClasses.modal}
+      titleClassName={modalThemeClasses.title}
+      iconClassName={modalThemeClasses.icon}
+    >
       <p className="text-sm text-gray-500 dark:text-gray-300">
         Guess the word in 6 tries. After each guess, the color of the tiles will
         change to show how close your guess was to the word.
