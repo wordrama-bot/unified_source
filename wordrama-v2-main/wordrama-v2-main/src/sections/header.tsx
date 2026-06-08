@@ -98,7 +98,7 @@ export function ChristmasHeader({
   ctaText,
   showLogo = true,
   showSocialIcons = false,
-  logo = '/chirstmas.png',
+  logo = '/christmas.png',
   className = 'min-h-[80dvh] dark:bg-darkBg inset-0 flex w-full flex-col items-center justify-center bg-bg bg-[linear-gradient(to_right,#80808033_1px,transparent_1px),linear-gradient(to_bottom,#80808033_1px,transparent_1px)] bg-[size:70px_70px]'
 }: {
   className?: string,
