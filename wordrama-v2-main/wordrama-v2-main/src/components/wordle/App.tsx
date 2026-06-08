@@ -142,6 +142,9 @@ function App(){
     gameUiState?.appearanceThemeId
   );
 
+  const accountKeyboardStyleId =
+    myAccount?.data?.playerSettings?.keyboardStyleId;
+
   const gameSurfaceThemeClasses = appearanceTheme.app.gameSurface
   const gameActionButtonThemeClasses = appearanceTheme.app.actionButton
 
@@ -215,6 +218,9 @@ function App(){
       ...wordleUi,
       ...(accountAppearanceThemeId
         ? { appearanceThemeId: accountAppearanceThemeId }
+        : {}),
+      ...(accountKeyboardStyleId
+        ? { keyboardStyleId: accountKeyboardStyleId }
         : {}),
     }));
 	}, [uiSavedState, isLoadingUiSavedState, myAccount, dispatch]);
