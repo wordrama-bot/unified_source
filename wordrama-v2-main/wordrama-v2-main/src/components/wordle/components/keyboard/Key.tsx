@@ -7,6 +7,7 @@ import { getWordleGameUiState } from '@/redux/ui/helpers'
 import { CharStatus } from '../../lib/statuses'
 
 import { getAppearanceTheme } from '@/config/themes'
+import { KEYBOARD_STYLE_IDS } from '@/config/keyboardStyles'
 
 type Props = {
   children?: ReactNode
@@ -41,11 +42,18 @@ export const Key = ({
   const isHighContrast =
     getStoredIsHighContrastMode() || gameUiState?.colorblindMode === true
 
-  //shadow-light dark:shadow-dark hover:translate-x-boxShadowX hover:translate-y-boxShadowY hover:shadow-none dark:hover:shadow-none
+  const keyboardStyleId =
+    gameUiState?.keyboardStyleId || KEYBOARD_STYLE_IDS.FLAT
+
+  const raisedKeyboardClasses =
+    'shadow-[4px_4px_0_#000] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none'
+  
   const classes = classnames(
-    'xxshort:h-8 xxshort:w-8 xxshort:text-xxs xshort:w-10 xshort:h-10 flex short:h-12 h-12 items-center justify-center rounded mx-1 text-xs font-bold cursor-pointer select-none border-2 border-border dark:border-darkBorder shadow-light dark:shadow-dark hover:translate-x-boxShadowX hover:translate-y-boxShadowY hover:shadow-none dark:hover:shadow-none',
+    'xxshort:h-8 xxshort:w-8 xxshort:text-xxs xshort:w-10 xshort:h-10 flex short:h-12 h-12 items-center justify-center rounded mx-1 text-xs font-bold cursor-pointer select-none border-2 border-border dark:border-darkBorder',
     {
       'transition ease-in-out': isRevealing,
+
+      [raisedKeyboardClasses]: keyboardStyleId === KEYBOARD_STYLE_IDS.RAISED,
 
       'bg-pink-200 dark:bg-pink-600 hover:bg-pink-300 active:bg-pink-400':
         !status && customColour && customColour === 'hot-pink',

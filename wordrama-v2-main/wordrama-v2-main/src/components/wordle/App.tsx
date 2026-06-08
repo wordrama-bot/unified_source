@@ -348,7 +348,11 @@ const [playLoseSoundChristmas] = useSound('/sounds/christmas-lost.mp3', {
   function updateUiState(updatedState: UiState) {
     dispatch(setUiState(updatedState));
   
-    const { appearanceThemeId, ...uiStateWithoutTheme } = updatedState;
+    const {
+      appearanceThemeId,
+      keyboardStyleId,
+      ...uiStateWithoutTheme
+    } = updatedState;
 
     updateRemoteUiState({
       ...(uiSavedState?.data || {}),
