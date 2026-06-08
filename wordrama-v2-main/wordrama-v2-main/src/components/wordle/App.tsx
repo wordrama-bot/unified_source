@@ -147,7 +147,11 @@ function App(){
 
   const streamerMode = gameUiState.streamerModeEnabled ?? false;
   const gameSoundEnabled = gameUiState.gameSoundEnabled ?? true;
-  const { data: myAccount, refetch: refetchProfile } = useGetMyAccountQuery();
+  const {
+    data: myAccount,
+    isLoading: isLoadingMyAccount,
+    refetch: refetchProfile,
+  } = useGetMyAccountQuery();
   const [updateSettings] = useUpdateSettingsMutation();
   const { gameMode, wordLength, wordPack, custom } = gameState;
   const isCustom = gameMode === 'CUSTOM' && custom.solution.length > 0;
@@ -197,14 +201,14 @@ function App(){
   const { data: uiSavedState, isLoading: isLoadingUiSavedState } = useGetUiSavedStateQuery();
 	useEffect(() => {
 	  if (isLoadingUiSavedState) return;
+    if (isLoadingMyAccount) return;
 	  if (!uiSavedState) return;
 	
 	  const wordleUi = uiSavedState?.data?.wordleGame;
 	  if (!wordleUi) return;
 	
 	  const accountAppearanceThemeId =
-      myAccount?.data?._playerSettings?.[0]?.appearanceThemeId ||
-      myAccount?.data?.playerSettings?.[0]?.appearanceThemeId;
+      myAccount?.data?.playerSettings?.appearanceThemeId;
 
     dispatch(setWordleGameUiState({
       ...gameUiState,
@@ -337,9 +341,11 @@ const [playLoseSoundChristmas] = useSound('/sounds/christmas-lost.mp3', {
   function updateUiState(updatedState: UiState) {
     dispatch(setUiState(updatedState));
   
+    const { appearanceThemeId, ...uiStateWithoutTheme } = updatedState;
+
     updateRemoteUiState({
       ...(uiSavedState?.data || {}),
-      wordleGame: updatedState,
+      wordleGame: uiStateWithoutTheme,
     });
   }
 
