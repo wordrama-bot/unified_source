@@ -1,7 +1,18 @@
-export type AppearanceTheme = {
+export type ThemeAvailability =
+  | 'free'
+  | 'premium'
+  | 'seasonal'
+  | 'subscription'
+  | 'admin';
+
+export type ThemeMetadata = {
   id: string;
   name: string;
-  premium: boolean;
+  availability: ThemeAvailability;
+};
+
+export type AppearanceTheme = {
+  meta: ThemeMetadata;
 
   app: {
     background: string;
@@ -9,6 +20,18 @@ export type AppearanceTheme = {
     text: string;
     gameSurface: string;
     actionButton: string;
+  };
+
+  surface: {
+    page: string;
+    card: string;
+    elevated: string;
+  };
+
+  button: {
+    primary: string;
+    secondary: string;
+    disabled: string;
   };
 
   board: {
@@ -26,13 +49,48 @@ export type AppearanceTheme = {
     title: string;
     icon: string;
   };
+
+  feedback: {
+    success: string;
+    warning: string;
+    error: string;
+    info: string;
+  };
+
+  overlay: {
+    backdrop: string;
+  };
+
+  border: {
+    default: string;
+    strong: string;
+  };
+};
+
+export const THEME_IDS = {
+  DEFAULT: 'theme.default',
+  MIDNIGHT: 'theme.midnight',
+  ROSE_GOLD: 'theme.rose-gold',
+} as const;
+
+export type ThemeId =
+  (typeof THEME_IDS)[keyof typeof THEME_IDS];
+
+export type OwnedTheme = {
+  themeId: ThemeId;
+};
+
+export type EquippedTheme = {
+  themeId: ThemeId;
 };
 
 export const appearanceThemes: AppearanceTheme[] = [
   {
-    id: 'theme.default',
-    name: 'Default',
-    premium: false,
+    meta: {
+      id: 'theme.default',
+      name: 'Default',
+      availability: 'free',
+    },
 
     app: {
       background: 'bg-background',
@@ -40,6 +98,18 @@ export const appearanceThemes: AppearanceTheme[] = [
       text: 'text-text',
       gameSurface: '',
       actionButton: '',
+    },
+
+    surface: {
+      page: '',
+      card: '',
+      elevated: '',
+    },
+
+    button: {
+      primary: '',
+      secondary: '',
+      disabled: '',
     },
 
     board: {
@@ -58,43 +128,93 @@ export const appearanceThemes: AppearanceTheme[] = [
       title: '',
       icon: '',
     },
+
+    feedback: {
+      success: 'text-green-500',
+      warning: 'text-yellow-500',
+      error: 'text-red-500',
+      info: 'text-blue-500',
+    },
+
+    overlay: {
+      backdrop: 'bg-black/60',
+    },
+
+    border: {
+      default: 'border-slate-300',
+      strong: 'border-slate-600',
+    },
   },
 
   {
-    id: 'theme.midnight',
-    name: 'Midnight',
-    premium: true,
-
-    app: {
-      background: 'bg-[#0d1117]',
-      panel: 'bg-[#161b22] border border-[#30363d]',
-      text: 'text-[#f0f6fc]',
-      gameSurface: 'bg-slate-950/70 border border-slate-700 shadow-2xl',
-      actionButton:
-        'bg-[#1f2937] hover:bg-[#374151] text-[#f8fafc] border border-[#4b5563] shadow-lg',
+    meta: {
+      id: 'theme.midnight',
+      name: 'Midnight',
+      availability: 'free',
     },
 
+    app: {
+      background: 'bg-[#05080d]',
+      panel: 'bg-[#0d1117] border border-[#30363d]',
+      text: 'text-[#f0f6fc]',
+      gameSurface:
+        'bg-[#0b1018]/90 border border-[#30363d] shadow-2xl shadow-black/40',
+      actionButton:
+        'bg-[#161b22] hover:bg-[#21262d] active:bg-[#30363d] text-[#f0f6fc] border border-[#3d444d] shadow-lg shadow-black/30',
+    },
+
+    surface: {
+      page: '',
+      card: '',
+      elevated: '',
+    },
+
+    button: {
+      primary: '',
+      secondary: '',
+      disabled: '',
+    },
+    
     board: {
-      emptyCell: 'bg-[#0d1117] border-[#566274]',
-      filledCell: 'border-[#c9d1d9]',
+      emptyCell: 'bg-[#05080d] border-[#3d444d] text-[#f0f6fc]',
+      filledCell: 'border-[#8b949e] text-[#f0f6fc]',
     },
 
     keyboard: {
-      key: 'bg-[#111827] hover:bg-[#1f2937] active:bg-[#374151] border border-[#374151]',
-      keyText: 'text-[#f8fafc]',
+      key: 'bg-[#0d1117] hover:bg-[#161b22] active:bg-[#21262d] border border-[#30363d]',
+      keyText: 'text-[#f0f6fc]',
     },
 
     modal: {
-      container: 'bg-slate-900 border border-slate-700 text-slate-100',
-      title: 'text-slate-100',
-      icon: 'stroke-slate-100',
+      container:
+        'bg-[#0d1117] border border-[#30363d] text-[#f0f6fc] shadow-2xl shadow-black/40',
+      title: 'text-[#f0f6fc]',
+      icon: 'stroke-[#f0f6fc]',
+    },
+
+    feedback: {
+      success: 'text-green-500',
+      warning: 'text-yellow-500',
+      error: 'text-red-500',
+      info: 'text-blue-500',
+    },
+
+    overlay: {
+      backdrop: 'bg-black/60',
+    },
+
+    border: {
+      default: 'border-slate-300',
+      strong: 'border-slate-600',
     },
   },
 
   {
-    id: 'theme.rose-gold',
-    name: 'Rose Gold',
-    premium: true,
+    meta: {
+      id: 'theme.rose-gold',
+      name: 'Rose Gold',
+      availability: 'free',
+    },
 
     app: {
       background: 'bg-rose-100',
@@ -105,6 +225,18 @@ export const appearanceThemes: AppearanceTheme[] = [
         'bg-rose-200 hover:bg-rose-300 text-rose-950 border border-rose-300 shadow-lg',
     },
 
+    surface: {
+      page: '',
+      card: '',
+      elevated: '',
+    },
+
+    button: {
+      primary: '',
+      secondary: '',
+      disabled: '',
+    },
+    
     board: {
       emptyCell: 'bg-rose-50 border-rose-400',
       filledCell: 'border-rose-700',
@@ -120,12 +252,28 @@ export const appearanceThemes: AppearanceTheme[] = [
       title: '',
       icon: 'stroke-rose-400',
     },
+
+    feedback: {
+      success: 'text-green-500',
+      warning: 'text-yellow-500',
+      error: 'text-red-500',
+      info: 'text-blue-500',
+    },
+
+    overlay: {
+      backdrop: 'bg-black/60',
+    },
+
+    border: {
+      default: 'border-slate-300',
+      strong: 'border-slate-600',
+    },
   },
 ];
 
 export function getAppearanceTheme(themeId?: string): AppearanceTheme {
   return (
-    appearanceThemes.find((theme) => theme.id === themeId) ||
+    appearanceThemes.find((theme) => theme.meta.id === themeId) ||
     appearanceThemes[0]
   );
 }

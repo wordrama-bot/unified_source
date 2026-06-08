@@ -686,6 +686,8 @@ export const {
   useGetMyAccountQuery,
   useCreateAccountMutation,
   useUpdateAccountMutation,
+  useUpdateSettingsMutation,
+  useUpdateStreamerSettingsMutation,
   useDeleteAccountMutation,
   useSubmitWordleResultMutation,
   useSubmitSpellbeeResultMutation,

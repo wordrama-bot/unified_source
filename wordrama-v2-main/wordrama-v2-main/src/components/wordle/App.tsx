@@ -92,8 +92,8 @@ import {
   useGetWordleStreakQuery,
   useGetMyWordPacksQuery,
   useGetMyAllTimeWordleStatsByGameModeQuery,
-  useUpdateAccountMutation,
   useGetMyAccountQuery,
+  useUpdateSettingsMutation,
 } from '../../redux/api/wordrama';
 
 import {
@@ -148,6 +148,7 @@ function App(){
   const streamerMode = gameUiState.streamerModeEnabled ?? false;
   const gameSoundEnabled = gameUiState.gameSoundEnabled ?? true;
   const { refetch: refetchProfile } = useGetMyAccountQuery();
+  const [updateSettings] = useUpdateSettingsMutation();
   const { gameMode, wordLength, wordPack, custom } = gameState;
   const isCustom = gameMode === 'CUSTOM' && custom.solution.length > 0;
   const currentGame = isCustom ? gameState.custom : gameState.modes[gameState.gameMode][gameState.wordPack];
@@ -706,9 +707,13 @@ const [playLoseSoundChristmas] = useSound('/sounds/christmas-lost.mp3', {
 
                 <Select
                   value={gameUiState?.appearanceThemeId || 'theme.default'}
-                  onValueChange={(value) =>
-                    dispatch(setWordleGameUiState({ appearanceThemeId: value }))
-                  }
+                  onValueChange={(value) => {
+                    dispatch(setWordleGameUiState({ appearanceThemeId: value }));
+
+                    updateSettings({
+                      appearanceThemeId: value,
+                    });
+                  }}
                 >
                   <SelectTrigger id="appearanceTheme">
                     <SelectValue placeholder="Select a theme" />
@@ -718,9 +723,12 @@ const [playLoseSoundChristmas] = useSound('/sounds/christmas-lost.mp3', {
                     <SelectGroup>
                       <SelectLabel>Themes</SelectLabel>
                       {appearanceThemes.map((theme) => (
-                        <SelectItem key={theme.id} value={theme.id}>
-                          {theme.name}
-                          {theme.premium ? ' ✨' : ''}
+                        <SelectItem
+                          key={theme.meta.id}
+                          value={theme.meta.id}
+                        >
+                          {theme.meta.name}
+                          {theme.meta.availability !== 'free' ? ' ✨' : ''}
                         </SelectItem>
                       ))}
                     </SelectGroup>
