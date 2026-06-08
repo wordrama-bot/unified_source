@@ -154,13 +154,13 @@ export const appearanceThemes: AppearanceTheme[] = [
     },
 
     app: {
-      background: 'bg-[#05080d]',
-      panel: 'bg-[#0d1117] border border-[#30363d]',
-      text: 'text-[#f0f6fc]',
+      background: 'bg-slate-950',
+      panel: 'bg-slate-950 border border-slate-800',
+      text: 'text-white',
       gameSurface:
-        'bg-[#0b1018]/90 border border-[#30363d] shadow-2xl shadow-black/40',
+        'bg-slate-950 border border-sky-800 shadow-2xl shadow-sky-950/50',
       actionButton:
-        'bg-[#161b22] hover:bg-[#21262d] active:bg-[#30363d] text-[#f0f6fc] border border-[#3d444d] shadow-lg shadow-black/30',
+        'bg-slate-950 hover:bg-slate-800 active:bg-slate-700 text-white border border-white/60 shadow-lg shadow-black/60',
     },
 
     surface: {
@@ -176,20 +176,20 @@ export const appearanceThemes: AppearanceTheme[] = [
     },
     
     board: {
-      emptyCell: 'bg-[#05080d] border-[#3d444d] text-[#f0f6fc]',
-      filledCell: 'border-[#8b949e] text-[#f0f6fc]',
+      emptyCell: 'bg-slate-950 border-sky-500 text-white',
+      filledCell: 'bg-slate-800 border-sky-300 text-white',
     },
 
     keyboard: {
-      key: 'bg-[#0d1117] hover:bg-[#161b22] active:bg-[#21262d] border border-[#30363d]',
-      keyText: 'text-[#f0f6fc]',
+      key: 'bg-slate-800 hover:bg-slate-700 active:bg-slate-600 border border-slate-700',
+      keyText: 'text-white',
     },
 
     modal: {
       container:
-        'bg-[#0d1117] border border-[#30363d] text-[#f0f6fc] shadow-2xl shadow-black/40',
-      title: 'text-[#f0f6fc]',
-      icon: 'stroke-[#f0f6fc]',
+        'bg-[#080c12] border border-white/30 text-white shadow-2xl shadow-black/70',
+      title: 'text-white',
+      icon: 'stroke-white',
     },
 
     feedback: {
@@ -238,8 +238,8 @@ export const appearanceThemes: AppearanceTheme[] = [
     },
     
     board: {
-      emptyCell: 'bg-rose-50 border-rose-400',
-      filledCell: 'border-rose-700',
+      emptyCell: 'bg-[#fff7ed] border-[#d6a58f] text-[#5f2d36]',
+      filledCell: 'bg-[#ffe4e6] border-[#b76e79] text-[#5f2d36]',
     },
 
     keyboard: {

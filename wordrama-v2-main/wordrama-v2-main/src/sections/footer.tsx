@@ -3,9 +3,13 @@
 import Image from 'next/image';
 import Link from 'next/link';
 
-export default function Footer() {
+export default function Footer({
+  className = '',
+}: {
+  className?: string,
+}) {
   return (
-    <footer className="m500:text-sm bg-bg dark:bg-darkBg z-30 px-5 py-5 text-center font-base">
+    <footer className={`m500:text-sm bg-bg dark:bg-darkBg z-30 px-5 py-5 text-center font-base transition-colors ${className}`}>
       © 2023-{new Date().getFullYear()} Wordrama. All rights reserved.
       <br />
 

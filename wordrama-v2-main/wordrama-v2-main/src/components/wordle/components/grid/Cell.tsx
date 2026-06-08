@@ -32,16 +32,21 @@ export const Cell = ({
   const isHighContrast =
     getStoredIsHighContrastMode() || gameUiState?.colorblindMode === true
 
+  const absentCellClasses =
+    appearanceTheme.meta.id === 'theme.midnight'
+      ? 'absent shadowed bg-[#1e293b] text-white border-[#334155]'
+      : 'absent shadowed bg-slate-400 dark:bg-slate-700 text-white border-slate-700 dark:border-slate-700'
+
   const classes = classnames(
     'xxshort:w-11 xxshort:h-11 short:text-2xl short:w-12 short:h-12 w-[56px] h-[56px] border-solid border-2 flex items-center justify-center mx-0.5 text-4xl font-bold rounded dark:text-white',
     {
       [appearanceTheme.board.emptyCell]:
-        !status && !customColour,
+        !value && !status && !customColour,
 
       [appearanceTheme.board.filledCell]:
-        value && !status,
+        value && !status && !customColour,
 
-      'absent shadowed bg-slate-400 dark:bg-slate-700 text-white border-slate-700 dark:border-slate-700':
+      [absentCellClasses]:
         status === 'absent',
 
       'correct shadowed bg-orange-500 text-white border-slate-700':

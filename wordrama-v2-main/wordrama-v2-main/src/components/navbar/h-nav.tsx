@@ -17,14 +17,16 @@ import { showChristmas } from '@/lib/config';
 export default function NavBar({
   links = [],
   isFirstLogin = false,
+  className = '',
 }: {
   links?: { href: string, text: string }[],
-  isFirstLogin?: boolean
+  isFirstLogin?: boolean,
+  className?: string,
 }) {
   const { data: user, error } = useGetMyAccountQuery();
 
   return (
-    <header className="sticky top-0 flex h-16 items-center gap-4 border-b bg-bg dark:bg-darkBg text-text dark:text-darkText dark:border-darkBorder px-4 md:px-6">
+    <header className={`sticky top-0 flex h-16 items-center gap-4 border-b bg-bg dark:bg-darkBg text-current dark:border-darkBorder px-4 md:px-6 transition-colors ${className}`}>
       <nav
         className={`${isFirstLogin || error ? '' : 'hidden'} flex-col gap-6 text-lg font-medium md:flex md:flex-row md:items-center md:gap-5 md:text-sm lg:gap-6`}
       >
@@ -49,7 +51,7 @@ export default function NavBar({
           <Link
             key={`mm-${linkIdx}`}
             href={link.href}
-            className="text-muted-foreground transition-colors hover:text-foreground"
+            className="text-current transition-colors hover:opacity-80"
           >
             {link.text}
           </Link>
@@ -64,7 +66,7 @@ export default function NavBar({
               size="icon"
               className="shrink-0 md:hidden"
             >
-              <Menu className="h-5 w-5 dark:text-darkText" />
+              <Menu className="h-5 w-5 text-current" />
               <span className="sr-only">Toggle navigation menu</span>
             </Button>
           </SheetTrigger>
@@ -93,7 +95,7 @@ export default function NavBar({
               <Link
                 key={`sb-${linkIdx}`}
                 href={link.href}
-                className="text-muted-foreground hover:text-foreground"
+                className="text-current hover:opacity-80"
               >
                 {link.text}
               </Link>
@@ -101,51 +103,51 @@ export default function NavBar({
 
             <Link
               href="/how-to-play"
-              className="text-muted-foreground hover:text-foreground"
+              className="text-current hover:opacity-80"
             >
               How to Play
             </Link>
             <Link
               href="/wordle-strategy"
-              className="text-muted-foreground hover:text-foreground"
+              className="text-current hover:opacity-80"
             >
               Wordle Strategy
             </Link>
             <Link
               href="/best-starting-words"
-              className="text-muted-foreground hover:text-foreground"
+              className="text-current hover:opacity-80"
             >
               Best Starting Words
             </Link>
             <Link
               href="/wordle-tips"
-              className="text-muted-foreground hover:text-foreground"
+              className="text-current hover:opacity-80"
             >
               Wordle Tips
             </Link>
 
             <a
               href="mailto:support@wordrama.io?subject=Wordrama Support Request"
-              className="text-muted-foreground hover:text-foreground"
+              className="text-current hover:opacity-80"
             >
               Contact Us
             </a>
 
             <Link
               href="/privacy-policy"
-              className="text-muted-foreground hover:text-foreground"
+              className="text-current hover:opacity-80"
             >
               Privacy Policy
             </Link>
             <Link
               href="/cookies"
-              className="text-muted-foreground hover:text-foreground"
+              className="text-current hover:opacity-80"
             >
               Cookie Policy
             </Link>
             <Link
               href="/terms-of-use"
-              className="text-muted-foreground hover:text-foreground"
+              className="text-current hover:opacity-80"
             >
               Terms of Use
             </Link>
@@ -157,7 +159,7 @@ export default function NavBar({
         <div className="flex w-full items-center gap-2 md:ml-auto md:gap-1 lg:gap-2">
           <div className="ml-auto flex-1 sm:flex-initial">
             <Link href='/marketplace'>
-              <Coins className="h-5 w-5 text-text dark:text-darkText" />
+              <Coins className="h-5 w-5 text-current" />
             </Link>
           </div>
 
@@ -175,7 +177,7 @@ export default function NavBar({
 
           <div className="ml-4 flex-1 sm:flex-initial">
             <Link href={`/player/${user?.data?.id}`}>
-              <Trophy className="h-5 w-5 text-text dark:text-darkText" />
+              <Trophy className="h-5 w-5 text-current" />
             </Link>
           </div>
 
@@ -197,7 +199,7 @@ export default function NavBar({
                     className="rounded-full"
                   />
                 ) : (
-                  <CircleUser className="h-5 w-5 text-text dark:text-darkText" />
+                  <CircleUser className="h-5 w-5 text-current" />
                 )}
                 <span className="sr-only">Toggle user menu</span>
               </Button>

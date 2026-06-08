@@ -145,6 +145,10 @@ function App(){
 
   const gameSurfaceThemeClasses = appearanceTheme.app.gameSurface
   const gameActionButtonThemeClasses = appearanceTheme.app.actionButton
+  const pageBackgroundThemeClasses =
+    appearanceTheme.app.background
+  const pageTextThemeClasses =
+    appearanceTheme.app.text
 
   const streamerMode = gameUiState.streamerModeEnabled ?? false;
   const gameSoundEnabled = gameUiState.gameSoundEnabled ?? true;
@@ -619,7 +623,9 @@ const [playLoseSoundChristmas] = useSound('/sounds/christmas-lost.mp3', {
 
   if (gameLoading) return <Loader />;
   return (
-    <Div100vh>
+    <Div100vh
+      className={`transition-colors ${pageBackgroundThemeClasses} ${pageTextThemeClasses}`}
+    >
       <TooltipProvider>
         { gameUiState.confettiEnabled && showConfetti ? (
         showChristmas ? (
@@ -627,7 +633,7 @@ const [playLoseSoundChristmas] = useSound('/sounds/christmas-lost.mp3', {
         ) : (
           <Confetti className='w-full' />
         )) : null}
-        <div className="flex h-full flex-col">
+        <div className="flex min-h-full flex-col">
           {/*  Game Settings  */}
           <Button className={`fixed top-20 right-4 ${gameActionButtonThemeClasses}`} variant='default' onClick={e => {
             e.preventDefault();
