@@ -59,14 +59,8 @@ export const Key = ({
         !status && customColour && customColour === 'dark-blue',
       '': !status && customColour && customColour.startsWith('multi'),
 
-      'bg-slate-200 dark:bg-slate-600 hover:bg-slate-300 active:bg-slate-400 dark:text-white':
-        !status && !customColour && appearanceTheme.id === 'theme.default',
-
-      'bg-slate-700 hover:bg-slate-600 active:bg-slate-500 text-slate-100':
-        !status && !customColour && appearanceTheme.id === 'theme.midnight',
-
-      'bg-rose-300 hover:bg-rose-400 active:bg-rose-500 text-rose-950':
-        !status && !customColour && appearanceTheme.id === 'theme.rose-gold',
+      [`${appearanceTheme.keyboard.key} ${appearanceTheme.keyboard.keyText}`]:
+        !status && !customColour,
 
       'bg-slate-400 dark:bg-slate-800 text-white':
         status === 'absent',

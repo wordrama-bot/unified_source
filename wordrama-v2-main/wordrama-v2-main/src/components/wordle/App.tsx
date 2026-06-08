@@ -142,12 +142,8 @@ function App(){
     gameUiState?.appearanceThemeId
   );
 
-  const gameSurfaceThemeClasses =
-    appearanceTheme.id === 'theme.midnight'
-      ? 'bg-slate-950/70 border border-slate-700 shadow-2xl'
-      : appearanceTheme.id === 'theme.rose-gold'
-        ? 'border border-rose-300 shadow-2xl'
-        : ''
+  const gameSurfaceThemeClasses = appearanceTheme.app.gameSurface
+  const gameActionButtonThemeClasses = appearanceTheme.app.actionButton
 
   const streamerMode = gameUiState.streamerModeEnabled ?? false;
   const gameSoundEnabled = gameUiState.gameSoundEnabled ?? true;
@@ -608,7 +604,7 @@ const [playLoseSoundChristmas] = useSound('/sounds/christmas-lost.mp3', {
         )) : null}
         <div className="flex h-full flex-col">
           {/*  Game Settings  */}
-          <Button className='fixed top-20 right-4' variant='default' onClick={e => {
+          <Button className={`fixed top-20 right-4 ${gameActionButtonThemeClasses}`} variant='default' onClick={e => {
             e.preventDefault();
             setIsSettingsModalOpen(!isSettingsModalOpen)
           }}>
@@ -839,7 +835,7 @@ const [playLoseSoundChristmas] = useSound('/sounds/christmas-lost.mp3', {
 
           <Sheet>
             <SheetTrigger>
-              <Button variant='default' className="fixed top-20 left-4">
+              <Button variant='default' className={`fixed top-20 left-4 ${gameActionButtonThemeClasses}`}>
                 <HistoryIcon className='w-6 h-6'/>
               </Button>
             </SheetTrigger>
@@ -908,7 +904,7 @@ const [playLoseSoundChristmas] = useSound('/sounds/christmas-lost.mp3', {
                     setIsStatsModalOpen(!isStatsModalOpen)
                   }}
                   variant="default"
-                  className='fixed top-20 right-24'
+                  className={`fixed top-20 right-24 ${gameActionButtonThemeClasses}`}
                 >
                   <ChartBarIcon className='w-6 h-6' />
                 </Button>
@@ -916,7 +912,7 @@ const [playLoseSoundChristmas] = useSound('/sounds/christmas-lost.mp3', {
               <Link href="/games/wordrama/custom">
                 <Button
                   variant="default"
-                  className='fixed top-20 left-24'
+                  className={`fixed top-20 left-24 ${gameActionButtonThemeClasses}`}
                 >
                   <GamepadIcon className='w-6 h-6' />
                 </Button>
@@ -924,7 +920,7 @@ const [playLoseSoundChristmas] = useSound('/sounds/christmas-lost.mp3', {
             </div>
             {isCustom && (
               <Button
-                className='fixed top-20 right-24'
+                className={`fixed top-20 right-24 ${gameActionButtonThemeClasses}`}
                 onClick={() => {
                   updateGameState({
                     ...currentGame,

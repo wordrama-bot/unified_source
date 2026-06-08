@@ -35,23 +35,11 @@ export const Cell = ({
   const classes = classnames(
     'xxshort:w-11 xxshort:h-11 short:text-2xl short:w-12 short:h-12 w-[56px] h-[56px] border-solid border-2 flex items-center justify-center mx-0.5 text-4xl font-bold rounded dark:text-white',
     {
-      'bg-white dark:bg-[#1c1c1c] border-slate-700 dark:border-slate-600':
-        !status && !customColour && appearanceTheme.id === 'theme.default',
+      [appearanceTheme.board.emptyCell]:
+        !status && !customColour,
 
-      'bg-slate-800 border-slate-500 text-slate-100':
-        !status && !customColour && appearanceTheme.id === 'theme.midnight',
-
-      'bg-rose-50 border-rose-400 text-rose-950':
-        !status && !customColour && appearanceTheme.id === 'theme.rose-gold',
-
-      'border-black dark:border-slate-100':
-        value && !status && appearanceTheme.id === 'theme.default',
-
-      'border-slate-200':
-        value && !status && appearanceTheme.id === 'theme.midnight',
-
-      'border-rose-700':
-        value && !status && appearanceTheme.id === 'theme.rose-gold',
+      [appearanceTheme.board.filledCell]:
+        value && !status,
 
       'absent shadowed bg-slate-400 dark:bg-slate-700 text-white border-slate-700 dark:border-slate-700':
         status === 'absent',

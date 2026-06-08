@@ -7,6 +7,8 @@ export type AppearanceTheme = {
     background: string;
     panel: string;
     text: string;
+    gameSurface: string;
+    actionButton: string;
   };
 
   board: {
@@ -30,6 +32,8 @@ export const appearanceThemes: AppearanceTheme[] = [
       background: 'bg-background',
       panel: 'bg-background',
       text: 'text-text',
+      gameSurface: '',
+      actionButton: '',
     },
 
     board: {
@@ -50,19 +54,22 @@ export const appearanceThemes: AppearanceTheme[] = [
     premium: true,
 
     app: {
-      background: 'bg-slate-950',
-      panel: 'bg-slate-900',
-      text: 'text-slate-100',
+      background: 'bg-[#0d1117]',
+      panel: 'bg-[#161b22] border border-[#30363d]',
+      text: 'text-[#f0f6fc]',
+      gameSurface: 'bg-slate-950/70 border border-slate-700 shadow-2xl',
+      actionButton:
+        'bg-[#1f2937] hover:bg-[#374151] text-[#f8fafc] border border-[#4b5563] shadow-lg',
     },
 
     board: {
-      emptyCell: 'bg-slate-800 border-slate-500',
-      filledCell: 'border-slate-200',
+      emptyCell: 'bg-[#0d1117] border-[#566274]',
+      filledCell: 'border-[#c9d1d9]',
     },
 
     keyboard: {
-      key: 'bg-slate-700 hover:bg-slate-600 active:bg-slate-500',
-      keyText: 'text-slate-100',
+      key: 'bg-[#111827] hover:bg-[#1f2937] active:bg-[#374151] border border-[#374151]',
+      keyText: 'text-[#f8fafc]',
     },
   },
 
@@ -75,6 +82,9 @@ export const appearanceThemes: AppearanceTheme[] = [
       background: 'bg-rose-100',
       panel: 'bg-rose-50',
       text: 'text-rose-950',
+      gameSurface: 'border border-rose-300 shadow-2xl',
+      actionButton:
+        'bg-rose-200 hover:bg-rose-300 text-rose-950 border border-rose-300 shadow-lg',
     },
 
     board: {
