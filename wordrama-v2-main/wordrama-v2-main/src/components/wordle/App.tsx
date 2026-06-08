@@ -15,6 +15,7 @@ import { Grid } from './components/grid/Grid'
 import { Keyboard } from './components/keyboard/Keyboard'
 import { getAppearanceTheme } from '@/config/themes';
 import { appearanceThemes } from '@/config/themes';
+import { KEYBOARD_STYLES, KEYBOARD_STYLE_IDS } from '@/config/keyboardStyles';
 import { InfoModal } from './components/modals/InfoModal'
 import Loader, { Loading } from '../../sections/loading';
 import {
@@ -142,9 +143,6 @@ function App(){
     gameUiState?.appearanceThemeId
   );
 
-  const accountKeyboardStyleId =
-    myAccount?.data?.playerSettings?.keyboardStyleId;
-
   const gameSurfaceThemeClasses = appearanceTheme.app.gameSurface
   const gameActionButtonThemeClasses = appearanceTheme.app.actionButton
 
@@ -212,6 +210,9 @@ function App(){
 	
 	  const accountAppearanceThemeId =
       myAccount?.data?.playerSettings?.appearanceThemeId;
+
+    const accountKeyboardStyleId =
+      myAccount?.data?.playerSettings?.keyboardStyleId;
 
     dispatch(setWordleGameUiState({
       ...gameUiState,
@@ -748,6 +749,36 @@ const [playLoseSoundChristmas] = useSound('/sounds/christmas-lost.mp3', {
                         >
                           {theme.meta.name}
                           {theme.meta.availability !== 'free' ? ' ✨' : ''}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+
+                <Select
+                  value={gameUiState?.keyboardStyleId || KEYBOARD_STYLE_IDS.FLAT}
+                  onValueChange={(value) => {
+                    dispatch(setWordleGameUiState({ keyboardStyleId: value }));
+
+                    updateSettings({
+                      keyboardStyleId: value,
+                    });
+                  }}
+                >
+                  <SelectTrigger id="keyboardStyle">
+                    <SelectValue placeholder="Select a keyboard style" />
+                  </SelectTrigger>
+
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectLabel>Keyboard Styles</SelectLabel>
+                      {Object.values(KEYBOARD_STYLES).map((keyboardStyle) => (
+                        <SelectItem
+                          key={keyboardStyle.meta.id}
+                          value={keyboardStyle.meta.id}
+                        >
+                          {keyboardStyle.meta.name}
+                          {keyboardStyle.meta.availability !== 'free' ? ' ✨' : ''}
                         </SelectItem>
                       ))}
                     </SelectGroup>
