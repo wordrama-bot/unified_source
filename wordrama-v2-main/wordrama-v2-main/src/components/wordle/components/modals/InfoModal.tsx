@@ -3,7 +3,6 @@ import { BaseModal } from './BaseModal'
 
 import { getAppearanceTheme } from '@/config/themes'
 import { getWordleGameUiState } from '@/redux/ui/helpers'
-import { getModalThemeClasses } from '@/config/themeStyles'
 
 type Props = {
   isOpen: boolean
@@ -17,16 +16,14 @@ export const InfoModal = ({ isOpen, handleClose }: Props) => {
     gameUiState?.appearanceThemeId
   )
 
-  const modalThemeClasses = getModalThemeClasses(appearanceTheme.id)
-  
   return (
     <BaseModal
       title="How to play"
       isOpen={isOpen}
       handleClose={handleClose}
-      modalClassName={modalThemeClasses.modal}
-      titleClassName={modalThemeClasses.title}
-      iconClassName={modalThemeClasses.icon}
+      modalClassName={appearanceTheme.modal.container}
+      titleClassName={appearanceTheme.modal.title}
+      iconClassName={appearanceTheme.modal.icon}
     >
       <p className="text-sm text-gray-500 dark:text-gray-300">
         Guess the word in 6 tries. After each guess, the color of the tiles will

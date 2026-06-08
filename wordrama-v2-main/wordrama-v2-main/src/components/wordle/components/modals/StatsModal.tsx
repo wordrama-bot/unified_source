@@ -5,7 +5,6 @@ import { useState } from 'react';
 import { Histogram } from '../stats/Histogram';
 import { getAppearanceTheme } from '@/config/themes'
 import { getWordleGameUiState } from '@/redux/ui/helpers'
-import { getModalThemeClasses } from '@/config/themeStyles'
 
 import {
   CUSTOM_GAME_TITLE,
@@ -70,8 +69,6 @@ export const StatsModal = ({
   const appearanceTheme = getAppearanceTheme(
     gameUiState?.appearanceThemeId
   )
-
-  const modalThemeClasses = getModalThemeClasses(appearanceTheme.id)
 
   function toggleTimeframe() {
     if (statsTimeframe === 'DAILY') return setStatsTimeframe('WEEKLY');
@@ -188,9 +185,9 @@ export const StatsModal = ({
         handleClose={handleClose}
         showTimeframe={!isCustomGame}
         toggleTimeFrame={toggleTimeframe}
-        modalClassName={modalThemeClasses.modal}
-        titleClassName={modalThemeClasses.title}
-        iconClassName={modalThemeClasses.icon}
+        modalClassName={appearanceTheme.modal.container}
+        titleClassName={appearanceTheme.modal.title}
+        iconClassName={appearanceTheme.modal.icon}
       >
       {!isCustomGame && timeframe && timeframe !== modeLabel && (
         <p className="text-sm text-gray-500 dark:text-gray-400 text-center mb-2">

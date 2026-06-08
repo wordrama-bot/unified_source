@@ -9,7 +9,6 @@ import { BaseModal } from './BaseModal'
 import { SettingsToggle } from './SettingsToggle'
 import { getAppearanceTheme } from '@/config/themes'
 import { getWordleGameUiState } from '@/redux/ui/helpers'
-import { getModalThemeClasses } from '@/config/themeStyles'
 
 type Props = {
   isOpen: boolean
@@ -52,16 +51,14 @@ export const SettingsModal = ({
     gameUiState?.appearanceThemeId
   )
 
-  const modalThemeClasses = getModalThemeClasses(appearanceTheme.id)
-
   return (
     <BaseModal
       title="Settings"
       isOpen={isOpen}
       handleClose={handleClose}
-      modalClassName={modalThemeClasses.modal}
-      titleClassName={modalThemeClasses.title}
-      iconClassName={modalThemeClasses.icon}
+      modalClassName={appearanceTheme.modal.container}
+      titleClassName={appearanceTheme.modal.title}
+      iconClassName={appearanceTheme.modal.icon}
     >
       <div className="mt-2 flex flex-col divide-y">
         <SettingsToggle

@@ -20,6 +20,12 @@ export type AppearanceTheme = {
     key: string;
     keyText: string;
   };
+
+  modal: {
+    container: string;
+    title: string;
+    icon: string;
+  };
 };
 
 export const appearanceThemes: AppearanceTheme[] = [
@@ -46,6 +52,12 @@ export const appearanceThemes: AppearanceTheme[] = [
       key: 'bg-slate-200 dark:bg-slate-600',
       keyText: 'dark:text-white',
     },
+
+    modal: {
+      container: '',
+      title: '',
+      icon: '',
+    },
   },
 
   {
@@ -71,6 +83,12 @@ export const appearanceThemes: AppearanceTheme[] = [
       key: 'bg-[#111827] hover:bg-[#1f2937] active:bg-[#374151] border border-[#374151]',
       keyText: 'text-[#f8fafc]',
     },
+
+    modal: {
+      container: 'bg-slate-900 border border-slate-700 text-slate-100',
+      title: 'text-slate-100',
+      icon: 'stroke-slate-100',
+    },
   },
 
   {
@@ -95,6 +113,12 @@ export const appearanceThemes: AppearanceTheme[] = [
     keyboard: {
       key: 'bg-rose-300 hover:bg-rose-400 active:bg-rose-500',
       keyText: 'text-rose-950',
+    },
+
+    modal: {
+      container: 'bg-white border border-rose-300 text-gray-900',
+      title: '',
+      icon: 'stroke-rose-400',
     },
   },
 ];
