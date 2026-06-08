@@ -45,7 +45,8 @@ async function getPlayerByUserId(userId: string) {
           is_dark_mode,
           wordle_word_length,
           is_confetti_enabled,
-          appearance_theme_id
+          appearance_theme_id,
+          keyboard_style_id
         ),
         _streamer_settings (
           hide_name,
