@@ -147,7 +147,7 @@ function App(){
 
   const streamerMode = gameUiState.streamerModeEnabled ?? false;
   const gameSoundEnabled = gameUiState.gameSoundEnabled ?? true;
-  const { refetch: refetchProfile } = useGetMyAccountQuery();
+  const { data: myAccount, refetch: refetchProfile } = useGetMyAccountQuery();
   const [updateSettings] = useUpdateSettingsMutation();
   const { gameMode, wordLength, wordPack, custom } = gameState;
   const isCustom = gameMode === 'CUSTOM' && custom.solution.length > 0;
@@ -202,11 +202,18 @@ function App(){
 	  const wordleUi = uiSavedState?.data?.wordleGame;
 	  if (!wordleUi) return;
 	
-	  dispatch(setWordleGameUiState({
-	    ...gameUiState,
-	    ...wordleUi,
-	  }));
-	}, [uiSavedState, isLoadingUiSavedState, dispatch]);
+	  const accountAppearanceThemeId =
+      myAccount?.data?._playerSettings?.[0]?.appearanceThemeId ||
+      myAccount?.data?.playerSettings?.[0]?.appearanceThemeId;
+
+    dispatch(setWordleGameUiState({
+      ...gameUiState,
+      ...wordleUi,
+      ...(accountAppearanceThemeId
+        ? { appearanceThemeId: accountAppearanceThemeId }
+        : {}),
+    }));
+	}, [uiSavedState, isLoadingUiSavedState, myAccount, dispatch]);
 
   const { data: wordleWordPack, isLoading: isLoadingWordPack, refetch: refetchWordPack  } = useGetWordleWordPackQuery(gameState.wordPack);
   const { data: wordOfTheDay, isLoading: isLoadingWoTD } = useGetWordleWoTDQuery(wordPack);
