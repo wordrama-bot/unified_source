@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const GoogleAd = ({
   client,
@@ -11,9 +11,21 @@ const GoogleAd = ({
 }) => {
   const adRef = useRef(null);
   const initializedRef = useRef(false);
+  const [isUnfilled, setIsUnfilled] = useState(false);
 
   useEffect(() => {
     if (!adRef.current || initializedRef.current) return;
+
+    const observer = new MutationObserver(() => {
+      if (adRef.current?.getAttribute("data-ad-status") === "unfilled") {
+        setIsUnfilled(true);
+      }
+    });
+
+    observer.observe(adRef.current, {
+      attributes: true,
+      attributeFilter: ["data-ad-status"],
+    });
 
     try {
       window.adsbygoogle = window.adsbygoogle || [];
@@ -22,11 +34,15 @@ const GoogleAd = ({
     } catch (e) {
       console.error("AdSense error:", e);
     }
+
+    return () => observer.disconnect();
   }, []);
+
+  if (isUnfilled) return null;
 
   return (
     <div
-      className="w-full overflow-hidden rounded-lg bg-neutral-100 dark:bg-darkBg"
+      className="w-full overflow-hidden rounded-lg bg-transparent"
       style={{ minHeight: `${minHeight}px` }}
       aria-label="Advertisement"
     >
