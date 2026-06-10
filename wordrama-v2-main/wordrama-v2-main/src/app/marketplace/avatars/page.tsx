@@ -5,8 +5,8 @@ import { FilterIcon } from 'lucide-react';
 import { useAuth } from '@/providers/auth-provider';
 import Header from '@/sections/header';
 import Loading from '@/sections/loading';
-
 import NavBar from '@/components/navbar/h-nav';
+import Footer from "@/sections/footer";
 import Product from '@/components/product';
 import {
   Sheet,
@@ -78,8 +78,8 @@ export default function AvatarMarketplacePage() {
   const [ maxCoinPrice, setMaxCoinPrice ] = useState(1000000);
   const [ gameFilter, setGameFilter ] = useState('ALL');
   const [ itemTypeFilter, setItemTypeFilter ] = useState('AVATAR');
-  const [ showPurchased, setShowPurchased ] = useState(false);
-  const [ showUnavailable, setShowUnavailable ] = useState(false);
+  const [ showPurchased, setShowPurchased ] = useState(true);
+  const [ showUnavailable, setShowUnavailable ] = useState(true);
   const [ itemsInCart, addItemToCart ] = useState([] as string[]);
   const [ alertTitle, setAlertTitle ] = useState('');
   const [ alertText, setAlertText ] = useState('');
@@ -115,7 +115,16 @@ export default function AvatarMarketplacePage() {
 
   if (isLoadingStoreItems || isLoadingMyAccount) return <Loading />;
   return (
-    <div className='bg-[linear-gradient(to_right,#80808033_1px,transparent_1px),linear-gradient(to_bottom,#80808033_1px,transparent_1px)] bg-[size:70px_70px]'>
+    <div className='flex min-h-screen w-full flex-col bg-[linear-gradient(to_right,#80808033_1px,transparent_1px),linear-gradient(to_bottom,#80808033_1px,transparent_1px)] bg-[size:70px_70px]'>
+      <NavBar
+        links={[
+          { href: "/games", text: "Games" },
+          { href: "/leaderboard", text: "Leaderboard" },
+          { href: "/marketplace", text: "Marketplace" },
+          { href: "/achievements", text: "Achievements" },
+          { href: "/teams", text: "Teams" },
+        ]}
+      />
       <Header
         showLogo={false}
         heroText='Avatar Marketplace'
@@ -239,9 +248,9 @@ export default function AvatarMarketplacePage() {
       <div className='p-8'>
         { storeItems?.data.length === 0 && (
           <div className="text-center text-xl">
-            No items found.
+            No marketplace items found.
             <br />
-            Try changing the filters.
+            Check back soon for new items.
           </div>
         )}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -272,6 +281,7 @@ export default function AvatarMarketplacePage() {
           })}
         </div>
       </div>
+      <Footer />
     </div>
   )
 }
