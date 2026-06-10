@@ -17,7 +17,7 @@ export default function Layout({
   children
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <MainLayout className=''>
+    <MainLayout className="min-h-0">
       { children }
     </MainLayout>
   )
