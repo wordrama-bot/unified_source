@@ -125,6 +125,7 @@ import { useTheme } from 'next-themes'
 import { useAuth } from '@/providers/auth-provider';
 import { showChristmas } from '@/lib/config';
 import Snowflake from '@/components/Snowflake';
+import GoogleAd from "../GoogleAd";
 
 function App(){
   const { user } = useAuth();
@@ -724,7 +725,7 @@ const [playLoseSoundChristmas] = useSound('/sounds/christmas-lost.mp3', {
                         <InfoIcon className='w-4 h-4'/>
                       </TooltipTrigger>
                       <TooltipContent>
-                        Speed run mode, disables the stats popup after a game
+                        Enable or disable the stats pop-up after a game
                       </TooltipContent>
                     </Tooltip>
                   </Label>
@@ -736,21 +737,45 @@ const [playLoseSoundChristmas] = useSound('/sounds/christmas-lost.mp3', {
                         <InfoIcon className='w-4 h-4'/>
                       </TooltipTrigger>
                       <TooltipContent>
-                        Speed run mode, disables the stats popup after a game
+                        Make the stats pop-up more centered for optimized visuals
                       </TooltipContent>
                     </Tooltip>
                   </Label>
                   <Switch checked={gameUiState.streamerModeEnabled ?? false} onCheckedChange={checked => dispatch(setWordleGameUiState({ streamerModeEnabled: checked }))} />
                   <Label htmlFor="theme" className="text-left">
-                    Dark Mode
+                    <Tooltip>
+                      <TooltipTrigger className="text-left grid grid-cols-2 items-center gap-16">
+                        Dark Mode
+                        <InfoIcon className='w-4 h-4'/>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        Switch between light and dark game visuals
+                      </TooltipContent>
+                    </Tooltip>
                   </Label>
                   <Switch checked={theme === 'dark'} onCheckedChange={checked => setTheme(theme === 'dark' ? 'light' : 'dark')}  />
-		  <Label htmlFor="colorblindMode" className="text-left">
-		    Colorblind Mode
-		  </Label>
-		  <Switch checked={gameUiState.colorblindMode || false} onCheckedChange={checked => handleColorblindModeEnabled(checked)} />
+                  <Label htmlFor="colorblindMode" className="text-left">
+                    <Tooltip>
+                      <TooltipTrigger className="text-left grid grid-cols-2 items-center gap-16">
+                        Colorblind Mode
+                        <InfoIcon className='w-4 h-4'/>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        Change the color scheme for red/green colorblind accessibility
+                      </TooltipContent>
+                    </Tooltip>
+                  </Label>
+                  <Switch checked={gameUiState.colorblindMode || false} onCheckedChange={checked => handleColorblindModeEnabled(checked)} />
                   <Label htmlFor="gameSound" className="text-left">
-                    Game Sound
+                    <Tooltip>
+                      <TooltipTrigger className="text-left grid grid-cols-2 items-center gap-16">
+                        Game Sound
+                        <InfoIcon className='w-4 h-4'/>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        Turn win and loss sounds on or off
+                      </TooltipContent>
+                    </Tooltip>
                   </Label>
                   <Switch checked={gameUiState.gameSoundEnabled ?? true} onCheckedChange={checked => dispatch(setWordleGameUiState({ gameSoundEnabled: checked }))} />
                 </div>
@@ -796,8 +821,8 @@ const [playLoseSoundChristmas] = useSound('/sounds/christmas-lost.mp3', {
             </SheetContent>
           </Sheet>
 
-          <div className="mx-auto flex w-full grow flex-col px-1 pt-20 pb-8 sm:px-6 md:max-w-7xl lg:px-8 short:pb-2 short:pt-2">
-            <div className={`flex flex-col justify-center pb-6 short:pb-2`}>
+          <div className="mx-auto flex w-full flex-col px-1 pt-10 pb-8 sm:px-6 md:max-w-7xl lg:px-8 short:pb-2 short:pt-2">
+            <div className="flex flex-col justify-center pb-4 short:pb-2">
               <Grid
                 solution={isCustom ? gameState.custom.solution : gameState.modes[gameState.gameMode][gameState.wordPack].solution}
                 guesses={isCustom ? gameState.custom.guesses : gameState.modes[gameState.gameMode][gameState.wordPack].guesses || []}
@@ -820,6 +845,17 @@ const [playLoseSoundChristmas] = useSound('/sounds/christmas-lost.mp3', {
               isRevealing={isRevealing}
               swapEnterAndDelete={gameUiState?.swapDeleteAndEnter || false}
             />
+
+            <div className="mx-auto mt-8 mb-10 flex w-full max-w-4xl justify-center">
+              <GoogleAd
+                client="ca-pub-8970369628667981"
+                slot="8219203779"
+                format="auto"
+                responsive="true"
+                minHeight={250}
+              />
+            </div>
+
             <div className='flex justify-center items-center pt-10'>
               { !isCustom && (
                 <Button
