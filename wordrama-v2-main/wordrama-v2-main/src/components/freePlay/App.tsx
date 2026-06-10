@@ -559,17 +559,8 @@ function App(){
             isRevealing={isRevealing}
             swapEnterAndDelete={gameUiState?.swapDeleteAndEnter || false}
           />
-          <div className="mt-6 flex w-full justify-center">
-            <GoogleAd
-              client="ca-pub-8970369628667981"
-              slot="8219203779"
-              format="auto"
-              responsive="true"
-              minHeight={250}
-            />
-          </div>
-
-          <section className="mx-auto mt-10 max-w-4xl rounded-lg border border-border bg-bg/80 p-6 text-text shadow-light dark:border-darkBorder dark:bg-darkBg/80 dark:text-darkText">
+          
+          <section className="mx-auto mt-10 mb-10 max-w-4xl rounded-lg border border-border bg-bg/80 p-6 text-text shadow-light dark:border-darkBorder dark:bg-darkBg/80 dark:text-darkText">
             <h1 className="text-center text-3xl font-bold">
               How to Play Wordrama Free Play
             </h1>
@@ -596,7 +587,7 @@ function App(){
               <div>
                 <h2 className="text-xl font-semibold">Daily vs. Infinite mode</h2>
                 <p className="mt-2">
-                  Daily mode gives everyone you a unique puzzle for the day, while Infinite mode lets you keep practicing with new words. Free Play is a great way to warm up, test strategies, and improve before competing on leaderboards.
+                  Daily mode gives you a unique puzzle for the day, while Infinite mode lets you keep practicing with new words. Free Play is a great way to warm up, test strategies, and improve before competing on leaderboards.
                 </p>
               </div>
 
@@ -614,6 +605,16 @@ function App(){
               </Link>
             </div>
           </section>
+
+          <div className="mt-6 flex w-full justify-center">
+            <GoogleAd
+              client="ca-pub-8970369628667981"
+              slot="8219203779"
+              format="auto"
+              responsive="true"
+              minHeight={250}
+            />
+          </div>
 
           {
             isStatsModalOpen && isSignUpCTA && (              
