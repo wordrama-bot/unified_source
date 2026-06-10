@@ -323,11 +323,13 @@ function PublicHome() {
                 </div>
               </section>
 
-              <div className="mt-10">
+              <div className="mx-auto mt-6 mb-6 flex w-full max-w-4xl justify-center">
                 <GoogleAd
                   client="ca-pub-8970369628667981"
                   slot="8219203779"
-                  minHeight={280}
+                  format="auto"
+                  responsive="true"
+                  minHeight={120}
                 />
               </div>
 
