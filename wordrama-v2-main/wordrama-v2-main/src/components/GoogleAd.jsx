@@ -26,7 +26,7 @@ const GoogleAd = ({
 
   return (
     <div
-      className="w-full overflow-hidden rounded-lg bg-darkBg"
+      className="w-full overflow-hidden rounded-lg bg-neutral-100 dark:bg-darkBg"
       style={{ minHeight: `${minHeight}px` }}
       aria-label="Advertisement"
     >
@@ -36,6 +36,7 @@ const GoogleAd = ({
         style={{
           display: "block",
           minHeight: `${minHeight}px`,
+          backgroundColor: "transparent",
         }}
         data-ad-client={client}
         data-ad-slot={slot}
