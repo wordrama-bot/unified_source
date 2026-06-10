@@ -5,7 +5,6 @@ import useSound from 'use-sound';
 import { default as GraphemeSplitter } from 'grapheme-splitter'
 import { useEffect, useState } from 'react'
 import Confetti from 'react-confetti'
-// import Div100vh from 'react-div-100vh'
 import { useDispatch } from 'react-redux';
 import { isMobile, isTablet } from 'react-device-detect';
 import { wordleWordPackConfig } from '../../lib/config';
