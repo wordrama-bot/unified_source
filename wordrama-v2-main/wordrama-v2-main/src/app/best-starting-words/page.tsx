@@ -155,9 +155,9 @@ export default function BestStartingWordsPage() {
             The best starting words are the ones that help you gather useful information early. There is
             no magic answer that wins every puzzle, but good openers improve your odds and make your solving
             process more efficient. Try a few of these options in Wordrama and see which one fits your style. 
-	    And remember, your favorite method might not work for others. If you watch your favorite Wordle 
-	    streamer on TikTok, be sure to ask them how they like to play before trying to get them to use 
-	    your method. Chances are that they have already heard of it and tried it. Happy playing!
+            And remember, your favorite method might not work for others. If you watch your favorite Wordle 
+            streamer on TikTok, be sure to ask them how they like to play before trying to get them to use 
+            your method. Chances are that they have already heard of it and tried it. Happy playing!
           </p>
           <p className="mt-4">
             Want to test these starters out out? Jump into <a href="/free-play" className="text-blue-500 hover:underline">free play</a> and experiment with different opening words.
@@ -165,19 +165,15 @@ export default function BestStartingWordsPage() {
         </section>
       </div>
 
-      <section className="mt-10">
-        <h2 className="text-2xl font-semibold">
-          Why Starting Words Matter
-        </h2>
-
-        <p className="mt-3 text-gray-300">
+      <section className="my-8">
+        <h2 className="text-2xl font-semibold">Why Starting Words Matter</h2>
+        <p className="mt-4">
           A strong starting word gives you useful information early. The goal is not
           always to guess the answer immediately, but to reveal common letters,
           identify vowels, and eliminate unlikely options. Words with a balanced mix
           of vowels and frequent consonants can make the second guess much easier.
         </p>
-
-        <p className="mt-3 text-gray-300">
+        <p className="mt-4">
           Beginners often focus only on words they hope might be correct. More
           experienced players usually treat the first guess as a scouting move. A
           good opener helps narrow the puzzle quickly, especially when paired with a
@@ -186,20 +182,16 @@ export default function BestStartingWordsPage() {
         </p>
       </section>
 
-      <section className="mt-10">
-        <h2 className="text-2xl font-semibold">
-          Common Starting Word Mistakes
-        </h2>
-
-        <p className="mt-3 text-gray-300">
+      <section className="my-8">
+        <h2 className="text-2xl font-semibold">Common Starting Word Mistakes</h2>
+        <p className="mt-4">
           One common mistake is using a word with repeated letters too early. Repeated
           letters can be useful later, but they usually reveal less information on the
           first turn. Another mistake is ignoring yellow letters. If a letter appears
           in yellow, it belongs in the word, but it needs to be tested in a new
           position.
         </p>
-
-        <p className="mt-3 text-gray-300">
+        <p className="mt-4">
           Strong play comes from combining information across guesses. Green letters
           should usually stay fixed, yellow letters should move to new positions, and
           gray letters should be avoided unless you are testing a very specific word
