@@ -29,6 +29,7 @@ import { useGetReadinessQuery } from '@/redux/api/system';
 import { User } from 'lucide-react';
 import { showChristmas } from '@/lib/config';
 import Snowfall from '@/components/Snowflake';
+import GoogleAd from "@/components/GoogleAd";
 
 // function PublicHome() {
 //   getAppInsights().trackPageView({ name: 'Public Homepage' });
@@ -322,11 +323,20 @@ function PublicHome() {
                 </div>
               </section>
 
+              <div className="mt-10">
+                <GoogleAd
+                  client="ca-pub-8970369628667981"
+                  slot="8219203779"
+                  minHeight={280}
+                />
+              </div>
+
               <section className="my-8 flex flex-col items-center justify-center">
                 <h2 className="text-2xl font-semibold">Join the Wordrama Community</h2>
                 <p className="mt-2 text-center">Wordrama isn’t just a game; it’s a growing community of word lovers and puzzle enthusiasts. Compete with friends, form or join streamer teams, and meet new people through your shared passion for wordplay. With a dedicated leaderboard, you can see how you rank against others, push your skills, and enjoy friendly rivalries. Our unique leveling system keeps track of your achievements and rewards you as you improve, adding a sense of accomplishment and growth to each win.</p>
                 <p className="mt-2 text-center">Whether you’re a casual player or a seasoned word puzzle enthusiast, Wordrama is here to provide hours of challenging, engaging, and social gameplay that’s fun for all ages. Start playing today, and see how Wordrama redefines the word puzzle experience!</p>
               </section>
+
           </div>
         </main>
       <Footer />

@@ -88,6 +88,14 @@ export default function MarketplacePage() {
             </div>
           </div>
 
+          <div className="mt-10">
+            <GoogleAd
+              client="ca-pub-8970369628667981"
+              slot="8219203779"
+              minHeight={280}
+            />
+          </div>
+
           <section className="mt-10 rounded-lg border border-darkBorder bg-darkBg/80 p-6 text-center shadow-dark">
             <h2 className="text-2xl font-bold">Want to access the marketplace?</h2>
             <p className="mx-auto mt-4 max-w-3xl">
