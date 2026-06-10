@@ -5,7 +5,7 @@ import useSound from 'use-sound';
 import { default as GraphemeSplitter } from 'grapheme-splitter'
 import { useEffect, useState } from 'react'
 import Confetti from 'react-confetti'
-import Div100vh from 'react-div-100vh'
+// import Div100vh from 'react-div-100vh'
 import { useDispatch } from 'react-redux';
 import { isMobile, isTablet } from 'react-device-detect';
 import { wordleWordPackConfig } from '../../lib/config';
@@ -584,7 +584,7 @@ const [playLoseSoundChristmas] = useSound('/sounds/christmas-lost.mp3', {
 
   if (gameLoading) return <Loader />;
   return (
-    <Div100vh>
+    <div className="min-h-screen">
       <TooltipProvider>
         { gameUiState.confettiEnabled && showConfetti ? (
         showChristmas ? (
@@ -1071,7 +1071,7 @@ const [playLoseSoundChristmas] = useSound('/sounds/christmas-lost.mp3', {
           </div>
         </div>
       </TooltipProvider>
-    </Div100vh>
+    </div>
   )
 }
 
