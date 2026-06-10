@@ -4,10 +4,41 @@ import PublicNav from "@/components/navbar/public-nav";
 import Footer from "@/sections/footer";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/providers/auth-provider";
+import NavBar from "@/components/navbar/h-nav";
+import MarketplaceCategories from "@/sections/marketplace-categories";
+import GoogleAd from "@/components/GoogleAd";
 //import { getAppInsights } from '@/utils/appInsights';
 
 export default function MarketplacePage() {
   //getAppInsights().trackPageView({ name: 'Marketplace' });
+
+  const { user, session } = useAuth();
+
+  if (user || session) {
+    return (  
+      <div className="flex min-h-screen w-full flex-col border:border bg-bg text-text dark:border-darkBorder dark:bg-darkBg dark:text-darkText">
+        <NavBar
+          links={[
+            { href: "/games", text: "Games" },
+            { href: "/leaderboard", text: "Leaderboard" },
+            { href: "/marketplace", text: "Marketplace" },
+            { href: "/achievements", text: "Achievements" },
+            { href: "/teams", text: "Teams" },
+          ]}
+        />
+        <header className="dark:bg-darkBg inset-0 flex min-h-[30dvh] w-full flex-col items-center justify-center bg-bg bg-[linear-gradient(to_right,#80808033_1px,transparent_1px),linear-gradient(to_bottom,#80808033_1px,transparent_1px)] bg-[size:70px_70px]">
+          <div className="mx-auto w-container max-w-full px-5 text-center">
+            <h1 className="px-5 text-center text-3xl font-heading md:text-4xl lg:text-5xl">
+              Marketplace
+            </h1>
+          </div>
+        </header>
+        <MarketplaceCategories categories={[]} />
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <>

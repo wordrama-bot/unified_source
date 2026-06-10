@@ -2,6 +2,7 @@
 import Link from "next/link";
 import PublicNav from '@/components/navbar/public-nav';
 import Footer from '@/sections/footer';
+import GoogleAd from "@/components/GoogleAd";
 
 export default function WordleStrategyPage() {
   return (

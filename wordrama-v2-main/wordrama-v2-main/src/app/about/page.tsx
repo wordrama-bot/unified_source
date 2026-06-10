@@ -21,6 +21,8 @@ import { User } from 'lucide-react';
 import { showChristmas } from '@/lib/config';
 import Snowfall from '@/components/Snowflake';
 
+import GoogleAd from "@/components/GoogleAd";
+
 export default function AboutPage() {
   const { user } = useAuth();
   //getAppInsights().trackPageView({ name: 'About Page' });
@@ -198,6 +200,15 @@ export default function AboutPage() {
           </div>
         </div>
       </section>
+
+      <div className="mt-10">
+            <GoogleAd
+              client="ca-pub-8970369628667981"
+              slot="8219203779"
+              minHeight={280}
+            />
+      </div>
+      
       <Community />
       <Faq items={[
         { title: 'What is Wordrama?', content: 'Wordrama brings a new twist to the word game community by rebuilding well loved games with a modern style and adding competition. Made by the players for the players.' },
