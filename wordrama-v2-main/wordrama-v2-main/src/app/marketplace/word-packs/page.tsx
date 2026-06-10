@@ -190,7 +190,9 @@
               <>
                 <Separator className='mt-2' />
                 <SheetFooter className='pt-4'>
-                  <Button>Clear basket</Button>
+                  <Button onClick={() => addItemToCart([])}>
+                    Clear basket
+                  </Button>
                   <Button disabled={!hasEnoughCoins} onClick={() => handleCheckoutWithCoins()}>
                     {hasEnoughCoins ? 'Checkout with Coins' : 'Not enough coins'}
                   </Button>
