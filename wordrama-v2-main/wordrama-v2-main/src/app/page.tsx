@@ -70,9 +70,12 @@ function PublicHome() {
   return (
     <>
       <PublicNav links={[
-        { href: '/about', text: 'About' },
-        { href: '/login', text: 'Login' },
-        { href: '/signup', text: 'Sign Up' },
+        { href: "/", text: "Home" },
+        { href: "/free-play", text: "Free Play" },
+        { href: "/marketplace", text: "Marketplace" },
+        { href: "/about", text: "About" },
+        { href: "/login", text: "Login" },
+        { href: "/signup", text: "Sign Up" },
       ]}/>
       <WordleGame />
       <div className="container mx-auto p-4 flex flex-col items-center justify-center">
