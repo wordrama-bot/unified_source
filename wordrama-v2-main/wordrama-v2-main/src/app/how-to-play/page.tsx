@@ -11,6 +11,7 @@ export default function HowToPlayPage() {
         links={[
           { href: "/", text: "Home" },
           { href: "/free-play", text: "Free Play" },
+          { href: "/marketplace", text: "Marketplace" },
           { href: "/about", text: "About" },
           { href: "/signup", text: "Sign Up" },
         ]}

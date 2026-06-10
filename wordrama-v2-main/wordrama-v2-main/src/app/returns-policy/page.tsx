@@ -7,9 +7,11 @@ export default function ReturnPolicyPage() {
     <div className="flex min-h-screen w-full flex-col border:border dark:border-darkBorder bg-bg dark:bg-darkBg text-text dark:text-darkText">
       <NavBar
         links={[
+          { href: "/", text: "Home" },
+          { href: "/free-play", text: "Free Play" },
+          { href: "/marketplace", text: "Marketplace" },
           { href: "/about", text: "About" },
-          { href: "/free-play", text: "Wordle" },
-          { href: "/signup", text: "SignUp" },
+          { href: "/signup", text: "Sign Up" },
         ]}
       />
       <div className="container mx-auto p-4">
