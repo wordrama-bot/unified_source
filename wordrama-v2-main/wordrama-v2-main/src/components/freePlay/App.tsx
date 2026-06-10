@@ -560,9 +560,9 @@ function App(){
             swapEnterAndDelete={gameUiState?.swapDeleteAndEnter || false}
           />
           
-          <section className="mx-auto mt-10 mb-10 max-w-4xl rounded-lg border border-border bg-bg/80 p-6 text-text shadow-light dark:border-darkBorder dark:bg-darkBg/80 dark:text-darkText">
+          <section className="mx-auto mt-10 mb-16 max-w-4xl rounded-lg border border-border bg-bg/80 p-6 text-text shadow-light dark:border-darkBorder dark:bg-darkBg/80 dark:text-darkText">
             <h1 className="text-center text-3xl font-bold">
-              How to Play Wordrama Free Play
+              How to Play Wordrama: Free Play Mode
             </h1>
 
             <p className="mt-4 text-center">
