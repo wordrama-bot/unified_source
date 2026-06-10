@@ -26,7 +26,7 @@ const GoogleAd = ({
 
   return (
     <div
-      className="w-full overflow-hidden"
+      className="w-full overflow-hidden rounded-lg bg-darkBg"
       style={{ minHeight: `${minHeight}px` }}
       aria-label="Advertisement"
     >
