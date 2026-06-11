@@ -1005,6 +1005,15 @@ const [playLoseSoundChristmas] = useSound('/sounds/christmas-lost.mp3', {
                   <DrawerContent className={streamerMode ? 'h-4/5 bg-bg' : 'bg-bg'}>
                   <div className="mx-auto w-full max-w-screen-lg">
                     <DrawerHeader>
+                      <div className="flex justify-center mb-4">
+                        <img
+                          draggable="false"
+                          src="https://utfs.io/f/vieUBZcrouNZQrdaKfbRj7hpV6g4Axl20D3nvSc9I1BEkdqr"
+                          alt="Wordrama Logo"
+                          className="h-16 w-auto object-contain"
+                        />
+                      </div>
+                      
                       <DrawerTitle className="text-center text-4xl">
                         {gameMode === 'DAILY'
                           ? 'Daily Stats'
