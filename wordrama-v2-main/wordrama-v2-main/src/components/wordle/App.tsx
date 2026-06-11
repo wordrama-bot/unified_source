@@ -819,6 +819,15 @@ const [playLoseSoundChristmas] = useSound('/sounds/christmas-lost.mp3', {
               </div>
             </SheetContent>
           </Sheet>
+          
+          <div className="flex justify-center mb-4">
+            <img
+              draggable="false"
+              src="https://utfs.io/f/vieUBZcrouNZQrdaKfbRj7hpV6g4Axl20D3nvSc9I1BEkdqr"
+              alt="Wordrama Logo"
+              className="h-16 w-auto object-contain"
+            />
+          </div>
 
           <div className="mx-auto flex w-full flex-col px-1 pt-10 pb-8 sm:px-6 md:max-w-7xl lg:px-8 short:pb-2 short:pt-2">
             <div className="flex flex-col justify-center pt-6 pb-4 short:pt-2 short:pb-2">
@@ -845,15 +854,6 @@ const [playLoseSoundChristmas] = useSound('/sounds/christmas-lost.mp3', {
               swapEnterAndDelete={gameUiState?.swapDeleteAndEnter || false}
             />
 
-            <div className="flex justify-center mb-4">
-              <img
-                draggable="false"
-                src="https://utfs.io/f/vieUBZcrouNZQrdaKfbRj7hpV6g4Axl20D3nvSc9I1BEkdqr"
-                alt="Wordrama Logo"
-                className="h-16 w-auto object-contain"
-              />
-            </div>
-            
             <div className="mx-auto mt-8 mb-10 flex w-full max-w-4xl justify-center">
               <GoogleAd
                 client="ca-pub-8970369628667981"
