@@ -33,6 +33,15 @@ export default function MarketplacePage() {
               Marketplace
             </h1>
           </div>
+          <div className="mx-auto w-container max-w-full px-5 text-center">
+            <h1 className="px-5 text-center text-3xl font-heading md:text-4xl lg:text-5xl">
+              Wordrama Marketplace
+            </h1>
+            <p className="mx-auto mt-4 max-w-3xl text-lg">
+              Customize your Wordrama experience with unlockable cosmetics,
+              themes, word packs, and player rewards.
+            </p>
+          </div>
         </header>
         <MarketplaceCategories categories={[]} />
         <Footer />
