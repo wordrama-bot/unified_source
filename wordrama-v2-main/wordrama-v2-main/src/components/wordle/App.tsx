@@ -821,7 +821,7 @@ const [playLoseSoundChristmas] = useSound('/sounds/christmas-lost.mp3', {
           </Sheet>
 
           <div className="mx-auto flex w-full flex-col px-1 pt-10 pb-8 sm:px-6 md:max-w-7xl lg:px-8 short:pb-2 short:pt-2">
-            <div className="flex flex-col justify-center pt-4 pb-4 short:pt-2 short:pb-2">
+            <div className="flex flex-col justify-center pt-6 pb-4 short:pt-2 short:pb-2">
               <Grid
                 solution={isCustom ? gameState.custom.solution : gameState.modes[gameState.gameMode][gameState.wordPack].solution}
                 guesses={isCustom ? gameState.custom.guesses : gameState.modes[gameState.gameMode][gameState.wordPack].guesses || []}
