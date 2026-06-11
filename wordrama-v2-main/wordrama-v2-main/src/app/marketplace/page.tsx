@@ -30,16 +30,19 @@ export default function MarketplacePage() {
         <header className="dark:bg-darkBg inset-0 flex min-h-[30dvh] w-full flex-col items-center justify-center bg-bg bg-[linear-gradient(to_right,#80808033_1px,transparent_1px),linear-gradient(to_bottom,#80808033_1px,transparent_1px)] bg-[size:70px_70px]">
           <div className="mx-auto w-container max-w-full px-5 text-center">
             <h1 className="px-5 text-center text-3xl font-heading md:text-4xl lg:text-5xl">
-              Marketplace
+              Wordrama Marketplace
             </h1>
           </div>
           <div className="mx-auto w-container max-w-full px-5 text-center">
-            <h1 className="px-5 text-center text-3xl font-heading md:text-4xl lg:text-5xl">
-              Wordrama Marketplace
-            </h1>
             <p className="mx-auto mt-4 max-w-3xl text-lg">
               Customize your Wordrama experience with unlockable cosmetics,
               themes, word packs, and player rewards.
+            </p>
+            <p className="mt-4">
+              The Wordrama Marketplace is where players personalize their account
+              and unlock new ways to enjoy the game. As Wordrama grows, the
+              marketplace will support cosmetic items, custom avatars, appearance
+              themes, keyboard styles, new word packs, and seasonal rewards.
             </p>
           </div>
         </header>
