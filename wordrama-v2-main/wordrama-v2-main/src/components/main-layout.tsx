@@ -46,7 +46,7 @@ export default function Layout({
           { href: "/teams", text: "Teams" },
         ]}
       />
-      <main className="w-full">
+      <main className="w-full mt-4">
         {children}
       </main>
       <Footer />
