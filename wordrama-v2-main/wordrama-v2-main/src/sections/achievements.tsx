@@ -150,45 +150,51 @@ export default function Achievements() {
         )}
 
         {/* Cards */}
-        {challenges.map((challenge: any, challengeIdx: number) => {
-          const { name, description, coinReward, xpReward, progress } = challenge ?? {};
-	  const status = String(challenge?.status ?? "").toUpperCase();
-          const reward = getRewardText(coinReward, xpReward);
-          const statusLabel = getStatusLabel(status);
-          const numericProgress = Number(progress ?? 0);
+          {challenges.map((challenge: any, challengeIdx: number) => {
+            const name = challenge?.name;
+            const description = challenge?.description;
+            const coinReward = challenge?.coinReward ?? challenge?.coin_reward ?? 0;
+            const xpReward = challenge?.xpReward ?? challenge?.xp_reward ?? 0;
+            const progress = challenge?.progress ?? 0;
+            const challengeId = challenge?.challengeId ?? challenge?.challenge_id ?? challengeIdx;
 
-          return (
-            <div
-              key={`${challenge.challengeId ?? challenge.challenge_id ?? challengeIdx}-${statusFilter}`}
-              className={`${
-                status === "LOCKED" ? "grayscale" : ""
-              } border-2 border-border dark:border-darkBorder shadow-light dark:shadow-dark dark:bg-darkBg flex flex-col gap-3 rounded-base bg-bg p-5`}
-            >
-              <div className="flex items-center justify-between gap-3">
-                <h4 className="mt-2 text-xl font-heading">{name}</h4>
+            const status = String(challenge?.status ?? "").toUpperCase();
+            const reward = getRewardText(coinReward, xpReward);
+            const statusLabel = getStatusLabel(status);
+            const numericProgress = Number(progress ?? 0);
 
-                {statusLabel && (
-                  <span className="border-border text-text dark:border-darkBorder rounded-base border-2 bg-main px-2 py-0.5 text-sm whitespace-nowrap">
-                    {statusLabel}
-                  </span>
-                )}
+            return (
+              <div
+                key={`${challengeId}-${statusFilter}`}
+                className={`${
+                  status === "LOCKED" ? "grayscale" : ""
+                } border-2 border-border dark:border-darkBorder shadow-light dark:shadow-dark dark:bg-darkBg flex flex-col gap-3 rounded-base bg-bg p-5`}
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <h4 className="mt-2 text-xl font-heading">{name}</h4>
+
+                  {statusLabel && (
+                    <span className="border-border text-text dark:border-darkBorder rounded-base border-2 bg-main px-2 py-0.5 text-sm whitespace-nowrap">
+                      {statusLabel}
+                    </span>
+                  )}
+                </div>
+
+                <p>
+                  {description} to earn {reward}
+                </p>
+
+                {status === "IN_PROGRESS" && numericProgress < 100 ? (
+                  <>
+                    <Separator className="mt-4 mb-4" />
+                    <Progress value={numericProgress} className="w-[100%]" />
+                  </>
+                ) : status === "COMPLETE" ? (
+                  <p className="text-center text-6xl">🏆</p>
+                ) : null}
               </div>
-
-              <p>
-                {description} to earn {reward}
-              </p>
-
-              {status === "IN_PROGRESS" && numericProgress < 100 ? (
-                <>
-                  <Separator className="mt-4 mb-4" />
-                  <Progress value={numericProgress} className="w-[100%]" />
-                </>
-              ) : status === "COMPLETE" ? (
-                <p className="text-center text-6xl">🏆</p>
-              ) : null}
-            </div>
-          );
-        })}
+            );
+          })}
       </div>
     </section>
   );

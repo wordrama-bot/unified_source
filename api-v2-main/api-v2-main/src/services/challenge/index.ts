@@ -29,7 +29,8 @@ async function getMyChallenges(playerId: string, statusFilter?: string) {
   let q = db
     .from("_v_challenge_progress")
     .select("*")
-    .eq("player_id", playerId);
+    .eq("player_id", playerId)
+    .neq("challenge_id", "6586c8da-543f-4970-9bb5-e9d924378706");
 
   // Apply filter (ALL means no filter)
   if (rawFilter && rawFilter !== "ALL") {
@@ -59,7 +60,9 @@ async function getAllChallenges(
   offset: number = 0,
   limit: number = 25,
 ) {
-  const { data, error } = await db.from('_challenges').select(
+  const { data, error } = await db
+    .from('_challenges')
+    .select(
     `
         id,
         name,
@@ -70,7 +73,8 @@ async function getAllChallenges(
         coin_reward,
         xp_reward
       `,
-  );
+  )
+  .neq('id', '6586c8da-543f-4970-9bb5-e9d924378706');
 
   if (error) {
     console.error(error);
