@@ -23,10 +23,11 @@ export default function BestStartingWordsPage() {
       <PublicNav
         links={[
           { href: "/", text: "Home" },
-          { href: "/free-play", text: "Free Play" },
+          { href: "/free-play", text: "Quick Play" },
           { href: "/marketplace", text: "Marketplace" },
+          { href: "/achievements", text: "Achievements" },
           { href: "/about", text: "About" },
-          { href: "/signup", text: "Sign Up" },
+          { href: "/signup", text: "Sign Up / In" },
         ]}
       />
 
@@ -161,7 +162,7 @@ export default function BestStartingWordsPage() {
             your method. Chances are that they have already heard of it and tried it. Happy playing!
           </p>
           <p className="mt-4">
-            Want to test these starters out out? Jump into <a href="/free-play" className="text-blue-500 hover:underline">free play</a> and experiment with different opening words.
+            Want to test these starters out out? Jump into <a href="/free-play" className="text-blue-500 hover:underline">Quick Play</a> and experiment with different opening words.
           </p>
         </section>
       </div>

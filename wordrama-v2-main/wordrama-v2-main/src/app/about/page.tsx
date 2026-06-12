@@ -85,10 +85,11 @@ export default function AboutPage() {
         <PublicNav
           links={[
             { href: "/", text: "Home" },
-            { href: "/free-play", text: "Free Play" },
+            { href: "/free-play", text: "Quick Play" },
             { href: "/marketplace", text: "Marketplace" },
+            { href: "/achievements", text: "Achievements" },
             { href: "/about", text: "About" },
-            { href: "/signup", text: "Sign Up" },
+            { href: "/signup", text: "Sign Up / In" },
           ]}
         />
       )}

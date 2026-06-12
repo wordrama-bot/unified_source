@@ -10,10 +10,11 @@ export default function WordleStrategyPage() {
       <PublicNav
         links={[
           { href: "/", text: "Home" },
-          { href: "/free-play", text: "Free Play" },
+          { href: "/free-play", text: "Quick Play" },
           { href: "/marketplace", text: "Marketplace" },
+          { href: "/achievements", text: "Achievements" },
           { href: "/about", text: "About" },
-          { href: "/signup", text: "Sign Up" },
+          { href: "/signup", text: "Sign Up / In" },
         ]}
       />
 
@@ -104,7 +105,7 @@ export default function WordleStrategyPage() {
           <h2 className="text-2xl font-semibold">6. Practice improves pattern recognition</h2>
           <p className="mt-4">
             The more you play, the more familiar you become with common endings, frequent consonant clusters,
-            and vowel patterns. That is why unlimited modes like Wordrama’s free play can be so helpful.
+            and vowel patterns. That is why unlimited modes like Wordrama’s Quick Play can be so helpful.
             Practice teaches you how to recognize traps, avoid bad guesses, and solve puzzles more efficiently.
           </p>
         </section>
@@ -117,7 +118,7 @@ export default function WordleStrategyPage() {
             Over time, these habits will improve your win rate and help you become a more confident player on Wordrama.
           </p>
           <p className="mt-4">
-            Ready to put these tips into practice? Head back to <a href="/free-play" className="text-blue-500 hover:underline">free play</a> and test your strategy.
+            Ready to put these tips into practice? Head back to <a href="/free-play" className="text-blue-500 hover:underline">Quick Play</a> and test your strategy.
           </p>
         </section>
       </div>

@@ -19,14 +19,14 @@ export default function Layout({
     <div className={cn("flex min-h-screen w-full flex-col border:border dark:border-darkBorder bg-bg dark:bg-darkBg text-text dark:text-darkText", className)}>
       <NavBar
         links={[
-          { href: "/login", text: "Login" },
+          { href: "/login", text: "Sign Up / In" },
           { href: "/about", text: "About" },
-          { href: "/free-play", text: "Wordle" },
+          { href: "/free-play", text: "Quick Play" },
         ]}
       />
       <Header
         ctaLink='/login'
-        ctaText='Login'
+        ctaText='Sign Up / In'
         heroText='You must be logged in to access this page'
       />
       <Footer />

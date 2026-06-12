@@ -10,10 +10,11 @@ export default function WordleTipsPage() {
       <PublicNav
         links={[
           { href: "/", text: "Home" },
-          { href: "/free-play", text: "Free Play" },
+          { href: "/free-play", text: "Quick Play" },
           { href: "/marketplace", text: "Marketplace" },
+          { href: "/achievements", text: "Achievements" },
           { href: "/about", text: "About" },
-          { href: "/signup", text: "Sign Up" },
+          { href: "/signup", text: "Sign Up / In" },
         ]}
       />
 
@@ -76,7 +77,7 @@ export default function WordleTipsPage() {
         <section className="my-8">
           <h2 className="text-2xl font-semibold">Tip 6: Practice in unlimited mode</h2>
           <p className="mt-4">
-            Daily puzzles are fun, but unlimited play is where improvement really happens. Free play lets you try
+            Daily puzzles are fun, but unlimited play is where improvement really happens. Quick Play lets you try
             different opening words, experiment with strategy, and learn how to solve unusual patterns without
             risking your daily result.
           </p>
@@ -108,7 +109,7 @@ export default function WordleTipsPage() {
             you plenty of ways to sharpen your skills, so keep playing and keep improving.
           </p>
           <p className="mt-4">
-            Ready for another puzzle? Visit <a href="/free-play" className="text-blue-500 hover:underline">free play</a> and start testing your strategy.
+            Ready for another puzzle? Visit <a href="/free-play" className="text-blue-500 hover:underline">Quick Play</a> and start testing your strategy.
           </p>
         </section>
       </div>

@@ -13,7 +13,7 @@ export default function Footer() {
           <h2 className="font-semibold">Wordrama</h2>
           <div className="mt-3 flex flex-col gap-2">
             <Link className="hover:underline" href="/about">About</Link>
-            <Link className="hover:underline" href="/free-play">Free Play</Link>
+            <Link className="hover:underline" href="/free-play">Quick Play</Link>
           </div>
         </div>
 

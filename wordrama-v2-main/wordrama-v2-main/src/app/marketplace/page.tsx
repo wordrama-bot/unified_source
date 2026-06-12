@@ -57,10 +57,11 @@ export default function MarketplacePage() {
       <PublicNav
         links={[
           { href: "/", text: "Home" },
-          { href: "/free-play", text: "Free Play" },
+          { href: "/free-play", text: "Quick Play" },
           { href: "/marketplace", text: "Marketplace" },
+          { href: "/achievements", text: "Achievements" },
           { href: "/about", text: "About" },
-          { href: "/signup", text: "Sign Up" },
+          { href: "/signup", text: "Sign Up / In" },
         ]}
       />
 
@@ -153,7 +154,7 @@ export default function MarketplacePage() {
               </Link>
               <Link href="/free-play">
                 <Button size="lg" variant="neutral">
-                  Play Free First
+                  Quick Play
                 </Button>
               </Link>
             </div>

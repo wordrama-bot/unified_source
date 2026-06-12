@@ -8,10 +8,10 @@ export default function TermsOfUsePolicyPage() {
       <NavBar
         links={[
           { href: "/", text: "Home" },
-          { href: "/free-play", text: "Free Play" },
+          { href: "/free-play", text: "Quick Play" },
           { href: "/marketplace", text: "Marketplace" },
           { href: "/about", text: "About" },
-          { href: "/signup", text: "Sign Up" },
+          { href: "/signup", text: "Sign Up / In" },
         ]}
       />
       <div className="container mx-auto p-4">

@@ -73,10 +73,11 @@ function PublicHome() {
       <PublicNav
         links={[
           { href: "/", text: "Home" },
-          { href: "/free-play", text: "Free Play" },
+          { href: "/free-play", text: "Quick Play" },
           { href: "/marketplace", text: "Marketplace" },
+          { href: "/achievements", text: "Achievements" },
           { href: "/about", text: "About" },
-          { href: "/signup", text: "Sign Up" },
+          { href: "/signup", text: "Sign Up / In" },
         ]}
       />
         <main className="min-h-screen w-full bg-darkBg text-white">
@@ -87,7 +88,7 @@ function PublicHome() {
               <div className="mt-6 flex flex-wrap items-center justify-center gap-4">
                 <Link href="/free-play">
                   <Button size="lg">
-                    Play Free
+                    Quick Play
                   </Button>
                 </Link>
 
@@ -260,8 +261,8 @@ function PublicHome() {
                     </h3>
 
                     <p className="mt-2 text-gray-300">
-                      Yes. Players can enjoy free daily puzzles, infinite play modes,
-                      and a variety of word game experiences without purchasing a
+                      Yes. Players can enjoy Quick Play with no account, or they can sign up for
+                      free to access a variety of word game experiences without purchasing a
                       subscription. Optional premium features and marketplace content
                       are available for players who want expanded customization and
                       gameplay options.
@@ -342,11 +343,11 @@ function PublicHome() {
           </div>
         </main>
       <Footer />
-      <Link href="/login" aria-label="Log in">
+      <Link href="/login" aria-label="Sign Up or Log in">
         <Button
           size="icon"
           className="fixed left-4 top-20 z-50"
-          aria-label="Log in"
+          aria-label="Sign Up or Log in"
         >
           <User className="stroke-text h-6 w-6 w500:h-4 w500:w-4" />
         </Button>

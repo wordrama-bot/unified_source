@@ -17,8 +17,8 @@ export default function MaintenancePage() {
           //{ href: "/teams", text: "Teams" },
         ] : [
             { href: "/about", text: "About" },
-            { href: "/free-play", text: "Wordle" },
-            { href: "/signup", text: "SignUp" },
+            { href: "/free-play", text: "Quick Play" },
+            { href: "/signup", text: "Sign Up / In" },
           ]
         }
       />
