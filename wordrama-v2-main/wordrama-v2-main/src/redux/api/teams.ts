@@ -14,10 +14,10 @@ export const teamApi = createApi({
     'Teams',
   ],
   endpoints: (builder) => ({
-    getTeamLeaderboard: builder.query<any, number>({
-      query: (page = 1) => {
+    getTeamLeaderboard: builder.query<any, { page?: number; limit?: number }>({
+      query: ({ page = 1, limit = 10 } = {}) => {
         return {
-          url: `/api/v3/team/leaderboard?page=${page}`,
+          url: `/api/v3/team/leaderboard?page=${page}&limit=${limit}`,
           method: "GET",
           headers: {
             "Content-Type": "application/json"

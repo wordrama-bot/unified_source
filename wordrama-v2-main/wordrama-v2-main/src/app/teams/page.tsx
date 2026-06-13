@@ -88,8 +88,13 @@ const Table = ({ data, columns }) => {
 
 export default function TeamLeaderboardPage() {
   //getAppInsights().trackPageView({ name: 'Team Leaderboard' });
-  const serrchParams = useSearchParams();
-  const { data: leaderboard, isLoading, isError } = useGetTeamLeaderboardQuery(Number(serrchParams.get('page') || 1));
+  const searchParams = useSearchParams();
+  const page = Number(searchParams.get('page')) || 1;
+
+  const { data: leaderboard, isLoading, isError } = useGetTeamLeaderboardQuery({
+    page,
+    limit: 10,
+  });
 
   function LeaderboardPagination() {
     return (
