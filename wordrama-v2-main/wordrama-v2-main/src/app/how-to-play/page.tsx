@@ -14,6 +14,7 @@ export default function HowToPlayPage() {
           { href: "/free-play", text: "Quick Play" },
           { href: "/marketplace", text: "Marketplace" },
           { href: "/achievements", text: "Achievements" },
+          { href: "/teams", text: "Teams" },
           { href: "/about", text: "About" },
           { href: "/signup", text: "Sign Up / In" },
         ]}

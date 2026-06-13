@@ -1,6 +1,4 @@
-import MainLayout from '@/components/main-layout';
 import { type Metadata } from "next";
-import { redirect } from 'next/navigation';
 
 export const metadata: Metadata = {
   title: "Teams | Wordrama",
@@ -15,9 +13,5 @@ export const metadata: Metadata = {
 export default function Layout({
   children
 }: Readonly<{ children: React.ReactNode }>) {
-  return (
-    <MainLayout>
-      { children }
-    </MainLayout>
-  )
+  return <>{children}</>;
 }
