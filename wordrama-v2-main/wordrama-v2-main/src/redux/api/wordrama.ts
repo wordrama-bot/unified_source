@@ -536,6 +536,16 @@ export const wordramaApiV3 = createApi({
       providesTags: ["Player"],
     }),
 
+    getMyEntitlements: builder.query<any, void>({
+      query: () => ({
+        url: `/api/v3/player/me/entitlements`,
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+      }),
+      providesTags: ["Player"],
+    }),
+    
     getPublicPlayer: builder.query<any, string>({
       query: (playerId) => ({
         url: `/api/v3/players/by-playerid/${playerId}`,
@@ -702,6 +712,7 @@ export const {
   useGetPublicPlayerSummaryQuery,
   useGetPublicPlayerByUsernameQuery,
   useGetMyAccountQuery,
+  useGetMyEntitlementsQuery,
   useCreateAccountMutation,
   useUpdateAccountMutation,
   useDeleteAccountMutation,
