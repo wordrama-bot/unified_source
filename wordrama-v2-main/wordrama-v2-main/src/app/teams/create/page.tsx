@@ -17,6 +17,8 @@ import {
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { TeamNav } from "@/components/navbar/team";
+import NavBar from "@/components/navbar/h-nav";
+import Footer from "@/sections/footer";
 import { useAuth } from "@/providers/auth-provider";
 import { redirect } from "next/navigation";
 import { useGetTeamByNameQuery, useCreateTeamMutation } from "@/redux/api/teams";
@@ -82,7 +84,16 @@ export default function CreateTeamPage() {
 
   if (teamCreated) return redirect('/teams');
   return (
-    <div className="flex min-h-screen w-full flex-col">
+    <div className="flex min-h-screen w-full flex-col border:border bg-bg text-text dark:border-darkBorder dark:bg-darkBg dark:text-darkText">
+      <NavBar
+        links={[
+          { href: "/games", text: "Games" },
+          { href: "/leaderboard", text: "Leaderboard" },
+          { href: "/marketplace", text: "Marketplace" },
+          { href: "/achievements", text: "Achievements" },
+          { href: "/teams", text: "Teams" },
+        ]}
+      />
       <main className="flex min-h-[calc(100vh_-_theme(spacing.16))] flex-1 flex-col gap-4 bg-muted/40 p-4 md:gap-8 md:p-10">
         <div className="mx-auto grid w-full max-w-6xl gap-2">
           <h1 className="text-3xl text-text dark:text-darkText font-semibold">Create a Team</h1>
@@ -120,6 +131,7 @@ export default function CreateTeamPage() {
           </Card>
         </div>
       </main>
+      <Footer />
     </div>
   )
 }

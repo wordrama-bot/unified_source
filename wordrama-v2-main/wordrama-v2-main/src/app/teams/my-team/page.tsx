@@ -11,7 +11,9 @@ import {
 import { useToast } from "@/components/ui/use-toast";
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import Link from 'next/link';
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from 'next/navigation';
+import Loader from '@/sections/loading';
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
@@ -26,13 +28,14 @@ import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, Pagi
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { TeamNav } from "@/components/navbar/team";
+import NavBar from "@/components/navbar/h-nav";
+import Footer from "@/sections/footer";
 import {
   useGetMyTeamQuery,
   useGetTeamMembersQuery,
   useGetTeamLeaderboardQuery,
   useLeaveTeamMutation
 } from "@/redux/api/teams";
-import { redirect, useSearchParams } from 'next/navigation';
 
 const columnHelper = createColumnHelper();
 
@@ -87,6 +90,7 @@ const Table = ({ data, columns }) => {
 
 export default function TeamPage() {
   //getAppInsights().trackPageView({ name: 'My Team' });
+  const router = useRouter();
   const { toast } = useToast();
   const [ page, setPage ] = useState(1);
   const { data: myTeam, isLoading, isError } = useGetMyTeamQuery();
@@ -180,10 +184,37 @@ export default function TeamPage() {
     )
   }
 
-  if (teamLeft) return redirect('/teams');
-  else if (!myTeam?.data?.vTeams?.teamName || isError) return redirect('/teams');
-  return (
-    <div className="flex min-h-screen w-full flex-col">
+  useEffect(() => {
+    if (isLoading) return;
+
+    if (teamLeft) {
+      router.replace('/teams');
+      return;
+    }
+
+    if (!myTeam?.data?.vTeams?.teamId || isError) {
+      router.replace('/teams');
+      return;
+    }
+
+    router.replace(`/teams/${myTeam.data.vTeams.teamId}`);
+  }, [isLoading, teamLeft, myTeam, isError, router]);
+
+  if (isLoading) return <Loader />;
+
+  return null;
+
+  /*
+    <div className="flex min-h-screen w-full flex-col border:border bg-bg text-text dark:border-darkBorder dark:bg-darkBg dark:text-darkText">
+      <NavBar
+        links={[
+          { href: "/games", text: "Games" },
+          { href: "/leaderboard", text: "Leaderboard" },
+          { href: "/marketplace", text: "Marketplace" },
+          { href: "/achievements", text: "Achievements" },
+          { href: "/teams", text: "Teams" },
+        ]}
+      />
       <main className="flex min-h-[calc(100vh_-_theme(spacing.16))] flex-1 flex-col gap-4 bg-muted/40 p-4 md:gap-8 md:p-10">
         <div className="mx-auto grid w-full max-w-6xl gap-2">
           <h1 className="text-3xl text-text dark:text-darkText font-semibold">Team { myTeam?.data?.vTeams?.teamName }</h1>
@@ -566,6 +597,8 @@ export default function TeamPage() {
           </Tabs>
         </div>
       </main>
+      <Footer />
     </div>
   )
+  */
 }

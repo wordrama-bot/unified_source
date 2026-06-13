@@ -31,7 +31,7 @@ async function getTeamMembersLength(teamId: string) {
 
 async function getTeamByLeader(userId: string) {
   const { data, error } = await db
-    .from('_teams')
+    .from('_mv_team_wordle_stats')
     .select('*')
     .eq('leader', userId)
     .maybeSingle();
@@ -56,7 +56,6 @@ async function getTeamByName(teamName: string) {
     return {};
   }
 
-  // Transform data to match frontend expectations
   if (data) {
     const transformedData = {
       teamId: data.id,
@@ -66,6 +65,7 @@ async function getTeamByName(teamName: string) {
       createdAt: data.created_at,
       inviteCode: data.invite_code,
     };
+
     return changeKeys.camelCase(transformedData, 10);
   }
 
@@ -74,9 +74,9 @@ async function getTeamByName(teamName: string) {
 
 async function getTeamById(teamId: string) {
   const { data, error } = await db
-    .from('_teams')
+    .from('_mv_team_wordle_stats')
     .select('*')
-    .eq('id', teamId)
+    .eq('team_id', teamId)
     .maybeSingle();
 
   if (error) {
@@ -87,12 +87,66 @@ async function getTeamById(teamId: string) {
   // Transform data to match frontend expectations
   if (data) {
     const transformedData = {
-      teamId: data.id,
-      teamName: data.name,
+      teamId: data.team_id,
+      teamName: data.team_name,
       leader: data.leader,
       minimumLevel: data.minimum_level,
       createdAt: data.created_at,
       inviteCode: data.invite_code,
+
+      memberCount: data.member_count,
+      averageLevel: data.average_level,
+      totalCoins: data.total_coins,
+
+      alltimeGamesPlayed: data.alltime_games_played,
+      alltimeGamesWon: data.alltime_games_won,
+      alltimeGamesLost: data.alltime_games_lost,
+      alltimeGamesWonIn_1: data.alltime_games_won_in_1,
+      alltimeGamesWonIn_2: data.alltime_games_won_in_2,
+      alltimeGamesWonIn_3: data.alltime_games_won_in_3,
+      alltimeGamesWonIn_4: data.alltime_games_won_in_4,
+      alltimeGamesWonIn_5: data.alltime_games_won_in_5,
+      alltimeGamesWonIn_6: data.alltime_games_won_in_6,
+
+      dailyGamesPlayed: data.daily_games_played,
+      dailyGamesWon: data.daily_games_won,
+      dailyGamesLost: data.daily_games_lost,
+      dailyGamesWonIn_1: data.daily_games_won_in_1,
+      dailyGamesWonIn_2: data.daily_games_won_in_2,
+      dailyGamesWonIn_3: data.daily_games_won_in_3,
+      dailyGamesWonIn_4: data.daily_games_won_in_4,
+      dailyGamesWonIn_5: data.daily_games_won_in_5,
+      dailyGamesWonIn_6: data.daily_games_won_in_6,
+
+      weeklyGamesPlayed: data.weekly_games_played,
+      weeklyGamesWon: data.weekly_games_won,
+      weeklyGamesLost: data.weekly_games_lost,
+      weeklyGamesWonIn_1: data.weekly_games_won_in_1,
+      weeklyGamesWonIn_2: data.weekly_games_won_in_2,
+      weeklyGamesWonIn_3: data.weekly_games_won_in_3,
+      weeklyGamesWonIn_4: data.weekly_games_won_in_4,
+      weeklyGamesWonIn_5: data.weekly_games_won_in_5,
+      weeklyGamesWonIn_6: data.weekly_games_won_in_6,
+
+      monthlyGamesPlayed: data.monthly_games_played,
+      monthlyGamesWon: data.monthly_games_won,
+      monthlyGamesLost: data.monthly_games_lost,
+      monthlyGamesWonIn_1: data.monthly_games_won_in_1,
+      monthlyGamesWonIn_2: data.monthly_games_won_in_2,
+      monthlyGamesWonIn_3: data.monthly_games_won_in_3,
+      monthlyGamesWonIn_4: data.monthly_games_won_in_4,
+      monthlyGamesWonIn_5: data.monthly_games_won_in_5,
+      monthlyGamesWonIn_6: data.monthly_games_won_in_6,
+
+      yearlyGamesPlayed: data.yearly_games_played,
+      yearlyGamesWon: data.yearly_games_won,
+      yearlyGamesLost: data.yearly_games_lost,
+      yearlyGamesWonIn_1: data.yearly_games_won_in_1,
+      yearlyGamesWonIn_2: data.yearly_games_won_in_2,
+      yearlyGamesWonIn_3: data.yearly_games_won_in_3,
+      yearlyGamesWonIn_4: data.yearly_games_won_in_4,
+      yearlyGamesWonIn_5: data.yearly_games_won_in_5,
+      yearlyGamesWonIn_6: data.yearly_games_won_in_6,
     };
     return changeKeys.camelCase(transformedData, 10);
   }

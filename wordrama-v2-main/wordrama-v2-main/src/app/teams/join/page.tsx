@@ -17,11 +17,15 @@ import {
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { TeamNav } from "@/components/navbar/team";
+import NavBar from "@/components/navbar/h-nav";
+import Footer from "@/sections/footer";
 import { redirect } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useGetTeamByNameQuery, useGetMyTeamQuery, useJoinTeamMutation } from "@/redux/api/teams";
 
 export default function JoinTeamPage() {
   //getAppInsights().trackPageView({ name: 'Join Team' });
+  const router = useRouter();
   const { toast } = useToast();
   const [teamName, setTeamName] = useState('');
   const [teamJoined, setTeamJoined] = useState(false);
@@ -56,20 +60,26 @@ export default function JoinTeamPage() {
         title: 'Success',
         description: 'Team Joined',
       });
+
       setTeamName('');
-      setTeamJoined(true);
+
+      window.location.href = '/teams/my-team';
+
       return;
     }
   }
 
-  if (teamJoined) return redirect('/teams/my-team');
-  
-  else if (!myTeamIsLoading && myTeam?.data?.vTeams?.teamId) {
-    return redirect('/teams/my-team');
-  }
-
   return (
-    <div className="flex min-h-screen w-full flex-col">
+    <div className="flex min-h-screen w-full flex-col border:border bg-bg text-text dark:border-darkBorder dark:bg-darkBg dark:text-darkText">
+      <NavBar
+        links={[
+          { href: "/games", text: "Games" },
+          { href: "/leaderboard", text: "Leaderboard" },
+          { href: "/marketplace", text: "Marketplace" },
+          { href: "/achievements", text: "Achievements" },
+          { href: "/teams", text: "Teams" },
+        ]}
+      />
       <main className="flex min-h-[calc(100vh_-_theme(spacing.16))] flex-1 flex-col gap-4 bg-muted/40 p-4 md:gap-8 md:p-10">
         <div className="mx-auto grid w-full max-w-6xl gap-2">
           <h1 className="text-3xl text-text dark:text-darkText font-semibold">Join a Team</h1>
@@ -107,6 +117,7 @@ export default function JoinTeamPage() {
           </Card>
         </div>
       </main>
+      <Footer />
     </div>
   )
 }
