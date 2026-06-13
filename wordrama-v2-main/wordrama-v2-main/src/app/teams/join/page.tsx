@@ -40,9 +40,14 @@ export default function JoinTeamPage() {
 
     if (error) {
       setTeamJoined(false);
+
+      const message =
+        (error as any)?.data?.message?.replace('Bad Request - ', '') ||
+        'Failed to join team';
+
       return toast({
         title: 'Whoops',
-        description: 'Failed to join team',
+        description: message,
       });
     }
 
@@ -58,7 +63,10 @@ export default function JoinTeamPage() {
   }
 
   if (teamJoined) return redirect('/teams/my-team');
-  else if (!myTeamIsLoading && myTeam) return redirect('/teams/my-team');
+  
+  else if (!myTeamIsLoading && myTeam?.data?.vTeams?.teamId) {
+    return redirect('/teams/my-team');
+  }
 
   return (
     <div className="flex min-h-screen w-full flex-col">
@@ -90,7 +98,7 @@ export default function JoinTeamPage() {
                   handleJoinTeam();
                 }}
               >
-                Send
+                Join Team
               </Button>
             </CardFooter>
           </Card>

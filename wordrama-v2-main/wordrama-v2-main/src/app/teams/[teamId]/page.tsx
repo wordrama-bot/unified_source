@@ -36,7 +36,8 @@ import {
   useGetTeamMembersQuery,
   useGetTeamLeaderboardQuery,
   useLeaveTeamMutation,
-  useGetTeamByIdQuery
+  useGetTeamByIdQuery,
+  useJoinTeamMutation,
 } from "@/redux/api/teams";
 import { redirect, useParams, useSearchParams } from 'next/navigation';
 import Loader, { Loading } from '@/sections/loading';
@@ -103,7 +104,39 @@ export default function TeamPage() {
     isLoading: isLoadingTeamMembers,
     isError: isErrorTeamMembers
   } = useGetTeamMembersQuery({ teamId: teamId || '', page: page });
+  const { toast } = useToast();
+  const { data: currentUserTeam } = useGetMyTeamQuery();
+  const [joinTeam] = useJoinTeamMutation();
 
+  const alreadyOnTeam = !!currentUserTeam?.data?.vTeams?.teamId;
+  const viewedTeamName = myTeam?.data?.teamName;
+
+  async function handleJoinTeam() {
+    if (!viewedTeamName) return;
+
+    const { data, error } = await joinTeam(viewedTeamName);
+
+    if (error) {
+      const message =
+        (error as any)?.data?.message?.replace('Bad Request - ', '') ||
+        'Failed to join team';
+
+      return toast({
+        title: 'Whoops',
+        description: message,
+      });
+    }
+
+    if (data) {
+      toast({
+        title: 'Success',
+        description: `Joined ${viewedTeamName}`,
+      });
+
+      return redirect('/teams/my-team');
+    }
+  }
+  
   function MemberPagination() {
     return (
       <Pagination>
@@ -169,7 +202,17 @@ export default function TeamPage() {
     <div className="flex min-h-screen w-full flex-col">
       <main className="flex min-h-[calc(100vh_-_theme(spacing.16))] flex-1 flex-col gap-4 bg-muted/40 p-4 md:gap-8 md:p-10">
         <div className="mx-auto grid w-full max-w-6xl gap-2">
-          <h1 className="text-3xl text-text dark:text-darkText font-semibold">Team { myTeam?.data?.teamName }</h1>
+          <div className="flex items-center justify-between gap-4">
+            <h1 className="text-3xl text-text dark:text-darkText font-semibold">
+              Team {myTeam?.data?.teamName}
+            </h1>
+
+            {!alreadyOnTeam && viewedTeamName && (
+              <Button onClick={handleJoinTeam}>
+                Join {viewedTeamName}
+              </Button>
+            )}
+          </div>
         </div>
         <div className="mx-auto grid w-full max-w-6xl items-start gap-6 md:grid-cols-[180px_1fr] lg:grid-cols-[250px_1fr]">
           <TeamNav />
