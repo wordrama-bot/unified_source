@@ -197,14 +197,14 @@ async function getTeams(offset: number = 0, limit: number = 10) {
 }
 
 async function getAllTeamsForLeaderboard(
-  orderBy: string = 'name',
+  orderBy: string = 'overall_rank',
   orderDirection: string = 'asc',
   offset: number = 0,
-  limit: number = 5,
+  limit: number = 10,
 ) {
   const { data, error } = await db
-    .from('_teams')
-    .select('id, name, leader, minimum_level, created_at')
+    .from('_v_team_leaderboard')
+    .select('*')
     .order(orderBy, { ascending: orderDirection === 'asc' })
     .range(offset, offset + limit - 1);
 
@@ -213,17 +213,7 @@ async function getAllTeamsForLeaderboard(
     return {};
   }
 
-  // Transform data to match frontend expectations
-  const transformedData = data?.map((team, index) => ({
-    teamId: team.id,
-    teamName: team.name,
-    leader: team.leader,
-    minimumLevel: team.minimum_level,
-    createdAt: team.created_at,
-    overallRank: offset + index + 1, // Calculate rank based on position
-  }));
-
-  return changeKeys.camelCase(transformedData, 10);
+  return changeKeys.camelCase(data, 10);
 }
 
 async function getMyTeam(userId: string) {
