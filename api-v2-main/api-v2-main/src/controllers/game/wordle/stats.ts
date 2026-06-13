@@ -3,11 +3,18 @@ import moment from 'moment';
 import { ApiRequest } from '../../../types';
 import {
   badRequest,
-  notFoundResponse,
   successfulResponse,
 } from '../../../utils/responses';
 
 import statsService from '../../../services/game/wordle/stats';
+
+function emptyStatsResponse(
+  req: ApiRequest,
+  res: Response,
+  message: string,
+) {
+  return successfulResponse(req, res, null, message, 0);
+}
 
 async function getDailyStats(req: ApiRequest, res: Response) {
   let day = new Date().getDate();
@@ -31,15 +38,10 @@ async function getDailyStats(req: ApiRequest, res: Response) {
     month,
     year,
   );
-  if (!stats || stats.length === 0) return notFoundResponse(req, res);
+  if (!stats || Object.keys(stats).length === 0)
+    return emptyStatsResponse(req, res, 'Daily Stats Returned');
 
-  return successfulResponse(
-    req,
-    res,
-    stats,
-    'Daily Stats Returned',
-    stats.length,
-  );
+  return successfulResponse(req, res, stats, 'Daily Stats Returned', 1);
 }
 
 async function getWeeklyStats(req: ApiRequest, res: Response) {
@@ -54,15 +56,11 @@ async function getWeeklyStats(req: ApiRequest, res: Response) {
   }
 
   const stats = await statsService.getPlayerWeeklyStats(req.userId, week, year);
-  if (!stats || stats.length === 0) return notFoundResponse(req, res);
+  
+  if (!stats || Object.keys(stats).length === 0)
+    return emptyStatsResponse(req, res, 'Weekly Stats Returned');
 
-  return successfulResponse(
-    req,
-    res,
-    stats,
-    'Weekly Stats Returned',
-    stats.length,
-  );
+  return successfulResponse(req, res, stats, 'Weekly Stats Returned', 1);
 }
 
 async function getMonthlyStats(req: ApiRequest, res: Response) {
@@ -82,43 +80,28 @@ async function getMonthlyStats(req: ApiRequest, res: Response) {
     year,
   );
 
-  if (!stats || stats.length === 0) return notFoundResponse(req, res);
+  if (!stats || Object.keys(stats).length === 0)
+    return emptyStatsResponse(req, res, 'Monthly Stats Returned');
 
-  return successfulResponse(
-    req,
-    res,
-    stats,
-    'Monthly Stats Returned',
-    stats.length,
-  );
+  return successfulResponse(req, res, stats, 'Monthly Stats Returned', 1);
 }
 
 async function getYearlyStats(req: ApiRequest, res: Response) {
   const year = req.params.year || new Date().getFullYear();
 
   const stats = await statsService.getPlayerYearlyStats(req.userId, year);
-  if (!stats || stats.length === 0) return notFoundResponse(req, res);
+  if (!stats || Object.keys(stats).length === 0)
+    return emptyStatsResponse(req, res, 'Yearly Stats Returned');
 
-  return successfulResponse(
-    req,
-    res,
-    stats,
-    'Yearly Stats Returned',
-    stats.length,
-  );
+  return successfulResponse(req, res, stats, 'Yearly Stats Returned', 1);
 }
 
 async function getAllTimeStats(req: ApiRequest, res: Response) {
   const stats = await statsService.getPlayerAllTimeStats(req.userId);
-  if (!stats || stats.length === 0) return notFoundResponse(req, res);
+  if (!stats || Object.keys(stats).length === 0)
+    return emptyStatsResponse(req, res, 'All Time Stats Returned');
 
-  return successfulResponse(
-    req,
-    res,
-    stats,
-    'All Time Stats Returned',
-    stats.length,
-  );
+  return successfulResponse(req, res, stats, 'All Time Stats Returned', 1);
 }
 
 async function getAllTimeStatsByType(req: ApiRequest, res: Response) {
@@ -130,14 +113,10 @@ async function getAllTimeStatsByType(req: ApiRequest, res: Response) {
     req.userId,
     req.params.type,
   );
-  if (!stats || stats.length === 0) return notFoundResponse(req, res);
-  return successfulResponse(
-    req,
-    res,
-    stats,
-    'All Time Stats Returned',
-    stats.length,
-  );
+  if (!stats || Object.keys(stats).length === 0)
+    return emptyStatsResponse(req, res, 'All Time Stats Returned');
+
+  return successfulResponse(req, res, stats, 'All Time Stats Returned', 1);
 }
 
 export default {
