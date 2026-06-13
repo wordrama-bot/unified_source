@@ -1,12 +1,15 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useAuth } from "@/providers/auth-provider";
 import { useGetMyTeamQuery } from "@/redux/api/teams";
+import { useGetMyEntitlementsQuery } from "@/redux/api/wordrama";
+import { hasEntitlement } from "@/lib/entitlements";
+import { FEATURES } from "@/config/features";
 
 export function TeamNav() {
   const { data: team, isLoading: teamIsLoading, isError } = useGetMyTeamQuery();
-  const { user, role } = useAuth();
   const path = usePathname();
+  const { data: entitlements } = useGetMyEntitlementsQuery();
+  const canCreateTeam = hasEntitlement(entitlements, FEATURES.TEAMS_CREATE);
 
   if (teamIsLoading) return <div>Loading...</div>;
   return (
@@ -44,7 +47,7 @@ export function TeamNav() {
         </Link>
       )*/
       }
-      { !teamIsLoading && !team && role === 'STREAMER' && (
+      {!teamIsLoading && canCreateTeam && !team?.data?.vTeams?.teamId && (
         <Link
           href="/teams/create"
           className={path === '/teams/create' ? 'text-primary font-semibold' : ''}
