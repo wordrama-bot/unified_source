@@ -459,9 +459,23 @@ function Migrate() {
 
 function Authenticated() {
   const { user } = useAuth();
-  const { data: readiness } = useGetReadinessQuery();
-  const { data: myAccount, isLoading, refetch } = useGetPublicPlayerQuery(user?.id);
+  const { data: readiness, isLoading: isReadinessLoading } = useGetReadinessQuery();
+  const {
+    data: myAccount,
+    isLoading,
+    isFetching,
+    error,
+  } = useGetPublicPlayerQuery(user?.id, {
+    skip: !user?.id,
+  });
 
+  if (isReadinessLoading || !readiness) return (
+    <>
+      <Loading />
+      <Footer />
+    </>
+  );
+  
   if (readiness?.status !== 'ok') return (
     <>
       <Header
@@ -473,10 +487,17 @@ function Authenticated() {
     </>
   );
 
+  if (!user?.id || isLoading || isFetching) return (
+    <>
+      <Loading />
+      <Footer />
+    </>
+  );
+
   if (myAccount?.data?.hasMigrated === false) return <Migrate />
     else if (myAccount?.status === 200) return <AuthenticatedHome />
-    else if (myAccount?.status !== 200 && user) return <FirstSetup />
-    else if (myAccount?.status !== 200 && !user) return <PublicHome />
+    else if (error && user) return <FirstSetup />
+    else if (!user) return <PublicHome />
 
   return (
     <>
