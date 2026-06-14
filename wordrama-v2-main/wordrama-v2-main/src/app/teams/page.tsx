@@ -39,6 +39,7 @@ import PublicNav from "@/components/navbar/public-nav";
 import Footer from "@/sections/footer";
 import NavBar from "@/components/navbar/h-nav";
 import { useAuth } from "@/providers/auth-provider";
+import GoogleAd from "@/components/GoogleAd";
 
 const columnHelper = createColumnHelper();
 

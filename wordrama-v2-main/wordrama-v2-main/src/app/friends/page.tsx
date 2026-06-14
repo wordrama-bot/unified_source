@@ -23,6 +23,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { FriendsNav } from "@/components/navbar/friends";
 import { useRemoveFriendMutation, useGetMyFriendsQuery } from "@/redux/api/friends";
+import GoogleAd from "@/components/GoogleAd";
 
 const columnHelper = createColumnHelper();
 

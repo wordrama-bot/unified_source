@@ -46,13 +46,6 @@ export default function Disclaimer() {
             The views and opinions contained in the testimonials belong solely to the individual user and do not reflect our views and opinions. We are not affiliated with users who provide testimonials, and users are not paid or otherwise compensated for their testimonials.          </p>
         </section>
       </div>
-      <div className="mt-10">
-        <GoogleAd
-          client="ca-pub-8970369628667981"
-          slot="8219203779"
-          minHeight={280}
-        />
-      </div>
       <Footer />
     </div>
   );

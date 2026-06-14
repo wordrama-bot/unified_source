@@ -69,13 +69,6 @@ export default function ReturnPolicyPage() {
           </p>
         </section>
       </div>
-      <div className="mt-10">
-        <GoogleAd
-          client="ca-pub-8970369628667981"
-          slot="8219203779"
-          minHeight={280}
-        />
-      </div>
       <Footer />
     </div>
   );
