@@ -314,6 +314,13 @@ export default function TermsOfUsePolicyPage() {
           <p className="mt-4 ml-8">In order to resolve a complaint regarding the Services or to receive further information regarding use of the Services, please contact us at: <a href="mailto:support@wordrama.io" className='text-blue-500 hover:underline'>support@wordrama.io</a></p>
         </section>
       </div>
+      <div className="mt-10">
+        <GoogleAd
+          client="ca-pub-8970369628667981"
+          slot="8219203779"
+          minHeight={280}
+        />
+      </div>
       <Footer />
     </div>
   );

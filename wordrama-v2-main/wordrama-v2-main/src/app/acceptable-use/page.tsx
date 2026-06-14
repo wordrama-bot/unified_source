@@ -11,6 +11,7 @@ export default function AcceptableUsePolicyPage() {
           { href: "/free-play", text: "Quick Play" },
           { href: "/marketplace", text: "Marketplace" },
           { href: "/achievements", text: "Achievements" },
+          { href: "/teams", text: "Teams" },
           { href: "/about", text: "About" },
           { href: "/signup", text: "Sign Up / In" },
         ]}
@@ -200,6 +201,13 @@ export default function AcceptableUsePolicyPage() {
           <h2 className="text-2xl font-semibold">How can you contact us about this policy?</h2>
           <p className="mt-4 ml-8">If you have any further questions or comments or wish to report any problematic Content or Contribution, you may contact us by: <br/>Email: <a href="mailto:support@wordrama.io" className='text-blue-500 hover:underline'>support@wordrama.io</a></p>
         </section>
+      </div>
+      <div className="mt-10">
+        <GoogleAd
+          client="ca-pub-8970369628667981"
+          slot="8219203779"
+          minHeight={280}
+        />
       </div>
       <Footer />
     </div>
