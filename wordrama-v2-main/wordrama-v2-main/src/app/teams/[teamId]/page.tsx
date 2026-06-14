@@ -273,6 +273,11 @@ export default function TeamPage() {
               </Button>
             )}
           </div>
+          <div className="flex items-center justify-between gap-4">
+            <p>
+              Please note that team stats update every 2 hours.
+            </p>
+          </div>
         </div>
         <div className="mx-auto grid w-full max-w-6xl items-start gap-6 md:grid-cols-[180px_1fr] lg:grid-cols-[250px_1fr]">
           <TeamNav />
