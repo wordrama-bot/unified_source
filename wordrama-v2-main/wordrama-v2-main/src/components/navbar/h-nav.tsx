@@ -30,7 +30,7 @@ export default function NavBar({
       >
         <Link
           href="/"
-          className="text-muted-foreground transition-colors hover:text-foreground"
+          className="whitespace-nowrap text-muted-foreground transition-colors hover:text-foreground"
         >
           Dashboard
         </Link>
@@ -39,7 +39,7 @@ export default function NavBar({
           <Link
             key={`mm-${linkIdx}`}
             href={link.href}
-            className="text-muted-foreground transition-colors hover:text-foreground"
+            className="whitespace-nowrap text-muted-foreground transition-colors hover:text-foreground"
           >
             {link.text}
           </Link>
