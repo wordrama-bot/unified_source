@@ -417,9 +417,18 @@ function AuthenticatedHome() {
         }] : [{
           title: 'Wordrama',
           link: '/games/wordrama',
+          image: '/images/games/wordrama.png',
           Icon: Wordle,
-          text: '4-23 letter Daily, Infinite & Custom modes.',
-        }/*,{
+          text: '4-23 letter Daily and Infinite Wordle modes to play solo.',
+          },
+          {
+            title: 'Wordrama Custom',
+            link: '/games/wordrama/custom',
+            image: '/images/games/wordrama-custom.png',
+            Icon: Wordle,
+            text: 'Create a custom Wordle game to play with friends.',
+          }
+          /*,{
           title: 'Spell Bee',
           link: '/games/spellbee',
           Icon: SpellBee,
