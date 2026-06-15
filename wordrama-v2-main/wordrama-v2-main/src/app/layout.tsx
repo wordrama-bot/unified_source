@@ -69,7 +69,7 @@ export default function RootLayout({
         />
         <meta
           property="og:image"
-          content="https://utfs.io/f/vieUBZcrouNZecqr9f6GFUI7HjZNEsYv0gwLPp1f8ory5MSW"
+          content="https://wordrama.io/images/wordrama-logo-letter-large.png"
         />
         <meta property="og:url" content="https://wordrama.io" />
         <meta property="og:type" content="website" />
@@ -90,7 +90,7 @@ export default function RootLayout({
         />
         <meta
           name="twitter:image"
-          content="https://utfs.io/f/vieUBZcrouNZecqr9f6GFUI7HjZNEsYv0gwLPp1f8ory5MSW"
+          content="https://wordrama.io/images/wordrama-logo-letter-large.png"
         />
 
         <script
@@ -101,7 +101,7 @@ export default function RootLayout({
               "@type": "Organization",
               name: "Wordrama",
               url: "https://wordrama.io",
-              logo: "https://utfs.io/f/vieUBZcrouNZrmip0kaZeu5pTQIN4qBcCkAntERPya0X3zbF",
+              logo: "https://wordrama.io/images/wordrama-logo-letter-small.png",
               description:
                 "Wordrama is an online word puzzle and vocabulary game platform featuring daily puzzles, multiplayer gameplay, leaderboards, statistics, and educational word game content."
             }),
@@ -125,19 +125,19 @@ export default function RootLayout({
         <link
           rel="icon"
           type="image/png"
-          href="https://utfs.io/f/vieUBZcrouNZrmip0kaZeu5pTQIN4qBcCkAntERPya0X3zbF"
+          href="/images/wordrama-logo-letter-small.png"
           sizes="96x96"
         />
         <link
           rel="icon"
-          type="image/svg+xml"
-          href="https://utfs.io/f/vieUBZcrouNZc25QPDxBaLH6F1bimkIMgCOGuS2Y7D9TlqQh"
+          type="image/png"
+          href="/images/wordrama-logo-letter-large.png"
         />
         <link rel="shortcut icon" href="/favicon.ico" />
         <link
           rel="apple-touch-icon"
           sizes="180x180"
-          href="https://utfs.io/f/vieUBZcrouNZAQlt9XNmP3TuOXi7nZhtDBRLWH94oYU0IaCq"
+          href="/images/wordrama-logo-letter-small.png"
         />
         <meta name="apple-mobile-web-app-title" content="Wordrama" />
         <link rel="manifest" href="/site.webmanifest" />

@@ -825,7 +825,7 @@ const [playLoseSoundChristmas] = useSound('/sounds/christmas-lost.mp3', {
               <div className="flex justify-center mb-4">
                 <img
                   draggable="false"
-                  src="https://utfs.io/f/vieUBZcrouNZQrdaKfbRj7hpV6g4Axl20D3nvSc9I1BEkdqr"
+                  src="/images/wordrama-logo.png"
                   alt="Wordrama Logo"
                   className="h-16 w-auto object-contain"
                 />
@@ -910,7 +910,7 @@ const [playLoseSoundChristmas] = useSound('/sounds/christmas-lost.mp3', {
                     <div className="flex justify-center mb-4">
                       <img
                         draggable="false"
-                        src="https://utfs.io/f/vieUBZcrouNZQrdaKfbRj7hpV6g4Axl20D3nvSc9I1BEkdqr"
+                        src="/images/wordrama-logo.png"
                         alt="Wordrama Logo"
                         className="h-16 w-auto object-contain"
                       />
@@ -1016,7 +1016,7 @@ const [playLoseSoundChristmas] = useSound('/sounds/christmas-lost.mp3', {
                       <div className="flex justify-center mb-4">
                         <img
                           draggable="false"
-                          src="https://utfs.io/f/vieUBZcrouNZQrdaKfbRj7hpV6g4Axl20D3nvSc9I1BEkdqr"
+                          src="/images/wordrama-logo.png"
                           alt="Wordrama Logo"
                           className="h-16 w-auto object-contain"
                         />

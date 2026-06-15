@@ -67,8 +67,8 @@ export default function NavBar({
               <Image
                 src={
                   showChristmas
-                    ? "https://utfs.io/f/vieUBZcrouNZHgZwgWPc5QTiy9PYrsMqS3jRhEFC148IZDw0"
-                    : "https://utfs.io/f/vieUBZcrouNZQrdaKfbRj7hpV6g4Axl20D3nvSc9I1BEkdqr"
+                    ? "/images/wordrama-logo-christmas.png"
+                    : "/images/wordrama-logo.png"
                 }
                 width={250}
                 height={50}

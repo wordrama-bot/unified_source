@@ -16,7 +16,7 @@ export default function Header({
   ctaText,
   showLogo = true,
   showSocialIcons = false,
-  logo = 'https://utfs.io/f/vieUBZcrouNZQrdaKfbRj7hpV6g4Axl20D3nvSc9I1BEkdqr',
+  logo = '/images/wordrama-logo.png',
   className,
 }: {
   compact?: boolean,
@@ -173,7 +173,7 @@ export function HalloweenHeader({
   ctaText,
   showLogo = true,
   showSocialIcons = false,
-  logo = 'https://utfs.io/f/vieUBZcrouNZQrdaKfbRj7hpV6g4Axl20D3nvSc9I1BEkdqr',
+  logo = '/images/wordrama-logo.png',
   className = 'min-h-[80dvh] dark:bg-darkBg inset-0 flex w-full flex-col items-center justify-center bg-bg bg-[linear-gradient(to_right,#80808033_1px,transparent_1px),linear-gradient(to_bottom,#80808033_1px,transparent_1px)] bg-[size:70px_70px]'
 }: {
   className?: string,

@@ -8,7 +8,7 @@ export default function Snow() {
 
   useEffect(() => {
     const img = new Image();
-    img.src = 'https://utfs.io/f/vieUBZcrouNZ0v5FzHLACMqpHXiGjag7lSdh82fEZBtPoOnT';
+    img.src = '/images/snowflake.png';
     img.onload = () => setSnowflakeImages([img]); // Load image and set it in state
   }, []);
 
