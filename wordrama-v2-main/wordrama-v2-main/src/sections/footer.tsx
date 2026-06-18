@@ -38,7 +38,7 @@ export default function Footer() {
             <Link className="hover:underline" href="/terms-of-use">Terms of Use</Link>
             <Link className="hover:underline" href="/acceptable-use">Acceptable Use</Link>
             <Link className="hover:underline" href="/disclaimer">Disclaimer</Link>
-            <a className="hover:underline" href="mailto:support@wordrama.io?subject=Wordrama Support Request">Contact Us</a>
+            <Link className="hover:underline" href="/contact">Contact Us</Link>
             <button
               type="button"
               className="hover:underline"

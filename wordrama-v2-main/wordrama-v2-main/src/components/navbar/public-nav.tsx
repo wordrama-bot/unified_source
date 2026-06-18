@@ -129,7 +129,7 @@ export default function NavBar({
               </p>
 
               <a
-                href="mailto:support@wordrama.io?subject=Wordrama Support Request"
+                href="/contact"
                 className="text-muted-foreground hover:text-foreground"
               >
                 Contact Us

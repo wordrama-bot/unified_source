@@ -1,4 +1,5 @@
 "use client"
+import Link from "next/link";
 import NavBar from '@/components/navbar/h-nav';
 import Footer from '@/sections/footer';
 
@@ -57,7 +58,7 @@ export default function ShippingPolicyPage() {
           <h2 className="text-2xl font-semibold">Have questions about this policy?</h2>
           <p className="mt-2">If you have any further questions or comments, you may contact us by:</p>
           <ul className="list-disc list-inside mt-2">
-            <li>Email: <a href="mailto:support@wordrama.io" className='text-blue-500 hover:underline'>support@wordrama.io</a></li>
+            <li>Email: <Link href="/contact" className="text-blue-500 hover:underline">support@wordrama.io</Link></li>
           </ul>
         </section>
       </div>

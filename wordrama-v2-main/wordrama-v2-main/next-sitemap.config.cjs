@@ -30,6 +30,7 @@ module.exports = {
     await config.transform(config, '/achievements'),
     await config.transform(config, '/benefits-of-word-games'),
     await config.transform(config, '/best-starting-words'),
+    await config.transform(config, '/contact'),
     await config.transform(config, '/cookies'),
     await config.transform(config, '/disclaimer'),
     await config.transform(config, '/free-play'),
