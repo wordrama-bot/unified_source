@@ -545,6 +545,19 @@ export const wordramaApiV3 = createApi({
       }),
       providesTags: ["Player"],
     }),
+
+    createCheckoutSession: builder.mutation<
+      any,
+      { subscriptionKey: "PLUS" | "CREATOR" }
+    >({
+      query: (body) => ({
+        url: `/api/v3/billing/checkout`,
+        method: "POST",
+        body,
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+      }),
+    }),
     
     getPublicPlayer: builder.query<any, string>({
       query: (playerId) => ({
@@ -713,6 +726,7 @@ export const {
   useGetPublicPlayerByUsernameQuery,
   useGetMyAccountQuery,
   useGetMyEntitlementsQuery,
+  useCreateCheckoutSessionMutation,
   useCreateAccountMutation,
   useUpdateAccountMutation,
   useDeleteAccountMutation,
