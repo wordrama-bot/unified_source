@@ -1,7 +1,8 @@
 import Stripe from 'stripe';
-
+import { db } from '../../models';
 import { STRIPE_PRODUCTS } from '../../config/stripeProducts';
 import { SUBSCRIPTIONS } from '../../config/subscriptions';
+import { SUBSCRIPTION_ENTITLEMENTS } from '../../config/subscriptionEntitlements';
 
 export interface CreateCheckoutSessionRequest {
   playerId: string;
@@ -114,7 +115,99 @@ export async function handleStripeWebhook(
 
   console.log('Stripe webhook received:', event.type);
 
-  return { received: true, eventType: event.type };
+  if (event.type !== 'checkout.session.completed') {
+    return { received: true, ignored: true, eventType: event.type };
+  }
+
+  const session = event.data.object as Stripe.Checkout.Session;
+
+  if (session.mode !== 'subscription') {
+    return { received: true, ignored: true, reason: 'Not subscription mode' };
+  }
+
+  if (session.payment_status !== 'paid') {
+    return { received: true, ignored: true, reason: 'Payment not paid' };
+  }
+
+  const playerId = session.metadata?.playerId;
+  const subscriptionKey = session.metadata?.subscriptionKey;
+  const providerCustomerId =
+    typeof session.customer === 'string' ? session.customer : session.customer?.id;
+  const providerSubscriptionId =
+    typeof session.subscription === 'string'
+      ? session.subscription
+      : session.subscription?.id;
+
+  if (!playerId || !subscriptionKey || !providerCustomerId || !providerSubscriptionId) {
+    return { error: 'Missing required subscription metadata from Stripe session' };
+  }
+
+  const { data, error } = await db
+    .from('_player_subscriptions')
+    .upsert(
+      {
+        player_id: playerId,
+        subscription_key: subscriptionKey,
+        provider: 'STRIPE',
+        provider_customer_id: providerCustomerId,
+        provider_subscription_id: providerSubscriptionId,
+        status: 'ACTIVE',
+        metadata: {
+          checkoutSessionId: session.id,
+          amountTotal: session.amount_total,
+          currency: session.currency,
+        },
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: 'provider,provider_subscription_id' },
+    )
+    .select('*')
+    .maybeSingle();
+
+  if (error) {
+    console.error('Failed to insert subscription entitlements', entitlementError);
+    return { error: 'Failed to save player subscription' };
+  }
+
+  const entitlementKeys =
+    SUBSCRIPTION_ENTITLEMENTS[
+      subscriptionKey as keyof typeof SUBSCRIPTION_ENTITLEMENTS
+    ];
+
+  if (!entitlementKeys?.length) {
+    return { error: 'No entitlements configured for subscription' };
+  }
+
+  const entitlementRows = entitlementKeys.map((entitlementKey) => ({
+    player_id: playerId,
+    entitlement_key: entitlementKey,
+    entitlement_type: 'FEATURE',
+    source_type: 'SUBSCRIPTION',
+    subscription_id: data.id,
+    status: 'ACTIVE',
+    starts_at: new Date().toISOString(),
+    expires_at: null,
+    metadata: {
+      subscriptionKey,
+      provider: 'STRIPE',
+      providerSubscriptionId,
+    },
+  }));
+
+  const { error: entitlementError } = await db
+    .from('_player_entitlements')
+    .insert(entitlementRows);
+
+  if (entitlementError) {
+    console.error('Failed to upsert subscription entitlements', entitlementError);
+    return { error: 'Failed to grant subscription entitlements' };
+  }
+
+  return {
+    received: true,
+    eventType: event.type,
+    subscription: data,
+  };
 }
 
 export async function fulfillOrder() {

@@ -16,7 +16,7 @@ check (
   )
 );
 
-create unique index if not exists uq_player_subscriptions_provider_subscription
-on public._player_subscriptions (provider, provider_subscription_id)
-where provider_subscription_id is not null;
+drop index if exists public.uq_player_subscriptions_provider_subscription;
 
+create unique index if not exists uq_player_subscriptions_provider_subscription
+on public._player_subscriptions (provider, provider_subscription_id);
