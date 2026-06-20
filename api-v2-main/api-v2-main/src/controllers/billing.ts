@@ -39,7 +39,16 @@ async function getCheckoutSession(req: ApiRequest, res: Response) {
 }
 
 async function handleStripeWebhook(req: ApiRequest, res: Response) {
-  return res.status(501).json({ error: 'Stripe webhook handling not implemented' });
+  const result = await billingService.handleStripeWebhook({
+    rawBody: req.body,
+    signature: req.headers['stripe-signature'],
+  });
+
+  if ('error' in result) {
+    return res.status(400).json({ error: result.error });
+  }
+
+  return res.status(200).json({ received: true });
 }
 
 export default {

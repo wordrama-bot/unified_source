@@ -80,8 +80,41 @@ export async function createCheckoutSession(
   };
 }
 
-export async function handleStripeWebhook() {
-  throw new Error('Not implemented');
+export interface HandleStripeWebhookRequest {
+  rawBody: Buffer;
+  signature: string | string[] | undefined;
+}
+
+export async function handleStripeWebhook(
+  request: HandleStripeWebhookRequest,
+) {
+  const stripeSecretKey = process.env.STRIPE_SK;
+  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+
+  if (!stripeSecretKey) return { error: 'Missing Stripe secret key' };
+  if (!webhookSecret) return { error: 'Missing Stripe webhook secret' };
+  if (!request.signature || Array.isArray(request.signature)) {
+    return { error: 'Missing Stripe signature' };
+  }
+
+  const stripe = new Stripe(stripeSecretKey);
+
+  let event;
+
+  try {
+    event = await stripe.webhooks.constructEventAsync(
+      request.rawBody,
+      request.signature,
+      webhookSecret,
+    );
+  } catch (error: any) {
+    console.error('Stripe webhook signature verification failed', error);
+    return { error: error?.message || 'Invalid Stripe webhook signature' };
+  }
+
+  console.log('Stripe webhook received:', event.type);
+
+  return { received: true, eventType: event.type };
 }
 
 export async function fulfillOrder() {
