@@ -6,6 +6,7 @@ import { router as wrappedRouter } from './wrapped';
 import { router as playerRouter } from './player';
 import { router as teamRouter } from './teams';
 import { router as gameRouter } from './game';
+import { router as billingRouter } from './billing';
 import { router as uiRouter } from './ui';
 import { router as leaderboardRouter } from './leaderboard';
 import { router as streamerRouter } from './streamer';
@@ -60,6 +61,8 @@ router.use('/ui', ...authedPlayer, uiRouter);
 router.use('/streamer', ...authedStreamer, streamerRouter);
 
 router.use('/store', ...authedPlayer, storeRouter);
+
+router.use('/billing', ...authedPlayer, billingRouter);
 
 /* ---------------------------------- */
 /* SERVICE TOKEN ONLY ROUTES          */
