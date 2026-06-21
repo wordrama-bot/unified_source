@@ -558,6 +558,15 @@ export const wordramaApiV3 = createApi({
         credentials: "include",
       }),
     }),
+
+    createBillingPortalSession: builder.mutation<any, void>({
+      query: () => ({
+        url: `/api/v3/billing/portal`,
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+      }),
+    }),
     
     getPublicPlayer: builder.query<any, string>({
       query: (playerId) => ({
@@ -727,6 +736,7 @@ export const {
   useGetMyAccountQuery,
   useGetMyEntitlementsQuery,
   useCreateCheckoutSessionMutation,
+  useCreateBillingPortalSessionMutation,
   useCreateAccountMutation,
   useUpdateAccountMutation,
   useDeleteAccountMutation,
