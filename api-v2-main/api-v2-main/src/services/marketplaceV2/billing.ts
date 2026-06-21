@@ -1,5 +1,6 @@
 import Stripe from 'stripe';
 import { db } from '../../models';
+import storeService from '../store';
 import { STRIPE_PRODUCTS } from '../../config/stripeProducts';
 import { SUBSCRIPTIONS } from '../../config/subscriptions';
 import { SUBSCRIPTION_ENTITLEMENTS } from '../../config/subscriptionEntitlements';
@@ -15,6 +16,17 @@ export interface GetCurrentSubscriptionRequest {
 
 export interface CreateBillingPortalSessionRequest {
   playerId: string;
+}
+
+async function processStripePurchase({
+  playerId,
+  itemId,
+}: {
+  playerId: string;
+  itemId: string;
+}) {
+  // Stripe MUST NOT touch coin system
+  return await storeService.grantEntitlementsFromItem(playerId, itemId);
 }
 
 export async function createCheckoutSession(
@@ -472,6 +484,18 @@ export async function handleStripeWebhook(
     )
     .select('*')
     .maybeSingle();
+
+  if (result?.data?.subscriptionKey && result?.data?.playerId) {
+    const { subscriptionKey, playerId } = result.data;
+
+    if (subscriptionKey === 'PLUS') {
+      await storeService.purchaseItemWithCoins(playerId, 'WP-12');
+    }
+
+    if (subscriptionKey === 'CREATOR') {
+      await storeService.purchaseItemWithCoins(playerId, '3d3ff93b-65c1-4d36-a1ac-f2b73433a315');
+    }
+  }
 
   if (error) {
     console.error('Failed to save player subscription', error);

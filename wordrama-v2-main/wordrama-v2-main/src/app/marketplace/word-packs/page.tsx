@@ -38,6 +38,7 @@
   import { Switch } from '@/components/ui/switch';
   import { useGetStoreItemsQuery, useGetPurchasesQuery, useGetMyAccountQuery, usePurchaseItemsWithCoinsMutation } from '@/redux/api/wordrama';
   import { useEffect } from 'react';
+  import { useMarketplaceAccess } from "@/lib/useMarketplaceAccess";
 
   const MARKETPLACE_WORD_PACK_SORT_ORDER: { [key: string]: number } = {
     'ba8671aa-7481-43e5-a1ac-f2b73433a315': 4,
@@ -118,6 +119,7 @@
     const [ purchaseItemsWithCoins ] = usePurchaseItemsWithCoinsMutation();
     const basketSubTotal = !isLoadingStoreItems && storeItems ? storeItems?.data.filter(item => itemsInCart.includes(item.id)).reduce((acc: number, item: any) => acc + item.coinPrice, 0) : 0
     const hasEnoughCoins = myAccount?.data?.ledger?.coinBalance && myAccount?.data?.ledger?.coinBalance >= basketSubTotal;
+    const { subscriptionKey } = useMarketplaceAccess();
 
     async function handleCheckoutWithCoins() {
       const itemsToCheckout = [...itemsInCart];
@@ -281,32 +283,43 @@
             {[...(storeItems?.data || [])]
               .sort((a, b) => getMarketplaceSortOrder(a) - getMarketplaceSortOrder(b))
               .map((item) => {
-              
-              const isCashPrice = false;
-              const subItems = [];
-              const cashPrice = '1';
-              return (
-                <Product
-                  key={item.id}
-                  itemId={item.id}
-                  name={item.name}
-                  type={item.type}
-                  description={item.description}
-                  price={isCashPrice ? cashPrice : item.coinPrice}
-                  isCashPrice={isCashPrice}
-                  isPurchased={item.isPurchased}
-                  subItems={[]}
-                  addItemToCard={() => {
-                    if (!itemsInCart.includes(item.id))
-                    addItemToCart([...itemsInCart, item.id]);
-                  }}
-                  removeItemFromCard={() => {
-                    addItemToCart(itemsInCart.filter((id) => id !== item.id));
-                  }}
-                  isInCart={itemsInCart.includes(item.id)}
-                />
-              );
-            })}
+                const isCashPrice = false;
+
+                const isWordPack = item.type === 'WORD_PACK';
+                const isMegaPack =
+                  item.id === '3d3ff93b-65c1-4d36-902e-3a889c71ac86';
+
+                const isLockedBySubscription =
+                  isWordPack &&
+                  !item.isPurchased &&
+                  subscriptionKey === "FREE";
+
+                const price = isCashPrice ? item.realPrice : item.coinPrice;
+
+                return (
+                  <Product
+                    key={item.id}
+                    itemId={item.id}
+                    name={item.name}
+                    type={item.type}
+                    description={item.description}
+                    price={price}
+                    isCashPrice={isCashPrice}
+                    isPurchased={item.isPurchased}
+                    subItems={[]}
+                    isInCart={itemsInCart.includes(item.id)}
+                    isLocked={isLockedBySubscription}
+                    addItemToCard={() => {
+                      if (!itemsInCart.includes(item.id)) {
+                        addItemToCart([...itemsInCart, item.id]);
+                      }
+                    }}
+                    removeItemFromCard={() => {
+                      addItemToCart(itemsInCart.filter((id) => id !== item.id));
+                    }}
+                  />
+                );
+              })}
           </div>
         </div>
         <Footer />

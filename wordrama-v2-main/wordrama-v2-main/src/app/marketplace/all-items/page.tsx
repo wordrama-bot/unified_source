@@ -18,6 +18,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
+import { useMarketplaceAccess } from "@/lib/useMarketplaceAccess";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -109,6 +110,7 @@ export default function AllItemsMarketplacePage() {
   const [ alertText, setAlertText ] = useState('');
   const [ isProcessingOrder, setIsProcessingOrder] = useState(false);
   const { data: myAccount, error: myAccountError, isLoadingMyAccount } = useGetMyAccountQuery();
+  const { subscriptionKey } = useMarketplaceAccess();
   const { data: storeItems, error: storeItemsError, isLoading: isLoadingStoreItems } = useGetStoreItemsQuery({
     minCoinPrice,
     maxCoinPrice,

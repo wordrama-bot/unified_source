@@ -1,6 +1,6 @@
 "use client"
 //import { getAppInsights } from "@/utils/appInsights";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,10 +11,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Avatar, AvatarFallback, AvatarImage
-} from "@/components/ui/avatar";
-import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { TeamNav } from "@/components/navbar/team";
 import { useAuth } from "@/providers/auth-provider";
@@ -22,7 +18,6 @@ import { redirect } from "next/navigation";
 import { useGetTeamByNameQuery, useCreateTeamMutation } from "@/redux/api/teams";
 
 import {
-  useCreateCheckoutSessionMutation,
   useGetMyEntitlementsQuery,
 } from "@/redux/api/wordrama";
 
@@ -45,8 +40,9 @@ export default function CreateTeamPage() {
   const [teamCreated, setTeamCreated] = useState(false);
   const { data: team, isError } = useGetTeamByNameQuery(teamName);
   const [createTeam] = useCreateTeamMutation();
-  const [createCheckoutSession, { isLoading: checkoutLoading }] =
-    useCreateCheckoutSessionMutation();
+  useEffect(() => {
+    if (teamCreated) redirect('/teams');
+  }, [teamCreated]);
 
   async function handleCreateTeam() {
     if (team?.data?.teamId) return toast({
@@ -81,36 +77,18 @@ export default function CreateTeamPage() {
   }
 
   async function handleUpgradeToCreator() {
-    const { data, error } = await createCheckoutSession({
-      subscriptionKey: "CREATOR",
-    });
-
-    if (error) {
-      const message =
-        (error as any)?.data?.message?.replace("Bad Request - ", "") ||
-        "Failed to start checkout";
-
-      return toast({
-        title: "Whoops",
-        description: message,
-      });
-    }
-
-    const checkoutUrl = data?.data?.checkoutUrl;
-
-    if (!checkoutUrl) {
-      return toast({
-        title: "Whoops",
-        description: "Checkout URL was not returned",
-      });
-    }
-
-    window.location.href = checkoutUrl;
+    window.location.href = "/subscribe";
   }
 
   if (!user) return redirect('/teams');
 
-  if (entitlementsLoading) return null;
+  if (entitlementsLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        Loading...
+      </div>
+    );
+  }
 
   if (!canCreateTeam)
     return (
@@ -129,27 +107,27 @@ export default function CreateTeamPage() {
               <CardHeader>
                 <CardTitle>Upgrade to Wordrama Creator</CardTitle>
                 <CardDescription>
-                  Team creation is included with the Creator plan.
+                  Team creation only available to Wordrama Creator subscribers.
+                  Upgrade to unlock team creation and other creator features.
                 </CardDescription>
               </CardHeader>
 
               <CardContent className="space-y-3">
                 <p className="text-sm text-muted-foreground">
-                  Creator includes everything in Wordrama Plus, plus team creation,
-                  multiple team features, and future community tools for streamers,
-                  teachers, and group leaders.
+                  The Creator subscription tier includes everything in Wordrama Plus,
+                  plus team creation, multiple team joining, and future community
+                  tools for streamers, teachers, and group leaders.
                 </p>
               </CardContent>
 
               <CardFooter className="border-t px-6 py-4">
                 <Button
-                  disabled={checkoutLoading}
                   onClick={(e) => {
                     e.preventDefault();
                     handleUpgradeToCreator();
                   }}
                 >
-                  {checkoutLoading ? "Starting checkout..." : "Upgrade to Creator"}
+                  Unlock Creator
                 </Button>
               </CardFooter>
             </Card>
@@ -158,7 +136,6 @@ export default function CreateTeamPage() {
       </div>
     );
 
-  if (teamCreated) return redirect('/teams');
   return (
     <div className="flex min-h-screen w-full flex-col">
       <main className="flex min-h-[calc(100vh_-_theme(spacing.16))] flex-1 flex-col gap-4 bg-muted/40 p-4 md:gap-8 md:p-10">
@@ -171,7 +148,7 @@ export default function CreateTeamPage() {
             <CardHeader>
               <CardTitle>Create a team</CardTitle>
               <CardDescription>
-                Create a team for your follwers to join
+                Create a team for your followers to join
               </CardDescription>
             </CardHeader>
             <CardContent>

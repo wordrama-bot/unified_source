@@ -11,6 +11,11 @@ import {
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import UserMenuDropDown from "@/components/navbar/user-menu";
 import { useGetMyAccountQuery } from "@/redux/api/wordrama";
+import { useGetMyEntitlementsQuery } from "@/redux/api/wordrama";
+import { useGetCurrentSubscriptionQuery } from "@/redux/api/wordrama";
+import { hasEntitlement } from "@/lib/entitlements";
+import { FEATURES } from "@/config/features";
+import { useMarketplaceAccess } from "@/lib/useMarketplaceAccess";
 
 import { showChristmas } from '@/lib/config';
 
@@ -22,11 +27,32 @@ export default function NavBar({
   isFirstLogin?: boolean
 }) {
   const { data: user, error } = useGetMyAccountQuery();
+  const { data: subscriptionResponse } = useGetCurrentSubscriptionQuery();
+  const currentSubscription =
+    subscriptionResponse?.data?.subscription;
+  const {
+    subscriptionKey,
+    isPlus,
+    isCreator,
+  } = useMarketplaceAccess();
+  const upgradeLabel =
+    isCreator
+      ? "Creator ✓"
+      : isPlus
+        ? "Upgrade to Creator"
+        : "Upgrade";
+  const handleUpgradeClick = () => {
+    if (isCreator) {
+      window.location.href = "/settings/billing";
+    } else {
+      window.location.href = "/subscribe";
+    }
+  };
 
   return (
     <header className="sticky top-0 flex h-16 items-center gap-4 border-b bg-bg dark:bg-darkBg text-text dark:text-darkText dark:border-darkBorder px-4 md:px-6">
       <nav
-        className={`${isFirstLogin || error ? '' : 'hidden'} flex-col gap-6 text-lg font-medium md:flex md:flex-row md:items-center md:gap-5 md:text-sm lg:gap-6`}
+        className={`${!user ? 'hidden' : ''} flex-col gap-6 text-lg font-medium md:flex md:flex-row md:items-center md:gap-5 md:text-sm lg:gap-6`}
       >
         <Link
           href="/"
@@ -186,26 +212,34 @@ export default function NavBar({
             </Link>
           </div>
 
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="secondary" size="icon" className="rounded-full" aria-label="Open user menu">
-                {user?.data?.profileImage ? (
-                  <Image
-                    src={user?.data?.profileImage}
-                    width={64}
-                    height={64}
-                    alt={user?.data?.displayName || "Profile Image"}
-                    className="rounded-full"
-                  />
-                ) : (
-                  <CircleUser className="h-5 w-5 text-text dark:text-darkText" />
-                )}
-                <span className="sr-only">Toggle user menu</span>
-              </Button>
-            </DropdownMenuTrigger>
+          <div className="ml-2">
+            <Button onClick={handleUpgradeClick}>
+              {upgradeLabel}
+            </Button>
+          </div>
 
-            <UserMenuDropDown username={user?.data?.displayName} />
-          </DropdownMenu>
+          <div className="ml-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="secondary" size="icon" className="rounded-full" aria-label="Open user menu">
+                  {user?.data?.profileImage ? (
+                    <Image
+                      src={user?.data?.profileImage}
+                      width={64}
+                      height={64}
+                      alt={user?.data?.displayName || "Profile Image"}
+                      className="rounded-full"
+                    />
+                  ) : (
+                    <CircleUser className="h-5 w-5 text-text dark:text-darkText" />
+                  )}
+                  <span className="sr-only">Toggle user menu</span>
+                </Button>
+              </DropdownMenuTrigger>
+
+              <UserMenuDropDown username={user?.data?.displayName} />
+            </DropdownMenu>
+          </div>
         </div>
       )}
     </header>

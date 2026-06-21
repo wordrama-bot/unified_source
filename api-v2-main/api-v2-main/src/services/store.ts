@@ -175,48 +175,84 @@ async function getItemPrice(itemId: string): Promise<
   };
 }
 
+/**
+ * Expands bundle items into individual purchasable item IDs
+ */
+function expandBundleItemIds(itemId: string): string[] {
+  const MEGA_BUNDLE_ID = '3d3ff93b-65c1-4d36-902e-3a889c71ac86';
+
+  if (itemId !== MEGA_BUNDLE_ID) {
+    return [itemId];
+  }
+
+  return [
+    'ab14511c-f2ac-4b16-a8ef-7cb8ed61a2cc',
+    'db526774-11da-47de-b410-5b47a4168db8',
+    '72215e5b-6638-4388-84bc-55dcd36c0e05',
+    '6e66a620-8e17-4f75-aa0b-1c282aafb9d8',
+    '1d348c05-c51e-4ea3-a888-d4823436704f',
+    '425c96ab-beff-40ef-9774-feb6db135644',
+    '80e197a9-0829-4074-8e85-a88e6e8b7ea0',
+    '1ee2de50-072f-4718-b8ac-7663f3069f2e',
+    'fef67eba-96db-4f5e-8b25-81487a1dbc9d',
+    '3159552d-8c96-4bb5-aafa-ebf36aa5a2c2',
+    'b8c73f14-79ad-4495-9fd9-a4be65d5fcbc',
+    '7f06b10e-d52a-4ae3-b77f-a7e9a7c5e5fb',
+  ];
+}
+
 async function purchaseItemWithCoins(playerId: string, itemId: string) {
-  const storeItemPrice = await getItemPrice(itemId);
-  if (!storeItemPrice) return { error: 'Item not found' };
+  const itemIds = expandBundleItemIds(itemId);
 
-  const { coinBalance: playerBalance } =
-    await ledgerService.getBalance(playerId);
-  if (playerBalance < storeItemPrice?.coinPrice)
-    return { error: 'Insufficient funds' };
+  const results = [];
 
-  const updatedBalance = await ledgerService.changeBalance(
-    playerId,
-    'down',
-    storeItemPrice.coinPrice,
-  );
-  if (!updatedBalance) return { error: 'Failed to update balance' };
+  for (const id of itemIds) {
+    const storeItemPrice = await getItemPrice(id);
+    if (!storeItemPrice) return { error: 'Item not found' };
 
-  const { data: purchased, error: purchaseError } = await db
-    .from('_purchased_items')
-    .insert({
+    const { coinBalance: playerBalance } =
+      await ledgerService.getBalance(playerId);
+
+    if (playerBalance < storeItemPrice.coinPrice)
+      return { error: 'Insufficient funds' };
+
+    const updatedBalance = await ledgerService.changeBalance(
+      playerId,
+      'down',
+      storeItemPrice.coinPrice,
+    );
+
+    if (!updatedBalance)
+      return { error: 'Failed to update balance' };
+
+    await db.from('_purchased_items').insert({
       player_id: playerId,
-      item_id: itemId,
+      item_id: id,
       bought_with_coins: true,
       bought_with_money: false,
       unlocked_with_subscription: false,
-    })
-    .select('id')
-    .maybeSingle();
+    });
 
-  if (purchaseError) {
-    console.error(purchaseError);
-    return { error: 'Failed to purchase item' };
+    await db.from('_player_entitlements').insert({
+      player_id: playerId,
+      entitlement_key: `ITEM:${id}`,
+      source: 'COINS',
+      metadata: { itemId: id },
+    });
+
+    await enqueue([
+      createMessage('PURCHASED_ITEM', {
+        userId: playerId,
+        metadata: {
+          itemId: id,
+        },
+      }),
+    ]);
+
+    results.push({ id });
   }
 
-  await enqueue([
-    createMessage('PURCHASED_ITEM', {
-      userId: playerId,
-      metadata: {
-        itemId,
-      },
-    }),
-  ]);
-  return { data: purchased };
+  return { data: results };
 }
 
 async function purchaseItemsWithCoins(playerId: string, itemIds: string[]) {

@@ -7,6 +7,7 @@ export default function Product({
   subItems = [],
   isPopular = false,
   isPurchased = false,
+  isLocked = false,
   name,
   type,
   description,
@@ -20,6 +21,7 @@ export default function Product({
   subItems: string[]
   isPopular?: boolean
   isPurchased?: boolean
+  isLocked?: boolean
   type: string
   name: string
   description: string
@@ -66,30 +68,37 @@ export default function Product({
           })}
         </ul>
       </div>
-      { !isPurchased && !isInCart && (
+      {isPurchased ? (
+        <Button disabled className="mt-12 w-full">
+          Owned
+        </Button>
+      ) : isLocked ? (
+        <Button disabled className="mt-12 w-full">
+          Upgrade Required
+        </Button>
+      ) : !isInCart ? (
         <Button
           size={isPopular ? 'lg' : 'default'}
           className={cn('mt-12 w-full')}
-          onClick={ e => {
-            e.preventDefault()
+          onClick={(e) => {
+            e.preventDefault();
             addItemToCard(itemId);
           }}
         >
           Add to cart
         </Button>
+      ) : (
+        <Button
+          size={isPopular ? 'lg' : 'default'}
+          className={cn('mt-12 w-full')}
+          onClick={(e) => {
+            e.preventDefault();
+            removeItemFromCard(itemId);
+          }}
+        >
+          Remove from cart
+        </Button>
       )}
-        { !isPurchased && isInCart && (
-          <Button
-            size={isPopular ? 'lg' : 'default'}
-            className={cn('mt-12 w-full')}
-            onClick={ e => {
-              e.preventDefault()
-              removeItemFromCard(itemId);
-            }}
-          >
-            Remove from cart
-          </Button>
-        )}
     </div>
   )
 }

@@ -96,6 +96,14 @@ async function handleStripeWebhook(req: ApiRequest, res: Response) {
     return res.status(400).json({ error: result.error });
   }
 
+  // 🔥 KEY CHANGE: route successful purchases into same pipeline
+  if (result?.data?.itemId && result?.data?.playerId) {
+    await billingService.processStripePurchase({
+      playerId: result.data.playerId,
+      itemId: result.data.itemId,
+    });
+  }
+
   return res.status(200).json({ received: true });
 }
 
