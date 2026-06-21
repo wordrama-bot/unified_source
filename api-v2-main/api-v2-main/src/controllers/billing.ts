@@ -38,6 +38,30 @@ async function getCheckoutSession(req: ApiRequest, res: Response) {
   return res.status(501).json({ error: 'Checkout session lookup not implemented' });
 }
 
+async function createBillingPortalSession(req: ApiRequest, res: Response) {
+  const player = await playerService.getPlayerByUserId(req.userId);
+
+  if (!player || !player?.id) {
+    return notFoundResponse(req, res);
+  }
+
+  const result = await billingService.createBillingPortalSession({
+    playerId: player.id,
+  });
+
+  if ('error' in result) {
+    return badRequest(req, res, result.error);
+  }
+
+  return successfulResponse(
+    req,
+    res,
+    result,
+    'Billing portal session created',
+    1,
+  );
+}
+
 async function handleStripeWebhook(req: ApiRequest, res: Response) {
   const result = await billingService.handleStripeWebhook({
     rawBody: req.body,
@@ -54,5 +78,6 @@ async function handleStripeWebhook(req: ApiRequest, res: Response) {
 export default {
   createCheckoutSession,
   getCheckoutSession,
+  createBillingPortalSession,
   handleStripeWebhook,
 };

@@ -9,6 +9,10 @@ export interface CreateCheckoutSessionRequest {
   subscriptionKey: string;
 }
 
+export interface CreateBillingPortalSessionRequest {
+  playerId: string;
+}
+
 export async function createCheckoutSession(
   request: CreateCheckoutSessionRequest,
 ) {
@@ -246,6 +250,60 @@ async function syncSubscriptionEntitlements(subscription: any) {
     received: true,
     subscription,
   };
+}
+
+export async function createBillingPortalSession(
+  request: CreateBillingPortalSessionRequest,
+) {
+  const { playerId } = request;
+
+  const stripeSecretKey = process.env.STRIPE_SK;
+  if (!stripeSecretKey) {
+    return { error: 'Missing Stripe secret key' };
+  }
+
+  const siteUrl = process.env.SITE_URL;
+  if (!siteUrl) {
+    return { error: 'Missing SITE_URL environment variable' };
+  }
+
+  const { data: subscription, error: subscriptionError } = await db
+    .from('_player_subscriptions')
+    .select('*')
+    .eq('player_id', playerId)
+    .eq('provider', 'STRIPE')
+    .in('status', ['TRIALING', 'ACTIVE', 'PAST_DUE', 'PAUSED'])
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (subscriptionError) {
+    console.error('Failed to find Stripe subscription for billing portal', subscriptionError);
+    return { error: 'Failed to find Stripe subscription' };
+  }
+
+  if (!subscription?.provider_customer_id) {
+    return { error: 'No active Stripe subscription found' };
+  }
+
+  const stripe = new Stripe(stripeSecretKey);
+
+  try {
+    const portalSession = await stripe.billingPortal.sessions.create({
+      customer: subscription.provider_customer_id,
+      return_url: `${siteUrl}/settings/subscription`,
+    });
+
+    return {
+      portalUrl: portalSession.url,
+    };
+  } catch (error: any) {
+    console.error('Stripe billing portal session creation failed', error);
+
+    return {
+      error: error?.message || 'Failed to create billing portal session',
+    };
+  }
 }
 
 export async function handleStripeWebhook(
