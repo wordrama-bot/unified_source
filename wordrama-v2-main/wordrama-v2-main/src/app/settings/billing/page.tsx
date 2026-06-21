@@ -20,8 +20,20 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { SettingsNav } from "@/components/navbar/settings";
+import { useCreateBillingPortalSessionMutation } from "@/redux/api/wordrama";
 
 export default function BillingPage() {
+  const [createBillingPortalSession, { isLoading }] =
+    useCreateBillingPortalSessionMutation();
+
+  const handleManageSubscription = async () => {
+    const result = await createBillingPortalSession().unwrap();
+
+    if (result?.data?.portalUrl) {
+      window.location.href = result.data.portalUrl;
+    }
+  };
+
   return (
     <div className="flex min-h-screen w-full flex-col">
       <main className="flex min-h-[calc(100vh_-_theme(spacing.16))] flex-1 flex-col gap-4 bg-muted/40 p-4 md:gap-8 md:p-10">
@@ -41,7 +53,12 @@ export default function BillingPage() {
               <CardContent>
               </CardContent>
               <CardFooter className="border-t px-6 py-4">
-                <Button>Save</Button>
+                <Button
+                  onClick={handleManageSubscription}
+                  disabled={isLoading}
+                >
+                  {isLoading ? "Loading..." : "Manage Subscription"}
+                </Button>
               </CardFooter>
             </Card>
           </div>
