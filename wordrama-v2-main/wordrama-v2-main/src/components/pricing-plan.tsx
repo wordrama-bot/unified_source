@@ -9,13 +9,19 @@ export default function PricingPlan({
   description,
   price,
   isCurrentPlan = false,
+  onSubscribe,
+  isLoading = false,
+  buttonText = "Subscribe",
 }: {
   perks: string[]
   mostPopular?: boolean
   planName: string
   description: string
-  price: string,
+  price: string
   isCurrentPlan?: boolean
+    onSubscribe?: () => void
+  isLoading?: boolean
+  buttonText?: string
 }) {
   return (
     <div className="border-border dark:border-darkBorder dark:bg-darkBg flex flex-col justify-between rounded-base border-2 bg-white p-5">
@@ -43,23 +49,14 @@ export default function PricingPlan({
           })}
         </ul>
       </div>
-      {
-        isCurrentPlan ? (
-          <Button
-            size='default'
-            className='mt-12 w-full'
-          >
-            Unsubscribe
-          </Button>
-        ) : (
-          <Button
-            size={mostPopular ? 'lg' : 'default'}
-            className={cn('mt-12 w-full', mostPopular && 'bg-[#FF6663]')}
-          >
-            Subscribe
-          </Button>
-        )
-      }
+      <Button
+        size={mostPopular ? 'lg' : 'default'}
+        className={cn('mt-12 w-full', mostPopular && 'bg-[#FF6663]')}
+        onClick={onSubscribe}
+        disabled={isLoading || !onSubscribe}
+      >
+        {isLoading ? 'Loading...' : buttonText}
+      </Button>
     </div>
   )
 }
