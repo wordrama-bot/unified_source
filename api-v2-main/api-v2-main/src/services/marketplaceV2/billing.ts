@@ -115,10 +115,34 @@ export async function handleStripeWebhook(
 
   console.log('Stripe webhook received:', event.type);
 
-  if (event.type !== 'checkout.session.completed') {
+  if (
+    event.type !== 'checkout.session.completed' &&
+    event.type !== 'customer.subscription.updated' &&
+    event.type !== 'customer.subscription.deleted'
+  ) {
     return { received: true, ignored: true, eventType: event.type };
   }
 
+  if (
+    event.type === 'customer.subscription.updated' ||
+    event.type === 'customer.subscription.deleted'
+  ) {
+    const subscription = event.data.object as Stripe.Subscription;
+
+    console.log('Stripe subscription lifecycle event:', {
+      eventType: event.type,
+      subscriptionId: subscription.id,
+      status: subscription.status,
+    });
+
+    return {
+      received: true,
+      eventType: event.type,
+      subscriptionId: subscription.id,
+      status: subscription.status,
+    };
+  }
+  
   const session = event.data.object as Stripe.Checkout.Session;
 
   if (session.mode !== 'subscription') {
