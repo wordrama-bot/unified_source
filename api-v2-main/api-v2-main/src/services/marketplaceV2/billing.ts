@@ -9,6 +9,10 @@ export interface CreateCheckoutSessionRequest {
   subscriptionKey: string;
 }
 
+export interface GetCurrentSubscriptionRequest {
+  playerId: string;
+}
+
 export interface CreateBillingPortalSessionRequest {
   playerId: string;
 }
@@ -248,6 +252,29 @@ async function syncSubscriptionEntitlements(subscription: any) {
 
   return {
     received: true,
+    subscription,
+  };
+}
+
+export async function getCurrentSubscription(
+  request: GetCurrentSubscriptionRequest,
+) {
+  const { playerId } = request;
+
+  const { data: subscription, error } = await db
+    .from('_player_subscriptions')
+    .select('*')
+    .eq('player_id', playerId)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    console.error('Failed to load current subscription', error);
+    return { error: 'Failed to load current subscription' };
+  }
+
+  return {
     subscription,
   };
 }
