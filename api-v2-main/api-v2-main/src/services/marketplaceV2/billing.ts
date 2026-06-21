@@ -86,6 +86,104 @@ export interface HandleStripeWebhookRequest {
   signature: string | string[] | undefined;
 }
 
+function mapStripeSubscriptionStatus(status: Stripe.Subscription.Status) {
+  switch (status) {
+    case 'active':
+      return 'ACTIVE';
+    case 'trialing':
+      return 'ACTIVE';
+    case 'past_due':
+      return 'PAST_DUE';
+    case 'canceled':
+      return 'CANCELED';
+    case 'unpaid':
+      return 'UNPAID';
+    case 'incomplete':
+      return 'INCOMPLETE';
+    case 'incomplete_expired':
+      return 'EXPIRED';
+    default:
+      return status.toUpperCase();
+  }
+}
+
+function stripeTimestampToIso(timestamp?: number | null) {
+  if (!timestamp) return null;
+
+  return new Date(timestamp * 1000).toISOString();
+}
+
+async function syncStripeSubscription(subscription: Stripe.Subscription) {
+  const providerSubscriptionId = subscription.id;
+  const providerCustomerId =
+    typeof subscription.customer === 'string'
+      ? subscription.customer
+      : subscription.customer?.id;
+
+  const status = mapStripeSubscriptionStatus(subscription.status);
+  const now = new Date().toISOString();
+
+  const { data: existingSubscription, error: lookupError } = await db
+    .from('_player_subscriptions')
+    .select('*')
+    .eq('provider', 'STRIPE')
+    .eq('provider_subscription_id', providerSubscriptionId)
+    .maybeSingle();
+
+  if (lookupError) {
+    console.error('Failed to look up Stripe subscription', lookupError);
+    return { error: 'Failed to look up Stripe subscription' };
+  }
+
+  if (!existingSubscription) {
+    console.warn('Stripe subscription lifecycle event received before checkout fulfillment', {
+      providerSubscriptionId,
+      status,
+    });
+
+    return {
+      received: true,
+      ignored: true,
+      reason: 'Subscription not found',
+      providerSubscriptionId,
+      status,
+    };
+  }
+
+  const { data: updatedSubscription, error: updateError } = await db
+    .from('_player_subscriptions')
+    .update({
+      provider_customer_id: providerCustomerId,
+      status,
+      current_period_start: stripeTimestampToIso(subscription.current_period_start),
+      current_period_end: stripeTimestampToIso(subscription.current_period_end),
+      cancel_at_period_end: subscription.cancel_at_period_end,
+      cancelled_at: stripeTimestampToIso(subscription.canceled_at),
+      metadata: {
+        ...(existingSubscription.metadata || {}),
+        stripeStatus: subscription.status,
+        latestInvoice:
+          typeof subscription.latest_invoice === 'string'
+            ? subscription.latest_invoice
+            : subscription.latest_invoice?.id,
+      },
+      updated_at: now,
+    })
+    .eq('id', existingSubscription.id)
+    .select('*')
+    .maybeSingle();
+
+  if (updateError || !updatedSubscription) {
+    console.error('Failed to update Stripe subscription', updateError);
+    return { error: 'Failed to update Stripe subscription' };
+  }
+
+  return {
+    received: true,
+    subscription: updatedSubscription,
+  };
+}
+
 export async function handleStripeWebhook(
   request: HandleStripeWebhookRequest,
 ) {
@@ -129,18 +227,7 @@ export async function handleStripeWebhook(
   ) {
     const subscription = event.data.object as Stripe.Subscription;
 
-    console.log('Stripe subscription lifecycle event:', {
-      eventType: event.type,
-      subscriptionId: subscription.id,
-      status: subscription.status,
-    });
-
-    return {
-      received: true,
-      eventType: event.type,
-      subscriptionId: subscription.id,
-      status: subscription.status,
-    };
+    return syncStripeSubscription(subscription);
   }
   
   const session = event.data.object as Stripe.Checkout.Session;
