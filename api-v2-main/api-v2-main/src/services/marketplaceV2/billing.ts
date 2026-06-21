@@ -178,9 +178,73 @@ async function syncStripeSubscription(subscription: Stripe.Subscription) {
     return { error: 'Failed to update Stripe subscription' };
   }
 
+  return syncSubscriptionEntitlements(updatedSubscription);
+}
+
+function shouldGrantSubscriptionEntitlements(status: string) {
+  return status === 'ACTIVE';
+}
+
+async function syncSubscriptionEntitlements(subscription: any) {
+  const now = new Date().toISOString();
+
+  const { error: expireError } = await db
+    .from('_player_entitlements')
+    .update({
+      status: 'EXPIRED',
+      expires_at: now,
+      updated_at: now,
+    })
+    .eq('subscription_id', subscription.id)
+    .eq('source_type', 'SUBSCRIPTION')
+    .eq('status', 'ACTIVE');
+
+  if (expireError) {
+    console.error('Failed to expire subscription entitlements', expireError);
+    return { error: 'Failed to expire subscription entitlements' };
+  }
+
+  if (!shouldGrantSubscriptionEntitlements(subscription.status)) {
+    return { received: true, subscription };
+  }
+
+  const entitlementKeys =
+    SUBSCRIPTION_ENTITLEMENTS[
+      subscription.subscription_key as keyof typeof SUBSCRIPTION_ENTITLEMENTS
+    ];
+
+  if (!entitlementKeys?.length) {
+    return { error: 'No entitlements configured for subscription' };
+  }
+
+  const entitlementRows = entitlementKeys.map((entitlementKey) => ({
+    player_id: subscription.player_id,
+    entitlement_key: entitlementKey,
+    entitlement_type: 'FEATURE',
+    source_type: 'SUBSCRIPTION',
+    subscription_id: subscription.id,
+    status: 'ACTIVE',
+    starts_at: now,
+    expires_at: null,
+    metadata: {
+      subscriptionKey: subscription.subscription_key,
+      provider: subscription.provider,
+      providerSubscriptionId: subscription.provider_subscription_id,
+    },
+  }));
+
+  const { error: entitlementError } = await db
+    .from('_player_entitlements')
+    .insert(entitlementRows);
+
+  if (entitlementError) {
+    console.error('Failed to sync subscription entitlements', entitlementError);
+    return { error: 'Failed to sync subscription entitlements' };
+  }
+
   return {
     received: true,
-    subscription: updatedSubscription,
+    subscription,
   };
 }
 
@@ -280,38 +344,10 @@ export async function handleStripeWebhook(
     return { error: 'Failed to save player subscription' };
   }
 
-  const entitlementKeys =
-    SUBSCRIPTION_ENTITLEMENTS[
-      subscriptionKey as keyof typeof SUBSCRIPTION_ENTITLEMENTS
-    ];
+  const entitlementSyncResult = await syncSubscriptionEntitlements(data);
 
-  if (!entitlementKeys?.length) {
-    return { error: 'No entitlements configured for subscription' };
-  }
-
-  const entitlementRows = entitlementKeys.map((entitlementKey) => ({
-    player_id: playerId,
-    entitlement_key: entitlementKey,
-    entitlement_type: 'FEATURE',
-    source_type: 'SUBSCRIPTION',
-    subscription_id: data.id,
-    status: 'ACTIVE',
-    starts_at: new Date().toISOString(),
-    expires_at: null,
-    metadata: {
-      subscriptionKey,
-      provider: 'STRIPE',
-      providerSubscriptionId,
-    },
-  }));
-
-  const { error: entitlementError } = await db
-    .from('_player_entitlements')
-    .insert(entitlementRows);
-
-  if (entitlementError) {
-    console.error('Failed to upsert subscription entitlements', entitlementError);
-    return { error: 'Failed to grant subscription entitlements' };
+  if ('error' in entitlementSyncResult) {
+    return entitlementSyncResult;
   }
 
   return {
