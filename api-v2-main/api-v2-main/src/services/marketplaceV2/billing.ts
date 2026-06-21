@@ -275,7 +275,21 @@ export async function getCurrentSubscription(
   }
 
   return {
-    subscription,
+    subscription: subscription
+      ? {
+          id: subscription.id,
+          playerId: subscription.player_id,
+          subscriptionKey: subscription.subscription_key,
+          status: subscription.status,
+          provider: subscription.provider,
+          providerCustomerId: subscription.provider_customer_id,
+          providerSubscriptionId: subscription.provider_subscription_id,
+          currentPeriodStart: subscription.current_period_start,
+          currentPeriodEnd: subscription.current_period_end,
+          cancelAtPeriodEnd: subscription.cancel_at_period_end,
+          cancelledAt: subscription.cancelled_at,
+        }
+      : null,
   };
 }
 
@@ -402,6 +416,10 @@ export async function handleStripeWebhook(
     return { error: 'Missing required subscription metadata from Stripe session' };
   }
 
+  const stripeSubscription = await stripe.subscriptions.retrieve(
+    providerSubscriptionId,
+  );
+
   const { data, error } = await db
     .from('_player_subscriptions')
     .upsert(
@@ -412,6 +430,10 @@ export async function handleStripeWebhook(
         provider_customer_id: providerCustomerId,
         provider_subscription_id: providerSubscriptionId,
         status: 'ACTIVE',
+        current_period_start: stripeTimestampToIso(stripeSubscription.current_period_start),
+        current_period_end: stripeTimestampToIso(stripeSubscription.current_period_end),
+        cancel_at_period_end: stripeSubscription.cancel_at_period_end,
+        cancelled_at: stripeTimestampToIso(stripeSubscription.canceled_at),
         metadata: {
           checkoutSessionId: session.id,
           amountTotal: session.amount_total,
@@ -425,7 +447,7 @@ export async function handleStripeWebhook(
     .maybeSingle();
 
   if (error) {
-    console.error('Failed to insert subscription entitlements', entitlementError);
+    console.error('Failed to save player subscription', error);
     return { error: 'Failed to save player subscription' };
   }
 

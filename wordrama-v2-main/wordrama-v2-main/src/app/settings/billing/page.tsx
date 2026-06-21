@@ -20,11 +20,20 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { SettingsNav } from "@/components/navbar/settings";
-import { useCreateBillingPortalSessionMutation } from "@/redux/api/wordrama";
+import {
+  useCreateBillingPortalSessionMutation,
+  useGetCurrentSubscriptionQuery,
+} from "@/redux/api/wordrama";
 
 export default function BillingPage() {
   const [createBillingPortalSession, { isLoading }] =
     useCreateBillingPortalSessionMutation();
+
+  const { data: subscriptionResponse } =
+    useGetCurrentSubscriptionQuery();
+
+  const subscription =
+    subscriptionResponse?.data?.subscription;
 
   const handleManageSubscription = async () => {
     const result = await createBillingPortalSession().unwrap();
@@ -50,7 +59,21 @@ export default function BillingPage() {
                   
                 </CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="space-y-2">
+                <p>
+                  <span className="font-semibold">Current Plan:</span>{" "}
+                  {subscription?.subscriptionKey || "No active subscription"}
+                </p>
+                <p>
+                  <span className="font-semibold">Status:</span>{" "}
+                  {subscription?.status || "None"}
+                </p>
+                {subscription?.currentPeriodEnd && (
+                  <p>
+                    <span className="font-semibold">Renews:</span>{" "}
+                    {new Date(subscription.currentPeriodEnd).toLocaleDateString()}
+                  </p>
+                )}
               </CardContent>
               <CardFooter className="border-t px-6 py-4">
                 <Button

@@ -546,6 +546,14 @@ export const wordramaApiV3 = createApi({
       providesTags: ["Player"],
     }),
 
+    getCurrentSubscription: builder.query<any, void>({
+      query: () => ({
+        url: `/api/v3/billing/subscription`,
+        method: "GET",
+        credentials: "include",
+      }),
+    }),
+
     createCheckoutSession: builder.mutation<
       any,
       { subscriptionKey: "PLUS" | "CREATOR" }
@@ -735,6 +743,7 @@ export const {
   useGetPublicPlayerByUsernameQuery,
   useGetMyAccountQuery,
   useGetMyEntitlementsQuery,
+  useGetCurrentSubscriptionQuery,
   useCreateCheckoutSessionMutation,
   useCreateBillingPortalSessionMutation,
   useCreateAccountMutation,
