@@ -121,6 +121,15 @@ function stripeTimestampToIso(timestamp?: number | null) {
   return new Date(timestamp * 1000).toISOString();
 }
 
+function getStripeSubscriptionPeriod(subscription: Stripe.Subscription) {
+  const firstItem = subscription.items?.data?.[0];
+
+  return {
+    currentPeriodStart: stripeTimestampToIso(firstItem?.current_period_start),
+    currentPeriodEnd: stripeTimestampToIso(firstItem?.current_period_end),
+  };
+}
+
 async function syncStripeSubscription(subscription: Stripe.Subscription) {
   const providerSubscriptionId = subscription.id;
   const providerCustomerId =
@@ -130,6 +139,11 @@ async function syncStripeSubscription(subscription: Stripe.Subscription) {
 
   const status = mapStripeSubscriptionStatus(subscription.status);
   const now = new Date().toISOString();
+
+  const {
+    currentPeriodStart,
+    currentPeriodEnd,
+  } = getStripeSubscriptionPeriod(subscription);
 
   const { data: existingSubscription, error: lookupError } = await db
     .from('_player_subscriptions')
@@ -163,8 +177,8 @@ async function syncStripeSubscription(subscription: Stripe.Subscription) {
     .update({
       provider_customer_id: providerCustomerId,
       status,
-      current_period_start: stripeTimestampToIso(subscription.current_period_start),
-      current_period_end: stripeTimestampToIso(subscription.current_period_end),
+      current_period_start: currentPeriodStart,
+      current_period_end: currentPeriodEnd,
       cancel_at_period_end: subscription.cancel_at_period_end,
       cancelled_at: stripeTimestampToIso(subscription.canceled_at),
       metadata: {
@@ -420,6 +434,19 @@ export async function handleStripeWebhook(
     providerSubscriptionId,
   );
 
+  const {
+    currentPeriodStart,
+    currentPeriodEnd,
+  } = getStripeSubscriptionPeriod(stripeSubscription);
+
+  console.log('Retrieved Stripe subscription period fields', {
+    providerSubscriptionId,
+    currentPeriodStart: stripeSubscription.current_period_start,
+    currentPeriodEnd: stripeSubscription.current_period_end,
+    cancelAtPeriodEnd: stripeSubscription.cancel_at_period_end,
+    canceledAt: stripeSubscription.canceled_at,
+  });
+
   const { data, error } = await db
     .from('_player_subscriptions')
     .upsert(
@@ -430,8 +457,8 @@ export async function handleStripeWebhook(
         provider_customer_id: providerCustomerId,
         provider_subscription_id: providerSubscriptionId,
         status: 'ACTIVE',
-        current_period_start: stripeTimestampToIso(stripeSubscription.current_period_start),
-        current_period_end: stripeTimestampToIso(stripeSubscription.current_period_end),
+        current_period_start: currentPeriodStart,
+        current_period_end: currentPeriodEnd,
         cancel_at_period_end: stripeSubscription.cancel_at_period_end,
         cancelled_at: stripeTimestampToIso(stripeSubscription.canceled_at),
         metadata: {
