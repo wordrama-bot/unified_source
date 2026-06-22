@@ -300,6 +300,7 @@ export default function AvatarMarketplacePage() {
                 }}
                 isInCart={itemsInCart.includes(item.id)}
                 buyWithStripe={() => handleStripePurchase(item.id)}
+                hasStripePrice={item.hasStripePrice}
               />
             );
           })}

@@ -339,6 +339,7 @@
                       addItemToCart(itemsInCart.filter((id) => id !== item.id));
                     }}
                     buyWithStripe={() => handleStripePurchase(item.id)}
+                    hasStripePrice={item.hasStripePrice}
                   />
                 );
               })}

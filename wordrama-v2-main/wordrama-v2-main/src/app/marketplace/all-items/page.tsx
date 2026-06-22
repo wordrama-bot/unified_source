@@ -398,6 +398,7 @@ export default function AllItemsMarketplacePage() {
                 }}
                 isInCart={itemsInCart.includes(item.id)}
                 buyWithStripe={() => handleStripePurchase(item.id)}
+                hasStripePrice={item.hasStripePrice}
               />
             );
           })}

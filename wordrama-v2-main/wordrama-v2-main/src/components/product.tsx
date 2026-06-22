@@ -17,6 +17,7 @@ export default function Product({
   addItemToCard,
   removeItemFromCard,
   buyWithStripe,
+  hasStripePrice = false,
   isInCart = false
 }: {
   itemId: string
@@ -33,6 +34,7 @@ export default function Product({
   addItemToCard: any
   removeItemFromCard: any
   buyWithStripe?: any
+  hasStripePrice?: boolean
   isInCart?: boolean
 }) {
   return (
@@ -119,7 +121,7 @@ export default function Product({
             </Button>
           )}
 
-          {buyWithStripe && (
+          {hasStripePrice && buyWithStripe && (
             <Button
               variant="neutral"
               size={isPopular ? 'lg' : 'default'}
