@@ -1,9 +1,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useAuth } from "@/providers/auth-provider";
 
 export function SettingsNav() {
-  const { role } = useAuth();
   const path = usePathname();
   return (
     <nav
@@ -29,22 +27,12 @@ export function SettingsNav() {
       //   Game
       // </Link>
       }
-      {(role !== 'PLAYER') && (
-        <Link
-          href="/settings/billing"
-          className={path === '/settings/billing' ? 'text-primary font-semibold' : ''}
-        >
-          Billing
-        </Link>
-      )}
-      { role === 'STREAMER' && (
-        <Link
-          href="/settings/streamer"
-          className={path === '/settings/streamer' ? 'text-primary font-semibold' : ''}
-        >
-          Streamer
-        </Link>
-      )}
+      <Link
+        href="/settings/billing"
+        className={path === '/settings/billing' ? 'text-primary font-semibold' : ''}
+      >
+        Billing
+      </Link>
     </nav>
   );
 }
