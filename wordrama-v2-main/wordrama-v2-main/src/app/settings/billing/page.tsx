@@ -35,6 +35,21 @@ export default function BillingPage() {
   const subscription =
     subscriptionResponse?.data?.subscription;
 
+  const latestSubscription =
+    subscriptionResponse?.data?.latestSubscription;
+
+  const displaySubscription = subscription || latestSubscription;
+
+  const displayStatus = displaySubscription?.cancelledAt
+    ? "CANCELLED"
+    : displaySubscription?.cancelAtPeriodEnd
+      ? "CANCELLING"
+      : displaySubscription?.status;
+
+  const dateLabel = displaySubscription?.cancelledAt || displaySubscription?.cancelAtPeriodEnd
+    ? "Ended:"
+    : "Renews:";
+
   const handleManageSubscription = async () => {
     const result = await createBillingPortalSession().unwrap();
 
@@ -62,16 +77,16 @@ export default function BillingPage() {
               <CardContent className="space-y-2">
                 <p>
                   <span className="font-semibold">Current Plan:</span>{" "}
-                  {subscription?.subscriptionKey || "No active subscription"}
+                  {displaySubscription?.subscriptionKey || "No active subscription"}
                 </p>
                 <p>
                   <span className="font-semibold">Status:</span>{" "}
-                  {subscription?.status || "None"}
+                  {displayStatus || "None"}
                 </p>
-                {subscription?.currentPeriodEnd && (
+                {displaySubscription?.currentPeriodEnd && (
                   <p>
-                    <span className="font-semibold">Renews:</span>{" "}
-                    {new Date(subscription.currentPeriodEnd).toLocaleDateString()}
+                    <span className="font-semibold">{dateLabel}</span>{" "}
+                    {new Date(displaySubscription.currentPeriodEnd).toLocaleDateString()}
                   </p>
                 )}
               </CardContent>

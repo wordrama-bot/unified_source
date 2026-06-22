@@ -216,8 +216,8 @@ async function syncStripeSubscription(subscription: Stripe.Subscription) {
   return syncSubscriptionEntitlements(updatedSubscription);
 }
 
-function shouldGrantSubscriptionEntitlements(status: string) {
-  return status === 'ACTIVE';
+function shouldGrantSubscriptionEntitlements(subscription: any) {
+  return subscription.status === 'ACTIVE' && !subscription.cancelled_at;
 }
 
 async function syncSubscriptionEntitlements(subscription: any) {
@@ -239,7 +239,7 @@ async function syncSubscriptionEntitlements(subscription: any) {
     return { error: 'Failed to expire subscription entitlements' };
   }
 
-  if (!shouldGrantSubscriptionEntitlements(subscription.status)) {
+  if (!shouldGrantSubscriptionEntitlements(subscription)) {
     return { received: true, subscription };
   }
 
@@ -355,31 +355,49 @@ export async function getCurrentSubscription(
     .select('*')
     .eq('player_id', playerId)
     .in('status', ['TRIALING', 'ACTIVE', 'PAST_DUE'])
+    .is('cancelled_at', null)
     .order('created_at', { ascending: false })
     .limit(1)
     .maybeSingle();
+
+  const { data: latestSubscription, error: latestSubscriptionError } = await db
+    .from('_player_subscriptions')
+    .select('*')
+    .eq('player_id', playerId)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (latestSubscriptionError) {
+    console.error('Failed to load latest subscription', latestSubscriptionError);
+    return { error: 'Failed to load latest subscription' };
+  }
 
   if (error) {
     console.error('Failed to load current subscription', error);
     return { error: 'Failed to load current subscription' };
   }
 
-  return {
-    subscription: subscription
+  const mapSubscription = (row: any) =>
+    row
       ? {
-          id: subscription.id,
-          playerId: subscription.player_id,
-          subscriptionKey: subscription.subscription_key,
-          status: subscription.status,
-          provider: subscription.provider,
-          providerCustomerId: subscription.provider_customer_id,
-          providerSubscriptionId: subscription.provider_subscription_id,
-          currentPeriodStart: subscription.current_period_start,
-          currentPeriodEnd: subscription.current_period_end,
-          cancelAtPeriodEnd: subscription.cancel_at_period_end,
-          cancelledAt: subscription.cancelled_at,
+          id: row.id,
+          playerId: row.player_id,
+          subscriptionKey: row.subscription_key,
+          status: row.status,
+          provider: row.provider,
+          providerCustomerId: row.provider_customer_id,
+          providerSubscriptionId: row.provider_subscription_id,
+          currentPeriodStart: row.current_period_start,
+          currentPeriodEnd: row.current_period_end,
+          cancelAtPeriodEnd: row.cancel_at_period_end,
+          cancelledAt: row.cancelled_at,
         }
-      : null,
+      : null;
+
+  return {
+    subscription: mapSubscription(subscription),
+    latestSubscription: mapSubscription(latestSubscription),
   };
 }
 
