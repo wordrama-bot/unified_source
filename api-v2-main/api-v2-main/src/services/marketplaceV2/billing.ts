@@ -487,14 +487,6 @@ export async function handleStripeWebhook(
 
   if (result?.data?.subscriptionKey && result?.data?.playerId) {
     const { subscriptionKey, playerId } = result.data;
-
-    if (subscriptionKey === 'PLUS') {
-      await storeService.purchaseItemWithCoins(playerId, 'WP-12');
-    }
-
-    if (subscriptionKey === 'CREATOR') {
-      await storeService.purchaseItemWithCoins(playerId, '3d3ff93b-65c1-4d36-a1ac-f2b73433a315');
-    }
   }
 
   if (error) {

@@ -55,6 +55,11 @@ async function getPurchasedItems(playerId: string) {
     const entitlements = await getPlayerEntitlements(playerId);
 
     marketplaceV2ItemIds = entitlements
+      .filter(
+        (entitlement: any) =>
+          entitlement.status === 'ACTIVE' &&
+          entitlement.source_type === 'ORDER_ITEM'
+      )
       .map((entitlement: any) => entitlement.metadata?.catalogItemId)
       .filter(Boolean);
   } catch (error) {
