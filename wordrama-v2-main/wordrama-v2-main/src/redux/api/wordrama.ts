@@ -567,6 +567,19 @@ export const wordramaApiV3 = createApi({
       }),
     }),
 
+    createItemCheckoutSession: builder.mutation<
+      any,
+      { itemId: string }
+    >({
+      query: (body) => ({
+        url: `/api/v3/billing/checkout/item`,
+        method: "POST",
+        body,
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+      }),
+    }),
+
     createBillingPortalSession: builder.mutation<any, void>({
       query: () => ({
         url: `/api/v3/billing/portal`,
@@ -745,6 +758,7 @@ export const {
   useGetMyEntitlementsQuery,
   useGetCurrentSubscriptionQuery,
   useCreateCheckoutSessionMutation,
+  useCreateItemCheckoutSessionMutation,
   useCreateBillingPortalSessionMutation,
   useCreateAccountMutation,
   useUpdateAccountMutation,

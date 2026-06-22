@@ -37,7 +37,13 @@ import { Slider } from '@/components/ui/slider';
 import { Separator } from '@/components/ui/separator';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Switch } from '@/components/ui/switch';
-import { useGetStoreItemsQuery, useGetPurchasesQuery, useGetMyAccountQuery, usePurchaseItemsWithCoinsMutation } from '@/redux/api/wordrama';
+import {
+    useGetStoreItemsQuery,
+    useGetPurchasesQuery,
+    useGetMyAccountQuery,
+    usePurchaseItemsWithCoinsMutation,
+    useCreateItemCheckoutSessionMutation,
+  } from '@/redux/api/wordrama';
 import { useEffect } from 'react';
 
 const MARKETPLACE_WORD_PACK_SORT_ORDER: { [key: string]: number } = {
@@ -120,6 +126,20 @@ export default function AllItemsMarketplacePage() {
     showUnavailable
   });
   const [ purchaseItemsWithCoins ] = usePurchaseItemsWithCoinsMutation();
+  const [ createItemCheckoutSession] = useCreateItemCheckoutSessionMutation();
+  const handleStripePurchase = async (itemId: string) => {
+    try {
+      const result = await createItemCheckoutSession({
+        itemId,
+      }).unwrap();
+
+      if (result?.data?.checkoutUrl) {
+        window.location.href = result.data.checkoutUrl;
+      }
+    } catch (error) {
+      console.error('Failed to create Stripe checkout session', error);
+    }
+  };
   const basketSubTotal = !isLoadingStoreItems && storeItems ? storeItems?.data.filter(item => itemsInCart.includes(item.id)).reduce((acc: number, item: any) => acc + item.coinPrice, 0) : 0
   const hasEnoughCoins = myAccount?.data?.ledger?.coinBalance && myAccount?.data?.ledger?.coinBalance >= basketSubTotal;
 
@@ -377,6 +397,7 @@ export default function AllItemsMarketplacePage() {
                   addItemToCart(itemsInCart.filter((id) => id !== item.id));
                 }}
                 isInCart={itemsInCart.includes(item.id)}
+                buyWithStripe={() => handleStripePurchase(item.id)}
               />
             );
           })}

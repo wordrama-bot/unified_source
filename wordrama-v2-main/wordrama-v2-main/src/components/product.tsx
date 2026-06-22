@@ -16,6 +16,7 @@ export default function Product({
   price,
   addItemToCard,
   removeItemFromCard,
+  buyWithStripe,
   isInCart = false
 }: {
   itemId: string
@@ -31,6 +32,7 @@ export default function Product({
   price: string
   addItemToCard: any
   removeItemFromCard: any
+  buyWithStripe?: any
   isInCart?: boolean
 }) {
   return (
@@ -91,28 +93,46 @@ export default function Product({
         <Button disabled className="mt-12 w-full">
           Upgrade Required
         </Button>
-      ) : !isInCart ? (
-        <Button
-          size={isPopular ? 'lg' : 'default'}
-          className={cn('mt-12 w-full')}
-          onClick={(e) => {
-            e.preventDefault();
-            addItemToCard(itemId);
-          }}
-        >
-          Add to cart
-        </Button>
       ) : (
-        <Button
-          size={isPopular ? 'lg' : 'default'}
-          className={cn('mt-12 w-full')}
-          onClick={(e) => {
-            e.preventDefault();
-            removeItemFromCard(itemId);
-          }}
-        >
-          Remove from cart
-        </Button>
+        <div className="mt-12 flex flex-col gap-2">
+          {!isInCart ? (
+            <Button
+              size={isPopular ? 'lg' : 'default'}
+              className="w-full"
+              onClick={(e) => {
+                e.preventDefault();
+                addItemToCard(itemId);
+              }}
+            >
+              Buy with coins
+            </Button>
+          ) : (
+            <Button
+              size={isPopular ? 'lg' : 'default'}
+              className="w-full"
+              onClick={(e) => {
+                e.preventDefault();
+                removeItemFromCard(itemId);
+              }}
+            >
+              Remove from cart
+            </Button>
+          )}
+
+          {buyWithStripe && (
+            <Button
+              variant="neutral"
+              size={isPopular ? 'lg' : 'default'}
+              className="w-full"
+              onClick={(e) => {
+                e.preventDefault();
+                buyWithStripe(itemId);
+              }}
+            >
+              Buy with card
+            </Button>
+          )}
+        </div>
       )}
     </div>
   )
