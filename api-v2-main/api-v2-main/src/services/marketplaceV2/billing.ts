@@ -443,7 +443,7 @@ export async function createBillingPortalSession(
   try {
     const portalSession = await stripe.billingPortal.sessions.create({
       customer: subscription.provider_customer_id,
-      return_url: `${siteUrl}/settings/subscription`,
+      return_url: `${siteUrl}/settings/billing`,
     });
 
     return {
