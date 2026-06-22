@@ -45,5 +45,11 @@ export function canAccessWordPack({
   }
 
   // fallback: owned entitlement
-  return entitlements?.some((e: any) => e.entitlementKey === itemId);
+  return entitlements?.some(
+    (e: any) =>
+      e.status === "ACTIVE" &&
+      !e.revoked_at &&
+      (!e.expires_at || new Date(e.expires_at) > new Date()) &&
+      e.metadata?.catalogItemId === itemId,
+  );
 }
