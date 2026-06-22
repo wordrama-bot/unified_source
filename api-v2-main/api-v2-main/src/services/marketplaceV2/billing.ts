@@ -217,32 +217,36 @@ async function syncStripeSubscription(subscription: Stripe.Subscription) {
 }
 
 function shouldGrantSubscriptionEntitlements(subscription: any) {
+  const now = new Date().toISOString();
+
   return (
     ['TRIALING', 'ACTIVE', 'PAST_DUE'].includes(subscription.status) &&
-    !subscription.cancelled_at
+    (!subscription.current_period_end || subscription.current_period_end > now)
   );
 }
 
 async function syncSubscriptionEntitlements(subscription: any) {
   const now = new Date().toISOString();
 
-  const { error: expireError } = await db
-    .from('_player_entitlements')
-    .update({
-      status: 'EXPIRED',
-      expires_at: now,
-      updated_at: now,
-    })
-    .eq('subscription_id', subscription.id)
-    .eq('source_type', 'SUBSCRIPTION')
-    .eq('status', 'ACTIVE');
+  const shouldGrantAccess = shouldGrantSubscriptionEntitlements(subscription);
 
-  if (expireError) {
-    console.error('Failed to expire subscription entitlements', expireError);
-    return { error: 'Failed to expire subscription entitlements' };
-  }
+  if (!shouldGrantAccess) {
+    const { error: expireError } = await db
+      .from('_player_entitlements')
+      .update({
+        status: 'EXPIRED',
+        expires_at: now,
+        updated_at: now,
+      })
+      .eq('subscription_id', subscription.id)
+      .eq('source_type', 'SUBSCRIPTION')
+      .eq('status', 'ACTIVE');
 
-  if (!shouldGrantSubscriptionEntitlements(subscription)) {
+    if (expireError) {
+      console.error('Failed to expire subscription entitlements', expireError);
+      return { error: 'Failed to expire subscription entitlements' };
+    }
+
     return { received: true, subscription };
   }
 
@@ -358,7 +362,7 @@ export async function getCurrentSubscription(
     .select('*')
     .eq('player_id', playerId)
     .in('status', ['TRIALING', 'ACTIVE', 'PAST_DUE'])
-    .is('cancelled_at', null)
+    .or(`current_period_end.is.null,current_period_end.gt.${new Date().toISOString()}`)
     .order('created_at', { ascending: false })
     .limit(1)
     .maybeSingle();
