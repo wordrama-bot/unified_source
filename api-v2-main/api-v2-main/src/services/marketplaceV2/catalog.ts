@@ -1,18 +1,18 @@
 import type { CatalogItem } from '../../types/marketplaceV2'
 
-const CATALOG: CatalogItem[] = [
+export const CATALOG: CatalogItem[] = [
   {
     catalogItemId: 'ba8671aa-7481-43e5-a1ac-f2b73433a315',
     sku: 'WP-4',
     itemType: 'WORD_PACK',
     itemName: '4 Letter Pack',
     priceCoins: 1000,
-    priceUsd?: 0.99,
-    stripeProductKey?: 'wp_4_letter',
+    priceUsdCents: 99,
+    stripePriceEnvVar: 'wp_4_letter',
     entitlementKey: 'WORD_PACK:FOUR_LETTER',
     entitlementType: 'WORD_PACK',
     isPurchasable: true,
-    purchaseMethods: ['COINS', 'STRIPE']
+    isStripePurchasable: true,
   },
   {
     catalogItemId: 'b1b96d0e-5b1a-403e-80be-88f3d2bae873',
@@ -20,12 +20,12 @@ const CATALOG: CatalogItem[] = [
     itemType: 'WORD_PACK',
     itemName: '11 Letter Expansion',
     priceCoins: 1000,
-    priceUsd?: 0.99,
-    stripeProductKey?: 'wp_11_letter_expansion',
+    priceUsdCents: 99,
+    stripePriceEnvVar: 'wp_11_letter_expansion',
     entitlementKey: 'WORD_PACK:ELEVEN_LETTER_EXPANSION',
     entitlementType: 'WORD_PACK',
     isPurchasable: true,
-    purchaseMethods: ['COINS', 'STRIPE']
+    isStripePurchasable: true,
   },
   {
     catalogItemId: '7f06b10e-d52a-4ae3-b77f-a7e9a7c5e5fb',
@@ -33,12 +33,12 @@ const CATALOG: CatalogItem[] = [
     itemType: 'WORD_PACK',
     itemName: '12 Letter Pack',
     priceCoins: 1000,
-    priceUsd?: 0.99,
-    stripeProductKey?: 'wp_12_letter',
+    priceUsdCents: 99,
+    stripePriceEnvVar: 'wp_12_letter',
     entitlementKey: 'WORD_PACK:TWELVE_LETTER',
     entitlementType: 'WORD_PACK',
     isPurchasable: true,
-    purchaseMethods: ['COINS', 'STRIPE']
+    isStripePurchasable: true,
   },
   {
     catalogItemId: 'b8c73f14-79ad-4495-9fd9-a4be65d5fcbc',
@@ -46,12 +46,12 @@ const CATALOG: CatalogItem[] = [
     itemType: 'WORD_PACK',
     itemName: '13 Letter Pack',
     priceCoins: 1000,
-    priceUsd?: 0.99,
-    stripeProductKey?: 'wp_13_letter',
+    priceUsdCents: 99,
+    stripePriceEnvVar: 'wp_13_letter',
     entitlementKey: 'WORD_PACK:THIRTEEN_LETTER',
     entitlementType: 'WORD_PACK',
     isPurchasable: true,
-    purchaseMethods: ['COINS', 'STRIPE']
+    isStripePurchasable: true,
   },
   {
     catalogItemId: '3159552d-8c96-4bb5-aafa-ebf36aa5a2c2',
@@ -59,12 +59,12 @@ const CATALOG: CatalogItem[] = [
     itemType: 'WORD_PACK',
     itemName: '14 Letter Pack',
     priceCoins: 1000,
-    priceUsd?: 0.99,
-    stripeProductKey?: 'wp_14_letter',
+    priceUsdCents: 99,
+    stripePriceEnvVar: 'wp_14_letter',
     entitlementKey: 'WORD_PACK:FOURTEEN_LETTER',
     entitlementType: 'WORD_PACK',
     isPurchasable: true,
-    purchaseMethods: ['COINS', 'STRIPE']
+    isStripePurchasable: true,
   },
   {
     catalogItemId: 'fef67eba-96db-4f5e-8b25-81487a1dbc9d',
@@ -72,12 +72,12 @@ const CATALOG: CatalogItem[] = [
     itemType: 'WORD_PACK',
     itemName: '15 Letter Pack',
     priceCoins: 1000,
-    priceUsd?: 0.99,
-    stripeProductKey?: 'wp_15_letter',
+    priceUsdCents: 99,
+    stripePriceEnvVar: 'wp_15_letter',
     entitlementKey: 'WORD_PACK:FIFTEEN_LETTER',
     entitlementType: 'WORD_PACK',
     isPurchasable: true,
-    purchaseMethods: ['COINS', 'STRIPE']
+    isStripePurchasable: true,
   },
   {
     catalogItemId: '1ee2de50-072f-4718-b8ac-7663f3069f2e',
@@ -85,12 +85,12 @@ const CATALOG: CatalogItem[] = [
     itemType: 'WORD_PACK',
     itemName: '16 Letter Pack',
     priceCoins: 1000,
-    priceUsd?: 0.99,
-    stripeProductKey?: 'wp_16_letter',
+    priceUsdCents: 99,
+    stripePriceEnvVar: 'wp_16_letter',
     entitlementKey: 'WORD_PACK:SIXTEEN_LETTER',
     entitlementType: 'WORD_PACK',
     isPurchasable: true,
-    purchaseMethods: ['COINS', 'STRIPE']
+    isStripePurchasable: true,
   },
   {
     catalogItemId: '80e197a9-0829-4074-8e85-a88e6e8b7ea0',
@@ -98,12 +98,12 @@ const CATALOG: CatalogItem[] = [
     itemType: 'WORD_PACK',
     itemName: '17 Letter Pack',
     priceCoins: 1000,
-    priceUsd?: 0.99,
-    stripeProductKey?: 'wp_17_letter',
+    priceUsdCents: 99,
+    stripePriceEnvVar: 'wp_17_letter',
     entitlementKey: 'WORD_PACK:SEVENTEEN_LETTER',
     entitlementType: 'WORD_PACK',
     isPurchasable: true,
-    purchaseMethods: ['COINS', 'STRIPE']
+    isStripePurchasable: true,
   },
   {
     catalogItemId: '425c96ab-beff-40ef-9774-feb6db135644',
@@ -111,12 +111,12 @@ const CATALOG: CatalogItem[] = [
     itemType: 'WORD_PACK',
     itemName: '18 Letter Pack',
     priceCoins: 1000,
-    priceUsd?: 0.99,
-    stripeProductKey?: 'wp_18_letter',
+    priceUsdCents: 99,
+    stripePriceEnvVar: 'wp_18_letter',
     entitlementKey: 'WORD_PACK:EIGHTEEN_LETTER',
     entitlementType: 'WORD_PACK',
     isPurchasable: true,
-    purchaseMethods: ['COINS', 'STRIPE']
+    isStripePurchasable: true,
   },
   {
     catalogItemId: '1d348c05-c51e-4ea3-a888-d4823436704f',
@@ -124,12 +124,12 @@ const CATALOG: CatalogItem[] = [
     itemType: 'WORD_PACK',
     itemName: '19 Letter Pack',
     priceCoins: 1000,
-    priceUsd?: 0.99,
-    stripeProductKey?: 'wp_19_letter',
+    priceUsdCents: 99,
+    stripePriceEnvVar: 'wp_19_letter',
     entitlementKey: 'WORD_PACK:NINETEEN_LETTER',
     entitlementType: 'WORD_PACK',
     isPurchasable: true,
-    purchaseMethods: ['COINS', 'STRIPE']
+    isStripePurchasable: true,
   },
   {
     catalogItemId: '6e66a620-8e17-4f75-aa0b-1c282aafb9d8',
@@ -137,12 +137,12 @@ const CATALOG: CatalogItem[] = [
     itemType: 'WORD_PACK',
     itemName: '20 Letter Pack',
     priceCoins: 1000,
-    priceUsd?: 0.99,
-    stripeProductKey?: 'wp_20_letter',
+    priceUsdCents: 99,
+    stripePriceEnvVar: 'wp_20_letter',
     entitlementKey: 'WORD_PACK:TWENTY_LETTER',
     entitlementType: 'WORD_PACK',
     isPurchasable: true,
-    purchaseMethods: ['COINS', 'STRIPE']
+    isStripePurchasable: true,
   },
   {
     catalogItemId: '72215e5b-6638-4388-84bc-55dcd36c0e05',
@@ -150,12 +150,12 @@ const CATALOG: CatalogItem[] = [
     itemType: 'WORD_PACK',
     itemName: '21 Letter Pack',
     priceCoins: 1000,
-    priceUsd?: 0.99,
-    stripeProductKey?: 'wp_21_letter',
+    priceUsdCents: 99,
+    stripePriceEnvVar: 'wp_21_letter',
     entitlementKey: 'WORD_PACK:TWENTYONE_LETTER',
     entitlementType: 'WORD_PACK',
     isPurchasable: true,
-    purchaseMethods: ['COINS', 'STRIPE']
+    isStripePurchasable: true,
   },
   {
     catalogItemId: 'db526774-11da-47de-b410-5b47a4168db8',
@@ -163,12 +163,12 @@ const CATALOG: CatalogItem[] = [
     itemType: 'WORD_PACK',
     itemName: '22 Letter Pack',
     priceCoins: 1000,
-    priceUsd?: 0.99,
-    stripeProductKey?: 'wp_22_letter',
+    priceUsdCents: 99,
+    stripePriceEnvVar: 'wp_22_letter',
     entitlementKey: 'WORD_PACK:TWENTYTWO_LETTER',
     entitlementType: 'WORD_PACK',
     isPurchasable: true,
-    purchaseMethods: ['COINS', 'STRIPE']
+    isStripePurchasable: true,
   },
   {
     catalogItemId: 'ab14511c-f2ac-4b16-a8ef-7cb8ed61a2cc',
@@ -176,12 +176,12 @@ const CATALOG: CatalogItem[] = [
     itemType: 'WORD_PACK',
     itemName: '23 Letter Pack',
     priceCoins: 1000,
-    priceUsd?: 0.99,
-    stripeProductKey?: 'wp_23_letter',
+    priceUsdCents: 99,
+    stripePriceEnvVar: 'wp_23_letter',
     entitlementKey: 'WORD_PACK:TWENTYTHREE_LETTER',
     entitlementType: 'WORD_PACK',
     isPurchasable: true,
-    purchaseMethods: ['COINS', 'STRIPE']
+    isStripePurchasable: true,
   },
   {
     catalogItemId: '3d3ff93b-65c1-4d36-902e-3a889c71ac86',
@@ -189,12 +189,12 @@ const CATALOG: CatalogItem[] = [
     itemType: 'WORD_PACK',
     itemName: '12-23 Letter Mega Pack',
     priceCoins: 10000,
-    priceUsd?: 9.99,
-    stripeProductKey?: 'wp_12_to_23_letter',
+    priceUsdCents: 999,
+    stripePriceEnvVar: 'wp_12_to_23_letter',
     entitlementKey: 'WORD_PACK:TWELVE_TO_TWENTYTHREE_LETTER',
     entitlementType: 'WORD_PACK',
     isPurchasable: true,
-    purchaseMethods: ['COINS', 'STRIPE']
+    isStripePurchasable: true,
   },
 ]
 

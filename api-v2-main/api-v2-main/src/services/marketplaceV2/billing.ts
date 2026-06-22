@@ -4,6 +4,7 @@ import storeService from '../store';
 import { STRIPE_PRODUCTS } from '../../config/stripeProducts';
 import { SUBSCRIPTIONS } from '../../config/subscriptions';
 import { SUBSCRIPTION_ENTITLEMENTS } from '../../config/subscriptionEntitlements';
+import { CATALOG } from './catalog';
 
 export interface CreateCheckoutSessionRequest {
   playerId: string;
@@ -242,30 +243,57 @@ async function syncSubscriptionEntitlements(subscription: any) {
     return { received: true, subscription };
   }
 
-  const entitlementKeys =
+  const featureEntitlementKeys =
     SUBSCRIPTION_ENTITLEMENTS[
       subscription.subscription_key as keyof typeof SUBSCRIPTION_ENTITLEMENTS
-    ];
+    ] ?? [];
 
-  if (!entitlementKeys?.length) {
+  const catalogEntitlements =
+    subscription.subscription_key === 'CREATOR'
+      ? CATALOG.map((item) => ({
+          entitlementKey: item.entitlementKey,
+          entitlementType: item.entitlementType,
+          catalogItemId: item.catalogItemId,
+        }))
+      : [];
+
+  const entitlementRows = [
+    ...featureEntitlementKeys.map((entitlementKey) => ({
+      player_id: subscription.player_id,
+      entitlement_key: entitlementKey,
+      entitlement_type: 'FEATURE',
+      source_type: 'SUBSCRIPTION',
+      subscription_id: subscription.id,
+      status: 'ACTIVE',
+      starts_at: now,
+      expires_at: null,
+      metadata: {
+        subscriptionKey: subscription.subscription_key,
+        provider: subscription.provider,
+        providerSubscriptionId: subscription.provider_subscription_id,
+      },
+    })),
+    ...catalogEntitlements.map((item) => ({
+      player_id: subscription.player_id,
+      entitlement_key: item.entitlementKey,
+      entitlement_type: item.entitlementType,
+      source_type: 'SUBSCRIPTION',
+      subscription_id: subscription.id,
+      status: 'ACTIVE',
+      starts_at: now,
+      expires_at: null,
+      metadata: {
+        catalogItemId: item.catalogItemId,
+        subscriptionKey: subscription.subscription_key,
+        provider: subscription.provider,
+        providerSubscriptionId: subscription.provider_subscription_id,
+      },
+    })),
+  ];
+
+  if (!entitlementRows.length) {
     return { error: 'No entitlements configured for subscription' };
   }
-
-  const entitlementRows = entitlementKeys.map((entitlementKey) => ({
-    player_id: subscription.player_id,
-    entitlement_key: entitlementKey,
-    entitlement_type: 'FEATURE',
-    source_type: 'SUBSCRIPTION',
-    subscription_id: subscription.id,
-    status: 'ACTIVE',
-    starts_at: now,
-    expires_at: null,
-    metadata: {
-      subscriptionKey: subscription.subscription_key,
-      provider: subscription.provider,
-      providerSubscriptionId: subscription.provider_subscription_id,
-    },
-  }));
 
   const { error: entitlementError } = await db
     .from('_player_entitlements')
