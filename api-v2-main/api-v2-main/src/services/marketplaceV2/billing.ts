@@ -1,7 +1,9 @@
 import Stripe from 'stripe';
 import { db } from '../../models';
-import storeService from '../store';
-import { STRIPE_PRODUCTS } from '../../config/stripeProducts';
+import {
+  STRIPE_ITEM_PRICE_ENV_VARS,
+  STRIPE_PRODUCTS,
+} from '../../config/stripeProducts';
 import { SUBSCRIPTIONS } from '../../config/subscriptions';
 import { SUBSCRIPTION_ENTITLEMENTS } from '../../config/subscriptionEntitlements';
 import { CATALOG } from './catalog';
@@ -19,6 +21,11 @@ export interface CreateBillingPortalSessionRequest {
   playerId: string;
 }
 
+export interface CreateItemCheckoutSessionRequest {
+  playerId: string;
+  itemId: string;
+}
+
 async function processStripePurchase({
   playerId,
   itemId,
@@ -26,8 +33,54 @@ async function processStripePurchase({
   playerId: string;
   itemId: string;
 }) {
-  // Stripe MUST NOT touch coin system
-  return await storeService.grantEntitlementsFromItem(playerId, itemId);
+  const catalogItem = CATALOG.find((item) => item.catalogItemId === itemId);
+
+  if (!catalogItem) {
+    return { error: 'Invalid catalog item for Stripe purchase' };
+  }
+
+  const { data: existingEntitlement } = await db
+    .from('_player_entitlements')
+    .select('id')
+    .eq('player_id', playerId)
+    .eq('entitlement_key', catalogItem.entitlementKey)
+    .eq('status', 'ACTIVE')
+    .is('expires_at', null)
+    .maybeSingle();
+
+  if (existingEntitlement) {
+    return {
+      success: true,
+      alreadyOwned: true,
+      playerId,
+      itemId,
+      entitlementKey: catalogItem.entitlementKey,
+    };
+  }
+
+  const { error } = await db.from('_player_entitlements').insert({
+    player_id: playerId,
+    entitlement_key: catalogItem.entitlementKey,
+    entitlement_type: catalogItem.entitlementType,
+    source_type: 'ORDER_ITEM',
+    status: 'ACTIVE',
+    metadata: {
+      catalogItemId: catalogItem.catalogItemId,
+      purchaseMethod: 'STRIPE',
+    },
+  });
+
+  if (error) {
+    console.error('Failed to grant Stripe purchase entitlement', error);
+    return { error: 'Failed to grant Stripe purchase entitlement' };
+  }
+
+  return {
+    success: true,
+    playerId,
+    itemId,
+    entitlementKey: catalogItem.entitlementKey,
+  };
 }
 
 export async function createCheckoutSession(
@@ -100,6 +153,80 @@ export async function createCheckoutSession(
     checkoutUrl: session.url,
     subscriptionKey,
   };
+}
+
+export async function createItemCheckoutSession(
+  request: CreateItemCheckoutSessionRequest,
+) {
+  const { playerId, itemId } = request;
+
+  const catalogItem = CATALOG.find((item) => item.catalogItemId === itemId);
+  if (!catalogItem) {
+    return { error: 'Invalid catalog item' };
+  }
+
+  const stripeSecretKey = process.env.STRIPE_SK;
+  if (!stripeSecretKey) {
+    return { error: 'Missing Stripe secret key' };
+  }
+
+  const siteUrl = process.env.SITE_URL;
+  if (!siteUrl) {
+    return { error: 'Missing SITE_URL environment variable' };
+  }
+
+  const envVar = STRIPE_ITEM_PRICE_ENV_VARS[itemId];
+  if (!envVar) {
+    return { error: 'No Stripe price configured for this item' };
+  }
+
+  const stripePriceId = process.env[envVar];
+  if (!stripePriceId) {
+    return {
+      error: `Missing Stripe price environment variable: ${envVar}`,
+    };
+  }
+
+  const stripe = new Stripe(stripeSecretKey);
+
+  try {
+    const session = await stripe.checkout.sessions.create({
+      mode: 'payment',
+      payment_method_types: ['card'],
+      line_items: [
+        {
+          price: stripePriceId,
+          quantity: 1,
+        },
+      ],
+      success_url: `${siteUrl}/marketplace/word-packs?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${siteUrl}/marketplace/word-packs?checkout=cancelled`,
+      metadata: {
+        playerId,
+        itemId,
+        purchaseType: 'ITEM',
+      },
+      payment_intent_data: {
+        metadata: {
+          playerId,
+          itemId,
+          purchaseType: 'ITEM',
+        },
+      },
+    });
+
+    return {
+      checkoutSessionId: session.id,
+      checkoutUrl: session.url,
+      itemId,
+    };
+  } catch (error: any) {
+    console.error('Stripe item checkout session creation failed', error);
+
+    return {
+      error: error?.message || 'Failed to create Stripe item checkout session',
+    };
+  }
 }
 
 export interface HandleStripeWebhookRequest {
@@ -566,6 +693,58 @@ export async function handleStripeWebhook(
   }
   
   const session = event.data.object as Stripe.Checkout.Session;
+
+  if (session.mode === 'payment') {
+    if (session.payment_status !== 'paid') {
+      await db
+        .from('_stripe_webhook_events')
+        .update({
+          processing_status: 'PROCESSED',
+          error: 'Payment not paid',
+          processed_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        })
+        .eq('stripe_event_id', event.id);
+
+      return {
+        received: true,
+        ignored: true,
+        eventType: event.type,
+      };
+    }
+
+    const playerId = session.metadata?.playerId;
+    const itemId = session.metadata?.itemId;
+    const purchaseType = session.metadata?.purchaseType;
+
+    if (!playerId || !itemId || purchaseType !== 'ITEM') {
+      await db
+        .from('_stripe_webhook_events')
+        .update({
+          processing_status: 'FAILED',
+          error: 'Missing required item purchase metadata from Stripe session',
+          processed_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        })
+        .eq('stripe_event_id', event.id);
+
+      return { error: 'Missing required item purchase metadata from Stripe session' };
+    }
+
+    const result = await processStripePurchase({ playerId, itemId });
+
+    await db
+      .from('_stripe_webhook_events')
+      .update({
+        processing_status: 'error' in result ? 'FAILED' : 'PROCESSED',
+        error: 'error' in result ? result.error : null,
+        processed_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+      .eq('stripe_event_id', event.id);
+
+    return result;
+  }
 
   if (session.mode !== 'subscription') {
     await db
