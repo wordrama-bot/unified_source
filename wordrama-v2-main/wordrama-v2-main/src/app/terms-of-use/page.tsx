@@ -1,4 +1,5 @@
 "use client"
+import Link from "next/link";
 import NavBar from '@/components/navbar/h-nav';
 import Footer from '@/sections/footer';
 
@@ -10,6 +11,8 @@ export default function TermsOfUsePolicyPage() {
           { href: "/", text: "Home" },
           { href: "/free-play", text: "Quick Play" },
           { href: "/marketplace", text: "Marketplace" },
+          { href: "/achievements", text: "Achievements" },
+          { href: "/teams", text: "Teams" },
           { href: "/about", text: "About" },
           { href: "/signup", text: "Sign Up / In" },
         ]}
@@ -23,7 +26,7 @@ export default function TermsOfUsePolicyPage() {
           <p className="mt-2">We are Wordrama.io ('Company', 'we', 'us', or 'our'), a part of Unhinged Creations, LLC, a limited liabity company registered in the United States at 7427 Matthews-Mint Hill Rd, Ste. 105-369, Mint Hill, NC 28227.</p>
           <p className="mt-4">We operate the website https://wordrama.io (the 'Site'), as well as any other related products and services that refer or link to these legal terms (the 'Legal Terms') (collectively, the 'Services').</p>
           <p className="mt-4">Wordrama is a web-based word games platform appropriate for all ages.</p>
-          <p className="mt-4">You can contact us by email at <a href="mailto:support@wordrama.io" className='text-blue-500 hover:underline'>support@wordrama.io</a>.</p>
+          <p className="mt-4">You can contact us by email at <Link href="/contact" className="text-blue-500 hover:underline">support@wordrama.io</Link>.</p>
           <p className="mt-4">These Legal Terms constitute a legally binding agreement made between you, whether personally or on behalf of an entity ('you'), and Wordrama.io, concerning your access to and use of the Services. You agree that by accessing the Services, you have read, understood, and agreed to be bound by all of these Legal Terms. IF YOU DO NOT AGREE WITH ALL OF THESE LEGAL TERMS, THEN YOU ARE EXPRESSLY PROHIBITED FROM USING THE SERVICES AND YOU MUST DISCONTINUE USE IMMEDIATELY.</p>
           <p className="mt-4">Supplemental terms and conditions or documents that may be posted on the Services from time to time are hereby expressly incorporated herein by reference. We reserve the right, in our sole discretion, to make changes or modifications to these Legal Terms from time to time. We will alert you about any changes by updating the 'Last updated' date of these Legal Terms, and you waive any right to receive specific notice of each such change. It is your responsibility to periodically review these Legal Terms to stay informed of updates. You will be subject to, and will be deemed to have been made aware of and to have accepted, the changes in any revised Legal Terms by your continued use of the Services after the date such revised Legal Terms are posted.</p>
           <p className='mt-4'>All users who are minors in the jurisdiction in which they reside (generally under the age of 18) must have the permission of, and be directly supervised by, their parent or guardian to use the Services. If you are a minor, you must have your parent or guardian read and agree to these Legal Terms prior to you using the Services.</p>
@@ -139,7 +142,7 @@ export default function TermsOfUsePolicyPage() {
           <h3 className="text-xl font-semibold ml-8 mt-4">7a. Billing and Renewal</h3>
           <p className="mt-4 ml-16">Your subscription will continue and automatically renew unless cancelled. You consent to our charging your payment method on a recurring basis without requiring your prior approval for each recurring charge, until such time as you cancel the applicable order. The length of your billing cycle is monthly.</p>
           <h3 className="text-xl font-semibold ml-8 mt-4">7b. Cancellation</h3>
-          <p className="mt-4 ml-16">You can cancel your subscription at any time by logging into your account. Your cancellation will take effect at the end of the current paid term. If you have any questions or are unsatisfied with our Services, please email us at support@wordrama.io.</p>
+          <p className="mt-4 ml-16">You can cancel your subscription at any time by logging into your account. Your cancellation will take effect at the end of the current paid term. If you have any questions or are unsatisfied with our Services, please email us at <Link href="/contact" className="text-blue-500 hover:underline">support@wordrama.io</Link>.</p>
           <h3 className="text-xl font-semibold ml-8 mt-4">7c. Fee Changes</h3>
           <p className="mt-4 ml-16">We may, from time to time, make changes to the subscription fee and will communicate any price changes to you in accordance with applicable law.</p>
         </section>
@@ -309,7 +312,7 @@ export default function TermsOfUsePolicyPage() {
 
         <section id="contact" className="my-8">
           <h2 className="text-2xl font-semibold">29. Contact Us</h2>
-          <p className="mt-4 ml-8">In order to resolve a complaint regarding the Services or to receive further information regarding use of the Services, please contact us at: <a href="mailto:support@wordrama.io" className='text-blue-500 hover:underline'>support@wordrama.io</a></p>
+          <p className="mt-4 ml-8">In order to resolve a complaint regarding the Services or to receive further information regarding use of the Services, please contact us at: <Link href="/contact" className="text-blue-500 hover:underline">support@wordrama.io</Link>.</p>
         </section>
       </div>
       <Footer />

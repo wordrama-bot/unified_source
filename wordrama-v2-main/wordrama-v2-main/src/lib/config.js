@@ -4,14 +4,21 @@ export const SOCKET_BASE_URL =
   process.env.NEXT_PUBLIC_SOCKET_BASE_URL || 'http://localhost:4000';
 export const MAX_FILE_SIZE_MB = Number(process?.env?.NEXT_MAX_FILE_SIZE_MB) || 5;
 export const APP_INSIGHTS = 'InstrumentationKey=9375a2b1-6c08-423c-85df-9678bfaf4f5b;IngestionEndpoint=https://uksouth-1.in.applicationinsights.azure.com/;LiveEndpoint=https://uksouth.livediagnostics.monitor.azure.com/;ApplicationId=c51d62bf-88ef-423e-9798-b81203d56267'
-export const isPastFirstDecember = new Date() > new Date('2024-12-01T00:00:00');
-export const isChristmas = new Date() > new Date('2024-12-25T00:00:00');
-export const isAfterChristmas = new Date() > new Date('2024-12-26T00:00:00');
-export const isNewYear = new Date() > new Date('2025-01-01T00:00:00');
-export const isAfterNewYear = new Date() > new Date('2025-01-02T00:00:00');
-export const showChristmas = isPastFirstDecember && !isAfterChristmas;
-export const showChristmasDay = isChristmas && !isAfterChristmas;
-export const showNewYear = isNewYear && !isAfterNewYear;
+
+const today = new Date();
+const month = today.getMonth(); // January = 0, December = 11
+const day = today.getDate();
+
+export const isPastFirstDecember = month === 11 && day >= 1;
+export const isChristmas = month === 11 && day === 25;
+export const isAfterChristmas = month === 11 && day >= 26;
+export const isNewYear = month === 0 && day === 1;
+export const isAfterNewYear = month === 0 && day >= 2;
+
+export const showChristmas = month === 11 && day >= 1 && day <= 25;
+export const showChristmasDay = month === 11 && day === 25;
+export const showNewYear = month === 0 && day === 1;
+
 //window.location.host === 'dev.wordrama.io' ? 'https://api-dev.wordrama.io' : 'https://api.wordrama.io'
 
 export const wordleWordPackConfig = {

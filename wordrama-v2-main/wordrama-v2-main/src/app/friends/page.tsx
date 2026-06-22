@@ -23,6 +23,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { FriendsNav } from "@/components/navbar/friends";
 import { useRemoveFriendMutation, useGetMyFriendsQuery } from "@/redux/api/friends";
+import GoogleAd from "@/components/GoogleAd";
 
 const columnHelper = createColumnHelper();
 
@@ -160,6 +161,13 @@ export default function FriendsPage() {
               </CardContent>
           </Card>
         </div>
+        <div className="mt-10">
+            <GoogleAd
+              client="ca-pub-8970369628667981"
+              slot="8219203779"
+              minHeight={280}
+            />
+          </div>
       </main>
     </div>
   )

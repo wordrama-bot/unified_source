@@ -92,7 +92,7 @@ export default function UserMenu({ username }: {
               </DropdownMenuPortal>
             </DropdownMenuSub>
 
-            <a href="mailto:support@wordrama.io?subject=Wordrama Support Request">
+            <a href="/contact">
 		<DropdownMenuItem>
 			Contact Us
   		</DropdownMenuItem>

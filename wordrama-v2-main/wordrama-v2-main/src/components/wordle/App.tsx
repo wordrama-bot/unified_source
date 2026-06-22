@@ -174,8 +174,10 @@ function App(){
     TWENTYTHREE_LETTER: 'twentythreeLetter',
   }
 
-  const gamesWon = allTimeStats?.data[`${wordPackAllTimeStatsMap[wordPack]}GamesWon`] || 0;
-  const gamesLost = allTimeStats?.data[`${wordPackAllTimeStatsMap[wordPack]}GamesLost`] || 0;
+  const statsData = allTimeStats?.data ?? {};
+
+  const gamesWon = statsData[`${wordPackAllTimeStatsMap[wordPack]}GamesWon`] ?? 0;
+  const gamesLost = statsData[`${wordPackAllTimeStatsMap[wordPack]}GamesLost`] ?? 0;
   const gamesPlayed = gamesWon + gamesLost;
 
   const { data: myWordPacks, isLoading: isLoadingWordPacks } = useGetMyWordPacksQuery();
@@ -825,7 +827,7 @@ const [playLoseSoundChristmas] = useSound('/sounds/christmas-lost.mp3', {
               <div className="flex justify-center mb-4">
                 <img
                   draggable="false"
-                  src="https://utfs.io/f/vieUBZcrouNZQrdaKfbRj7hpV6g4Axl20D3nvSc9I1BEkdqr"
+                  src="/images/wordrama-logo.png"
                   alt="Wordrama Logo"
                   className="h-16 w-auto object-contain"
                 />
@@ -910,7 +912,7 @@ const [playLoseSoundChristmas] = useSound('/sounds/christmas-lost.mp3', {
                     <div className="flex justify-center mb-4">
                       <img
                         draggable="false"
-                        src="https://utfs.io/f/vieUBZcrouNZQrdaKfbRj7hpV6g4Axl20D3nvSc9I1BEkdqr"
+                        src="/images/wordrama-logo.png"
                         alt="Wordrama Logo"
                         className="h-16 w-auto object-contain"
                       />
@@ -1016,7 +1018,7 @@ const [playLoseSoundChristmas] = useSound('/sounds/christmas-lost.mp3', {
                       <div className="flex justify-center mb-4">
                         <img
                           draggable="false"
-                          src="https://utfs.io/f/vieUBZcrouNZQrdaKfbRj7hpV6g4Axl20D3nvSc9I1BEkdqr"
+                          src="/images/wordrama-logo.png"
                           alt="Wordrama Logo"
                           className="h-16 w-auto object-contain"
                         />

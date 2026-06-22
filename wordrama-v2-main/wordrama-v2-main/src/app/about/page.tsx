@@ -79,6 +79,7 @@ export default function AboutPage() {
             { href: "/leaderboard", text: "Leaderboard" },
             { href: "/marketplace", text: "Marketplace" },
             { href: "/achievements", text: "Achievements" },
+            { href: "/teams", text: "Teams" },
           ]}
         />
       ) : (
@@ -88,6 +89,7 @@ export default function AboutPage() {
             { href: "/free-play", text: "Quick Play" },
             { href: "/marketplace", text: "Marketplace" },
             { href: "/achievements", text: "Achievements" },
+            { href: "/teams", text: "Teams" },
             { href: "/about", text: "About" },
             { href: "/signup", text: "Sign Up / In" },
           ]}
@@ -203,11 +205,11 @@ export default function AboutPage() {
       </section>
 
       <div className="mt-10">
-            <GoogleAd
-              client="ca-pub-8970369628667981"
-              slot="8219203779"
-              minHeight={280}
-            />
+        <GoogleAd
+          client="ca-pub-8970369628667981"
+          slot="8219203779"
+          minHeight={280}
+        />
       </div>
       
       <Community />

@@ -159,8 +159,10 @@ function App(){
     TWENTYTHREE_LETTER: 'twentythreeLetter',
   }
 
-  const gamesWon = allTimeStats?.data[`${wordPackAllTimeStatsMap[wordPack]}GamesWon`] || allTimeStats?.data?.gamesWon || 0;
-  const gamesLost = allTimeStats?.data[`${wordPackAllTimeStatsMap[wordPack]}GamesLost`] || allTimeStats?.data?.gamesLost || 0;
+  const statsData = allTimeStats?.data ?? {};
+
+  const gamesWon = statsData[`${wordPackAllTimeStatsMap[wordPack]}GamesWon`] ?? statsData.gamesWon ?? 0;
+  const gamesLost = statsData[`${wordPackAllTimeStatsMap[wordPack]}GamesLost`] ?? statsData.gamesLost ?? 0;
   const gamesPlayed = gamesWon + gamesLost;
 
   const { data: myWordPacks, isLoading: isLoadingWordPacks } = useGetMyWordPacksQuery();

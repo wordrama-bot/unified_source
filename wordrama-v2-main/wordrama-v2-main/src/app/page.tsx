@@ -76,6 +76,7 @@ function PublicHome() {
           { href: "/free-play", text: "Quick Play" },
           { href: "/marketplace", text: "Marketplace" },
           { href: "/achievements", text: "Achievements" },
+          { href: "/teams", text: "Teams" },
           { href: "/about", text: "About" },
           { href: "/signup", text: "Sign Up / In" },
         ]}
@@ -122,7 +123,7 @@ function PublicHome() {
                       <li className="mt-2"><strong className='text-slate-300'>Grey:</strong> Incorrect letters are greyed out, meaning they are not part of the word at all. Use this information to eliminate possibilities and refine your guesses.</li>
                   </ul>
 
-                  <Image src="https://utfs.io/f/vieUBZcrouNZl1Z6dPEXuxhLbEmnAdrKYfCloM98G04ykiPz" alt="Wordrama gameplay" width={600} height={200} className="mt-4 border-hidden" />
+                  <Image src="/images/games/wordrama-gameplay.png" alt="Wordrama gameplay" width={600} height={200} className="mt-4 border-hidden" />
 
                   <p className="mt-2">Utilize these hints strategically to narrow down your guesses and identify the word before you run out of attempts!</p>
 
@@ -391,7 +392,7 @@ function AuthenticatedHome() {
         <ChristmasHeader
           heroText={`${myAccount?.data?.displayName ? `, ${myAccount?.data?.displayName}` : ''}`}
           showLogo={true}
-          logo="https://utfs.io/f/vieUBZcrouNZHgZwgWPc5QTiy9PYrsMqS3jRhEFC148IZDw0"
+          logo="/images/wordrama-logo-christmas.png"
           className='min-h-[20dvh] dark:bg-darkBg inset-0 flex w-full flex-col items-center justify-center bg-bg bg-[linear-gradient(to_right,#80808033_1px,transparent_1px),linear-gradient(to_bottom,#80808033_1px,transparent_1px)] bg-[size:70px_70px]'
         />
       )}
@@ -416,9 +417,18 @@ function AuthenticatedHome() {
         }] : [{
           title: 'Wordrama',
           link: '/games/wordrama',
+          image: '/images/games/wordrama.png',
           Icon: Wordle,
-          text: '4-23 letter Daily, Infinite & Custom modes.',
-        }/*,{
+          text: '4-23 letter Daily and Infinite Wordle modes to play solo.',
+          },
+          {
+            title: 'Wordrama Custom',
+            link: '/games/wordrama/custom',
+            image: '/images/games/wordrama-custom.png',
+            Icon: Wordle,
+            text: 'Create a custom Wordle game to play with friends.',
+          }
+          /*,{
           title: 'Spell Bee',
           link: '/games/spellbee',
           Icon: SpellBee,

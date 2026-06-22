@@ -9,7 +9,8 @@ export default function Games({
   games: {
     title: string,
     link: string,
-    Icon: () => JSX.Element,
+    Icon?: () => JSX.Element,
+    image?: string,
     text: string
   }[]
 }) {
@@ -46,14 +47,16 @@ export default function Games({
       games = [{
         title: 'Wordrama',
         link: '/games/wordrama',
+        image: '/images/games/wordrama.png',
         Icon: Wordle,
-        text: '4-23 letter Daily, Infinite & Custom modes.',
+        text: '4-23 letter Daily and Infinite Wordle modes to play solo.',
       },
       {
         title: 'Wordrama Custom',
         link: '/games/wordrama/custom',
+        image: '/images/games/wordrama-custom.png',
         Icon: Wordle,
-        text: 'Create a custom game.',
+        text: 'Create a custom Wordle game to play with friends.',
       }
       /*,{
         title: 'Spell Bee',
@@ -72,12 +75,22 @@ export default function Games({
   return (
     <section className="border-t-border dark:border-t-darkBorder dark:bg-darkBg border-t-2 bg-bg py-20 font-base lg:py-[50px]">
       <div className="mx-auto grid w-container max-w-full grid-cols-1 gap-5 px-5 sm:grid-cols-2 lg:grid-cols-3">
-        { games.map(({ title, text, link, Icon }, gameIdx) => {
+        { games.map(({ title, text, link, Icon, image }, gameIdx) => {
           return (
             <Link href={link || '/'} key={gameIdx}>
               <div
                 className={`border-2 border-border dark:border-darkBorder dark:bg-darkBg shadow-light dark:shadow-dark flex flex-col gap-3 rounded-base bg-bg p-5 ${link && 'hover:translate-x-boxShadowX hover:translate-y-boxShadowY hover:shadow-none dark:hover:shadow-none dark:bg-darkBg shadow-light dark:shadow-dark flex flex-col gap-3 rounded-base bg-bg p-5'}`}>
-                <Icon />
+                  {image ? (
+                    <Image
+                      src={image}
+                      alt={`${title} game`}
+                      width={128}
+                      height={128}
+                      className="h-32 w-32 rounded-base object-cover"
+                    />
+                  ) : Icon ? (
+                    <Icon />
+                  ) : null}
                 <h4 className="mt-2 text-xl font-heading">
                   { title }
                 </h4>

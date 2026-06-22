@@ -1,4 +1,5 @@
 "use client"
+import Link from "next/link";
 import NavBar from '@/components/navbar/h-nav';
 import Footer from '@/sections/footer';
 
@@ -11,6 +12,7 @@ export default function AcceptableUsePolicyPage() {
           { href: "/free-play", text: "Quick Play" },
           { href: "/marketplace", text: "Marketplace" },
           { href: "/achievements", text: "Achievements" },
+          { href: "/teams", text: "Teams" },
           { href: "/about", text: "About" },
           { href: "/signup", text: "Sign Up / In" },
         ]}
@@ -171,9 +173,9 @@ export default function AcceptableUsePolicyPage() {
           <p className="mt-2 ml-8">We may but are under no obligation to review or moderate the Contributions made on the Services and we expressly exclude our liability for any loss or damage resulting from any of our users' breach of this Policy.</p>
           <p className="mt-4 ml-8">If you consider that any Service, Content, or Contribution:</p>
           <ul className="list-disc ml-16 list-inside mt-2">
-            <li>breach this Policy, please email us at <a href="mailto:support@wordrama.io" className='text-blue-500 hover:underline'>support@wordrama.io</a>, or refer to the contact details at the bottom of this document to let us know which Service, Content, or Contribution is in breach of this Policy and why</li>
-            <li>infringe any third-party intellectual property rights, please email us at <a href="mailto:support@wordrama.io" className='text-blue-500 hover:underline'>support@wordrama.io</a></li>
-            <li>users can also send detailed feedback on their interactions with our AI Products by emailing <a href="mailto:support@wordrama.io" className='text-blue-500 hover:underline'>support@wordrama.io</a>, or referring to the contact details at the bottom of this document. You should include specific details about the AI interaction, such as the context, the nature of the concern, and any relevant screenshots or documentation</li>
+            <li>breach this Policy, please email us at <Link href="/contact" className="text-blue-500 hover:underline">support@wordrama.io</Link>, to let us know which Service, Content, or Contribution is in breach of this Policy and why</li>
+            <li>infringe any third-party intellectual property rights, please email us at <Link href="/contact" className="text-blue-500 hover:underline">support@wordrama.io</Link></li>
+            <li>users can also send detailed feedback on their interactions with our AI Products by emailing <Link href="/contact" className="text-blue-500 hover:underline">support@wordrama.io</Link>, or referring to the contact details at the bottom of this document. You should include specific details about the AI interaction, such as the context, the nature of the concern, and any relevant screenshots or documentation</li>
           </ul>
           <p className="mt-4 ml-8">We will reasonably determine whether a Service, Content, or Contribution breaches this Policy.</p>
         </section>
@@ -198,7 +200,7 @@ export default function AcceptableUsePolicyPage() {
 
         <section id="contact" className="my-8">
           <h2 className="text-2xl font-semibold">How can you contact us about this policy?</h2>
-          <p className="mt-4 ml-8">If you have any further questions or comments or wish to report any problematic Content or Contribution, you may contact us by: <br/>Email: <a href="mailto:support@wordrama.io" className='text-blue-500 hover:underline'>support@wordrama.io</a></p>
+          <p className="mt-4 ml-8">If you have any further questions or comments or wish to report any problematic Content or Contribution, you may contact us by: <br/>Email: <Link href="/contact" className="text-blue-500 hover:underline">support@wordrama.io</Link>.</p>
         </section>
       </div>
       <Footer />

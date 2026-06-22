@@ -113,12 +113,11 @@ async function getTeamLeaderboard(req: ApiRequest, res: Response) {
   const teamsLength = await teamService.getTeamsLength();
 
   const learderboard = await teamService.getAllTeamsForLeaderboard(
-    req.query.orderBy || 'name',
+    req.query.orderBy || 'overall_rank',
     req.query.order || 'asc',
     offset,
     limit,
   );
-  if (!learderboard) return notFoundResponse(req, res);
 
   const totalPages = Math.ceil(teamsLength / limit);
   return successfulResponse(

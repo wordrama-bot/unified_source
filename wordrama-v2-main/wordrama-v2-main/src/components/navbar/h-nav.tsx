@@ -56,26 +56,16 @@ export default function NavBar({
       >
         <Link
           href="/"
-          className="flex items-center gap-2 text-lg font-semibold md:text-base"
+          className="whitespace-nowrap text-muted-foreground transition-colors hover:text-foreground"
         >
-          <Image
-            src={
-              showChristmas
-                ? "https://utfs.io/f/vieUBZcrouNZHgZwgWPc5QTiy9PYrsMqS3jRhEFC148IZDw0"
-                : "https://utfs.io/f/vieUBZcrouNZQrdaKfbRj7hpV6g4Axl20D3nvSc9I1BEkdqr"
-            }
-            width={250}
-            height={50}
-            alt="Wordrama Logo"
-          />
-          <span className="sr-only">Wordrama</span>
+          Dashboard
         </Link>
 
         {links.map((link, linkIdx) => (
           <Link
             key={`mm-${linkIdx}`}
             href={link.href}
-            className="text-muted-foreground transition-colors hover:text-foreground"
+            className="whitespace-nowrap text-muted-foreground transition-colors hover:text-foreground"
           >
             {link.text}
           </Link>
@@ -99,21 +89,24 @@ export default function NavBar({
 
         <SheetContent side="left">
           <nav className="grid gap-6 text-lg font-medium">
-            <Link
-              href="/"
-              className="flex items-center gap-2 text-lg font-semibold"
-            >
+            <div className="flex items-center gap-2">
               <Image
                 src={
                   showChristmas
-                    ? "https://utfs.io/f/vieUBZcrouNZHgZwgWPc5QTiy9PYrsMqS3jRhEFC148IZDw0"
-                    : "https://utfs.io/f/vieUBZcrouNZQrdaKfbRj7hpV6g4Axl20D3nvSc9I1BEkdqr"
+                    ? "/images/wordrama-logo-christmas.png"
+                    : "/images/wordrama-logo.png"
                 }
                 width={250}
                 height={50}
                 alt="Wordrama Logo"
               />
-              <span className="sr-only">Wordrama</span>
+            </div>
+
+            <Link
+              href="/"
+              className="text-muted-foreground hover:text-foreground"
+            >
+              Dashboard
             </Link>
 
             {links.map((link, linkIdx) => (
@@ -152,7 +145,7 @@ export default function NavBar({
             </Link>
 
             <a
-              href="mailto:support@wordrama.io?subject=Wordrama Support Request"
+              href="/contact"
               className="text-muted-foreground hover:text-foreground"
             >
               Contact Us

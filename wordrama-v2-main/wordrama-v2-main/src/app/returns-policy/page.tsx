@@ -1,4 +1,5 @@
 "use client"
+import Link from "next/link";
 import NavBar from '@/components/navbar/h-nav';
 import Footer from '@/sections/footer';
 
@@ -11,6 +12,7 @@ export default function ReturnPolicyPage() {
           { href: "/free-play", text: "Quick Play" },
           { href: "/marketplace", text: "Marketplace" },
           { href: "/achievements", text: "Achievements" },
+          { href: "/teams", text: "Teams" },
           { href: "/about", text: "About" },
           { href: "/signup", text: "Sign Up / In" },
         ]}
@@ -31,7 +33,7 @@ export default function ReturnPolicyPage() {
         <section id="process" className="my-8">
           <h2 className="text-2xl font-semibold">Return Process</h2>
           <p className="mt-2">
-            To return an item, please email customer service at <a href="mailto:support@wordrama.io" className="text-blue-500 hover:underline">support@wordrama.io</a> to obtain a Return Merchandise Authorisation (RMA) number. After receiving a RMA number, please send an email with the RMA number in the subject to confirm the return
+            To return an item, please email customer service at <Link href="/contact" className="text-blue-500 hover:underline">support@wordrama.io</Link> to obtain a Return Merchandise Authorisation (RMA) number. After receiving a RMA number, please send an email with the RMA number in the subject to confirm the return
           </p>
         </section>
 
@@ -64,7 +66,7 @@ export default function ReturnPolicyPage() {
         <section id="questions" className="my-8">
           <h2 className="text-2xl font-semibold">Questions</h2>
           <p className="mt-2">
-            If you have any questions concerning our return policy, please contact us at: <a href="mailto:support@wordrama.io" className="text-blue-500 hover:underline">support@wordrama.io</a>.
+            If you have any questions concerning our return policy, please contact us at: <Link href="/contact" className="text-blue-500 hover:underline">support@wordrama.io</Link>.
           </p>
         </section>
       </div>
