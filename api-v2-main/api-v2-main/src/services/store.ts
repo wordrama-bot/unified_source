@@ -1,6 +1,7 @@
 import * as changeKeys from 'change-case/keys';
 
 import { db } from '../models';
+import { CATALOG } from './marketplaceV2/catalog';
 import ledgerService from './ledger';
 import { enqueue, sendMessage } from '../utils/gameLoop';
 import { createMessage } from '../utils/gameLoop.js';
@@ -238,12 +239,21 @@ async function purchaseItemWithCoins(playerId: string, itemId: string) {
       unlocked_with_subscription: false,
     });
 
-    await db.from('_player_entitlements').insert({
-      player_id: playerId,
-      entitlement_key: `ITEM:${id}`,
-      source: 'COINS',
-      metadata: { itemId: id },
-    });
+    const catalogItem = CATALOG.find((item) => item.catalogItemId === id);
+
+    if (catalogItem) {
+      await db.from('_player_entitlements').insert({
+        player_id: playerId,
+        entitlement_key: catalogItem.entitlementKey,
+        entitlement_type: catalogItem.entitlementType,
+        source_type: 'ORDER_ITEM',
+        status: 'ACTIVE',
+        metadata: {
+          catalogItemId: catalogItem.catalogItemId,
+          purchaseMethod: 'COINS',
+        },
+      });
+    }
 
     await enqueue([
       createMessage('PURCHASED_ITEM', {
