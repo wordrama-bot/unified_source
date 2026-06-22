@@ -48,7 +48,7 @@ export default function Product({
             <>
               { //<span className="text-3xl font-heading">£{price}</span>{' '}
               }
-              <p className="mb-3 mt-1">£{price}</p>
+              <p className="mb-3 mt-1">${price}</p>
             </>
           ) : (
             <>

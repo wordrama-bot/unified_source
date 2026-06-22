@@ -74,8 +74,8 @@ export async function createCheckoutSession(
           quantity: 1,
         },
       ],
-      success_url: `${siteUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${siteUrl}/checkout/cancel`,
+      success_url: `${siteUrl}/settings/billing?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${siteUrl}/subscribe?checkout=cancelled`,
       metadata: {
         playerId,
         subscriptionKey,

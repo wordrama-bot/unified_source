@@ -36,7 +36,7 @@ export default function PricingPlan({
         </div>
         <p className="mb-3 mt-1">{description}</p>
         <div>
-          <span className="text-3xl font-heading">£{price}</span>{' '}
+          <span className="text-3xl font-heading">${price}</span>{' '}
           <span>/month</span>{' '}
         </div>
         <ul className="mt-8 flex flex-col gap-2">
