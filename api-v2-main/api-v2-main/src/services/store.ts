@@ -58,7 +58,7 @@ async function getPurchasedItems(playerId: string) {
       .filter(
         (entitlement: any) =>
           entitlement.status === 'ACTIVE' &&
-          entitlement.source_type === 'ORDER_ITEM'
+          ['ORDER_ITEM', 'SUBSCRIPTION'].includes(entitlement.source_type)
       )
       .map((entitlement: any) => entitlement.metadata?.catalogItemId)
       .filter(Boolean);
