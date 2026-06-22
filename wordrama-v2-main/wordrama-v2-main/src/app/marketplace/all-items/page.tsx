@@ -367,6 +367,7 @@ export default function AllItemsMarketplacePage() {
                 price={isCashPrice ? cashPrice : item.coinPrice}
                 isCashPrice={isCashPrice}
                 isPurchased={item.isPurchased}
+                isUnlockedBySubscription={item.isUnlockedBySubscription}
                 subItems={[]}
                 addItemToCard={() => {
                   if (!itemsInCart.includes(item.id))

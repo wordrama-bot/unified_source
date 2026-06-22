@@ -44,30 +44,42 @@ async function getPurchases(playerId: string) {
 }
 
 async function getPurchasedItems(playerId: string) {
+  const purchasedItemSources = new Map<string, 'PURCHASED' | 'SUBSCRIPTION'>();
   const legacyItems = await getPurchases(playerId);
 
   const legacyItemIds = legacyItems
     .filter((item) => item.items?.id)
     .map((item) => item.items.id);
 
-  let marketplaceV2ItemIds: string[] = [];
+  legacyItemIds.forEach((id) => purchasedItemSources.set(id, 'PURCHASED'));
 
   try {
     const entitlements = await getPlayerEntitlements(playerId);
 
-    marketplaceV2ItemIds = entitlements
+    entitlements
       .filter(
         (entitlement: any) =>
           entitlement.status === 'ACTIVE' &&
-          ['ORDER_ITEM', 'SUBSCRIPTION'].includes(entitlement.source_type)
+          ['ORDER_ITEM', 'SUBSCRIPTION'].includes(entitlement.source_type) &&
+          entitlement.metadata?.catalogItemId
       )
-      .map((entitlement: any) => entitlement.metadata?.catalogItemId)
-      .filter(Boolean);
+      .forEach((entitlement: any) => {
+        const catalogItemId = entitlement.metadata.catalogItemId;
+
+        if (entitlement.source_type === 'ORDER_ITEM') {
+          purchasedItemSources.set(catalogItemId, 'PURCHASED');
+          return;
+        }
+
+        if (!purchasedItemSources.has(catalogItemId)) {
+          purchasedItemSources.set(catalogItemId, 'SUBSCRIPTION');
+        }
+      });
   } catch (error) {
     console.error('Error fetching Marketplace V2 entitlements for store items', error);
   }
 
-  return Array.from(new Set([...legacyItemIds, ...marketplaceV2ItemIds]));
+  return purchasedItemSources;
 }
 
 async function getStoreItems(playerId: string, filters) {
@@ -92,19 +104,23 @@ async function getStoreItems(playerId: string, filters) {
     return [];
   }
 
-  const purchasedItems = await getPurchasedItems(playerId);
+  const purchasedItemSources = await getPurchasedItems(playerId);
+  const purchasedItems = Array.from(purchasedItemSources.keys());
   const filteredData = data
     .map((item) => {
       if (purchasedItems.includes(item.id)) {
         return {
           ...item,
-          isPurchased: true,
+          isPurchased: purchasedItemSources.get(item.id) === 'PURCHASED',
+          isUnlockedBySubscription:
+            purchasedItemSources.get(item.id) === 'SUBSCRIPTION',
         };
       }
 
       return {
         ...item,
         isPurchased: false,
+        isUnlockedBySubscription: false,
       };
     })
     .filter((item) => {

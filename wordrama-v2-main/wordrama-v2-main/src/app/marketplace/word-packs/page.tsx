@@ -306,6 +306,7 @@
                     price={price}
                     isCashPrice={isCashPrice}
                     isPurchased={item.isPurchased}
+                    isUnlockedBySubscription={item.isUnlockedBySubscription}
                     subItems={[]}
                     isInCart={itemsInCart.includes(item.id)}
                     isLocked={isLockedBySubscription}

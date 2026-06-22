@@ -7,6 +7,7 @@ export default function Product({
   subItems = [],
   isPopular = false,
   isPurchased = false,
+  isUnlockedBySubscription = false,
   isLocked = false,
   name,
   type,
@@ -21,6 +22,7 @@ export default function Product({
   subItems: string[]
   isPopular?: boolean
   isPurchased?: boolean
+  isUnlockedBySubscription?: boolean
   isLocked?: boolean
   type: string
   name: string
@@ -36,9 +38,18 @@ export default function Product({
       <div>
         <div className="flex items-center justify-between">
           <h3 className="text-2xl font-heading">{name}</h3>
-          {(isPopular || isPurchased) && (
-            <span className="rounded-base border-2 bg-green-600 text-white px-2 py-0.5 text-sm">
-              {isPopular ? 'Popular' : isPurchased ? 'Purchased' : ''}
+          {(isPopular || isPurchased || isUnlockedBySubscription) && (
+            <span
+              className={cn(
+                "rounded-base border-2 text-white px-2 py-0.5 text-sm",
+                isUnlockedBySubscription ? "bg-blue-600" : "bg-green-600"
+              )}
+            >
+              {isPopular
+                ? "Popular"
+                : isPurchased
+                  ? "Purchased"
+                  : "Unlocked"}
             </span>
           )}
         </div>
@@ -70,7 +81,11 @@ export default function Product({
       </div>
       {isPurchased ? (
         <Button disabled className="mt-12 w-full">
-          Owned
+          Purchased
+        </Button>
+      ) : isUnlockedBySubscription ? (
+        <Button disabled className="mt-12 w-full">
+          Included with Creator
         </Button>
       ) : isLocked ? (
         <Button disabled className="mt-12 w-full">
