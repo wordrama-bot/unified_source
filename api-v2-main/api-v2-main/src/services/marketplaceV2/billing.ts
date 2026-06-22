@@ -266,7 +266,7 @@ async function syncSubscriptionEntitlements(subscription: any) {
       subscription_id: subscription.id,
       status: 'ACTIVE',
       starts_at: now,
-      expires_at: null,
+      expires_at: subscription.current_period_end ?? null,
       metadata: {
         subscriptionKey: subscription.subscription_key,
         provider: subscription.provider,
@@ -281,7 +281,7 @@ async function syncSubscriptionEntitlements(subscription: any) {
       subscription_id: subscription.id,
       status: 'ACTIVE',
       starts_at: now,
-      expires_at: null,
+      expires_at: subscription.current_period_end ?? null,
       metadata: {
         catalogItemId: item.catalogItemId,
         subscriptionKey: subscription.subscription_key,
@@ -319,6 +319,7 @@ export async function getCurrentSubscription(
     .from('_player_subscriptions')
     .select('*')
     .eq('player_id', playerId)
+    .in('status', ['TRIALING', 'ACTIVE', 'PAST_DUE'])
     .order('created_at', { ascending: false })
     .limit(1)
     .maybeSingle();
@@ -512,10 +513,6 @@ export async function handleStripeWebhook(
     )
     .select('*')
     .maybeSingle();
-
-  if (result?.data?.subscriptionKey && result?.data?.playerId) {
-    const { subscriptionKey, playerId } = result.data;
-  }
 
   if (error) {
     console.error('Failed to save player subscription', error);
