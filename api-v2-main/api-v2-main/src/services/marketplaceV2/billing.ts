@@ -217,7 +217,10 @@ async function syncStripeSubscription(subscription: Stripe.Subscription) {
 }
 
 function shouldGrantSubscriptionEntitlements(subscription: any) {
-  return subscription.status === 'ACTIVE' && !subscription.cancelled_at;
+  return (
+    ['TRIALING', 'ACTIVE', 'PAST_DUE'].includes(subscription.status) &&
+    !subscription.cancelled_at
+  );
 }
 
 async function syncSubscriptionEntitlements(subscription: any) {
