@@ -484,12 +484,57 @@ export async function handleStripeWebhook(
 
   console.log('Stripe webhook received:', event.type);
 
+  const { data: existingEvent } = await db
+    .from('_stripe_webhook_events')
+    .select('id')
+    .eq('stripe_event_id', event.id)
+    .maybeSingle();
+
+  if (existingEvent) {
+    return {
+      received: true,
+      duplicate: true,
+      eventType: event.type,
+    };
+  }
+
+  const { error: eventInsertError } = await db
+    .from('_stripe_webhook_events')
+    .insert({
+      stripe_event_id: event.id,
+      event_type: event.type,
+      processing_status: 'PROCESSING',
+    });
+
+  if (eventInsertError) {
+    console.error('Failed to record Stripe webhook event', eventInsertError);
+
+    return {
+      error: 'Failed to record Stripe webhook event',
+      eventType: event.type,
+    };
+  }
+
   if (
     event.type !== 'checkout.session.completed' &&
     event.type !== 'customer.subscription.updated' &&
     event.type !== 'customer.subscription.deleted'
   ) {
-    return { received: true, ignored: true, eventType: event.type };
+    await db
+      .from('_stripe_webhook_events')
+      .update({
+        processing_status: 'PROCESSED',
+        error: 'Ignored event type',
+        processed_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+      .eq('stripe_event_id', event.id);
+
+    return {
+      received: true,
+      ignored: true,
+      eventType: event.type,
+    };
   }
 
   if (
@@ -498,17 +543,57 @@ export async function handleStripeWebhook(
   ) {
     const subscription = event.data.object as Stripe.Subscription;
 
-    return syncStripeSubscription(subscription);
+    const result = await syncStripeSubscription(subscription);
+
+    await db
+      .from('_stripe_webhook_events')
+      .update({
+        processing_status: 'error' in result ? 'FAILED' : 'PROCESSED',
+        error: 'error' in result ? result.error : null,
+        processed_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+      .eq('stripe_event_id', event.id);
+
+    return result;
   }
   
   const session = event.data.object as Stripe.Checkout.Session;
 
   if (session.mode !== 'subscription') {
-    return { received: true, ignored: true, reason: 'Not subscription mode' };
+    await db
+      .from('_stripe_webhook_events')
+      .update({
+        processing_status: 'PROCESSED',
+        error: 'Not subscription mode',
+        processed_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+      .eq('stripe_event_id', event.id);
+
+    return {
+      received: true,
+      ignored: true,
+      eventType: event.type,
+    };
   }
 
   if (session.payment_status !== 'paid') {
-    return { received: true, ignored: true, reason: 'Payment not paid' };
+    await db
+      .from('_stripe_webhook_events')
+      .update({
+        processing_status: 'PROCESSED',
+        error: 'Payment not paid',
+        processed_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+      .eq('stripe_event_id', event.id);
+
+    return {
+      received: true,
+      ignored: true,
+      eventType: event.type,
+    };
   }
 
   const playerId = session.metadata?.playerId;
@@ -575,8 +660,27 @@ export async function handleStripeWebhook(
   const entitlementSyncResult = await syncSubscriptionEntitlements(data);
 
   if ('error' in entitlementSyncResult) {
+    await db
+      .from('_stripe_webhook_events')
+      .update({
+        processing_status: 'FAILED',
+        error: entitlementSyncResult.error,
+        processed_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+      .eq('stripe_event_id', event.id);
+
     return entitlementSyncResult;
   }
+
+  await db
+    .from('_stripe_webhook_events')
+    .update({
+      processing_status: 'PROCESSED',
+      processed_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    })
+    .eq('stripe_event_id', event.id);
 
   return {
     received: true,
