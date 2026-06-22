@@ -295,9 +295,44 @@ async function syncSubscriptionEntitlements(subscription: any) {
     return { error: 'No entitlements configured for subscription' };
   }
 
+  const entitlementKeysToGrant = entitlementRows.map(
+    (row) => row.entitlement_key,
+  );
+
+  const { data: existingEntitlements, error: existingEntitlementsError } =
+    await db
+      .from('_player_entitlements')
+      .select('entitlement_key')
+      .eq('player_id', subscription.player_id)
+      .eq('status', 'ACTIVE')
+      .in('entitlement_key', entitlementKeysToGrant);
+
+  if (existingEntitlementsError) {
+    console.error(
+      'Failed to check existing subscription entitlements',
+      existingEntitlementsError,
+    );
+    return { error: 'Failed to check existing subscription entitlements' };
+  }
+
+  const existingEntitlementKeys = new Set(
+    (existingEntitlements ?? []).map((row: any) => row.entitlement_key),
+  );
+
+  const newEntitlementRows = entitlementRows.filter(
+    (row) => !existingEntitlementKeys.has(row.entitlement_key),
+  );
+
+  if (!newEntitlementRows.length) {
+    return {
+      received: true,
+      subscription,
+    };
+  }
+
   const { error: entitlementError } = await db
     .from('_player_entitlements')
-    .insert(entitlementRows);
+    .insert(newEntitlementRows);
 
   if (entitlementError) {
     console.error('Failed to sync subscription entitlements', entitlementError);
