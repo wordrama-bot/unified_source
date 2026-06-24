@@ -6,8 +6,6 @@ import NavBar from "@/components/navbar/h-nav";
 import Loader from "@/sections/loading";
 import Footer from "@/sections/footer";
 import { useGetMyAccountQuery } from "@/redux/api/wordrama";
-import { getAppearanceTheme } from '@/config/themes';
-import { getWordleGameUiState } from '@/redux/ui/helpers';
 import Header from '@/sections/header';
 
 export default function Layout({
@@ -16,16 +14,6 @@ export default function Layout({
 }: Readonly<{ children: React.ReactNode, className: string }>) {
   const { user } = useAuth();
   const { data: myAccount, isLoading, error } = useGetMyAccountQuery();
-
-  const gameUiState = getWordleGameUiState();
-
-  const appearanceTheme = getAppearanceTheme(
-    gameUiState?.appearanceThemeId ||
-    myAccount?.data?.playerSettings?.appearanceThemeId
-  );
-
-  const shellThemeClasses = `${appearanceTheme.app.background} ${appearanceTheme.app.text}`;
-  const shellPanelThemeClasses = appearanceTheme.app.panel;
 
   if (!user) return (
     <div className={cn("flex min-h-screen w-full flex-col border:border dark:border-darkBorder bg-bg dark:bg-darkBg text-text dark:text-darkText", className)}>
@@ -53,9 +41,8 @@ export default function Layout({
   if (error) return redirect('/');
   if (isLoading && !error) return <Loader />
   return (
-    <div className={cn(`flex min-h-screen w-full flex-col border:border dark:border-darkBorder transition-colors ${shellThemeClasses}`, className)}>
+    <div className={cn("flex w-full flex-col border:border dark:border-darkBorder bg-bg dark:bg-darkBg text-text dark:text-darkText", className)}>
       <NavBar
-        className={shellPanelThemeClasses}
         links={[
           { href: "/games", text: "Games" },
           { href: "/leaderboard", text: "Leaderboard" },
@@ -67,7 +54,7 @@ export default function Layout({
       <main className="w-full">
         {children}
       </main>
-      <Footer className={shellPanelThemeClasses} />
+      <Footer />
     </div>
   );
 }
