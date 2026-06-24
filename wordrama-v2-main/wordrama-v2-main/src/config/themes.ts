@@ -93,9 +93,9 @@ export const appearanceThemes: AppearanceTheme[] = [
     },
 
     app: {
-      background: 'bg-background',
-      panel: 'bg-background',
-      text: 'text-text',
+      background: 'bg-bg dark:bg-darkBg',
+      panel: 'bg-bg dark:bg-darkBg text-text dark:text-darkText',
+      text: 'text-text dark:text-darkText',
       gameSurface: '',
       actionButton: '',
     },
@@ -124,8 +124,8 @@ export const appearanceThemes: AppearanceTheme[] = [
     },
 
     modal: {
-      container: '',
-      title: '',
+      container: 'bg-bg dark:bg-darkBg text-text dark:text-darkText',
+      title: 'text-text dark:text-darkText',
       icon: '',
     },
 
@@ -155,10 +155,10 @@ export const appearanceThemes: AppearanceTheme[] = [
 
     app: {
       background: 'bg-slate-950',
-      panel: 'bg-slate-950 border border-slate-800',
+      panel: 'bg-slate-950 text-white border border-slate-800',
       text: 'text-white',
       gameSurface:
-        'bg-slate-950 border border-sky-800 shadow-2xl shadow-sky-950/50',
+        'bg-slate-950 text-white border border-sky-800 shadow-2xl shadow-sky-950/50',
       actionButton:
         'bg-slate-950 hover:bg-slate-800 active:bg-slate-700 text-white border border-white/60 shadow-lg shadow-black/60',
     },
@@ -220,7 +220,8 @@ export const appearanceThemes: AppearanceTheme[] = [
       background: 'bg-rose-100',
       panel: 'bg-rose-50',
       text: 'text-rose-950',
-      gameSurface: 'border border-rose-300 shadow-2xl',
+      gameSurface:
+        'bg-rose-50 text-rose-950 border border-rose-300 shadow-2xl',
       actionButton:
         'bg-rose-200 hover:bg-rose-300 text-rose-950 border border-rose-300 shadow-lg',
     },
