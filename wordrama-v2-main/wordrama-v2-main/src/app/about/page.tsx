@@ -1,6 +1,7 @@
 "use client"
 import Header from '@/sections/header';
-import NavBar from "@/components/navbar/public-nav";
+import NavBar from "@/components/navbar/h-nav";
+import PublicNav from "@/components/navbar/public-nav";
 import { cn } from '@/lib/utils';
 import aboutImg from './about.png';
 import { useAuth } from '@/providers/auth-provider';
@@ -20,6 +21,8 @@ import { User } from 'lucide-react';
 import { showChristmas } from '@/lib/config';
 import Snowfall from '@/components/Snowflake';
 
+import GoogleAd from "@/components/GoogleAd";
+
 export default function AboutPage() {
   const { user } = useAuth();
   //getAppInsights().trackPageView({ name: 'About Page' });
@@ -32,20 +35,20 @@ export default function AboutPage() {
 
     const stats: statsProps[] = [
       {
-        quantity: "2.3K+",
-        description: "Players",
+        quantity: "2,500+",
+        description: "Registered Players",
       },
       {
-        quantity: "60K+",
+        quantity: "1.2M+",
         description: "Games Played",
       },
       {
-        quantity: "176K+",
-        description: "In game coins earned",
+        quantity: "17M+",
+        description: "Coins Earned",
       },
       {
-        quantity: "100+",
-        description: "Customs created",
+        quantity: "340+",
+        description: "Customs Created",
       },
     ];
 
@@ -67,22 +70,31 @@ export default function AboutPage() {
   };
 
   return (
-    <div className="flex min-h-screen w-full flex-col border:border dark:border-darkBorder bg-bg dark:bg-darkBg text-text dark:text-darkText">
+    <div className="flex min-h-screen w-full flex-col border dark:border-darkBorder bg-bg dark:bg-darkBg text-text dark:text-darkText">
       { showChristmas && <Snowfall /> }
-      <NavBar
-        links={user ? [
-          { href: "/games", text: "Games" },
-          { href: "/leaderboard", text: "Leaderboard" },
-          { href: "/marketplace", text: "Marketplace" },
-          { href: "/achievements", text: "Achievements" },
-          //{ href: "/teams", text: "Teams" },
-        ] : [
+      {user ? (
+        <NavBar
+          links={[
+            { href: "/games", text: "Games" },
+            { href: "/leaderboard", text: "Leaderboard" },
+            { href: "/marketplace", text: "Marketplace" },
+            { href: "/achievements", text: "Achievements" },
+            { href: "/teams", text: "Teams" },
+          ]}
+        />
+      ) : (
+        <PublicNav
+          links={[
+            { href: "/", text: "Home" },
+            { href: "/free-play", text: "Quick Play" },
+            { href: "/marketplace", text: "Marketplace" },
+            { href: "/achievements", text: "Achievements" },
+            { href: "/teams", text: "Teams" },
             { href: "/about", text: "About" },
-            { href: "/free-play", text: "Wordle" },
-            { href: "/signup", text: "SignUp" },
-          ]
-        }
-      />
+            { href: "/signup", text: "Sign Up / In" },
+          ]}
+        />
+      )}
       <section
         id="about"
         className="py-24 sm:py-32 mx-10"
@@ -111,15 +123,103 @@ export default function AboutPage() {
           </div>
         </div>
       </section>
-      <Features />
+      <section className="mx-10 mb-16">
+        <div className="border rounded-lg py-12 px-8">
+          <h2 className="text-3xl font-bold mb-6">
+            Why Wordrama Is Different
+          </h2>
+
+          <div className="space-y-6 text-lg text-muted-foreground">
+            <p>
+              Wordrama was built for players who wanted more from word games than a
+              single five-letter puzzle each day. While classic Wordle inspired the
+              experience, Wordrama expands the formula with multiple game modes,
+              competitive features, community interaction, and customizable gameplay.
+            </p>
+
+            <p>
+              One of the biggest differences is variety. Players can explore word
+              packs ranging from 4-letter puzzles all the way up to 23-letter
+              challenges. This creates a much wider range of difficulty levels and
+              strategies compared to traditional daily word games.
+            </p>
+
+            <p>
+              Wordrama also includes progression systems, achievements, leaderboards,
+              in-game currency, and profile customization. The goal is to create a
+              long-term social and competitive experience around word puzzles instead
+              of a single quick daily activity.
+            </p>
+
+            <p>
+              The platform has become especially popular among livestreamers and TikTok
+              creators because of its interactive gameplay and community-driven
+              competition. Players can compare scores, challenge friends, and compete
+              for leaderboard rankings while improving vocabulary and pattern
+              recognition skills.
+            </p>
+
+            <p>
+              In addition to gameplay features, Wordrama also includes educational and
+              skill-building benefits. Word puzzle games encourage logical reasoning,
+              spelling recognition, vocabulary development, and strategic thinking.
+              Many players use Wordrama as a daily mental exercise or as a way to stay
+              mentally active while having fun.
+            </p>
+
+            <p>
+              New features continue to be added regularly, including upcoming
+              multiplayer experiences like Co-Wordle, expanded word packs, seasonal
+              events, accessibility improvements, and premium customization options.
+            </p>
+
+            <p>
+              Players looking to improve their skills can also explore our growing set
+              of strategy resources and guides:
+            </p>
+
+            <ul className="list-disc ml-8">
+              <li>
+                <Link href="/how-to-play" className="text-blue-500 hover:underline">
+                  How to Play Wordrama
+                </Link>
+              </li>
+              <li>
+                <Link href="/wordle-strategy" className="text-blue-500 hover:underline">
+                  Wordle Strategy Guide
+                </Link>
+              </li>
+              <li>
+                <Link href="/best-starting-words" className="text-blue-500 hover:underline">
+                  Best Starting Words
+                </Link>
+              </li>
+              <li>
+                <Link href="/wordle-tips" className="text-blue-500 hover:underline">
+                  Wordle Tips
+                </Link>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <div className="mt-10">
+        <GoogleAd
+          client="ca-pub-8970369628667981"
+          slot="8219203779"
+          minHeight={280}
+        />
+      </div>
+      
       <Community />
       <Faq items={[
         { title: 'What is Wordrama?', content: 'Wordrama brings a new twist to the word game community by rebuilding well loved games with a modern style and adding competition. Made by the players for the players.' },
-        { title: 'How do I play Wordrama?', content: 'Sign up. Select a game to play. WIN!' },
+        { title: 'How do I play Wordrama?', content: 'Sign up with your email or Discord. Select a game to play. WIN!' },
         { title: 'How do I level up?', content: 'Complete games to earn XP. The more XP you earn, the higher your level.' },
         { title: 'What are beta features and releases?', content: 'Beta features and releases are new features and games that are still in development. Pro/Streamer subscribers can access these features and games before they are released to the wider community.' },
-        { title: 'What are word packs?', content: 'Word packs are collections of words that you can use to in games. Word packs are categorised e.g. Place names, football teams, foods etc. Pro/Streamer subscribers can access premium packs for free.'},
-        { title: 'What is streamer mode?', content: 'Streamer mode is a set of features to provide you more control over your Wordrama experience. For example adding your socials to your profile.' }
+        { title: 'What are word packs?', content: 'Word packs are collections of words that you can use to win games. Word packs for words with 5-11 letters are free, with 4 letter, and 12-23 letter packs available for purchase.' },
+        { title: 'What is streamer mode?', content: 'Streamer mode displays your stats in a more visually improved way for streaming on TikTok or other live platforms.' }
       ]}/>
       <Footer />
     </div>

@@ -1,4 +1,5 @@
 "use client"
+import Link from "next/link";
 import NavBar from '@/components/navbar/h-nav';
 import Footer from '@/sections/footer';
 
@@ -7,14 +8,18 @@ export default function ShippingPolicyPage() {
     <div className="flex min-h-screen w-full flex-col border:border dark:border-darkBorder bg-bg dark:bg-darkBg text-text dark:text-darkText">
       <NavBar
         links={[
+          { href: "/", text: "Home" },
+          { href: "/free-play", text: "Quick Play" },
+          { href: "/marketplace", text: "Marketplace" },
+          { href: "/achievements", text: "Achievements" },
+          { href: "/teams", text: "Teams" },
           { href: "/about", text: "About" },
-          { href: "/free-play", text: "Wordle" },
-          { href: "/signup", text: "SignUp" },
+          { href: "/signup", text: "Sign Up / In" },
         ]}
       />
       <div className="container mx-auto p-4">
         <h1 className="text-4xl font-bold mb-6">Shipping & Delivery Policy</h1>
-        <p className="text-sm text-gray-500">Last updated febraury 24, 2026</p>
+        <p className="text-sm text-gray-500">Last updated February 24, 2026</p>
 
         <section className="my-8">
           <p className="mt-2">This Shipping & Delivery Policy is part of our Terms of Use ("Terms") and should be therefore read alongside our main Terms: <a href="https://wordrama.io/terms-of-use" className='text-blue-500 hover:underline'>https://wordrama.io/terms-of-use.</a></p>
@@ -53,7 +58,7 @@ export default function ShippingPolicyPage() {
           <h2 className="text-2xl font-semibold">Have questions about this policy?</h2>
           <p className="mt-2">If you have any further questions or comments, you may contact us by:</p>
           <ul className="list-disc list-inside mt-2">
-            <li>Email: <a href="mailto:support@wordrama.io" className='text-blue-500 hover:underline'>support@wordrama.io</a></li>
+            <li>Email: <Link href="/contact" className="text-blue-500 hover:underline">support@wordrama.io</Link></li>
           </ul>
         </section>
       </div>

@@ -1,6 +1,30 @@
 // Import necessary functions and types from RTK Query
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { API_BASE_URL } from "@/lib/config";
+import { supabase } from "@/utils/supabase/client";
+
+const projectRef = "qflfxxbnhwaxkxsygjqu";
+
+function getStoredSupabaseAccessToken() {
+  if (typeof window === "undefined") return null;
+
+  try {
+    const raw = localStorage.getItem(`sb-${projectRef}-auth-token`);
+    if (!raw) return null;
+
+    const session = JSON.parse(raw);
+
+    return (
+      session?.access_token ||
+      session?.currentSession?.access_token ||
+      session?.data?.session?.access_token ||
+      null
+    );
+  } catch (e) {
+    console.warn("[wordramaApi] Failed to parse stored Supabase token", e);
+    return null;
+  }
+}
 
 // Setting up the API Slice
 export const wordramaApiV3 = createApi({
@@ -8,29 +32,23 @@ export const wordramaApiV3 = createApi({
   baseQuery: fetchBaseQuery({
     baseUrl: API_BASE_URL,
     credentials: "include",
-    prepareHeaders: (headers) => {
+    prepareHeaders: async (headers) => {
       try {
-        // Supabase project ref (yours)
-        const projectRef = "qflfxxbnhwaxkxsygjqu";
+        const { data } = await supabase.auth.getSession();
 
-        // Supabase stores the session JSON in localStorage under this key
-        const raw = localStorage.getItem(`sb-${projectRef}-auth-token`);
+        const accessToken =
+          data?.session?.access_token ||
+          getStoredSupabaseAccessToken();
 
-        if (raw) {
-          const session = JSON.parse(raw);
-
-          // session can be { access_token, token_type, ... } depending on Supabase version
-          const accessToken =
-            session?.access_token ||
-            session?.currentSession?.access_token ||
-            session?.data?.session?.access_token;
-
-          if (accessToken) {
-            headers.set("authorization", `Bearer ${accessToken}`);
-          }
+        if (accessToken) {
+          headers.set("authorization", `Bearer ${accessToken}`);
         }
       } catch (e) {
-        // ignore parse errors
+        const fallbackToken = getStoredSupabaseAccessToken();
+
+        if (fallbackToken) {
+          headers.set("authorization", `Bearer ${fallbackToken}`);
+        }
       }
 
       return headers;
@@ -518,6 +536,59 @@ export const wordramaApiV3 = createApi({
       providesTags: ["Player"],
     }),
 
+    getMyEntitlements: builder.query<any, void>({
+      query: () => ({
+        url: `/api/v3/player/me/entitlements`,
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+      }),
+      providesTags: ["Player"],
+    }),
+
+    getCurrentSubscription: builder.query<any, void>({
+      query: () => ({
+        url: `/api/v3/billing/subscription`,
+        method: "GET",
+        credentials: "include",
+      }),
+    }),
+
+    createCheckoutSession: builder.mutation<
+      any,
+      { subscriptionKey: "PLUS" | "CREATOR" }
+    >({
+      query: (body) => ({
+        url: `/api/v3/billing/checkout`,
+        method: "POST",
+        body,
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+      }),
+    }),
+
+    createItemCheckoutSession: builder.mutation<
+      any,
+      { itemId: string }
+    >({
+      query: (body) => ({
+        url: `/api/v3/billing/checkout/item`,
+        method: "POST",
+        body,
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+      }),
+    }),
+
+    createBillingPortalSession: builder.mutation<any, void>({
+      query: () => ({
+        url: `/api/v3/billing/portal`,
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+      }),
+    }),
+    
     getPublicPlayer: builder.query<any, string>({
       query: (playerId) => ({
         url: `/api/v3/players/by-playerid/${playerId}`,
@@ -684,6 +755,11 @@ export const {
   useGetPublicPlayerSummaryQuery,
   useGetPublicPlayerByUsernameQuery,
   useGetMyAccountQuery,
+  useGetMyEntitlementsQuery,
+  useGetCurrentSubscriptionQuery,
+  useCreateCheckoutSessionMutation,
+  useCreateItemCheckoutSessionMutation,
+  useCreateBillingPortalSessionMutation,
   useCreateAccountMutation,
   useUpdateAccountMutation,
   useUpdateSettingsMutation,

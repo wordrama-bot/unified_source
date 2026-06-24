@@ -1,55 +1,81 @@
 import PricingPlan from '@/components/pricing-plan';
-import { useAuth } from '@/providers/auth-provider';
+import {
+  useCreateCheckoutSessionMutation,
+  useCreateBillingPortalSessionMutation,
+  useGetCurrentSubscriptionQuery,
+} from '@/redux/api/wordrama';
 
-export const plans: {
-  [key: string]: {
-    planName: string,
-    description: string,
-    price: string,
-    perks: string[]
-  }
-
-} = {
-  PLAYER: {
+export const plans = {
+  FREE: {
     planName: "Free",
-    description: "Best for getting started",
+    description: "Available to everyone with a registered account",
     price: "0.00",
     perks: [
-      'Custom username',
-      'Custom Avatar',
-      'Access to Wordle & SpellBee'
+      "Custom username",
+      "5-11 letter word packs"
     ]
   },
-  CASUAL: {
-    planName: "Casual",
-    description: "Best for casual players",
-    price: "3.99",
+
+  PLUS: {
+    planName: "Plus",
+    description: "Perfect for wordle lovers of all ages and skill levels",
+    price: "2.99",
     perks: [
-      'Custom username',
-      'Custom Avatar',
-      'Access to all games',
-      'No ads'
+      "Custom username",
+      "All word packs (4-23)",
+      "Premium themes",
+      "More coming soon"
     ]
   },
-  STREAMER: {
-    planName: "Pro/Streamer",
-    description: "Best for pro players & streamers",
-    price: "9.99",
+  
+  CREATOR: {
+    planName: "Creator",
+    description: "Best for streamers, educators, community leaders, and hardcore wordle fans",
+    price: "4.99",
     perks: [
-      'Custom username',
-      'Custom Avatar',
-      'Custom Referral Code',
-      'Access to all games',
-      'No ads',
-      'Access to word packs',
-      'Access to beta features and releases',
-      'Access to streamer mode'
+      "Custom username",
+      "All word packs (4-23)",
+      "Premium themes",
+      "Avatars",
+      "Create a team",
+      "Join multiple teams",
+      "Future creator features"
     ]
   }
 }
 
 export function PricingSection() {
-  const { role } = useAuth();
+  const [createCheckoutSession, { isLoading }] =
+    useCreateCheckoutSessionMutation();
+  const [createBillingPortalSession, { isLoading: isPortalLoading }] =
+    useCreateBillingPortalSessionMutation();
+  const { data: subscriptionResponse } = useGetCurrentSubscriptionQuery();
+
+  const currentSubscription =
+    subscriptionResponse?.data?.subscription;
+
+  const currentPlanName =
+    currentSubscription?.subscriptionKey === "CREATOR"
+      ? "Creator"
+      : currentSubscription?.subscriptionKey === "PLUS"
+        ? "Plus"
+        : "Free";
+  const handleSubscribe = async (subscriptionKey: "PLUS" | "CREATOR") => {
+    const result = await createCheckoutSession({ subscriptionKey }).unwrap();
+
+    if (result?.data?.checkoutUrl) {
+      window.location.href = result.data.checkoutUrl;
+    }
+  };
+
+  const handleManageSubscription = async () => {
+    const result = await createBillingPortalSession().unwrap();
+
+    if (result?.data?.portalUrl) {
+      window.location.href = result.data.portalUrl;
+    }
+    };
+
   return (
     <section className="border-b-border dark:border-b-darkBorder dark:bg-darkBg inset-0 flex w-full flex-col items-center justify-center border-b-2 bg-white bg-[linear-gradient(to_right,#80808033_1px,transparent_1px),linear-gradient(to_bottom,#80808033_1px,transparent_1px)] bg-[size:70px_70px] font-base">
       <div className="mx-auto w-container max-w-full px-5 py-20 lg:py-[100px]">
@@ -61,8 +87,30 @@ export function PricingSection() {
               description={plan.description}
               price={plan.price}
               perks={plan.perks}
-              mostPopular={role === 'PLAYER' ? plan.planName === 'Casual' : false}
-              isCurrentPlan={plan.planName === plans[role].planName || false}
+              mostPopular={plan.planName === 'Plus'}
+              isCurrentPlan={plan.planName === currentPlanName}
+              buttonText={
+                plan.planName === currentPlanName
+                  ? plan.planName === "Creator"
+                    ? "Manage Subscription"
+                    : "Current Plan"
+                  : plan.planName === "Plus"
+                    ? "Coming Soon"
+                    : currentPlanName !== "Free"
+                      ? "Included"
+                      : "Subscribe"
+              }
+              onSubscribe={
+                plan.planName === "Creator" && plan.planName === currentPlanName
+                  ? handleManageSubscription
+                  : plan.planName === "Creator"
+                    ? () => handleSubscribe("CREATOR")
+                    : undefined
+              }
+              isLoading={
+                plan.planName === "Creator" &&
+                (isLoading || isPortalLoading)
+              }
             />
           ))}
         </div>
@@ -86,7 +134,7 @@ export default function Pricing() {
               description={plan.description}
               price={plan.price}
               perks={plan.perks}
-              mostPopular={plan.planName === 'Casual'}
+              mostPopular={plan.planName === 'Plus'}
             />
           ))}
         </div>

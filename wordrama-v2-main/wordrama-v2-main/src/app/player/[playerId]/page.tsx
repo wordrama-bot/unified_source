@@ -1,7 +1,7 @@
 "use client"
 import { useState } from 'react';
 import Link from 'next/link';
-import Header from '@/sections/header';
+import NavBar from "@/components/navbar/h-nav";
 import Footer from '@/sections/footer';
 import Loading from '@/sections/loading';
 import { Button } from '@/components/ui/button';
@@ -17,8 +17,6 @@ import { useAuth } from '@/providers/auth-provider';
 import { useParams } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Progress } from '@/components/ui/progress';
-import { ThemeSwitcher } from '@/components/theme-switcher';
-import { HoverHome } from '@/components/hover-home';
 import {
   Tabs,
   TabsContent,
@@ -260,7 +258,17 @@ export default function ProfilePage() {
     </>
   );
   return (
-    <div className="flex min-h-screen w-full flex-col border:border dark:border-darkBorder bg-bg dark:bg-darkBg text-text dark:text-darkText">
+    <div className="flex min-h-screen w-full flex-col border:border bg-bg text-text dark:border-darkBorder dark:bg-darkBg dark:text-darkText">
+      <NavBar
+        links={[
+          { href: "/games", text: "Games" },
+          { href: "/leaderboard", text: "Leaderboard" },
+          { href: "/marketplace", text: "Marketplace" },
+          { href: "/achievements", text: "Achievements" },
+          { href: "/teams", text: "Teams" },
+        ]}
+      />
+
       <header
         className="dark:bg-darkBg inset-0 pb-12 pt-4 flex w-full flex-col items-center justify-start bg-bg bg-[linear-gradient(to_right,#80808033_1px,transparent_1px),linear-gradient(to_bottom,#80808033_1px,transparent_1px)] bg-[size:70px_70px]"
         onContextMenu={(e) => e.preventDefault()}
@@ -268,61 +276,90 @@ export default function ProfilePage() {
         {
           //${avatarBorder}
         }
-        <Avatar
-	  className={`relative overflow-visible w-64 h-64`}
-	>
-	  {positions?.allTime?.alltimeRank === 1 && (
-	    <div className="absolute top-[-145px] md:top-[-125px] left-1/2 -translate-x-1/2 flex h-64 w-64 items-center justify-center z-10">
-	      <CrownIcon className="h-24 w-24 fill-yellow-500" />
-	    </div>
-	  )}
-	  <AvatarImage
-	    className='overflow-hidden rounded-full'
-	    src={data?.profileImage}
-	    alt={data?.displayName || data?.username || 'Player'}
-	    width={250}
-	    height={250}
-	  />
-	  <AvatarFallback>
-	    {data?.displayName || data?.username || 'Player'}
-	  </AvatarFallback>
-	</Avatar>
+        <Avatar className={`relative overflow-visible w-64 h-64`}>
+          {positions?.allTime?.alltimeRank === 1 && (
+            <div className="absolute top-[-145px] md:top-[-125px] left-1/2 -translate-x-1/2 flex h-64 w-64 items-center justify-center z-10">
+              <CrownIcon className="h-24 w-24 fill-yellow-500" />
+            </div>
+          )}
+
+          <AvatarImage
+            className="overflow-hidden rounded-full"
+            src={data?.profileImage}
+            alt={data?.displayName || data?.username || "Player"}
+            width={250}
+            height={250}
+          />
+
+          <AvatarFallback>
+            {data?.displayName || data?.username || "Player"}
+          </AvatarFallback>
+        </Avatar>
         <div className="mx-auto w-container max-w-full px-5 text-center">
           <p className="mb-1 mt-4 text-lg font-normal leading-relaxed md:text-4xl lg:text-5xl lg:leading-relaxed">
-            { data?.displayName }
+            {data?.displayName}
           </p>
-          { (levels?.prestige ?? 0) > 0 && (
-  <Link href={`/progression?playerId=${playerId}`}>
-    <Badge className='mb-12 mr-3'>
-      Prestige { levels?.prestige ?? 0 }
-    </Badge>
-  </Link>
-)}
-<Link href={`/progression?playerId=${playerId}`}>
-  <Badge className='mb-12'>
-    Level { (levels?.level ?? 0) % 100 }
-  </Badge>
-</Link>
-<Link href={`/progression?playerId=${playerId}`}>
-  <div className='flex items-center justify-center'>
-    <Badge className="mr-5">
-      { levels?.xp ?? 0 }xp
-    </Badge>
-    <Progress
-      value={
-        (levels?.xpToNextLevel ?? 0) - (levels?.xp ?? 0) < 0
-          ? 100
-          : Math.floor(((levels?.xp ?? 0) / (levels?.xpToNextLevel ?? 1)) * 100)
-      }
-      className="md:w-1/2 lg:w-1/3 h-4 bg-gray-200 rounded-full"
-    />
-    <Badge className='ml-5'>
-      { (levels?.xpToNextLevel ?? 0) - (levels?.xp ?? 0) < 0
-        ? 0
-        : (levels?.xpToNextLevel ?? 0) - (levels?.xp ?? 0) }xp to go
-    </Badge>
-  </div>
-</Link>
+
+          <div className="mb-6">
+            {(levels?.prestige ?? 0) > 0 && (
+              <Link href={`/progression?playerId=${playerId}`}>
+                <Badge className="mr-3 cursor-pointer">
+                  Prestige {levels?.prestige ?? 0}
+                </Badge>
+              </Link>
+            )}
+
+            <Link href={`/progression?playerId=${playerId}`}>
+              <Badge className="cursor-pointer">
+                Level {(levels?.level ?? 0) % 100}
+              </Badge>
+            </Link>
+          </div>
+
+          <Link href={`/progression?playerId=${playerId}`}>
+            <div className="flex items-center justify-center cursor-pointer">
+              <Badge className="mr-5">
+                {levels?.xp ?? 0}xp
+              </Badge>
+
+              <Progress
+                value={
+                  (levels?.xpToNextLevel ?? 0) - (levels?.xp ?? 0) < 0
+                    ? 100
+                    : Math.floor(
+                        ((levels?.xp ?? 0) /
+                          (levels?.xpToNextLevel ?? 1)) *
+                          100
+                      )
+                }
+                className="h-4 bg-gray-200 rounded-full md:w-1/2 lg:w-1/3"
+              />
+
+              <Badge className="ml-5">
+                {(levels?.xpToNextLevel ?? 0) - (levels?.xp ?? 0) < 0
+                  ? 0
+                  : (levels?.xpToNextLevel ?? 0) - (levels?.xp ?? 0)}xp to go
+              </Badge>
+            </div>
+          </Link>
+
+          <div className="mx-auto mt-6 max-w-xl rounded-xl border p-4 text-center">
+            <div className="mb-2 text-sm font-semibold">
+              Player Progression
+            </div>
+
+            <div className="mb-3 text-xs text-muted-foreground">
+              Earn XP by solving words, completing challenges, unlocking achievements,
+              and maintaining streaks. Every 100 levels earns a new Prestige rank.
+            </div>
+
+            <Link
+              href={`/progression?playerId=${playerId}`}
+              className="text-sm underline hover:text-primary"
+            >
+              Learn how XP, Levels, and Prestige work →
+            </Link>
+          </div>
         </div>
         {
            friendList &&
@@ -625,8 +662,6 @@ export default function ProfilePage() {
       </div>
 
       <Footer />
-      <HoverHome />
-      <ThemeSwitcher />
     </div>
   )
 }

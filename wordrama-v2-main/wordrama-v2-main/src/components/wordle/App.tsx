@@ -5,7 +5,6 @@ import useSound from 'use-sound';
 import { default as GraphemeSplitter } from 'grapheme-splitter'
 import { useEffect, useState } from 'react'
 import Confetti from 'react-confetti'
-import Div100vh from 'react-div-100vh'
 import { useDispatch } from 'react-redux';
 import { isMobile, isTablet } from 'react-device-detect';
 import { wordleWordPackConfig } from '../../lib/config';
@@ -128,6 +127,7 @@ import { useTheme } from 'next-themes'
 import { useAuth } from '@/providers/auth-provider';
 import { showChristmas } from '@/lib/config';
 import Snowflake from '@/components/Snowflake';
+import GoogleAd from "../GoogleAd";
 
 function App(){
   const { user } = useAuth();
@@ -194,8 +194,10 @@ function App(){
     TWENTYTHREE_LETTER: 'twentythreeLetter',
   }
 
-  const gamesWon = allTimeStats?.data[`${wordPackAllTimeStatsMap[wordPack]}GamesWon`] || 0;
-  const gamesLost = allTimeStats?.data[`${wordPackAllTimeStatsMap[wordPack]}GamesLost`] || 0;
+  const statsData = allTimeStats?.data ?? {};
+
+  const gamesWon = statsData[`${wordPackAllTimeStatsMap[wordPack]}GamesWon`] ?? 0;
+  const gamesLost = statsData[`${wordPackAllTimeStatsMap[wordPack]}GamesLost`] ?? 0;
   const gamesPlayed = gamesWon + gamesLost;
 
   const { data: myWordPacks, isLoading: isLoadingWordPacks } = useGetMyWordPacksQuery();
@@ -937,10 +939,18 @@ const [playLoseSoundChristmas] = useSound('/sounds/christmas-lost.mp3', {
               </div>
             </SheetContent>
           </Sheet>
-
           <div className="mx-auto flex w-full grow flex-col px-1 pt-20 pb-8 sm:px-6 md:max-w-7xl lg:px-8 short:pb-2 short:pt-2">
             <div className={`mx-auto flex w-full max-w-xl flex-col rounded-2xl px-3 py-4 transition-colors ${gameSurfaceThemeClasses}`}>
-              <div className={`flex flex-col justify-center pb-6 short:pb-2`}>
+              <div className="flex justify-center mb-4">
+                <img
+                  draggable="false"
+                  src="/images/wordrama-logo.png"
+                  alt="Wordrama Logo"
+                  className="h-16 w-auto object-contain"
+                />
+              </div>
+
+              <div className="flex flex-col justify-center pb-6 short:pb-2">
                 <Grid
                   solution={isCustom ? gameState.custom.solution : gameState.modes[gameState.gameMode][gameState.wordPack].solution}
                   guesses={isCustom ? gameState.custom.guesses : gameState.modes[gameState.gameMode][gameState.wordPack].guesses || []}
@@ -948,12 +958,14 @@ const [playLoseSoundChristmas] = useSound('/sounds/christmas-lost.mp3', {
                   isRevealing={isRevealing}
                   currentRowClassName={currentRowClass}
                 />
-                { isCustom && gameState?.custom?.hint && (
-                  <div className="pt-2 pb-6 short:pb-2 text-center text-white">
-                    Hint: { gameState.custom.hint }
+
+                {isCustom && gameState?.custom?.hint && (
+                  <div className="pt-2 pb-6 short:pb-2 text-center text-current">
+                    Hint: {gameState.custom.hint}
                   </div>
                 )}
               </div>
+
               <Keyboard
                 onChar={onChar}
                 onDelete={onDelete}
@@ -962,6 +974,16 @@ const [playLoseSoundChristmas] = useSound('/sounds/christmas-lost.mp3', {
                 guesses={isCustom ? gameState.custom.guesses : gameState.modes[gameState.gameMode][gameState.wordPack].guesses || []}
                 isRevealing={isRevealing}
                 swapEnterAndDelete={gameUiState?.swapDeleteAndEnter || false}
+              />
+            </div>
+
+            <div className="mx-auto mt-8 mb-10 flex w-full max-w-4xl justify-center">
+              <GoogleAd
+                client="ca-pub-8970369628667981"
+                slot="8219203779"
+                format="auto"
+                responsive="true"
+                minHeight={250}
               />
             </div>
             <div className='flex justify-center items-center pt-10'>
@@ -1008,6 +1030,15 @@ const [playLoseSoundChristmas] = useSound('/sounds/christmas-lost.mp3', {
               <AlertDialog open={isStatsModalOpen}>
                 <AlertDialogContent className="max-w-lg">
                   <AlertDialogHeader>
+                    <div className="flex justify-center mb-4">
+                      <img
+                        draggable="false"
+                        src="/images/wordrama-logo.png"
+                        alt="Wordrama Logo"
+                        className="h-16 w-auto object-contain"
+                      />
+                    </div>
+
                     <AlertDialogTitle className='text-center'>
                       {isCustom
                         ? 'Custom Game'
@@ -1105,6 +1136,15 @@ const [playLoseSoundChristmas] = useSound('/sounds/christmas-lost.mp3', {
                   <DrawerContent className={streamerMode ? 'h-4/5 bg-bg' : 'bg-bg'}>
                   <div className="mx-auto w-full max-w-screen-lg">
                     <DrawerHeader>
+                      <div className="flex justify-center mb-4">
+                        <img
+                          draggable="false"
+                          src="/images/wordrama-logo.png"
+                          alt="Wordrama Logo"
+                          className="h-16 w-auto object-contain"
+                        />
+                      </div>
+                      
                       <DrawerTitle className="text-center text-4xl">
                         {gameMode === 'DAILY'
                           ? 'Daily Stats'

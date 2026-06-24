@@ -5,8 +5,8 @@ import { FilterIcon } from 'lucide-react';
 import { useAuth } from '@/providers/auth-provider';
 import Header from '@/sections/header';
 import Loading from '@/sections/loading';
-
 import NavBar from '@/components/navbar/h-nav';
+import Footer from "@/sections/footer";
 import Product from '@/components/product';
 import {
   Sheet,
@@ -18,6 +18,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
+import { useMarketplaceAccess } from "@/lib/useMarketplaceAccess";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -36,7 +37,13 @@ import { Slider } from '@/components/ui/slider';
 import { Separator } from '@/components/ui/separator';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Switch } from '@/components/ui/switch';
-import { useGetStoreItemsQuery, useGetPurchasesQuery, useGetMyAccountQuery, usePurchaseItemsWithCoinsMutation } from '@/redux/api/wordrama';
+import {
+    useGetStoreItemsQuery,
+    useGetPurchasesQuery,
+    useGetMyAccountQuery,
+    usePurchaseItemsWithCoinsMutation,
+    useCreateItemCheckoutSessionMutation,
+  } from '@/redux/api/wordrama';
 import { useEffect } from 'react';
 
 const MARKETPLACE_WORD_PACK_SORT_ORDER: { [key: string]: number } = {
@@ -102,13 +109,14 @@ export default function AllItemsMarketplacePage() {
   //ALL
   const [ itemTypeFilter, setItemTypeFilter ] = useState('WORDLE_WORD_PACK');
   //ALL
-  const [ showPurchased, setShowPurchased ] = useState(false);
-  const [ showUnavailable, setShowUnavailable ] = useState(false);
+  const [ showPurchased, setShowPurchased ] = useState(true);
+  const [ showUnavailable, setShowUnavailable ] = useState(true);
   const [ itemsInCart, addItemToCart ] = useState([] as string[]);
   const [ alertTitle, setAlertTitle ] = useState('');
   const [ alertText, setAlertText ] = useState('');
   const [ isProcessingOrder, setIsProcessingOrder] = useState(false);
   const { data: myAccount, error: myAccountError, isLoadingMyAccount } = useGetMyAccountQuery();
+  const { subscriptionKey } = useMarketplaceAccess();
   const { data: storeItems, error: storeItemsError, isLoading: isLoadingStoreItems } = useGetStoreItemsQuery({
     minCoinPrice,
     maxCoinPrice,
@@ -118,6 +126,20 @@ export default function AllItemsMarketplacePage() {
     showUnavailable
   });
   const [ purchaseItemsWithCoins ] = usePurchaseItemsWithCoinsMutation();
+  const [ createItemCheckoutSession] = useCreateItemCheckoutSessionMutation();
+  const handleStripePurchase = async (itemId: string) => {
+    try {
+      const result = await createItemCheckoutSession({
+        itemId,
+      }).unwrap();
+
+      if (result?.data?.checkoutUrl) {
+        window.location.href = result.data.checkoutUrl;
+      }
+    } catch (error) {
+      console.error('Failed to create Stripe checkout session', error);
+    }
+  };
   const basketSubTotal = !isLoadingStoreItems && storeItems ? storeItems?.data.filter(item => itemsInCart.includes(item.id)).reduce((acc: number, item: any) => acc + item.coinPrice, 0) : 0
   const hasEnoughCoins = myAccount?.data?.ledger?.coinBalance && myAccount?.data?.ledger?.coinBalance >= basketSubTotal;
 
@@ -139,7 +161,16 @@ export default function AllItemsMarketplacePage() {
 
   if (isLoadingStoreItems || isLoadingMyAccount) return <Loading />;
   return (
-    <div className='bg-[linear-gradient(to_right,#80808033_1px,transparent_1px),linear-gradient(to_bottom,#80808033_1px,transparent_1px)] bg-[size:70px_70px]'>
+    <div className='flex min-h-screen w-full flex-col bg-[linear-gradient(to_right,#80808033_1px,transparent_1px),linear-gradient(to_bottom,#80808033_1px,transparent_1px)] bg-[size:70px_70px]'>
+      <NavBar
+        links={[
+          { href: "/games", text: "Games" },
+          { href: "/leaderboard", text: "Leaderboard" },
+          { href: "/marketplace", text: "Marketplace" },
+          { href: "/achievements", text: "Achievements" },
+          { href: "/teams", text: "Teams" },
+        ]}
+      />
       <Header
         showLogo={false}
         heroText='Marketplace'
@@ -183,7 +214,9 @@ export default function AllItemsMarketplacePage() {
             <>
               <Separator className='mt-2' />
               <SheetFooter className='pt-4'>
-                <Button>Clear basket</Button>
+                <Button onClick={() => addItemToCart([])}>
+                  Clear basket
+                </Button>
                 <Button disabled={!hasEnoughCoins} onClick={() => handleCheckoutWithCoins()}>
                   {hasEnoughCoins ? 'Checkout with Coins' : 'Not enough coins'}
                 </Button>
@@ -222,7 +255,13 @@ export default function AllItemsMarketplacePage() {
       </Sheet>
       <Sheet>
         <SheetTrigger asChild>
-          <Button className='fixed top-20 right-5' variant='default'><FilterIcon className='w-6 h-6'/></Button>
+          <Button
+            className='fixed top-20 right-5'
+            variant='default'
+            aria-label='Open marketplace filters'
+          >
+            <FilterIcon className='w-6 h-6'/>
+          </Button>
         </SheetTrigger>
         <SheetContent className="bg-bg">
           <SheetHeader>
@@ -325,9 +364,9 @@ export default function AllItemsMarketplacePage() {
       <div className='p-8'>
         { storeItems?.data.length === 0 && (
           <div className="text-center text-xl">
-            No items found.
+            No marketplace items found.
             <br />
-            Try changing the filters.
+            Check back soon for new items.
           </div>
         )}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -348,6 +387,7 @@ export default function AllItemsMarketplacePage() {
                 price={isCashPrice ? cashPrice : item.coinPrice}
                 isCashPrice={isCashPrice}
                 isPurchased={item.isPurchased}
+                isUnlockedBySubscription={item.isUnlockedBySubscription}
                 subItems={[]}
                 addItemToCard={() => {
                   if (!itemsInCart.includes(item.id))
@@ -357,11 +397,14 @@ export default function AllItemsMarketplacePage() {
                   addItemToCart(itemsInCart.filter((id) => id !== item.id));
                 }}
                 isInCart={itemsInCart.includes(item.id)}
+                buyWithStripe={() => handleStripePurchase(item.id)}
+                hasStripePrice={item.hasStripePrice}
               />
             );
           })}
         </div>
       </div>
+      <Footer />
     </div>
   )
 }

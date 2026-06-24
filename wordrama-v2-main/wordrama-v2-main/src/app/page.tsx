@@ -29,6 +29,7 @@ import { useGetReadinessQuery } from '@/redux/api/system';
 import { User } from 'lucide-react';
 import { showChristmas } from '@/lib/config';
 import Snowfall from '@/components/Snowflake';
+import GoogleAd from "@/components/GoogleAd";
 
 // function PublicHome() {
 //   getAppInsights().trackPageView({ name: 'Public Homepage' });
@@ -69,86 +70,285 @@ import Snowfall from '@/components/Snowflake';
 function PublicHome() {
   return (
     <>
-      <PublicNav links={[
-        { href: '/about', text: 'About' },
-        { href: '/login', text: 'Login' },
-        { href: '/signup', text: 'Sign Up' },
-      ]}/>
-      <WordleGame />
-      <div className="container mx-auto p-4 flex flex-col items-center justify-center">
-          <h1 className="text-4xl font-bold mb-6">Wordrama: The Best Wordle Site (in our humble opinion)</h1>
-          <p className="text-sm text-gray-500">Not affiliated with the original Wordle website.</p>
+      <PublicNav
+        links={[
+          { href: "/", text: "Home" },
+          { href: "/free-play", text: "Quick Play" },
+          { href: "/marketplace", text: "Marketplace" },
+          { href: "/achievements", text: "Achievements" },
+          { href: "/teams", text: "Teams" },
+          { href: "/about", text: "About" },
+          { href: "/signup", text: "Sign Up / In" },
+        ]}
+      />
+        <main className="min-h-screen w-full bg-darkBg text-white">
+            <div className="container mx-auto p-4 flex flex-col items-center justify-center">
+              <h1 className="text-4xl font-bold mb-6">Wordrama: The Best Wordle Site</h1>
+              <p className="text-sm text-gray-300">(Not affiliated with the NYT Wordle website.)</p>
 
-          <section className="my-8  flex flex-col items-center justify-center">
-            <h2 className="text-2xl font-semibold">Wordrama is the ultimate word-guessing site?!</h2>
-            <p className="mt-2 text-center">While we’re not affiliated with the original Wordle, we bring a fresh take by implementing exciting features like cross-device stats, streaks, 4-23 letter word packs, leaderboards, a friends system, a leveling system, and even streamer teams. With many TikTok streamers already on our platform, Wordrama offers a unique and social twist on the classic game you know and love.</p>
-            <p className="mt-4 text-center">Playing Wordrama is easy to start but endlessly rewarding. For each game, you’ll see a word of a chosen length, and your goal is to guess it. With each attempt, feedback is provided such as, letters that are in the correct position light up in green, letters that are part of the word but in the wrong position turn yellow, and incorrect letters are greyed out. This hint-based system helps you narrow down the word with each guess. We also offer a color blind mode to ensure inclusion for everyone!</p>
-          </section>
+              <div className="mt-6 flex flex-wrap items-center justify-center gap-4">
+                <Link href="/free-play">
+                  <Button size="lg">
+                    Quick Play
+                  </Button>
+                </Link>
 
-          <section className="my-8  flex flex-col items-center justify-center">
-            <h2 className="text-2xl font-semibold">How is Wordrama different from all the other Wordle website?</h2>
-            <p className="mt-2 text-center">With Wordrama’s tracking features, each game won builds your streak and boosts your level. You can monitor your stats across devices, climb up the leaderboard, and compare your skills with friends and the global community. Our friends system lets you play alongside others, whilst streamer teams give you a chance to connect with and compete alongside your favorite TikTok creators. From daily challenges to custom games, Wordrama has a mode for every player.</p>
-            <p className="mt-2 text-center">Ready to dive in? Whether you’re looking to improve your skills, challenge friends, or explore unique word packs, Wordrama brings you a fun, social experience that reimagines the classic word game.</p>
-          </section>
+                <Link href="/how-to-play">
+                  <Button size="lg">
+                    Learn How to Play
+                  </Button>
+                </Link>
+              </div>
 
-          <section className="my-8  flex flex-col items-center justify-center">
-              <h2 className="text-2xl font-semibold">How to Play Wordrama?</h2>
-              <p className="mt-2 text-center">Playing Wordrama is simple and intuitive, making it accessible for players of all levels. Each game presents you with a word of a specific length, determined by the pack you've selected (ranging from 4 to 23 letters). Your goal is to guess the word by entering other words of the same length.</p>
+              <section className="my-8  flex flex-col items-center justify-center">
+                <h2 className="text-2xl font-semibold">Wordrama is the ultimate word-guessing site!</h2>
+                <p className="mt-2 text-center">While we’re not affiliated with the original Wordle, we bring a fresh take by implementing exciting features like cross-device stats, streaks, 4-23 letter word packs, leaderboards, a friends system, a leveling system, and even streamer teams. With many TikTok streamers already on our platform, Wordrama offers a unique and social twist on the classic game you know and love.</p>
+                <p className="mt-4 text-center">Playing Wordrama is easy to start but endlessly rewarding. For each game, you’ll see a word of a chosen length, and your goal is to guess it. With each attempt, feedback is provided such as, letters that are in the correct position light up in green, letters that are part of the word but in the wrong position turn yellow, and incorrect letters are greyed out. This hint-based system helps you narrow down the word with each guess. We also offer a color blind mode to ensure inclusion for everyone!</p>
+              </section>
 
-              <p className="mt-2 text-center">With each attempt, you receive valuable feedback through a color-coding system:</p>
-              <ul className="mt-2 list-disc list-inside text-center">
-                  <li className="mt-2"><strong className='text-green-400'>Green:</strong> Letters that are in the correct position are highlighted in green. This indicates that you’ve guessed that letter correctly and placed it in the right spot.</li>
-                  <li className="mt-2"><strong className='text-yellow-300'>Yellow:</strong> Letters that are part of the word but in the wrong position are marked in yellow. This tells you that the letter is in the word, but you need to find its correct placement.</li>
-                  <li className="mt-2"><strong className='text-slate-500'>Grey:</strong> Incorrect letters are greyed out, meaning they are not part of the word at all. Use this information to eliminate possibilities and refine your guesses.</li>
-              </ul>
+              <section className="my-8  flex flex-col items-center justify-center">
+                <h2 className="text-2xl font-semibold">How is Wordrama different from all the other Wordle websites?</h2>
+                <p className="mt-2 text-center">With Wordrama’s tracking features, each game won builds your streak and boosts your level. You can monitor your stats across devices, climb up the leaderboard, and compare your skills with friends and the global community. Our friends system lets you play alongside others, whilst streamer teams give you a chance to connect with and compete alongside your favorite TikTok creators. From daily challenges to custom games, Wordrama has a mode for every player.</p>
+                <p className="mt-2 text-center">Ready to dive in? Whether you’re looking to improve your skills, challenge friends, or explore unique word packs, Wordrama brings you a fun, social experience that reimagines the classic word game.</p>
+              </section>
 
-              <Image src="https://utfs.io/f/vieUBZcrouNZl1Z6dPEXuxhLbEmnAdrKYfCloM98G04ykiPz" alt="Wordrama gameplay" width={600} height={200} className="mt-4 border-hidden" />
+              <section className="my-8  flex flex-col items-center justify-center">
+                  <h2 className="text-2xl font-semibold">How to Play Wordrama?</h2>
+                  <p className="mt-2 text-center">Playing Wordrama is simple and intuitive, making it accessible for players of all levels. Each game presents you with a word of a specific length, determined by the pack you've selected (ranging from 4 to 23 letters). Your goal is to guess the word by entering other words of the same length.</p>
 
-              <p className="mt-2">Utilize these hints strategically to narrow down your guesses and identify the word before you run out of attempts!</p>
+                  <p className="mt-2 text-center">With each attempt, you receive valuable feedback through a color-coding system:</p>
+                  <ul className="mt-2 list-disc list-inside text-center">
+                      <li className="mt-2"><strong className='text-green-400'>Green:</strong> Letters that are in the correct position are highlighted in green. This indicates that you’ve guessed that letter correctly and placed it in the right spot.</li>
+                      <li className="mt-2"><strong className='text-yellow-300'>Yellow:</strong> Letters that are part of the word but in the wrong position are marked in yellow. This tells you that the letter is in the word, but you need to find its correct placement.</li>
+                      <li className="mt-2"><strong className='text-slate-300'>Grey:</strong> Incorrect letters are greyed out, meaning they are not part of the word at all. Use this information to eliminate possibilities and refine your guesses.</li>
+                  </ul>
 
-              <p className="mt-2 text-center">In daily mode, all players tackle the same word each day, creating an environment of friendly competition. If you’re looking to practice, you can also explore unlimited mode to hone your skills or try custom word packs for a tailored challenge.</p>
-          </section>
+                  <Image src="/images/games/wordrama-gameplay.png" alt="Wordrama gameplay" width={600} height={200} className="mt-4 border-hidden" />
 
-          <section className="my-8 flex flex-col items-center justify-center">
-              <h2 className="text-2xl font-semibold text-center">Tips for Success in Wordrama</h2>
-              <p className="mt-2 text-center">Your initial guess is crucial; Select a strong starting word that ideally contains at least three vowels to maximise your options.</p>
+                  <p className="mt-2">Utilize these hints strategically to narrow down your guesses and identify the word before you run out of attempts!</p>
 
-              <h3 className="mt-4 font-semibold">Suggested Words:</h3>
-              <ul className="mt-2 list-disc list-inside">
-                  <li className="mt-2">PINKY</li>
-                  <li className="mt-2">LASER</li>
-                  <li className="mt-2">COUTH</li>
-                  <li className="mt-2">ABODE</li>
-                  <li className="mt-2">AUDIO</li>
-                  <li className="mt-2">HOKEY</li>
-              </ul>
+                  <p className="mt-2 text-center">In daily mode, all players tackle the same word each day, creating an environment of friendly competition. If you’re looking to practice, you can also explore unlimited mode to hone your skills or try custom word packs for a tailored challenge.</p>
+              </section>
 
-              <p className="mt-4">Analyse your guesses; Commonly used letters can provide useful clues.</p>
+              <section className="my-8 flex flex-col items-center justify-center">
+                  <h2 className="text-2xl font-semibold text-center">Tips for Success in Wordrama</h2>
+                  <p className="mt-2 text-center">Your initial guess is crucial; Select a strong starting word that ideally contains at least three vowels to maximise your options.</p>
 
-              <h3 className="mt-4 font-semibold">Potential Word Combinations:</h3>
-              <ul className="mt-2 list-disc list-inside">
-                  <li className="mt-2">CAUSE</li>
-                  <li className="mt-2">CREEP</li>
-                  <li className="mt-2">GRILL</li>
-                  <li className="mt-2">HAPPY</li>
-                  <li className="mt-2">GREEN</li>
-              </ul>
+                  <h3 className="mt-4 font-semibold">Suggested Words:</h3>
+                  <ul className="mt-2 list-disc list-inside">
+                      <li className="mt-2">PINKY</li>
+                      <li className="mt-2">LASER</li>
+                      <li className="mt-2">COUTH</li>
+                      <li className="mt-2">ABODE</li>
+                      <li className="mt-2">AUDIO</li>
+                      <li className="mt-2">HOKEY</li>
+                  </ul>
 
-              <p className="mt-4 text-center">Utilise the color coding: Create a list of possible words using letters marked in green and yellow with a focus on vowels and consonants that commonly go together.</p>
-          </section>
+                  <p className="mt-4">Analyse your guesses; Commonly used letters can provide useful clues.</p>
 
+                  <h3 className="mt-4 font-semibold">Potential Word Combinations:</h3>
+                  <ul className="mt-2 list-disc list-inside">
+                      <li className="mt-2">CAUSE</li>
+                      <li className="mt-2">CREEP</li>
+                      <li className="mt-2">GRILL</li>
+                      <li className="mt-2">HAPPY</li>
+                      <li className="mt-2">GREEN</li>
+                  </ul>
 
-          <section className="my-8 flex flex-col items-center justify-center">
-            <h2 className="text-2xl font-semibold">Join the Wordrama Community</h2>
-            <p className="mt-2 text-center">Wordrama isn’t just a game; it’s a growing community of word lovers and puzzle enthusiasts. Compete with friends, form or join streamer teams, and meet new people through your shared passion for wordplay. With a dedicated leaderboard, you can see how you rank against others, push your skills, and enjoy friendly rivalries. Our unique leveling system keeps track of your achievements and rewards you as you improve, adding a sense of accomplishment and growth to each win.</p>
-            <p className="mt-2 text-center">Whether you’re a casual player or a seasoned word puzzle enthusiast, Wordrama is here to provide hours of challenging, engaging, and social gameplay that’s fun for all ages. Start playing today, and see how Wordrama redefines the word puzzle experience!</p>
-          </section>
-      </div>
+                  <p className="mt-4 text-center">Utilise the color coding: Create a list of possible words using letters marked in green and yellow with a focus on vowels and consonants that commonly go together.</p>
+              </section>
+
+              <section className="my-12 w-full max-w-6xl">
+                <h2 className="text-3xl font-bold text-center">
+                  Learn & Improve Your Word Game Skills
+                </h2>
+
+                <p className="mt-4 text-center text-gray-100 max-w-3xl mx-auto">
+                  Wordrama is more than a daily puzzle game. Explore strategy guides,
+                  gameplay tips, beginner tutorials, and educational resources designed
+                  to help players improve vocabulary, deduction skills, and overall
+                  word puzzle performance.
+                </p>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-10">
+
+                  <Link
+                    href="/how-to-play"
+                    className="rounded-xl border p-6 hover:shadow-lg transition"
+                  >
+                    <h3 className="text-xl font-semibold">How to Play Wordrama</h3>
+
+                    <p className="mt-3 text-sm text-gray-100">
+                      Learn the rules, color system, guessing mechanics, and gameplay
+                      modes available in Wordrama.
+                    </p>
+                  </Link>
+
+                  <Link
+                    href="/wordle-strategy"
+                    className="rounded-xl border p-6 hover:shadow-lg transition"
+                  >
+                    <h3 className="text-xl font-semibold">Wordle Strategy Guide</h3>
+
+                    <p className="mt-3 text-sm text-gray-100">
+                      Improve your deduction strategy, eliminate possibilities faster,
+                      and learn how experienced players approach difficult puzzles.
+                    </p>
+                  </Link>
+
+                  <Link
+                    href="/best-starting-words"
+                    className="rounded-xl border p-6 hover:shadow-lg transition"
+                  >
+                    <h3 className="text-xl font-semibold">Best Starting Words</h3>
+
+                    <p className="mt-3 text-sm text-gray-100">
+                      Explore strong opening words that maximize letter coverage,
+                      identify vowels quickly, and improve early-game positioning.
+                    </p>
+                  </Link>
+
+                  <Link
+                    href="/wordle-tips"
+                    className="rounded-xl border p-6 hover:shadow-lg transition"
+                  >
+                    <h3 className="text-xl font-semibold">Word Puzzle Tips</h3>
+
+                    <p className="mt-3 text-sm text-gray-100">
+                      Discover practical techniques for solving challenging word puzzles
+                      while improving consistency and streak performance.
+                    </p>
+                  </Link>
+
+                  <Link
+                    href="/about"
+                    className="rounded-xl border p-6 hover:shadow-lg transition"
+                  >
+                    <h3 className="text-xl font-semibold">About Wordrama</h3>
+
+                    <p className="mt-3 text-sm text-gray-100">
+                      Learn about Wordrama’s mission, features, educational approach,
+                      and community-focused word game experience.
+                    </p>
+                  </Link>
+
+                </div>
+              </section>
+
+              <section className="my-16 w-full max-w-5xl">
+                <h2 className="text-3xl font-bold text-center">
+                  Frequently Asked Questions
+                </h2>
+
+                <div className="mt-10 space-y-8">
+
+                  <div>
+                    <h3 className="text-xl font-semibold">
+                      What makes Wordrama different from Wordle?
+                    </h3>
+
+                    <p className="mt-2 text-gray-300">
+                      Wordrama expands on the classic daily word puzzle format by adding
+                      additional gameplay modes, longer word lengths, player progression,
+                      leaderboards, multiplayer experiences, and customizable word packs.
+                      While inspired by traditional word guessing games, Wordrama focuses
+                      on replayability, strategy, competition, and community features.
+                    </p>
+                  </div>
+
+                  <div>
+                    <h3 className="text-xl font-semibold">
+                      Is Wordrama free to play?
+                    </h3>
+
+                    <p className="mt-2 text-gray-300">
+                      Yes. Players can enjoy Quick Play with no account, or they can sign up for
+                      free to access a variety of word game experiences without purchasing a
+                      subscription. Optional premium features and marketplace content
+                      are available for players who want expanded customization and
+                      gameplay options.
+                    </p>
+                  </div>
+
+                  <div>
+                    <h3 className="text-xl font-semibold">
+                      Can word puzzle games help improve vocabulary?
+                    </h3>
+
+                    <p className="mt-2 text-gray-300">
+                      Many players use word puzzle games to strengthen spelling,
+                      vocabulary recognition, pattern matching, and deductive reasoning.
+                      Daily puzzle practice can also encourage critical thinking and
+                      familiarity with less common word structures over time.
+                    </p>
+                  </div>
+
+                  <div>
+                    <h3 className="text-xl font-semibold">
+                      What are word packs in Wordrama?
+                    </h3>
+
+                    <p className="mt-2 text-gray-300">
+                      Word packs allow players to explore different categories,
+                      difficulty levels, and word-length experiences. Wordrama supports
+                      puzzles ranging from short beginner-friendly formats to much
+                      longer and more challenging word lengths for advanced players.
+                    </p>
+                  </div>
+
+                  <div>
+                    <h3 className="text-xl font-semibold">
+                      How do streaks and player statistics work?
+                    </h3>
+
+                    <p className="mt-2 text-gray-300">
+                      Wordrama tracks gameplay performance including wins, streaks,
+                      guess efficiency, and leaderboard rankings. These statistics help
+                      players monitor improvement over time and compare results with
+                      friends and the wider community.
+                    </p>
+                  </div>
+
+                  <div>
+                    <h3 className="text-xl font-semibold">
+                      What strategies help solve difficult puzzles?
+                    </h3>
+
+                    <p className="mt-2 text-gray-300">
+                      Strong starting words, balanced vowel usage, eliminating unlikely
+                      letters, and recognizing common letter combinations are all useful
+                      strategies. Many experienced players also focus on narrowing
+                      possibilities efficiently rather than guessing randomly.
+                    </p>
+                  </div>
+
+                </div>
+              </section>
+
+              <div className="mx-auto mt-6 mb-6 flex w-full max-w-4xl justify-center">
+                <GoogleAd
+                  client="ca-pub-8970369628667981"
+                  slot="8219203779"
+                  format="auto"
+                  responsive="true"
+                  minHeight={120}
+                />
+              </div>
+
+              <section className="my-8 flex flex-col items-center justify-center">
+                <h2 className="text-2xl font-semibold">Join the Wordrama Community</h2>
+                <p className="mt-2 text-center">Wordrama isn’t just a game; it’s a growing community of word lovers and puzzle enthusiasts. Compete with friends, form or join streamer teams, and meet new people through your shared passion for wordplay. With a dedicated leaderboard, you can see how you rank against others, push your skills, and enjoy friendly rivalries. Our unique leveling system keeps track of your achievements and rewards you as you improve, adding a sense of accomplishment and growth to each win.</p>
+                <p className="mt-2 text-center">Whether you’re a casual player or a seasoned word puzzle enthusiast, Wordrama is here to provide hours of challenging, engaging, and social gameplay that’s fun for all ages. Start playing today, and see how Wordrama redefines the word puzzle experience!</p>
+              </section>
+
+          </div>
+        </main>
       <Footer />
-      <Link href="/login">
+      <Link href="/login" aria-label="Sign Up or Log in">
         <Button
           size="icon"
           className="fixed left-4 top-20 z-50"
+          aria-label="Sign Up or Log in"
         >
           <User className="stroke-text h-6 w-6 w500:h-4 w500:w-4" />
         </Button>
@@ -192,7 +392,7 @@ function AuthenticatedHome() {
         <ChristmasHeader
           heroText={`${myAccount?.data?.displayName ? `, ${myAccount?.data?.displayName}` : ''}`}
           showLogo={true}
-          logo="https://utfs.io/f/vieUBZcrouNZHgZwgWPc5QTiy9PYrsMqS3jRhEFC148IZDw0"
+          logo="/images/wordrama-logo-christmas.png"
           className='min-h-[20dvh] dark:bg-darkBg inset-0 flex w-full flex-col items-center justify-center bg-bg bg-[linear-gradient(to_right,#80808033_1px,transparent_1px),linear-gradient(to_bottom,#80808033_1px,transparent_1px)] bg-[size:70px_70px]'
         />
       )}
@@ -217,9 +417,18 @@ function AuthenticatedHome() {
         }] : [{
           title: 'Wordrama',
           link: '/games/wordrama',
+          image: '/images/games/wordrama.png',
           Icon: Wordle,
-          text: '4-23 letter Daily, Infinite & Custom modes.',
-        }/*,{
+          text: '4-23 letter Daily and Infinite Wordle modes to play solo.',
+          },
+          {
+            title: 'Wordrama Custom',
+            link: '/games/wordrama/custom',
+            image: '/images/games/wordrama-custom.png',
+            Icon: Wordle,
+            text: 'Create a custom Wordle game to play with friends.',
+          }
+          /*,{
           title: 'Spell Bee',
           link: '/games/spellbee',
           Icon: SpellBee,
@@ -260,9 +469,23 @@ function Migrate() {
 
 function Authenticated() {
   const { user } = useAuth();
-  const { data: readiness } = useGetReadinessQuery();
-  const { data: myAccount, isLoading, refetch } = useGetPublicPlayerQuery(user?.id);
+  const { data: readiness, isLoading: isReadinessLoading } = useGetReadinessQuery();
+  const {
+    data: myAccount,
+    isLoading,
+    isFetching,
+    error,
+  } = useGetPublicPlayerQuery(user?.id, {
+    skip: !user?.id,
+  });
 
+  if (isReadinessLoading || !readiness) return (
+    <>
+      <Loading />
+      <Footer />
+    </>
+  );
+  
   if (readiness?.status !== 'ok') return (
     <>
       <Header
@@ -274,10 +497,17 @@ function Authenticated() {
     </>
   );
 
+  if (!user?.id || isLoading || isFetching) return (
+    <>
+      <Loading />
+      <Footer />
+    </>
+  );
+
   if (myAccount?.data?.hasMigrated === false) return <Migrate />
     else if (myAccount?.status === 200) return <AuthenticatedHome />
-    else if (myAccount?.status !== 200 && user) return <FirstSetup />
-    else if (myAccount?.status !== 200 && !user) return <PublicHome />
+    else if (error && user) return <FirstSetup />
+    else if (!user) return <PublicHome />
 
   return (
     <>

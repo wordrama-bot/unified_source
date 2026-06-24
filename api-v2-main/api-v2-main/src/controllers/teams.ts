@@ -10,6 +10,9 @@ import {
 import teamService from '../services/teams';
 import levelService from '../services/levels';
 
+import { FEATURES } from '../config/features';
+import { hasPlayerEntitlement } from '../services/marketplaceV2/entitlements';
+
 async function getTeamById(teamId: string, req: ApiRequest, res: Response) {
   const team = await teamService.getTeamById(teamId);
   if (!team) return notFoundResponse(req, res);
@@ -110,12 +113,11 @@ async function getTeamLeaderboard(req: ApiRequest, res: Response) {
   const teamsLength = await teamService.getTeamsLength();
 
   const learderboard = await teamService.getAllTeamsForLeaderboard(
-    req.query.orderBy || 'name',
+    req.query.orderBy || 'overall_rank',
     req.query.order || 'asc',
     offset,
     limit,
   );
-  if (!learderboard) return notFoundResponse(req, res);
 
   const totalPages = Math.ceil(teamsLength / limit);
   return successfulResponse(
@@ -142,6 +144,21 @@ async function createTeam(req: ApiRequest, res: Response) {
   const teamName = req.body.teamName;
   if (!teamName) return badRequest(req, res, 'Team name is required');
 
+  const canCreateTeam = await hasPlayerEntitlement(
+    req.userId,
+    FEATURES.TEAMS_CREATE,
+  );
+
+  if (!canCreateTeam) {
+    return badRequest(req, res, 'Premium access required to create a team');
+  }
+
+  const existingTeam = await teamService.getTeamByLeader(req.userId);
+
+  if (existingTeam) {
+    return badRequest(req, res, 'You already own a team');
+  }
+  
   if (teamName.length > 23)
     return badRequest(req, res, 'Team name is too long');
 

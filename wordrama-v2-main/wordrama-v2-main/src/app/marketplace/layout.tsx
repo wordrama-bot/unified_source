@@ -1,21 +1,18 @@
-import MainLayout from '@/components/main-layout';
 import { type Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Wordrama | Marketplace",
-  description: "Buy more WordPacks to expand your Wordrama experience.",
+  description:
+    "Customize your Wordrama experience with cosmetics, themes, word packs, and player rewards.",
   openGraph: {
     title: "Wordrama | Marketplace",
-    description: "Buy more WordPacks to expand your Wordrama experience.",
-  }
+    description:
+      "Customize your Wordrama experience with cosmetics, themes, word packs, and player rewards.",
+  },
 };
 
-export default function Layout({
-  children
+export default function MarketplaceLayout({
+  children,
 }: Readonly<{ children: React.ReactNode }>) {
-  return (
-    <MainLayout>
-      { children }
-    </MainLayout>
-  )
+  return <>{children}</>;
 }

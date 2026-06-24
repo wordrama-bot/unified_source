@@ -34,6 +34,24 @@ import { useAuth } from '@/providers/auth-provider';
 //import { getAppInsights } from "@/utils/appInsights";
 import { useToast } from "@/components/ui/use-toast";
 
+function getAccountErrorMessage(error: any, fallback: string) {
+  const backendMessage =
+    error?.data?.message ||
+    error?.data?.error ||
+    error?.message ||
+    '';
+
+  if (typeof backendMessage === 'string' && backendMessage.trim().length > 0) {
+    return backendMessage.replace(/Bad Request - /g, '');
+  }
+
+  if (error?.status === 400) return 'Please check your account details and try again.';
+  if (error?.status === 401 || error?.status === 403) return 'Your login session expired. Please sign in again.';
+  if (error?.status >= 500) return 'We had trouble updating your account. Please try again in a few minutes.';
+
+  return fallback;
+}
+
 export default function AccountPage() {
   //getAppInsights().trackPageView({ name: 'My Account' });
   const { toast } = useToast();
@@ -57,9 +75,14 @@ export default function AccountPage() {
       return window.location.href = '/leaving-survey';
     }
 
+    console.error('[Settings] deleteAccount failed:', error);
+
     toast({
-      title: 'Error',
-      description: 'Please get in touch with support@wordrama.io for help, or try again later.',
+      title: 'Could not delete account',
+      description: getAccountErrorMessage(
+        error,
+        'We could not delete your account. Please try again later.',
+      ),
     });
   }
 
@@ -79,14 +102,19 @@ export default function AccountPage() {
       return;
     }
 
+    console.error('[Settings] updateAccount failed:', error);
+
     toast({
-      title: 'Error',
-      description: 'An error occurred while updating your account. Please try again later.',
+      title: 'Could not update account',
+      description: getAccountErrorMessage(
+        error,
+        'We could not update your account. Please try again later.',
+      ),
     });
   }
 
   async function handleUpdateEmail() {
-    if (user.app_metadata.provider === 'discord') {
+    if (user?.app_metadata?.provider === 'discord') {
       toast({
         title: 'Error',
         description: 'Your email is managed by Discord, contact support@wordrama.io for help.'
@@ -115,9 +143,14 @@ export default function AccountPage() {
       return;
     }
 
+    console.error('[Settings] updateEmail failed:', error);
+
     toast({
-      title: 'Error',
-      description: 'An error occurred while updating your email. Please try again later.',
+      title: 'Could not update email',
+      description: getAccountErrorMessage(
+        error,
+        'We could not update your email. Please try again later.',
+      ),
     });
   }
 
@@ -172,12 +205,12 @@ export default function AccountPage() {
               </CardHeader>
               <CardContent>
                 <form>
-                  <Input type="email" disabled={user.app_metadata.provider === 'discord'} placeholder="Email Address" value={email} onChange={(e) => setEmail(e.target.value)} />
+                  <Input type="email" disabled={user?.app_metadata?.provider === 'discord'} placeholder="Email Address" value={email} onChange={(e) => setEmail(e.target.value)} />
                 </form>
               </CardContent>
               <CardFooter className="border-t px-6 py-4">
                 <Button
-                  disabled={user.app_metadata.provider === 'discord'}
+                  disabled={user?.app_metadata?.provider === 'discord'}
                   onClick={(e) => {
                     e.preventDefault();
                     handleUpdateEmail();
@@ -212,7 +245,7 @@ export default function AccountPage() {
                 </Button>
               </CardFooter>
             </Card>
-            { user.app_metadata.provider !== 'discord' && (
+            { user?.app_metadata?.provider !== 'discord' && (
               <Card x-chunk="dashboard-04-chunk-1" className="bg-bg dark:bg-darkBg border-border dark:darkBorder shadow-light dark:shadow-dark rounded-base border-2">
                 <CardHeader>
                   <CardTitle>Change Password</CardTitle>

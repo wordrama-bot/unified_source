@@ -5,8 +5,8 @@
   import { useAuth } from '@/providers/auth-provider';
   import Header from '@/sections/header';
   import Loading from '@/sections/loading';
-
   import NavBar from '@/components/navbar/h-nav';
+  import Footer from "@/sections/footer";
   import Product from '@/components/product';
   import {
     Sheet,
@@ -36,8 +36,15 @@
   import { Separator } from '@/components/ui/separator';
   import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
   import { Switch } from '@/components/ui/switch';
-  import { useGetStoreItemsQuery, useGetPurchasesQuery, useGetMyAccountQuery, usePurchaseItemsWithCoinsMutation } from '@/redux/api/wordrama';
+  import {
+    useGetStoreItemsQuery,
+    useGetPurchasesQuery,
+    useGetMyAccountQuery,
+    usePurchaseItemsWithCoinsMutation,
+    useCreateItemCheckoutSessionMutation,
+  } from '@/redux/api/wordrama';
   import { useEffect } from 'react';
+  import { useMarketplaceAccess } from "@/lib/useMarketplaceAccess";
 
   const MARKETPLACE_WORD_PACK_SORT_ORDER: { [key: string]: number } = {
     'ba8671aa-7481-43e5-a1ac-f2b73433a315': 4,
@@ -100,8 +107,8 @@
     const [ maxCoinPrice, setMaxCoinPrice ] = useState(1000000);
     const [ gameFilter, setGameFilter ] = useState('ALL');
     const [ itemTypeFilter, setItemTypeFilter ] = useState('WORDLE_WORD_PACK');
-    const [ showPurchased, setShowPurchased ] = useState(false);
-    const [ showUnavailable, setShowUnavailable ] = useState(false);
+    const [ showPurchased, setShowPurchased ] = useState(true);
+    const [ showUnavailable, setShowUnavailable ] = useState(true);
     const [ itemsInCart, addItemToCart ] = useState([] as string[]);
     const [ alertTitle, setAlertTitle ] = useState('');
     const [ alertText, setAlertText ] = useState('');
@@ -116,8 +123,23 @@
       showUnavailable
     });
     const [ purchaseItemsWithCoins ] = usePurchaseItemsWithCoinsMutation();
+    const [ createItemCheckoutSession] = useCreateItemCheckoutSessionMutation();
+    const handleStripePurchase = async (itemId: string) => {
+      try {
+        const result = await createItemCheckoutSession({
+          itemId,
+        }).unwrap();
+
+        if (result?.data?.checkoutUrl) {
+          window.location.href = result.data.checkoutUrl;
+        }
+      } catch (error) {
+        console.error('Failed to create Stripe checkout session', error);
+      }
+    };
     const basketSubTotal = !isLoadingStoreItems && storeItems ? storeItems?.data.filter(item => itemsInCart.includes(item.id)).reduce((acc: number, item: any) => acc + item.coinPrice, 0) : 0
     const hasEnoughCoins = myAccount?.data?.ledger?.coinBalance && myAccount?.data?.ledger?.coinBalance >= basketSubTotal;
+    const { subscriptionKey } = useMarketplaceAccess();
 
     async function handleCheckoutWithCoins() {
       const itemsToCheckout = [...itemsInCart];
@@ -137,7 +159,16 @@
 
     if (isLoadingStoreItems || isLoadingMyAccount) return <Loading />;
     return (
-      <div className='bg-[linear-gradient(to_right,#80808033_1px,transparent_1px),linear-gradient(to_bottom,#80808033_1px,transparent_1px)] bg-[size:70px_70px]'>
+      <div className='flex min-h-screen w-full flex-col bg-[linear-gradient(to_right,#80808033_1px,transparent_1px),linear-gradient(to_bottom,#80808033_1px,transparent_1px)] bg-[size:70px_70px]'>
+        <NavBar
+          links={[
+            { href: "/games", text: "Games" },
+            { href: "/leaderboard", text: "Leaderboard" },
+            { href: "/marketplace", text: "Marketplace" },
+            { href: "/achievements", text: "Achievements" },
+            { href: "/teams", text: "Teams" },
+          ]}
+        />
         <Header
           showLogo={false}
           heroText='Word Pack Marketplace'
@@ -181,7 +212,9 @@
               <>
                 <Separator className='mt-2' />
                 <SheetFooter className='pt-4'>
-                  <Button>Clear basket</Button>
+                  <Button onClick={() => addItemToCart([])}>
+                    Clear basket
+                  </Button>
                   <Button disabled={!hasEnoughCoins} onClick={() => handleCheckoutWithCoins()}>
                     {hasEnoughCoins ? 'Checkout with Coins' : 'Not enough coins'}
                   </Button>
@@ -220,7 +253,13 @@
         </Sheet>
         <Sheet>
           <SheetTrigger asChild>
-            <Button className='fixed top-20 right-5' variant='default'><FilterIcon className='w-6 h-6'/></Button>
+            <Button
+              className='fixed top-20 right-5'
+              variant='default'
+              aria-label='Open marketplace filters'
+            >
+              <FilterIcon className='w-6 h-6'/>
+            </Button>
           </SheetTrigger>
           <SheetContent className="bg-bg">
             <SheetHeader>
@@ -255,43 +294,58 @@
         <div className='p-8'>
           { storeItems?.data.length === 0 && (
             <div className="text-center text-xl">
-              No items found.
+              No marketplace items found.
               <br />
-              Try changing the filters.
+              Check back soon for new items.
             </div>
           )}
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {[...(storeItems?.data || [])]
               .sort((a, b) => getMarketplaceSortOrder(a) - getMarketplaceSortOrder(b))
               .map((item) => {
-              
-              const isCashPrice = false;
-              const subItems = [];
-              const cashPrice = '1';
-              return (
-                <Product
-                  key={item.id}
-                  itemId={item.id}
-                  name={item.name}
-                  type={item.type}
-                  description={item.description}
-                  price={isCashPrice ? cashPrice : item.coinPrice}
-                  isCashPrice={isCashPrice}
-                  isPurchased={item.isPurchased}
-                  subItems={[]}
-                  addItemToCard={() => {
-                    if (!itemsInCart.includes(item.id))
-                    addItemToCart([...itemsInCart, item.id]);
-                  }}
-                  removeItemFromCard={() => {
-                    addItemToCart(itemsInCart.filter((id) => id !== item.id));
-                  }}
-                  isInCart={itemsInCart.includes(item.id)}
-                />
-              );
-            })}
+                const isCashPrice = false;
+
+                const isWordPack = item.type === 'WORD_PACK';
+                const isMegaPack =
+                  item.id === '3d3ff93b-65c1-4d36-902e-3a889c71ac86';
+
+                const isLockedBySubscription =
+                  isWordPack &&
+                  !item.isPurchased &&
+                  subscriptionKey === "FREE";
+
+                const price = isCashPrice ? item.realPrice : item.coinPrice;
+
+                return (
+                  <Product
+                    key={item.id}
+                    itemId={item.id}
+                    name={item.name}
+                    type={item.type}
+                    description={item.description}
+                    price={price}
+                    isCashPrice={isCashPrice}
+                    isPurchased={item.isPurchased}
+                    isUnlockedBySubscription={item.isUnlockedBySubscription}
+                    subItems={[]}
+                    isInCart={itemsInCart.includes(item.id)}
+                    isLocked={isLockedBySubscription}
+                    addItemToCard={() => {
+                      if (!itemsInCart.includes(item.id)) {
+                        addItemToCart([...itemsInCart, item.id]);
+                      }
+                    }}
+                    removeItemFromCard={() => {
+                      addItemToCart(itemsInCart.filter((id) => id !== item.id));
+                    }}
+                    buyWithStripe={() => handleStripePurchase(item.id)}
+                    hasStripePrice={item.hasStripePrice}
+                  />
+                );
+              })}
           </div>
         </div>
+        <Footer />
       </div>
     )
   }

@@ -1,6 +1,6 @@
 "use client"
 //import { getAppInsights } from "@/utils/appInsights";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,24 +11,40 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Avatar, AvatarFallback, AvatarImage
-} from "@/components/ui/avatar";
-import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { TeamNav } from "@/components/navbar/team";
+import NavBar from "@/components/navbar/h-nav";
+import Footer from "@/sections/footer";
 import { useAuth } from "@/providers/auth-provider";
 import { redirect } from "next/navigation";
 import { useGetTeamByNameQuery, useCreateTeamMutation } from "@/redux/api/teams";
 
+import {
+  useGetMyEntitlementsQuery,
+} from "@/redux/api/wordrama";
+
+import { hasEntitlement } from "@/lib/entitlements";
+import { FEATURES } from "@/config/features";
+
 export default function CreateTeamPage() {
   //getAppInsights().trackPageView({ name: 'Create Team' });
   const { user } = useAuth();
+
+  const { data: entitlements, isLoading: entitlementsLoading } =
+    useGetMyEntitlementsQuery(undefined, {
+      skip: !user,
+    });
+
+  const canCreateTeam = hasEntitlement(entitlements, FEATURES.TEAMS_CREATE);
+
   const { toast } = useToast();
   const [teamName, setTeamName] = useState('');
   const [teamCreated, setTeamCreated] = useState(false);
   const { data: team, isError } = useGetTeamByNameQuery(teamName);
   const [createTeam] = useCreateTeamMutation();
+  useEffect(() => {
+    if (teamCreated) redirect('/teams');
+  }, [teamCreated]);
 
   async function handleCreateTeam() {
     if (team?.data?.teamId) return toast({
@@ -36,13 +52,18 @@ export default function CreateTeamPage() {
       description: 'Team name already in use',
     });
 
-    const { data, error } = await createTeam(team?.data?.teamName);
+    const { data, error } = await createTeam(teamName);
 
     if (error) {
       setTeamCreated(false);
+
+      const message =
+        (error as any)?.data?.message?.replace('Bad Request - ', '') ||
+        'Failed to create team';
+
       return toast({
         title: 'Whoops',
-        description: 'Failed to create team',
+        description: message,
       });
     }
 
@@ -57,13 +78,83 @@ export default function CreateTeamPage() {
     }
   }
 
-  if (user?.user_metadata?.role !== 'STREAMER') return redirect('/teams');
-    else if (teamCreated) return redirect('/teams');
+  async function handleUpgradeToCreator() {
+    window.location.href = "/subscribe";
+  }
+
+  if (!user) return redirect('/teams');
+
+  if (entitlementsLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        Loading...
+      </div>
+    );
+  }
+
+  if (!canCreateTeam)
+    return (
+      <div className="flex min-h-screen w-full flex-col">
+        <main className="flex min-h-[calc(100vh_-_theme(spacing.16))] flex-1 flex-col gap-4 bg-muted/40 p-4 md:gap-8 md:p-10">
+          <div className="mx-auto grid w-full max-w-6xl gap-2">
+            <h1 className="text-3xl text-text dark:text-darkText font-semibold">
+              Create a team
+            </h1>
+          </div>
+
+          <div className="mx-auto grid w-full max-w-6xl items-start gap-6 md:grid-cols-[180px_1fr] lg:grid-cols-[250px_1fr]">
+            <TeamNav />
+
+            <Card className="bg-bg dark:bg-darkBg border-border dark:darkBorder shadow-light dark:shadow-dark rounded-base border-2">
+              <CardHeader>
+                <CardTitle>Upgrade to Wordrama Creator</CardTitle>
+                <CardDescription>
+                  Team creation only available to Wordrama Creator subscribers.
+                  Upgrade to unlock team creation and other creator features.
+                </CardDescription>
+              </CardHeader>
+
+              <CardContent className="space-y-3">
+                <p className="text-sm text-muted-foreground">
+                  The Creator subscription tier includes everything in Wordrama Plus,
+                  plus team creation, multiple team joining, and future community
+                  tools for streamers, teachers, and group leaders.
+                </p>
+              </CardContent>
+
+              <CardFooter className="border-t px-6 py-4">
+                <Button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleUpgradeToCreator();
+                  }}
+                >
+                  Unlock Creator
+                </Button>
+              </CardFooter>
+            </Card>
+          </div>
+        </main>
+      </div>
+    );
+
   return (
-    <div className="flex min-h-screen w-full flex-col">
+    <div className="flex min-h-screen w-full flex-col border:border bg-bg text-text dark:border-darkBorder dark:bg-darkBg dark:text-darkText">
+      <NavBar
+        links={[
+          { href: "/games", text: "Games" },
+          { href: "/leaderboard", text: "Leaderboard" },
+          { href: "/marketplace", text: "Marketplace" },
+          { href: "/achievements", text: "Achievements" },
+          { href: "/teams", text: "Teams" },
+        ]}
+      />
       <main className="flex min-h-[calc(100vh_-_theme(spacing.16))] flex-1 flex-col gap-4 bg-muted/40 p-4 md:gap-8 md:p-10">
         <div className="mx-auto grid w-full max-w-6xl gap-2">
-          <h1 className="text-3xl text-text dark:text-darkText font-semibold">Create a team</h1>
+          <h1 className="text-3xl text-text dark:text-darkText font-semibold">Create a Team</h1>
+            <p className="text-sm text-muted-foreground max-w-3xl">
+              Create a team for your community, stream, class, or friend group. Team creation is a premium feature, and each eligible player can currently own one team.
+            </p>
         </div>
         <div className="mx-auto grid w-full max-w-6xl items-start gap-6 md:grid-cols-[180px_1fr] lg:grid-cols-[250px_1fr]">
           <TeamNav />
@@ -71,7 +162,7 @@ export default function CreateTeamPage() {
             <CardHeader>
               <CardTitle>Create a team</CardTitle>
               <CardDescription>
-                Create a team for your follwers to join
+                Create a team for your followers to join
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -95,6 +186,7 @@ export default function CreateTeamPage() {
           </Card>
         </div>
       </main>
+      <Footer />
     </div>
   )
 }

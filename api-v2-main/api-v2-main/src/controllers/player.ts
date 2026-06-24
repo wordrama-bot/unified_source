@@ -14,6 +14,7 @@ import {
   successfulResponse,
 } from '../utils/responses';
 
+import { getPlayerEntitlements } from '../services/marketplaceV2/entitlements';
 import playerService from '../services/player';
 import playerSummaryService from '../services/playerSummary';
 
@@ -110,6 +111,21 @@ async function updatePlayerSettings(req: ApiRequest, res: Response) {
   return successfulResponse(req, res, settings, 'Settings Updated', 1);
 }
 
+async function getPlayerEntitlementsForMe(req: ApiRequest, res: Response) {
+  const player = await playerService.getPlayerByUserId(req.userId);
+  if (!player || !player?.id) return notFoundResponse(req, res);
+
+  const entitlements = await getPlayerEntitlements(player.id);
+
+  return successfulResponse(
+    req,
+    res,
+    entitlements,
+    'Player entitlements found',
+    entitlements.length,
+  );
+}
+
 async function deletePlayer(req: ApiRequest, res: Response) {
   //@ts-ignore
   const player = await playerService.deletePlayer(req.userId);
@@ -127,6 +143,7 @@ async function migratePlayer(req: ApiRequest, res: Response) {
 
 export default {
   getPlayerProfile,
+  getPlayerEntitlements: getPlayerEntitlementsForMe,
   getPublicPlayerProfile,
   getPublicPlayerSummary,
   getPublicPlayerProfileByUsername,

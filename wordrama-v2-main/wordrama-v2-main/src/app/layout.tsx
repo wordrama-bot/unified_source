@@ -46,11 +46,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <title>Wordrama | The ultimate wordle website!</title>
+        <title>Wordrama | Free Daily Word Game & Wordle Alternative</title>
 
         <meta
           name="description"
-          content="Play Wordrama, the ultimate Wordle game. Join 2.2K+ players and explore 24 unique word packs. With Co-Wordle multiplayer mode coming soon and popular TikTok Live streamers joining the fun, there's always something exciting happening. Test your word skills today!"
+          content="Play Wordrama, a free daily word game and Wordle alternative with classic 5-letter puzzles, longer word challenges, free play, achievements, teams, custom themes, and word packs."
         />
         <meta name="robots" content="index, follow" />
         <meta name="author" content="Wordrama.io" />
@@ -61,20 +61,20 @@ export default function RootLayout({
 
         <meta
           property="og:title"
-          content="Wordrama | The ultimate wordle website!"
+          content="Wordrama | Free Daily Word Game & Wordle Alternative"
         />
         <meta
           property="og:description"
-          content="Play Wordrama, the ultimate Wordle game. Join 2.2K+ players and explore 24 unique word packs. With Co-Wordle multiplayer mode coming soon and popular TikTok Live streamers joining the fun, there's always something exciting happening. Test your word skills today!"
+          content="Play Wordrama, a free daily word game and Wordle alternative with classic 5-letter puzzles, longer word challenges, free play, achievements, teams, custom themes, and word packs."
         />
         <meta
           property="og:image"
-          content="https://utfs.io/f/vieUBZcrouNZecqr9f6GFUI7HjZNEsYv0gwLPp1f8ory5MSW"
+          content="https://wordrama.io/images/wordrama-logo-letter-large.png"
         />
         <meta property="og:url" content="https://wordrama.io" />
         <meta property="og:type" content="website" />
         <meta property="og:site_name" content="Wordrama" />
-        <meta property="og:locale" content="en_GB" />
+        <meta property="og:locale" content="en_US" />
 
         <meta
           name="twitter:card"
@@ -82,36 +82,67 @@ export default function RootLayout({
         />
         <meta
           name="twitter:title"
-          content="Wordrama | The ultimate wordle website!"
+          content="Wordrama | Free Daily Word Game & Wordle Alternative"
         />
         <meta
           name="twitter:description"
-          content="Play Wordrama, the ultimate Wordle game. Join 2.2K+ players and explore 24 unique word packs. With Co-Wordle multiplayer mode coming soon and popular TikTok Live streamers joining the fun, there's always something exciting happening. Test your word skills today!"
+          content="Play Wordrama, a free daily word game and Wordle alternative with classic 5-letter puzzles, longer word challenges, free play, achievements, teams, custom themes, and word packs."
         />
         <meta
           name="twitter:image"
-          content="https://utfs.io/f/vieUBZcrouNZecqr9f6GFUI7HjZNEsYv0gwLPp1f8ory5MSW"
+          content="https://wordrama.io/images/wordrama-logo-letter-large.png"
+        />
+
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Organization",
+              name: "Wordrama",
+              url: "https://wordrama.io",
+              logo: "https://wordrama.io/images/wordrama-logo-letter-small.png",
+              description:
+                "Wordrama is an online word puzzle and vocabulary game platform featuring daily puzzles, multiplayer gameplay, leaderboards, statistics, and educational word game content."
+            }),
+          }}
+        />
+
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "WebSite",
+              name: "Wordrama",
+              url: "https://wordrama.io",
+              description:
+                "Play Wordrama online and explore daily word puzzles, strategy guides, multiplayer word games, and vocabulary-building gameplay."
+            }),
+          }}
         />
 
         <link
           rel="icon"
           type="image/png"
-          href="https://utfs.io/f/vieUBZcrouNZrmip0kaZeu5pTQIN4qBcCkAntERPya0X3zbF"
+          href="/images/wordrama-logo-letter-small.png"
           sizes="96x96"
         />
         <link
           rel="icon"
-          type="image/svg+xml"
-          href="https://utfs.io/f/vieUBZcrouNZc25QPDxBaLH6F1bimkIMgCOGuS2Y7D9TlqQh"
+          type="image/png"
+          href="/images/wordrama-logo-letter-large.png"
         />
         <link rel="shortcut icon" href="/favicon.ico" />
         <link
           rel="apple-touch-icon"
           sizes="180x180"
-          href="https://utfs.io/f/vieUBZcrouNZAQlt9XNmP3TuOXi7nZhtDBRLWH94oYU0IaCq"
+          href="/images/wordrama-logo-letter-small.png"
         />
         <meta name="apple-mobile-web-app-title" content="Wordrama" />
         <link rel="manifest" href="/site.webmanifest" />
+
+        <link rel="canonical" href="https://wordrama.io" />
 
         <link rel="preconnect" href="https://api.wordrama.io" />
         <link rel="preconnect" href="https://pagead2.googlesyndication.com" />

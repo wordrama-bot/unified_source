@@ -2,7 +2,6 @@ import { type Response } from 'express';
 import { ApiRequest } from '../types';
 import { db } from '../models';
 import {
-  notFoundResponse,
   badRequest,
   successfulResponse,
 } from '../utils/responses';
@@ -15,28 +14,25 @@ import friendsService from '../services/friends';
 
 async function getFriends(req: ApiRequest, res: Response) {
   const friends = await friendsService.getFriends(req.userId);
-  if (!friends || friends.length === 0) return notFoundResponse(req, res);
 
   return successfulResponse(
     req,
     res,
-    friends,
+    Array.isArray(friends) ? friends : [],
     'Friends returned',
-    friends.length,
+    Array.isArray(friends) ? friends.length : 0,
   );
 }
 
 async function getSentFriendRequests(req: ApiRequest, res: Response) {
   const friendRequests = await friendsService.getSentFriendRequests(req.userId);
-  if (!friendRequests || friendRequests.length === 0)
-    return notFoundResponse(req, res);
 
   return successfulResponse(
     req,
     res,
-    friendRequests,
+    Array.isArray(friendRequests) ? friendRequests : [],
     'Friend sent requests returned',
-    friendRequests.length,
+    Array.isArray(friendRequests) ? friendRequests.length : 0,
   );
 }
 
@@ -45,43 +41,40 @@ async function getRecievedFriendRequests(req: ApiRequest, res: Response) {
     req.userId,
   );
 
-  if (!friendRequests || friendRequests.length === 0)
-    return notFoundResponse(req, res);
-
   return successfulResponse(
     req,
     res,
-    friendRequests,
+    Array.isArray(friendRequests) ? friendRequests : [],
     'Friend recieved requests returned',
-    friendRequests.length,
+    Array.isArray(friendRequests) ? friendRequests.length : 0,
   );
 }
 
 async function getFriendRequests(req: ApiRequest, res: Response) {
   const validDirections = ['sent', 'received'];
   const { direction } = req.query;
-  if (!direction || !validDirections.includes(direction))
+  if (!direction || !validDirections.includes(direction as string))
     return badRequest(req, res, 'Invalid direction [sent, received]');
 
   const friendRequests = await friendsService.getFriendRequests(
     req.userId,
-    direction,
+    direction as string,
   );
-  if (!friendRequests || friendRequests.length === 0)
-    return notFoundResponse(req, res);
 
   return successfulResponse(
     req,
     res,
-    friendRequests,
+    Array.isArray(friendRequests) ? friendRequests : [],
     'Friend requests returned',
-    friendRequests.length,
+    Array.isArray(friendRequests) ? friendRequests.length : 0,
   );
 }
 
 async function newFriendRequest(req: ApiRequest, res: Response) {
   const friendRequests = await friendsService.getSentFriendRequests(req.userId);
-  const activeRequests = friendRequests.map((request) => request.players.id);
+  const activeRequests = Array.isArray(friendRequests)
+    ? friendRequests.map((request) => request.players.id)
+    : [];
   if (activeRequests.includes(req.params.friendId))
     return badRequest(
       req,

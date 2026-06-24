@@ -31,7 +31,13 @@ export default function MarketplaceCategories({
       link: '/marketplace/word-packs',
       Icon: Wordle,
       text: 'Get word packs with 4-23 letter words!',
-    }];
+    },
+    {
+      title: 'Themes (Coming Soon!)',
+      link: '',
+      Icon: Wordle,
+      text: 'New color themes to enhance your experience!',
+    },];
   }
   return (
     <section className="border-t-border dark:border-t-darkBorder dark:bg-darkBg border-t-2 bg-bg py-20 font-base lg:py-[50px]">

@@ -3,13 +3,13 @@
   "short_name": "Wordrama",
   "icons": [
     {
-      "src": "/web-app-manifest-192x192.png",
+      "src": "/images/wordrama-logo-letter-small.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "maskable"
     },
     {
-      "src": "/web-app-manifest-512x512.png",
+      "src": "/images/wordrama-logo-letter-large.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"

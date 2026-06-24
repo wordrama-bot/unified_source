@@ -1,4 +1,5 @@
 "use client"
+import Link from "next/link";
 import NavBar from '@/components/navbar/h-nav';
 import Footer from '@/sections/footer';
 
@@ -7,9 +8,13 @@ export default function CookiePolicyPage() {
     <div className="flex min-h-screen w-full flex-col border:border dark:border-darkBorder bg-bg dark:bg-darkBg text-text dark:text-darkText">
       <NavBar
         links={[
+          { href: "/", text: "Home" },
+          { href: "/free-play", text: "Quick Play" },
+          { href: "/marketplace", text: "Marketplace" },
+          { href: "/achievements", text: "Achievements" },
+          { href: "/teams", text: "Teams" },
           { href: "/about", text: "About" },
-          { href: "/free-play", text: "Wordle" },
-          { href: "/signup", text: "SignUp" },
+          { href: "/signup", text: "Sign Up / In" },
         ]}
       />
       <div className="container mx-auto p-4">
@@ -139,7 +144,7 @@ export default function CookiePolicyPage() {
 
         <section className="my-8">
           <h2 className="text-2xl font-semibold">Where can I get further information?</h2>
-          <p className="mt-4">If you have any questions about our use of cookies or other technologies, please contact us at: <a href="mailto:support@wordrama.io" className='text-blue-500 hover:underline'>support@wordrama.io</a></p>
+          <p className="mt-4">If you have any questions about our use of cookies or other technologies, please contact us at: <Link href="/contact" className="text-blue-500 hover:underline">support@wordrama.io</Link>.</p>
         </section>
       </div>
       <Footer />
