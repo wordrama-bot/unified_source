@@ -22,7 +22,6 @@ export default function BestStartingWordsPage() {
     <div className="flex min-h-screen w-full flex-col border:border dark:border-darkBorder bg-bg dark:bg-darkBg text-text dark:text-darkText">
       <PublicNav
         links={[
-          { href: "/", text: "Home" },
           { href: "/free-play", text: "Quick Play" },
           { href: "/marketplace", text: "Marketplace" },
           { href: "/achievements", text: "Achievements" },

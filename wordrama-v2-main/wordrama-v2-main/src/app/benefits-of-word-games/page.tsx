@@ -8,7 +8,6 @@ export default function BenefitsOfWordGamesPage() {
     <main className="min-h-screen bg-darkBg text-white">
       <PublicNav
         links={[
-          { href: "/", text: "Home" },
           { href: "/free-play", text: "Quick Play" },
           { href: "/marketplace", text: "Marketplace" },
           { href: "/achievements", text: "Achievements" },

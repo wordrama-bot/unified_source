@@ -10,7 +10,6 @@ export default function HowToPlayPage() {
       
       <PublicNav
         links={[
-          { href: "/", text: "Home" },
           { href: "/free-play", text: "Quick Play" },
           { href: "/marketplace", text: "Marketplace" },
           { href: "/achievements", text: "Achievements" },

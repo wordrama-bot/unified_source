@@ -8,16 +8,19 @@ import { useAuth } from "@/providers/auth-provider";
 import NavBar from "@/components/navbar/h-nav";
 import MarketplaceCategories from "@/sections/marketplace-categories";
 import GoogleAd from "@/components/GoogleAd";
-//import { getAppInsights } from '@/utils/appInsights';
+
+const appGrid =
+  "bg-[linear-gradient(to_right,#80808033_1px,transparent_1px),linear-gradient(to_bottom,#80808033_1px,transparent_1px)] bg-[size:70px_70px]";
+
+const cardClass =
+  "rounded-lg border border-border bg-bg/80 p-6 shadow-light dark:border-darkBorder dark:bg-darkBg/80 dark:shadow-dark";
 
 export default function MarketplacePage() {
-  //getAppInsights().trackPageView({ name: 'Marketplace' });
-
   const { user, session } = useAuth();
 
   if (user || session) {
-    return (  
-      <div className="flex min-h-screen w-full flex-col border:border bg-bg text-text dark:border-darkBorder dark:bg-darkBg dark:text-darkText">
+    return (
+      <div className="flex min-h-screen w-full flex-col bg-bg text-text dark:bg-darkBg dark:text-darkText">
         <NavBar
           links={[
             { href: "/games", text: "Games" },
@@ -27,12 +30,16 @@ export default function MarketplacePage() {
             { href: "/teams", text: "Teams" },
           ]}
         />
-        <header className="dark:bg-darkBg inset-0 flex min-h-[30dvh] w-full flex-col items-center justify-center bg-bg bg-[linear-gradient(to_right,#80808033_1px,transparent_1px),linear-gradient(to_bottom,#80808033_1px,transparent_1px)] bg-[size:70px_70px]">
+
+        <header
+          className={`inset-0 flex min-h-[30dvh] w-full flex-col items-center justify-center bg-bg text-text dark:bg-darkBg dark:text-darkText ${appGrid}`}
+        >
           <div className="mx-auto w-container max-w-full px-5 text-center">
             <h1 className="px-5 text-center text-3xl font-heading md:text-4xl lg:text-5xl">
               Wordrama Marketplace
             </h1>
           </div>
+
           <div className="mx-auto w-container max-w-full px-5 text-center">
             <p className="mx-auto mt-4 max-w-3xl text-lg">
               Customize your Wordrama experience with unlockable cosmetics,
@@ -46,17 +53,18 @@ export default function MarketplacePage() {
             </p>
           </div>
         </header>
+
         <MarketplaceCategories categories={[]} />
+
         <Footer />
       </div>
     );
   }
 
   return (
-    <>
+    <div className="flex min-h-screen w-full flex-col bg-bg text-text dark:bg-darkBg dark:text-darkText">
       <PublicNav
         links={[
-          { href: "/", text: "Home" },
           { href: "/free-play", text: "Quick Play" },
           { href: "/marketplace", text: "Marketplace" },
           { href: "/achievements", text: "Achievements" },
@@ -66,8 +74,10 @@ export default function MarketplacePage() {
         ]}
       />
 
-      <main className="min-h-screen w-full bg-darkBg text-white">
-        <header className="inset-0 flex min-h-[30dvh] w-full flex-col items-center justify-center bg-darkBg bg-[linear-gradient(to_right,#80808033_1px,transparent_1px),linear-gradient(to_bottom,#80808033_1px,transparent_1px)] bg-[size:70px_70px]">
+      <main className="w-full flex-1 bg-bg text-text dark:bg-darkBg dark:text-darkText">
+        <header
+          className={`inset-0 flex min-h-[30dvh] w-full flex-col items-center justify-center bg-bg text-text dark:bg-darkBg dark:text-darkText ${appGrid}`}
+        >
           <div className="mx-auto w-container max-w-full px-5 text-center">
             <h1 className="px-5 text-center text-3xl font-heading md:text-4xl lg:text-5xl">
               Wordrama Marketplace
@@ -80,7 +90,7 @@ export default function MarketplacePage() {
         </header>
 
         <section className="mx-auto max-w-5xl px-5 py-12">
-          <div className="rounded-lg border border-darkBorder bg-darkBg/80 p-6 shadow-dark">
+          <div className={cardClass}>
             <h2 className="text-2xl font-bold">
               What is the Wordrama Marketplace?
             </h2>
@@ -98,7 +108,7 @@ export default function MarketplacePage() {
           </div>
 
           <div className="mt-8 grid gap-6 md:grid-cols-2">
-            <div className="rounded-lg border border-darkBorder bg-darkBg/80 p-6 shadow-dark">
+            <div className={cardClass}>
               <h2 className="text-xl font-semibold">Unlock cosmetics</h2>
               <p className="mt-3">
                 Personalize your Wordrama profile with avatars, visual styles,
@@ -107,7 +117,7 @@ export default function MarketplacePage() {
               </p>
             </div>
 
-            <div className="rounded-lg border border-darkBorder bg-darkBg/80 p-6 shadow-dark">
+            <div className={cardClass}>
               <h2 className="text-xl font-semibold">Explore word packs</h2>
               <p className="mt-3">
                 Wordrama supports multiple word lengths and specialty packs, giving
@@ -115,7 +125,7 @@ export default function MarketplacePage() {
               </p>
             </div>
 
-            <div className="rounded-lg border border-darkBorder bg-darkBg/80 p-6 shadow-dark">
+            <div className={cardClass}>
               <h2 className="text-xl font-semibold">Earn and spend coins</h2>
               <p className="mt-3">
                 Coins are part of Wordrama&apos;s rewards system. Players can use
@@ -124,7 +134,7 @@ export default function MarketplacePage() {
               </p>
             </div>
 
-            <div className="rounded-lg border border-darkBorder bg-darkBg/80 p-6 shadow-dark">
+            <div className={cardClass}>
               <h2 className="text-xl font-semibold">Build your player identity</h2>
               <p className="mt-3">
                 Marketplace rewards work alongside stats, streaks, leaderboards,
@@ -141,7 +151,7 @@ export default function MarketplacePage() {
             />
           </div>
 
-          <section className="mt-10 rounded-lg border border-darkBorder bg-darkBg/80 p-6 text-center shadow-dark">
+          <section className={`${cardClass} mt-10 text-center`}>
             <h2 className="text-2xl font-bold">Want to access the marketplace?</h2>
             <p className="mx-auto mt-4 max-w-3xl">
               Create a free Wordrama account to save your progress, track your
@@ -164,6 +174,6 @@ export default function MarketplacePage() {
       </main>
 
       <Footer />
-    </>
+    </div>
   );
 }

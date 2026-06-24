@@ -221,14 +221,16 @@ export default function WordleAllTimeLeaderboardPage() {
     isLoadingTop3AllTime
   ) return <Loading />;
   return (
-    <div className="flex min-h-screen w-full flex-col">
-      <main className="flex min-h-[calc(100vh_-_theme(spacing.16))] flex-1 flex-col gap-4 bg-muted/40 p-4 md:gap-8 md:p-10">
-        <div className="mx-auto grid w-full max-w-6xl gap-2">
-          <h1 className="text-3xl text-text dark:text-darkText font-semibold">Wordle | All Time Leaderboard</h1>
+    <div className="flex w-full flex-col bg-bg text-text dark:bg-darkBg dark:text-darkText">
+      <main className="flex flex-col gap-4 bg-bg p-4 text-text dark:bg-darkBg dark:text-darkText md:gap-8 md:p-10 bg-[linear-gradient(to_right,#80808033_1px,transparent_1px),linear-gradient(to_bottom,#80808033_1px,transparent_1px)] bg-[size:70px_70px]">
+        <div className="mx-auto w-container max-w-full px-5 text-center">
+          <h1 className="px-5 text-center text-3xl font-heading md:text-4xl lg:text-5xl">
+            Wordrama Leaderboard
+          </h1>
         </div>
-        <Card className="w-full max-w-6xl mx-auto">
+        <Card className="w-full max-w-6xl mx-auto bg-bg text-text dark:bg-darkBg dark:text-darkText">
           <CardHeader>
-            <CardTitle className="text-2xl font-bold">Leaderboard</CardTitle>
+            <CardTitle className="text-2xl font-bold">Leaderboard Info</CardTitle>
             {wordPack === "all" && (
               <div className="space-y-2">
                 <p className="text-sm text-muted-foreground">

@@ -5,6 +5,7 @@ import useSound from 'use-sound';
 import { default as GraphemeSplitter } from 'grapheme-splitter'
 import { useEffect, useState } from 'react'
 import Confetti from 'react-confetti'
+import Div100vh from 'react-div-100vh'
 import { useDispatch } from 'react-redux';
 import { isMobile, isTablet } from 'react-device-detect';
 import { wordleWordPackConfig } from '../../lib/config';
@@ -12,6 +13,9 @@ import Link from 'next/link';
 import { AlertContainer } from './components/alerts/AlertContainer'
 import { Grid } from './components/grid/Grid'
 import { Keyboard } from './components/keyboard/Keyboard'
+import { getAppearanceTheme } from '@/config/themes';
+import { appearanceThemes } from '@/config/themes';
+import { KEYBOARD_STYLES, KEYBOARD_STYLE_IDS } from '@/config/keyboardStyles';
 import { InfoModal } from './components/modals/InfoModal'
 import Loader, { Loading } from '../../sections/loading';
 import {
@@ -89,8 +93,8 @@ import {
   useGetWordleStreakQuery,
   useGetMyWordPacksQuery,
   useGetMyAllTimeWordleStatsByGameModeQuery,
-  useUpdateAccountMutation,
   useGetMyAccountQuery,
+  useUpdateSettingsMutation,
 } from '../../redux/api/wordrama';
 
 import {
@@ -124,7 +128,6 @@ import { useTheme } from 'next-themes'
 import { useAuth } from '@/providers/auth-provider';
 import { showChristmas } from '@/lib/config';
 import Snowflake from '@/components/Snowflake';
-import GoogleAd from "../GoogleAd";
 
 function App(){
   const { user } = useAuth();
@@ -135,9 +138,26 @@ function App(){
   const dispatch = useDispatch();
   const gameState = getWordleState();
   const gameUiState = getWordleGameUiState();
+
+  const appearanceTheme = getAppearanceTheme(
+    gameUiState?.appearanceThemeId
+  );
+
+  const gameSurfaceThemeClasses = appearanceTheme.app.gameSurface
+  const gameActionButtonThemeClasses = appearanceTheme.app.actionButton
+  const pageBackgroundThemeClasses =
+    appearanceTheme.app.background
+  const pageTextThemeClasses =
+    appearanceTheme.app.text
+
   const streamerMode = gameUiState.streamerModeEnabled ?? false;
   const gameSoundEnabled = gameUiState.gameSoundEnabled ?? true;
-  const { refetch: refetchProfile } = useGetMyAccountQuery();
+  const {
+    data: myAccount,
+    isLoading: isLoadingMyAccount,
+    refetch: refetchProfile,
+  } = useGetMyAccountQuery();
+  const [updateSettings] = useUpdateSettingsMutation();
   const { gameMode, wordLength, wordPack, custom } = gameState;
   const isCustom = gameMode === 'CUSTOM' && custom.solution.length > 0;
   const currentGame = isCustom ? gameState.custom : gameState.modes[gameState.gameMode][gameState.wordPack];
@@ -176,8 +196,12 @@ function App(){
 
   const statsData = allTimeStats?.data ?? {};
 
-  const gamesWon = statsData[`${wordPackAllTimeStatsMap[wordPack]}GamesWon`] ?? 0;
-  const gamesLost = statsData[`${wordPackAllTimeStatsMap[wordPack]}GamesLost`] ?? 0;
+  const gamesWon =
+    statsData[`${wordPackAllTimeStatsMap[wordPack]}GamesWon`] ?? 0;
+
+  const gamesLost =
+    statsData[`${wordPackAllTimeStatsMap[wordPack]}GamesLost`] ?? 0;
+
   const gamesPlayed = gamesWon + gamesLost;
 
   const { data: myWordPacks, isLoading: isLoadingWordPacks } = useGetMyWordPacksQuery();
@@ -188,16 +212,30 @@ function App(){
   const { data: uiSavedState, isLoading: isLoadingUiSavedState } = useGetUiSavedStateQuery();
 	useEffect(() => {
 	  if (isLoadingUiSavedState) return;
+    if (isLoadingMyAccount) return;
 	  if (!uiSavedState) return;
 	
 	  const wordleUi = uiSavedState?.data?.wordleGame;
 	  if (!wordleUi) return;
 	
-	  dispatch(setWordleGameUiState({
-	    ...gameUiState,
-	    ...wordleUi,
-	  }));
-	}, [uiSavedState, isLoadingUiSavedState, dispatch]);
+	  const accountAppearanceThemeId =
+      myAccount?.data?.playerSettings?.appearanceThemeId;
+
+    const accountKeyboardStyleId =
+      myAccount?.data?.playerSettings?.keyboardStyleId;
+
+    dispatch(setWordleGameUiState({
+      ...gameUiState,
+      ...wordleUi,
+      ...(accountAppearanceThemeId
+        ? { appearanceThemeId: accountAppearanceThemeId }
+        : {}),
+      ...(accountKeyboardStyleId
+        ? { keyboardStyleId: accountKeyboardStyleId }
+        : {}),
+    }));
+	}, [uiSavedState, isLoadingUiSavedState, myAccount, dispatch]);
+
   const { data: wordleWordPack, isLoading: isLoadingWordPack, refetch: refetchWordPack  } = useGetWordleWordPackQuery(gameState.wordPack);
   const { data: wordOfTheDay, isLoading: isLoadingWoTD } = useGetWordleWoTDQuery(wordPack);
   const { data: streakData, isLoading: isLoadingStreakData, isError: isErrorStreakData, refetch: refetchStreak } = useGetWordleStreakQuery({ gameMode, wordPack });
@@ -320,16 +358,22 @@ const [playLoseSoundChristmas] = useSound('/sounds/christmas-lost.mp3', {
   function updateUiState(updatedState: UiState) {
     dispatch(setUiState(updatedState));
   
+    const {
+      appearanceThemeId,
+      keyboardStyleId,
+      ...uiStateWithoutTheme
+    } = updatedState;
+
     updateRemoteUiState({
       ...(uiSavedState?.data || {}),
-      wordleGame: updatedState,
+      wordleGame: uiStateWithoutTheme,
     });
   }
 
   function newInfiniteGame(){
     if (isLoadingWordPack) return;
     if (!wordleWordPack?.data?.wordList?.length) return;
-    
+
     const newSolution: string = getRandomWord(wordleWordPack.data.wordList);
     //appInsights.trackEvent({ name: 'newInfiniteGame', properties: { wordPack, solution: newSolution, player: user.id } });
     updateGameState({
@@ -589,7 +633,9 @@ const [playLoseSoundChristmas] = useSound('/sounds/christmas-lost.mp3', {
 
   if (gameLoading) return <Loader />;
   return (
-    <div className="min-h-screen">
+    <Div100vh
+      className={`transition-colors ${pageBackgroundThemeClasses} ${pageTextThemeClasses}`}
+    >
       <TooltipProvider>
         { gameUiState.confettiEnabled && showConfetti ? (
         showChristmas ? (
@@ -597,9 +643,9 @@ const [playLoseSoundChristmas] = useSound('/sounds/christmas-lost.mp3', {
         ) : (
           <Confetti className='w-full' />
         )) : null}
-        <div className="flex h-full flex-col">
+        <div className="flex min-h-full flex-col">
           {/*  Game Settings  */}
-          <Button className='fixed top-20 right-4' variant='default' onClick={e => {
+          <Button className={`fixed top-20 right-4 ${gameActionButtonThemeClasses}`} variant='default' onClick={e => {
             e.preventDefault();
             setIsSettingsModalOpen(!isSettingsModalOpen)
           }}>
@@ -663,6 +709,7 @@ const [playLoseSoundChristmas] = useSound('/sounds/christmas-lost.mp3', {
                     </Select>
                   )}
                 </div>
+                
                 { false && (
                   <div className="grid grid-cols-4 items-center gap-4">
                     <Select>
@@ -697,93 +744,168 @@ const [playLoseSoundChristmas] = useSound('/sounds/christmas-lost.mp3', {
                   </Select>
                 </div>
                 )}
+
+                <Select
+                  value={gameUiState?.appearanceThemeId || 'theme.default'}
+                  onValueChange={(value) => {
+                    dispatch(setWordleGameUiState({ appearanceThemeId: value }));
+
+                    updateSettings({
+                      appearanceThemeId: value,
+                    });
+                  }}
+                >
+                  <SelectTrigger id="appearanceTheme">
+                    <SelectValue placeholder="Select a theme" />
+                  </SelectTrigger>
+
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectLabel>Themes</SelectLabel>
+                      {appearanceThemes.map((theme) => (
+                        <SelectItem
+                          key={theme.meta.id}
+                          value={theme.meta.id}
+                        >
+                          {theme.meta.name}
+                          {theme.meta.availability !== 'free' ? ' ✨' : ''}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+
+                <Select
+                  value={gameUiState?.keyboardStyleId || KEYBOARD_STYLE_IDS.FLAT}
+                  onValueChange={(value) => {
+                    dispatch(setWordleGameUiState({ keyboardStyleId: value }));
+
+                    updateSettings({
+                      keyboardStyleId: value,
+                    });
+                  }}
+                >
+                  <SelectTrigger id="keyboardStyle">
+                    <SelectValue placeholder="Select a keyboard style" />
+                  </SelectTrigger>
+
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectLabel>Keyboard Styles</SelectLabel>
+                      {Object.values(KEYBOARD_STYLES).map((keyboardStyle) => (
+                        <SelectItem
+                          key={keyboardStyle.meta.id}
+                          value={keyboardStyle.meta.id}
+                        >
+                          {keyboardStyle.meta.name}
+                          {keyboardStyle.meta.availability !== 'free' ? ' ✨' : ''}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+
                 <Separator />
-                <div className="grid grid-cols-4 items-center gap-8">
-                  <Label htmlFor="swapDeleteAndEnter">
-                    <Tooltip>
-                      <TooltipTrigger className="text-left grid grid-cols-2 items-center gap-12">
-                        Swap Keys
-                        <InfoIcon className='w-4 h-4'/>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        Swap the delete and enter keys on the on-screen keyboard
-                      </TooltipContent>
-                    </Tooltip>
-                  </Label>
-                  <Switch defaultChecked={gameUiState.swapDeleteAndEnter || false} onCheckedChange={checked => handleSwapDeleteAndEnter(checked)}/>
-                  <Label htmlFor="confetti">
-                    <Tooltip>
-                      <TooltipTrigger className="text-left grid grid-cols-2 items-center gap-16">
-                        Show Confetti
-                        <InfoIcon className='w-4 h-4'/>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        Enable or disable confetti when you win a game
-                      </TooltipContent>
-                    </Tooltip>
-                  </Label>
-                  <Switch checked={gameUiState.confettiEnabled ?? true} onCheckedChange={checked => handleConfettiEnabled(checked)} />
-                  <Label htmlFor="speedRun">
-                    <Tooltip>
-                      <TooltipTrigger className="text-left grid grid-cols-2 items-center gap-12">
-                        Speed Run
-                        <InfoIcon className='w-4 h-4'/>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        Enable or disable the stats pop-up after a game
-                      </TooltipContent>
-                    </Tooltip>
-                  </Label>
-                  <Switch defaultChecked={gameUiState.speedRunModeEnabled || false} onCheckedChange={checked => handleSpeedRunEnabled(checked)}  />
-                  <Label htmlFor="streamerMode">
-                    <Tooltip>
-                      <TooltipTrigger className="text-left grid grid-cols-2 items-center gap-16">
-                        Streamer Mode
-                        <InfoIcon className='w-4 h-4'/>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        Make the stats pop-up more centered for optimized visuals
-                      </TooltipContent>
-                    </Tooltip>
-                  </Label>
-                  <Switch checked={gameUiState.streamerModeEnabled ?? false} onCheckedChange={checked => dispatch(setWordleGameUiState({ streamerModeEnabled: checked }))} />
-                  <Label htmlFor="theme" className="text-left">
-                    <Tooltip>
-                      <TooltipTrigger className="text-left grid grid-cols-2 items-center gap-16">
-                        Dark Mode
-                        <InfoIcon className='w-4 h-4'/>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        Switch between light and dark game visuals
-                      </TooltipContent>
-                    </Tooltip>
-                  </Label>
-                  <Switch checked={theme === 'dark'} onCheckedChange={checked => setTheme(theme === 'dark' ? 'light' : 'dark')}  />
-                  <Label htmlFor="colorblindMode" className="text-left">
-                    <Tooltip>
-                      <TooltipTrigger className="text-left grid grid-cols-2 items-center gap-16">
-                        Colorblind Mode
-                        <InfoIcon className='w-4 h-4'/>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        Change the color scheme for red/green colorblind accessibility
-                      </TooltipContent>
-                    </Tooltip>
-                  </Label>
-                  <Switch checked={gameUiState.colorblindMode || false} onCheckedChange={checked => handleColorblindModeEnabled(checked)} />
-                  <Label htmlFor="gameSound" className="text-left">
-                    <Tooltip>
-                      <TooltipTrigger className="text-left grid grid-cols-2 items-center gap-16">
-                        Game Sound
-                        <InfoIcon className='w-4 h-4'/>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        Turn win and loss sounds on or off
-                      </TooltipContent>
-                    </Tooltip>
-                  </Label>
-                  <Switch checked={gameUiState.gameSoundEnabled ?? true} onCheckedChange={checked => dispatch(setWordleGameUiState({ gameSoundEnabled: checked }))} />
+
+                <div className="grid grid-cols-2 gap-x-10 gap-y-6 py-2">
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-2">
+                      <Label htmlFor="swapDeleteAndEnter" className="leading-tight">
+                        Swap<br />Keys
+                      </Label>
+                      <InfoIcon className="h-4 w-4" />
+                    </div>
+
+                    <Switch
+                      id="swapDeleteAndEnter"
+                      checked={gameUiState.swapDeleteAndEnter || false}
+                      onCheckedChange={(checked) => handleSwapDeleteAndEnter(checked)}
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-2">
+                      <Label htmlFor="confettiEnabled" className="leading-tight">
+                        Show<br />Confetti
+                      </Label>
+                      <InfoIcon className="h-4 w-4" />
+                    </div>
+
+                    <Switch
+                      id="confettiEnabled"
+                      checked={gameUiState.confettiEnabled || false}
+                      onCheckedChange={(checked) => handleConfettiEnabled(checked)}
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-2">
+                      <Label htmlFor="speedRunModeEnabled" className="leading-tight">
+                        Speed<br />Run
+                      </Label>
+                      <InfoIcon className="h-4 w-4" />
+                    </div>
+
+                    <Switch
+                      id="speedRunModeEnabled"
+                      checked={gameUiState.speedRunModeEnabled || false}
+                      onCheckedChange={(checked) => handleSpeedRunEnabled(checked)}
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between gap-4">
+                    <Label htmlFor="streamerModeEnabled" className="leading-tight">
+                      Streamer<br />Mode
+                    </Label>
+
+                    <Switch
+                      id="streamerModeEnabled"
+                      checked={gameUiState.streamerModeEnabled || false}
+                      onCheckedChange={(checked) =>
+                        dispatch(setWordleGameUiState({ streamerModeEnabled: checked }))
+                      }
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between gap-4">
+                    <Label htmlFor="theme" className="leading-tight">
+                      Dark<br />Mode
+                    </Label>
+
+                    <Switch
+                      id="theme"
+                      checked={theme === 'dark'}
+                      onCheckedChange={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between gap-4">
+                    <Label htmlFor="colorblindMode" className="leading-tight">
+                      Colorblind<br />Mode
+                    </Label>
+
+                    <Switch
+                      id="colorblindMode"
+                      checked={gameUiState.colorblindMode || false}
+                      onCheckedChange={(checked) => handleColorblindModeEnabled(checked)}
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between gap-4">
+                    <Label htmlFor="gameSoundEnabled" className="leading-tight">
+                      Game<br />Sound
+                    </Label>
+
+                    <Switch
+                      id="gameSoundEnabled"
+                      checked={gameUiState.gameSoundEnabled || false}
+                      onCheckedChange={(checked) =>
+                        dispatch(setWordleGameUiState({ gameSoundEnabled: checked }))
+                      }
+                    />
+                  </div>
                 </div>
+
                 <Separator />
               </div>
             </SheetContent>
@@ -791,7 +913,7 @@ const [playLoseSoundChristmas] = useSound('/sounds/christmas-lost.mp3', {
 
           <Sheet>
             <SheetTrigger>
-              <Button variant='default' className="fixed top-20 left-4">
+              <Button variant='default' className={`fixed top-20 left-4 ${gameActionButtonThemeClasses}`}>
                 <HistoryIcon className='w-6 h-6'/>
               </Button>
             </SheetTrigger>
@@ -825,50 +947,33 @@ const [playLoseSoundChristmas] = useSound('/sounds/christmas-lost.mp3', {
               </div>
             </SheetContent>
           </Sheet>
-          
-          <div className="mx-auto flex w-full flex-col px-1 pt-10 pb-8 sm:px-6 md:max-w-7xl lg:px-8 short:pb-2 short:pt-2">
-            <div className="flex flex-col justify-center pt-6 pb-4 short:pt-2 short:pb-2">
-              <div className="flex justify-center mb-4">
-                <img
-                  draggable="false"
-                  src="/images/wordrama-logo.png"
-                  alt="Wordrama Logo"
-                  className="h-16 w-auto object-contain"
+
+          <div className="mx-auto flex w-full grow flex-col px-1 pt-20 pb-8 sm:px-6 md:max-w-7xl lg:px-8 short:pb-2 short:pt-2">
+            <div className={`mx-auto flex w-full max-w-xl flex-col rounded-2xl px-3 py-4 transition-colors ${gameSurfaceThemeClasses}`}>
+              <div className={`flex flex-col justify-center pb-6 short:pb-2`}>
+                <Grid
+                  solution={isCustom ? gameState.custom.solution : gameState.modes[gameState.gameMode][gameState.wordPack].solution}
+                  guesses={isCustom ? gameState.custom.guesses : gameState.modes[gameState.gameMode][gameState.wordPack].guesses || []}
+                  currentGuess={currentGuess}
+                  isRevealing={isRevealing}
+                  currentRowClassName={currentRowClass}
                 />
+                { isCustom && gameState?.custom?.hint && (
+                  <div className="pt-2 pb-6 short:pb-2 text-center text-white">
+                    Hint: { gameState.custom.hint }
+                  </div>
+                )}
               </div>
-              <Grid
+              <Keyboard
+                onChar={onChar}
+                onDelete={onDelete}
+                onEnter={onEnter}
                 solution={isCustom ? gameState.custom.solution : gameState.modes[gameState.gameMode][gameState.wordPack].solution}
                 guesses={isCustom ? gameState.custom.guesses : gameState.modes[gameState.gameMode][gameState.wordPack].guesses || []}
-                currentGuess={currentGuess}
                 isRevealing={isRevealing}
-                currentRowClassName={currentRowClass}
-              />
-              { isCustom && gameState?.custom?.hint && (
-                <div className="pt-2 pb-6 short:pb-2 text-center text-white">
-                  Hint: { gameState.custom.hint }
-                </div>
-              )}
-            </div>
-            <Keyboard
-              onChar={onChar}
-              onDelete={onDelete}
-              onEnter={onEnter}
-              solution={isCustom ? gameState.custom.solution : gameState.modes[gameState.gameMode][gameState.wordPack].solution}
-              guesses={isCustom ? gameState.custom.guesses : gameState.modes[gameState.gameMode][gameState.wordPack].guesses || []}
-              isRevealing={isRevealing}
-              swapEnterAndDelete={gameUiState?.swapDeleteAndEnter || false}
-            />
-
-            <div className="mx-auto mt-8 mb-10 flex w-full max-w-4xl justify-center">
-              <GoogleAd
-                client="ca-pub-8970369628667981"
-                slot="8219203779"
-                format="auto"
-                responsive="true"
-                minHeight={250}
+                swapEnterAndDelete={gameUiState?.swapDeleteAndEnter || false}
               />
             </div>
-
             <div className='flex justify-center items-center pt-10'>
               { !isCustom && (
                 <Button
@@ -877,7 +982,7 @@ const [playLoseSoundChristmas] = useSound('/sounds/christmas-lost.mp3', {
                     setIsStatsModalOpen(!isStatsModalOpen)
                   }}
                   variant="default"
-                  className='fixed top-20 right-24'
+                  className={`fixed top-20 right-24 ${gameActionButtonThemeClasses}`}
                 >
                   <ChartBarIcon className='w-6 h-6' />
                 </Button>
@@ -885,7 +990,7 @@ const [playLoseSoundChristmas] = useSound('/sounds/christmas-lost.mp3', {
               <Link href="/games/wordrama/custom">
                 <Button
                   variant="default"
-                  className='fixed top-20 left-24'
+                  className={`fixed top-20 left-24 ${gameActionButtonThemeClasses}`}
                 >
                   <GamepadIcon className='w-6 h-6' />
                 </Button>
@@ -893,7 +998,7 @@ const [playLoseSoundChristmas] = useSound('/sounds/christmas-lost.mp3', {
             </div>
             {isCustom && (
               <Button
-                className='fixed top-20 right-24'
+                className={`fixed top-20 right-24 ${gameActionButtonThemeClasses}`}
                 onClick={() => {
                   updateGameState({
                     ...currentGame,
@@ -913,15 +1018,6 @@ const [playLoseSoundChristmas] = useSound('/sounds/christmas-lost.mp3', {
               <AlertDialog open={isStatsModalOpen}>
                 <AlertDialogContent className="max-w-lg">
                   <AlertDialogHeader>
-                    <div className="flex justify-center mb-4">
-                      <img
-                        draggable="false"
-                        src="/images/wordrama-logo.png"
-                        alt="Wordrama Logo"
-                        className="h-16 w-auto object-contain"
-                      />
-                    </div>
-
                     <AlertDialogTitle className='text-center'>
                       {isCustom
                         ? 'Custom Game'
@@ -1019,15 +1115,6 @@ const [playLoseSoundChristmas] = useSound('/sounds/christmas-lost.mp3', {
                   <DrawerContent className={streamerMode ? 'h-4/5 bg-bg' : 'bg-bg'}>
                   <div className="mx-auto w-full max-w-screen-lg">
                     <DrawerHeader>
-                      <div className="flex justify-center mb-4">
-                        <img
-                          draggable="false"
-                          src="/images/wordrama-logo.png"
-                          alt="Wordrama Logo"
-                          className="h-16 w-auto object-contain"
-                        />
-                      </div>
-                      
                       <DrawerTitle className="text-center text-4xl">
                         {gameMode === 'DAILY'
                           ? 'Daily Stats'
@@ -1102,7 +1189,7 @@ const [playLoseSoundChristmas] = useSound('/sounds/christmas-lost.mp3', {
           </div>
         </div>
       </TooltipProvider>
-    </div>
+    </Div100vh>
   )
 }
 

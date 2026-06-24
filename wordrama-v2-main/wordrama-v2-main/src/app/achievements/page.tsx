@@ -28,13 +28,9 @@ export default function AchievementsPage() {
 
         <header className="dark:bg-darkBg inset-0 flex min-h-[20dvh] w-full flex-col items-center justify-center bg-bg bg-[linear-gradient(to_right,#80808033_1px,transparent_1px),linear-gradient(to_bottom,#80808033_1px,transparent_1px)] bg-[size:70px_70px]">
           <div className="mx-auto w-container max-w-full px-5 text-center">
-            <h1 className="px-5 text-center text-2xl font-heading md:text-3xl lg:mb-8 lg:text-4xl">
+            <h1 className="px-5 text-center text-3xl font-heading md:text-4xl lg:text-5xl">
               Achievements
             </h1>
-
-            <p className="mx-auto max-w-3xl text-lg">
-              Track your Wordrama milestones, earn XP, collect coins, and celebrate your progress across games, streaks, friends, and leaderboards.
-            </p>
           </div>
         </header>
 
@@ -49,7 +45,6 @@ export default function AchievementsPage() {
     <>
       <PublicNav
         links={[
-          { href: "/", text: "Home" },
           { href: "/free-play", text: "Quick Play" },
           { href: "/marketplace", text: "Marketplace" },
           { href: "/achievements", text: "Achievements" },
@@ -60,10 +55,10 @@ export default function AchievementsPage() {
       />
 
       <main className="min-h-screen w-full bg-darkBg text-white">
-        <header className="inset-0 flex min-h-[30dvh] w-full flex-col items-center justify-center bg-darkBg bg-[linear-gradient(to_right,#80808033_1px,transparent_1px),linear-gradient(to_bottom,#80808033_1px,transparent_1px)] bg-[size:70px_70px]">
+        <header className="dark:bg-darkBg inset-0 flex min-h-[20dvh] w-full flex-col items-center justify-center bg-bg bg-[linear-gradient(to_right,#80808033_1px,transparent_1px),linear-gradient(to_bottom,#80808033_1px,transparent_1px)] bg-[size:70px_70px]">
           <div className="mx-auto w-container max-w-full px-5 text-center">
             <h1 className="px-5 text-center text-3xl font-heading md:text-4xl lg:text-5xl">
-              Wordrama Achievements
+              Achievements
             </h1>
 
             <p className="mx-auto mt-4 max-w-3xl text-lg">

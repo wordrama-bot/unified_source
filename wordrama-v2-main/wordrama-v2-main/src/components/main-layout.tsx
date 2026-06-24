@@ -41,7 +41,7 @@ export default function Layout({
   if (error) return redirect('/');
   if (isLoading && !error) return <Loader />
   return (
-    <div className={cn("flex w-full flex-col border:border dark:border-darkBorder bg-bg dark:bg-darkBg text-text dark:text-darkText", className)}>
+    <div className={cn("flex min-h-screen w-full flex-col border:border dark:border-darkBorder bg-bg dark:bg-darkBg text-text dark:text-darkText", className)}>
       <NavBar
         links={[
           { href: "/games", text: "Games" },
@@ -51,7 +51,7 @@ export default function Layout({
           { href: "/teams", text: "Teams" },
         ]}
       />
-      <main className="w-full">
+      <main className="w-full flex-1">
         {children}
       </main>
       <Footer />
