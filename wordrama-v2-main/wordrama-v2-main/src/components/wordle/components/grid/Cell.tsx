@@ -29,6 +29,11 @@ export const Cell = ({
   const gameUiState = getWordleGameUiState()
   const appearanceTheme = getAppearanceTheme(gameUiState?.appearanceThemeId)
 
+  console.log({
+    reduxTheme: gameUiState?.appearanceThemeId,
+    resolvedTheme: appearanceTheme.meta.id,
+  });
+
   const isHighContrast =
     getStoredIsHighContrastMode() || gameUiState?.colorblindMode === true
 
