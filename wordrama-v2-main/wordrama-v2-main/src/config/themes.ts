@@ -6,9 +6,10 @@ export type ThemeAvailability =
   | 'admin';
 
 export type ThemeMetadata = {
-  id: ThemeId;
+  id: string;
   name: string;
   availability: ThemeAvailability;
+  entitlementKey?: string;
 };
 
 export type AppearanceTheme = {
@@ -305,6 +306,7 @@ export const appearanceThemes: AppearanceTheme[] = [
       id: THEME_IDS.CYBERPUNK,
       name: 'Cyberpunk',
       availability: 'premium',
+      entitlementKey: 'THEME:CYBERPUNK',
     },
 
     app: {
@@ -379,6 +381,7 @@ export const appearanceThemes: AppearanceTheme[] = [
       id: THEME_IDS.MIAMI_VICE,
       name: 'Miami Vice',
       availability: 'premium',
+      entitlementKey: 'THEME:MIAMI_VICE',
     },
 
     app: {
@@ -445,6 +448,7 @@ export const appearanceThemes: AppearanceTheme[] = [
       id: THEME_IDS.GALAXY,
       name: 'Galaxy',
       availability: 'premium',
+      entitlementKey: 'THEME:GALAXY',
     },
 
     app: {
@@ -510,6 +514,7 @@ export const appearanceThemes: AppearanceTheme[] = [
       id: THEME_IDS.ICE,
       name: 'Ice',
       availability: 'premium',
+      entitlementKey: 'THEME:ICE',
     },
 
     app: {
@@ -575,6 +580,7 @@ export const appearanceThemes: AppearanceTheme[] = [
       id: THEME_IDS.LAVA,
       name: 'Lava',
       availability: 'premium',
+      entitlementKey: 'THEME:LAVA',
     },
 
     app: {
@@ -640,6 +646,7 @@ export const appearanceThemes: AppearanceTheme[] = [
       id: THEME_IDS.FOREST,
       name: 'Forest',
       availability: 'premium',
+      entitlementKey: 'THEME:FOREST',
     },
 
     app: {
@@ -705,6 +712,7 @@ export const appearanceThemes: AppearanceTheme[] = [
       id: THEME_IDS.PIRATE,
       name: 'Pirate',
       availability: 'premium',
+      entitlementKey: 'THEME:PIRATE',
     },
 
     app: {
@@ -770,6 +778,7 @@ export const appearanceThemes: AppearanceTheme[] = [
       id: THEME_IDS.ARCADE,
       name: 'Arcade',
       availability: 'premium',
+      entitlementKey: 'THEME:ARCADE',
     },
 
     app: {
@@ -835,6 +844,7 @@ export const appearanceThemes: AppearanceTheme[] = [
       id: THEME_IDS.SYNTHWAVE,
       name: 'Synthwave',
       availability: 'premium',
+      entitlementKey: 'THEME:SYNTHWAVE',
     },
 
     app: {

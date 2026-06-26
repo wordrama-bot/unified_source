@@ -1,7 +1,18 @@
+export type MarketplaceItemType =
+  | 'WORD_PACK'
+  | 'THEME'
+  | 'AVATAR';
+
+export type EntitlementType =
+  | 'WORD_PACK'
+  | 'THEME'
+  | 'AVATAR'
+  | 'FEATURE';
+
 export interface CatalogItem {
   catalogItemId: string
   sku: string
-  itemType: string
+  itemType: MarketplaceItemType
   itemName: string
 
   priceCoins: number
@@ -9,7 +20,7 @@ export interface CatalogItem {
   stripePriceEnvVar?: string
 
   entitlementKey: string
-  entitlementType: string
+  entitlementType: EntitlementType
 
   isPurchasable: boolean
   isStripePurchasable?: boolean

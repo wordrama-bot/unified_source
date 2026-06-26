@@ -25,6 +25,11 @@ import {
   TooltipTrigger,
 } from "../ui/tooltip"
 import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import {
   Drawer,
   DrawerClose,
   DrawerContent,
@@ -94,6 +99,7 @@ import {
   useGetMyWordPacksQuery,
   useGetMyAllTimeWordleStatsByGameModeQuery,
   useGetMyAccountQuery,
+  useGetMyEntitlementsQuery,
   useUpdateSettingsMutation,
 } from '../../redux/api/wordrama';
 
@@ -157,6 +163,68 @@ function App(){
     isLoading: isLoadingMyAccount,
     refetch: refetchProfile,
   } = useGetMyAccountQuery();
+  const { data: myEntitlements } = useGetMyEntitlementsQuery();
+
+  const activeEntitlements = myEntitlements?.data || [];
+
+  function hasActiveEntitlement(entitlementKey: string) {
+    return activeEntitlements.some((entitlement: any) => {
+      if (entitlement.entitlement_key !== entitlementKey) return false;
+      if (entitlement.status !== 'ACTIVE') return false;
+      if (entitlement.revoked_at) return false;
+
+      if (
+        entitlement.expires_at &&
+        new Date(entitlement.expires_at) <= new Date()
+      ) {
+        return false;
+      }
+
+      return true;
+    });
+  }
+
+  function canUseAppearanceTheme(theme: any) {
+    if (theme.meta.availability === 'free') return true;
+    if (!theme.meta.entitlementKey) return false;
+
+    return hasActiveEntitlement(theme.meta.entitlementKey);
+  }
+
+  function SettingsToggleLabel({
+    htmlFor,
+    label,
+    tooltip,
+  }: {
+    htmlFor: string;
+    label: React.ReactNode;
+    tooltip: string;
+  }) {
+    return (
+      <div className="flex items-center gap-2">
+        <Label htmlFor={htmlFor} className="leading-tight">
+          {label}
+        </Label>
+
+        <Popover>
+          <PopoverTrigger asChild>
+            <button
+              type="button"
+              className="inline-flex"
+              aria-label="Setting help"
+            >
+              <InfoIcon className="h-4 w-4 text-muted-foreground transition-colors hover:text-foreground" />
+            </button>
+          </PopoverTrigger>
+
+          <PopoverContent className="w-64 text-sm">
+            {tooltip}
+          </PopoverContent>
+        </Popover>
+      </div>
+    );
+  }
+
   const [updateSettings] = useUpdateSettingsMutation();
   const { gameMode, wordLength, wordPack, custom } = gameState;
   const isCustom = gameMode === 'CUSTOM' && custom.solution.length > 0;
@@ -661,160 +729,151 @@ const [playLoseSoundChristmas] = useSound('/sounds/christmas-lost.mp3', {
                 </SheetDescription>
               </SheetHeader>
               <div className="grid gap-4 py-4">
-                <div className="grid grid-cols-4 items-center gap-4">
-                  { gameMode !== 'CUSTOM' && (
-                    <Select defaultValue={gameMode} onValueChange={value => enterGameMode(value)}>
-                      <SelectTrigger className=" col-span-4">
-                        <SelectValue placeholder="Select a Game Mode" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectGroup>
-                          <SelectLabel>Game Modes</SelectLabel>
-                          <SelectItem
-                            key="gm_daily"
-                            value="DAILY"
-                          >
-                            Daily
-                          </SelectItem>
-                          <SelectItem
-                            key="gm_infinite"
-                            value="INFINITE"
-                          >
-                            Infinite
-                          </SelectItem>
-                        </SelectGroup>
-                      </SelectContent>
-                    </Select>
-                  )}
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  { gameMode !== 'CUSTOM' && (
-                    <Select defaultValue={wordPack} onValueChange={value => useWordPack(value)}>
-                      <SelectTrigger className="col-span-4">
-                        <SelectValue placeholder="Select a WordPack" />
-                      </SelectTrigger>
-                      <SelectContent className="max-h-[60vh] overflow-y-auto">
-                        <SelectGroup>
-                          <SelectLabel>WordPacks</SelectLabel>
-                          {!isLoadingWordPacks && availableWordPacks.map((wordPack) => (
-                            <SelectItem
-                              key={wordPack}
-                              value={wordPack}
-                            >
-                              {wordleWordPackConfig.friendlyNameByName[wordPack]}
+                <div className="space-y-2">
+                  {gameMode !== 'CUSTOM' && (
+                    <>
+                      <Label htmlFor="gameMode">Game Mode</Label>
+                      <Select defaultValue={gameMode} onValueChange={(value) => enterGameMode(value)}>
+                        <SelectTrigger id="gameMode">
+                          <SelectValue placeholder="Select a game mode" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectGroup>
+                            <SelectLabel>Game Mode</SelectLabel>
+                            <SelectItem key="gm_daily" value="DAILY">
+                              Daily
                             </SelectItem>
-                          ))}
-                        </SelectGroup>
-                      </SelectContent>
-                    </Select>
+                            <SelectItem key="gm_infinite" value="INFINITE">
+                              Infinite
+                            </SelectItem>
+                          </SelectGroup>
+                        </SelectContent>
+                      </Select>
+                    </>
                   )}
                 </div>
-                
-                { false && (
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Select>
-                      <SelectTrigger className="col-span-4">
-                        <SelectValue placeholder="Select a board color" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectGroup>
-                          <SelectLabel>Board Color</SelectLabel>
-                          <SelectItem key="bd_blue" value="blue">Blue</SelectItem>
-                          <SelectItem key="bd_purple" value="purple">Purple</SelectItem>
-                          <SelectItem key="bd_pink" value="pink">Pink</SelectItem>
-                        </SelectGroup>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
-                { false && (
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Select>
-                    <SelectTrigger className="col-span-4">
-                      <SelectValue placeholder="Select a keyboard color" />
+
+                <div className="space-y-2">
+                  {gameMode !== 'CUSTOM' && (
+                    <>
+                      <Label htmlFor="wordPack">Word Pack</Label>
+                      <Select defaultValue={wordPack} onValueChange={(value) => useWordPack(value)}>
+                        <SelectTrigger id="wordPack">
+                          <SelectValue placeholder="Select a word pack" />
+                        </SelectTrigger>
+                        <SelectContent className="max-h-[60vh] overflow-y-auto">
+                          <SelectGroup>
+                            <SelectLabel>Word Pack</SelectLabel>
+                            {!isLoadingWordPacks &&
+                              availableWordPacks.map((wordPack) => (
+                                <SelectItem key={wordPack} value={wordPack}>
+                                  {wordleWordPackConfig.friendlyNameByName[wordPack]}
+                                </SelectItem>
+                              ))}
+                          </SelectGroup>
+                        </SelectContent>
+                      </Select>
+                    </>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="appearanceTheme">Theme</Label>
+
+                  <Select
+                    value={gameUiState?.appearanceThemeId || 'theme.default'}
+                    onValueChange={(value) => {
+                      const selectedTheme = appearanceThemes.find(
+                        (theme) => theme.meta.id === value
+                      );
+
+                      if (!selectedTheme) return;
+
+                      if (!canUseAppearanceTheme(selectedTheme)) {
+                        showErrorAlert(
+                          'This premium theme is locked. Purchase it from the Marketplace to unlock it.'
+                        );
+                        return;
+                      }
+
+                      dispatch(setWordleGameUiState({ appearanceThemeId: value }));
+
+                      updateSettings({
+                        appearanceThemeId: value,
+                      });
+                    }}
+                  >
+                    <SelectTrigger id="appearanceTheme">
+                      <SelectValue placeholder="Select a theme" />
                     </SelectTrigger>
+
                     <SelectContent>
                       <SelectGroup>
-                        <SelectLabel>Keyboard Color</SelectLabel>
-                        <SelectItem key="kb_blue" value="blue">Blue</SelectItem>
-                        <SelectItem key="kb_purple" value="purple">Purple</SelectItem>
-                        <SelectItem key="kb_pink" value="pink">Pink</SelectItem>
+                        <SelectLabel>Themes</SelectLabel>
+
+                        {appearanceThemes.map((theme) => (
+                          <SelectItem
+                            key={theme.meta.id}
+                            value={theme.meta.id}
+                          >
+                            {theme.meta.name}
+                            {theme.meta.availability !== 'free'
+                              ? canUseAppearanceTheme(theme)
+                                ? ' ✨'
+                                : ' 🔒'
+                              : ''}
+                          </SelectItem>
+                        ))}
                       </SelectGroup>
                     </SelectContent>
                   </Select>
                 </div>
-                )}
 
-                <Select
-                  value={gameUiState?.appearanceThemeId || 'theme.default'}
-                  onValueChange={(value) => {
-                    dispatch(setWordleGameUiState({ appearanceThemeId: value }));
+                <div className="space-y-2">
+                  <Label htmlFor="keyboardStyle">Keyboard Style</Label>
 
-                    updateSettings({
-                      appearanceThemeId: value,
-                    });
-                  }}
-                >
-                  <SelectTrigger id="appearanceTheme">
-                    <SelectValue placeholder="Select a theme" />
-                  </SelectTrigger>
+                  <Select
+                    value={gameUiState?.keyboardStyleId || KEYBOARD_STYLE_IDS.FLAT}
+                    onValueChange={(value) => {
+                      dispatch(setWordleGameUiState({ keyboardStyleId: value }));
 
-                  <SelectContent>
-                    <SelectGroup>
-                      <SelectLabel>Themes</SelectLabel>
-                      {appearanceThemes.map((theme) => (
-                        <SelectItem
-                          key={theme.meta.id}
-                          value={theme.meta.id}
-                        >
-                          {theme.meta.name}
-                          {theme.meta.availability !== 'free' ? ' ✨' : ''}
-                        </SelectItem>
-                      ))}
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
+                      updateSettings({
+                        keyboardStyleId: value,
+                      });
+                    }}
+                  >
+                    <SelectTrigger id="keyboardStyle">
+                      <SelectValue placeholder="Select a keyboard style" />
+                    </SelectTrigger>
 
-                <Select
-                  value={gameUiState?.keyboardStyleId || KEYBOARD_STYLE_IDS.FLAT}
-                  onValueChange={(value) => {
-                    dispatch(setWordleGameUiState({ keyboardStyleId: value }));
+                    <SelectContent>
+                      <SelectGroup>
+                        <SelectLabel>Keyboard Style</SelectLabel>
 
-                    updateSettings({
-                      keyboardStyleId: value,
-                    });
-                  }}
-                >
-                  <SelectTrigger id="keyboardStyle">
-                    <SelectValue placeholder="Select a keyboard style" />
-                  </SelectTrigger>
-
-                  <SelectContent>
-                    <SelectGroup>
-                      <SelectLabel>Keyboard Styles</SelectLabel>
-                      {Object.values(KEYBOARD_STYLES).map((keyboardStyle) => (
-                        <SelectItem
-                          key={keyboardStyle.meta.id}
-                          value={keyboardStyle.meta.id}
-                        >
-                          {keyboardStyle.meta.name}
-                          {keyboardStyle.meta.availability !== 'free' ? ' ✨' : ''}
-                        </SelectItem>
-                      ))}
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
+                        {Object.values(KEYBOARD_STYLES).map((keyboardStyle) => (
+                          <SelectItem
+                            key={keyboardStyle.meta.id}
+                            value={keyboardStyle.meta.id}
+                          >
+                            {keyboardStyle.meta.name}
+                            {keyboardStyle.meta.availability !== 'free'
+                              ? ' ✨'
+                              : ''}
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                </div>
 
                 <Separator />
 
                 <div className="grid grid-cols-2 gap-x-10 gap-y-6 py-2">
                   <div className="flex items-center justify-between gap-4">
-                    <div className="flex items-center gap-2">
-                      <Label htmlFor="swapDeleteAndEnter" className="leading-tight">
-                        Swap<br />Keys
-                      </Label>
-                      <InfoIcon className="h-4 w-4" />
-                    </div>
+                    <SettingsToggleLabel
+                      htmlFor="swapDeleteAndEnter"
+                      label={<>Swap<br />Keys</>}
+                      tooltip="Swap the delete and enter keys on the on-screen keyboard"
+                    />
 
                     <Switch
                       id="swapDeleteAndEnter"
@@ -824,12 +883,11 @@ const [playLoseSoundChristmas] = useSound('/sounds/christmas-lost.mp3', {
                   </div>
 
                   <div className="flex items-center justify-between gap-4">
-                    <div className="flex items-center gap-2">
-                      <Label htmlFor="confettiEnabled" className="leading-tight">
-                        Show<br />Confetti
-                      </Label>
-                      <InfoIcon className="h-4 w-4" />
-                    </div>
+                    <SettingsToggleLabel
+                      htmlFor="confettiEnabled"
+                      label={<>Show<br />Confetti</>}
+                      tooltip="Enable or disable confetti when you win a game"
+                    />
 
                     <Switch
                       id="confettiEnabled"
@@ -839,12 +897,11 @@ const [playLoseSoundChristmas] = useSound('/sounds/christmas-lost.mp3', {
                   </div>
 
                   <div className="flex items-center justify-between gap-4">
-                    <div className="flex items-center gap-2">
-                      <Label htmlFor="speedRunModeEnabled" className="leading-tight">
-                        Speed<br />Run
-                      </Label>
-                      <InfoIcon className="h-4 w-4" />
-                    </div>
+                    <SettingsToggleLabel
+                      htmlFor="speedRunModeEnabled"
+                      label={<>Speed<br />Run</>}
+                      tooltip="Skip the post-game statistics screen for faster play"
+                    />
 
                     <Switch
                       id="speedRunModeEnabled"
@@ -854,9 +911,11 @@ const [playLoseSoundChristmas] = useSound('/sounds/christmas-lost.mp3', {
                   </div>
 
                   <div className="flex items-center justify-between gap-4">
-                    <Label htmlFor="streamerModeEnabled" className="leading-tight">
-                      Streamer<br />Mode
-                    </Label>
+                    <SettingsToggleLabel
+                      htmlFor="streamerModeEnabled"
+                      label={<>Streamer<br />Mode</>}
+                      tooltip="Centers post-game stats to better fit livestream layouts"
+                    />
 
                     <Switch
                       id="streamerModeEnabled"
@@ -868,9 +927,11 @@ const [playLoseSoundChristmas] = useSound('/sounds/christmas-lost.mp3', {
                   </div>
 
                   <div className="flex items-center justify-between gap-4">
-                    <Label htmlFor="theme" className="leading-tight">
-                      Dark<br />Mode
-                    </Label>
+                    <SettingsToggleLabel
+                      htmlFor="theme"
+                      label={<>Dark<br />Mode</>}
+                      tooltip="Switch between light and dark appearance"
+                    />
 
                     <Switch
                       id="theme"
@@ -880,9 +941,11 @@ const [playLoseSoundChristmas] = useSound('/sounds/christmas-lost.mp3', {
                   </div>
 
                   <div className="flex items-center justify-between gap-4">
-                    <Label htmlFor="colorblindMode" className="leading-tight">
-                      Colorblind<br />Mode
-                    </Label>
+                    <SettingsToggleLabel
+                      htmlFor="colorblindMode"
+                      label={<>Colorblind<br />Mode</>}
+                      tooltip="Uses an alternative color palette for improved accessibility"
+                    />
 
                     <Switch
                       id="colorblindMode"
@@ -892,9 +955,11 @@ const [playLoseSoundChristmas] = useSound('/sounds/christmas-lost.mp3', {
                   </div>
 
                   <div className="flex items-center justify-between gap-4">
-                    <Label htmlFor="gameSoundEnabled" className="leading-tight">
-                      Game<br />Sound
-                    </Label>
+                    <SettingsToggleLabel
+                      htmlFor="gameSoundEnabled"
+                      label={<>Game<br />Sound</>}
+                      tooltip="Enable or disable Wordrama sound effects"
+                    />
 
                     <Switch
                       id="gameSoundEnabled"
@@ -950,7 +1015,16 @@ const [playLoseSoundChristmas] = useSound('/sounds/christmas-lost.mp3', {
 
           <div className="mx-auto flex w-full grow flex-col px-1 pt-20 pb-8 sm:px-6 md:max-w-7xl lg:px-8 short:pb-2 short:pt-2">
             <div className={`mx-auto flex w-full max-w-xl flex-col rounded-2xl px-3 py-4 transition-colors ${gameSurfaceThemeClasses}`}>
-              <div className={`flex flex-col justify-center pb-6 short:pb-2`}>
+              <div className="flex justify-center mb-4">
+                <img
+                  draggable="false"
+                  src="/images/wordrama-logo.png"
+                  alt="Wordrama Logo"
+                  className="h-16 w-auto object-contain"
+                />
+              </div>
+
+              <div className="flex flex-col justify-center pb-6 short:pb-2">
                 <Grid
                   solution={isCustom ? gameState.custom.solution : gameState.modes[gameState.gameMode][gameState.wordPack].solution}
                   guesses={isCustom ? gameState.custom.guesses : gameState.modes[gameState.gameMode][gameState.wordPack].guesses || []}

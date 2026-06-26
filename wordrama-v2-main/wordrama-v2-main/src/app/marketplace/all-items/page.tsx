@@ -1,5 +1,5 @@
 "use client"
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { FilterIcon } from 'lucide-react';
 //import { getAppInsights } from '@/utils/appInsights';
 import { useAuth } from '@/providers/auth-provider';
@@ -64,8 +64,28 @@ const MARKETPLACE_WORD_PACK_SORT_ORDER: { [key: string]: number } = {
   '3d3ff93b-65c1-4d36-902e-3a889c71ac86': 999,
 };
 
+const MARKETPLACE_THEME_SORT_ORDER: { [key: string]: number } = {
+  'eea2ee39-7ff5-4cfc-906b-608d01555afa': 1,
+  'c42e21b8-e3e2-487b-9307-698063f29dcd': 2,
+  'db984ab5-f0a9-43a9-9800-702150de76f5': 3,
+  '8642cdb8-7f8e-4c58-be01-3f9d5362326d': 4,
+  '4085cec0-6c84-4732-b70c-a80938afe0a5': 5,
+  'a0144a0f-6867-4140-a520-f64375f35990': 6,
+  '7855a094-b1df-49c5-abf0-622e651df69a': 7,
+  '49a35b50-db84-4854-847e-e9610874f878': 8,
+  'c58ed56e-3891-44c6-b195-b9d1c8bbe980': 9,
+};
+
 function getMarketplaceSortOrder(item: any): number {
-  return MARKETPLACE_WORD_PACK_SORT_ORDER[item.id] ?? 500;
+  if (item.type === 'WORD_PACK') {
+    return 1000 + (MARKETPLACE_WORD_PACK_SORT_ORDER[item.id] ?? 500);
+  }
+
+  if (item.type === 'THEME') {
+    return 2000 + (MARKETPLACE_THEME_SORT_ORDER[item.id] ?? 500);
+  }
+
+  return 9000;
 }
 
 function ShoppingCartIcon(props) {
@@ -101,16 +121,38 @@ function Spinner() {
   );
 }
 
+function MarketplaceSection({
+  title,
+  items,
+  renderItem,
+}: {
+  title: string;
+  items: any[];
+  renderItem: (item: any) => React.ReactNode;
+}) {
+  if (items.length === 0) return null;
+
+  return (
+    <section className="mb-10">
+      <h2 className="mb-4 text-3xl font-heading">{title}</h2>
+
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4">
+        {items.map(renderItem)}
+      </div>
+    </section>
+  );
+}
+
 export default function AllItemsMarketplacePage() {
   //getAppInsights().trackPageView({ name: 'All Items Marketplace' });
   const [ minCoinPrice, setMinCoinPrice ] = useState(0);
   const [ maxCoinPrice, setMaxCoinPrice ] = useState(1000000);
   const [ gameFilter, setGameFilter ] = useState('WORDLE');
   //ALL
-  const [ itemTypeFilter, setItemTypeFilter ] = useState('WORDLE_WORD_PACK');
+  const [ itemTypeFilter, setItemTypeFilter ] = useState('ALL');
   //ALL
   const [ showPurchased, setShowPurchased ] = useState(true);
-  const [ showUnavailable, setShowUnavailable ] = useState(true);
+  const [ showUnavailable, setShowUnavailable ] = useState(false);
   const [ itemsInCart, addItemToCart ] = useState([] as string[]);
   const [ alertTitle, setAlertTitle ] = useState('');
   const [ alertText, setAlertText ] = useState('');
@@ -142,6 +184,51 @@ export default function AllItemsMarketplacePage() {
   };
   const basketSubTotal = !isLoadingStoreItems && storeItems ? storeItems?.data.filter(item => itemsInCart.includes(item.id)).reduce((acc: number, item: any) => acc + item.coinPrice, 0) : 0
   const hasEnoughCoins = myAccount?.data?.ledger?.coinBalance && myAccount?.data?.ledger?.coinBalance >= basketSubTotal;
+
+  const marketplaceItems = [...(storeItems?.data || [])].sort(
+    (a, b) => getMarketplaceSortOrder(a) - getMarketplaceSortOrder(b)
+  );
+
+  const themeItems = marketplaceItems.filter((item) => item.type === 'THEME');
+  const wordPackItems = marketplaceItems.filter(
+    (item) => item.type === 'WORDLE_WORD_PACK' || item.type === 'WORD_PACK'
+  );
+  const gameModeItems = marketplaceItems.filter((item) => item.type === 'GAME_MODE');
+  const otherItems = marketplaceItems.filter(
+    (item) =>
+      !['THEME', 'WORD_PACK', 'WORDLE_WORD_PACK', 'GAME_MODE'].includes(item.type)
+  );
+
+  const renderProduct = (item: any) => {
+  const isCashPrice = false;
+  const cashPrice = "1";
+
+  return (
+    <Product
+      key={item.id}
+      itemId={item.id}
+      name={item.name}
+      type={item.type}
+      description={item.description}
+      price={isCashPrice ? cashPrice : item.coinPrice}
+      isCashPrice={isCashPrice}
+      isPurchased={item.isPurchased}
+      isUnlockedBySubscription={item.isUnlockedBySubscription}
+      subItems={[]}
+      addItemToCard={() => {
+        if (!itemsInCart.includes(item.id)) {
+          addItemToCart([...itemsInCart, item.id]);
+        }
+      }}
+      removeItemFromCard={() => {
+        addItemToCart(itemsInCart.filter((id) => id !== item.id));
+      }}
+      isInCart={itemsInCart.includes(item.id)}
+      buyWithStripe={() => handleStripePurchase(item.id)}
+      hasStripePrice={item.hasStripePrice}
+    />
+  );
+};
 
   async function handleCheckoutWithCoins() {
     const itemsToCheckout = [...itemsInCart];
@@ -317,16 +404,23 @@ export default function AllItemsMarketplacePage() {
               </Label>
 
               <RadioGroup
-                defaultValue="WORDLE_WORD_PACK"
+                defaultValue="ALL"
                 value={itemTypeFilter}
                 onValueChange={(value) => setItemTypeFilter(value)}
               >
                 <div className="flex items-center space-x-2">
-                  <RadioGroupItem
-                    value="WORDLE_WORD_PACK"
-                    id="WORDLE_WORD_PACK"
-                  />
-                  <Label htmlFor="WORDLE_WORD_PACK">Words</Label>
+                  <RadioGroupItem value="ALL" id="ALL_ITEMS" />
+                  <Label htmlFor="ALL_ITEMS">All</Label>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="WORD_PACK" id="WORD_PACK" />
+                  <Label htmlFor="WORD_PACK">Word Packs</Label>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="THEME" id="THEME" />
+                  <Label htmlFor="THEME">Themes</Label>
                 </div>
               </RadioGroup>
             </div>
@@ -365,46 +459,29 @@ export default function AllItemsMarketplacePage() {
               Check back soon for new items.
             </div>
           )}
+          <MarketplaceSection
+            title="Word Packs"
+            items={wordPackItems}
+            renderItem={renderProduct}
+          />
+          
+          <MarketplaceSection
+            title="Premium Themes"
+            items={themeItems}
+            renderItem={renderProduct}
+          />
 
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4">
-            {[...(storeItems?.data || [])]
-              .sort(
-                (a, b) =>
-                  getMarketplaceSortOrder(a) - getMarketplaceSortOrder(b)
-              )
-              .map((item) => {
-                const isCashPrice = false;
-                const cashPrice = "1";
+          <MarketplaceSection
+            title="Game Modes"
+            items={gameModeItems}
+            renderItem={renderProduct}
+          />
 
-                return (
-                  <Product
-                    key={item.id}
-                    itemId={item.id}
-                    name={item.name}
-                    type={item.type}
-                    description={item.description}
-                    price={isCashPrice ? cashPrice : item.coinPrice}
-                    isCashPrice={isCashPrice}
-                    isPurchased={item.isPurchased}
-                    isUnlockedBySubscription={item.isUnlockedBySubscription}
-                    subItems={[]}
-                    addItemToCard={() => {
-                      if (!itemsInCart.includes(item.id)) {
-                        addItemToCart([...itemsInCart, item.id]);
-                      }
-                    }}
-                    removeItemFromCard={() => {
-                      addItemToCart(
-                        itemsInCart.filter((id) => id !== item.id)
-                      );
-                    }}
-                    isInCart={itemsInCart.includes(item.id)}
-                    buyWithStripe={() => handleStripePurchase(item.id)}
-                    hasStripePrice={item.hasStripePrice}
-                  />
-                );
-              })}
-          </div>
+          <MarketplaceSection
+            title="Other Items"
+            items={otherItems}
+            renderItem={renderProduct}
+          />
         </div>
       </main>
 
