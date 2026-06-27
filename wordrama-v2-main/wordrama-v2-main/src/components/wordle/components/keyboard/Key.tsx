@@ -49,12 +49,14 @@ export const Key = ({
     'shadow-[4px_4px_0_#000] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none'
   
   const absentKeyClasses =
-    appearanceTheme.meta.id === 'theme.midnight'
-      ? 'bg-[#1e293b] text-white border border-[#334155]'
-      : 'bg-slate-400 dark:bg-slate-800 text-white'
+    appearanceTheme.meta.id === 'theme.default'
+      ? 'bg-slate-400 dark:bg-slate-800 text-white'
+      : `${
+          appearanceTheme.keyboard.absentKey || appearanceTheme.keyboard.key
+        } ${appearanceTheme.keyboard.keyText}`
   
   const classes = classnames(
-    'xxshort:h-8 xxshort:w-8 xxshort:text-xxs xshort:w-10 xshort:h-10 flex short:h-12 h-12 items-center justify-center rounded mx-1 text-xs font-bold cursor-pointer select-none border-2 border-border dark:border-darkBorder',
+    'xxshort:h-8 xxshort:w-8 xxshort:text-xxs xshort:w-10 xshort:h-10 xshort:text-xs flex short:h-12 h-12 items-center justify-center rounded mx-1 text-sm sm:text-base font-bold cursor-pointer select-none border-2 border-border dark:border-darkBorder',
     {
       'transition ease-in-out': isRevealing,
 
