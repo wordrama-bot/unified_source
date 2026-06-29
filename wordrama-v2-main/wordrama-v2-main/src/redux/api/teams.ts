@@ -66,6 +66,19 @@ export const teamApi = createApi({
       },
       providesTags: ['MyTeam']
     }),
+    getMyTeams: builder.query<any, void>({
+      query: () => {
+        return {
+          url: `/api/v3/team/me/all`,
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          credentials: "include",
+        }
+      },
+      providesTags: ['MyTeam']
+    }),
     getTeamByName: builder.query<any, string>({
       query: (teamName) => {
         return {
@@ -146,16 +159,19 @@ export const teamApi = createApi({
         'Teams'
       ]
     }),
-    leaveTeam: builder.mutation<any, void>({
-      query: () => {
+    leaveTeam: builder.mutation<any, string>({
+      query: (teamId) => {
         return {
           url: `/api/v3/team/leave`,
           method: "POST",
           headers: {
             "Content-Type": "application/json"
           },
+          body: {
+            teamId,
+          },
           credentials: "include",
-        }
+        };
       },
       invalidatesTags: [
         'TeamLeaderboard',
@@ -177,6 +193,7 @@ export const {
   useGetTeamByNameQuery,
   useGetTeamByLeaderQuery,
   useGetMyTeamQuery,
+  useGetMyTeamsQuery,
   useCreateTeamMutation,
   useJoinTeamMutation,
   useLeaveTeamMutation,

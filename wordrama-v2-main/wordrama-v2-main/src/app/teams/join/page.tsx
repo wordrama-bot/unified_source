@@ -1,6 +1,6 @@
 "use client"
 //import { getAppInsights } from "@/utils/appInsights";
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,15 +11,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Avatar, AvatarFallback, AvatarImage
-} from "@/components/ui/avatar";
-import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { TeamNav } from "@/components/navbar/team";
 import NavBar from "@/components/navbar/h-nav";
 import Footer from "@/sections/footer";
-import { redirect } from "next/navigation";
 import { useRouter } from "next/navigation";
 import { useGetTeamByNameQuery, useGetMyTeamQuery, useJoinTeamMutation } from "@/redux/api/teams";
 
@@ -29,7 +24,6 @@ export default function JoinTeamPage() {
   const { toast } = useToast();
   const [teamName, setTeamName] = useState('');
   const [teamJoined, setTeamJoined] = useState(false);
-  const { data: myTeam, isLoading: myTeamIsLoading, isError: myTeamIsError } = useGetMyTeamQuery();
   const { data: team, isError, refetch } = useGetTeamByNameQuery(teamName);
   const [joinTeam] = useJoinTeamMutation();
 
@@ -84,7 +78,7 @@ export default function JoinTeamPage() {
         <div className="mx-auto grid w-full max-w-6xl gap-2">
           <h1 className="text-3xl text-text dark:text-darkText font-semibold">Join a Team</h1>
             <p className="text-sm text-muted-foreground max-w-3xl">
-              Join an existing Wordrama team by entering its name. You can only belong to one team at a time, but you can leave your current team and join another later.
+              Join an existing Wordrama team by entering its name. Free players can belong to one team, while Plus and Creator members can join multiple teams.
             </p>
         </div>
         <div className="mx-auto grid w-full max-w-6xl items-start gap-6 md:grid-cols-[180px_1fr] lg:grid-cols-[250px_1fr]">

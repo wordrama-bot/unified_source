@@ -5,6 +5,7 @@ import teamController from '../../controllers/teams';
 export const router = express.Router();
 
 /* Get routes */
+router.get('/me/all', teamController.getMyTeams);
 router.get('/me', teamController.getMyTeam);
 router.get('/leaderboard', teamController.getTeamLeaderboard);
 router.get('/members/:teamId', teamController.getTeamMembers);

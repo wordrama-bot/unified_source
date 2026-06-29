@@ -1,5 +1,5 @@
 "use client"
-import { orderBy } from 'lodash';
+import { useAuth } from '@/providers/auth-provider';
 import {
   createColumnHelper,
   useReactTable,
@@ -9,13 +9,11 @@ import {
 } from '@tanstack/react-table';
 //import { getAppInsights } from '@/utils/appInsights';
 import { useToast } from "@/components/ui/use-toast";
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import Link from 'next/link';
 import { useEffect, useState } from "react";
 import { useRouter } from 'next/navigation';
 import Loader from '@/sections/loading';
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   Card,
   CardContent,
@@ -24,16 +22,11 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
 import { TeamNav } from "@/components/navbar/team";
 import NavBar from "@/components/navbar/h-nav";
 import Footer from "@/sections/footer";
 import {
-  useGetMyTeamQuery,
-  useGetTeamMembersQuery,
-  useGetTeamLeaderboardQuery,
+  useGetMyTeamsQuery,
   useLeaveTeamMutation
 } from "@/redux/api/teams";
 
@@ -92,96 +85,29 @@ export default function TeamPage() {
   //getAppInsights().trackPageView({ name: 'My Team' });
   const router = useRouter();
   const { toast } = useToast();
-  const [ page, setPage ] = useState(1);
-  const { data: myTeam, isLoading, isError } = useGetMyTeamQuery();
-  const [ teamName, setTeamName ] = useState(myTeam?.data?.vTeams?.teamName || '');
-  const {
-    data: teamMembers,
-    isLoading: isLoadingTeamMembers,
-    isError: isErrorTeamMembers
-  } = useGetTeamMembersQuery({ teamId: myTeam?.data?.vTeams?.teamId || '', page});
+  const { user } = useAuth();
+  const { data: myTeams, isLoading, isError } = useGetMyTeamsQuery();
+  const teams = myTeams?.data?.teams || [];
   const [leaveTeam] = useLeaveTeamMutation();
   const [teamLeft, setTeamLeft] = useState(false);
 
-  async function handleLeaveTeam() {
-    const { data, error } = await leaveTeam();
+  async function handleLeaveTeam(teamId: string, teamName: string) {
+    const { data, error } = await leaveTeam(teamId);
 
     if (data) {
       toast({
         title: 'Removed',
         description: `You have left team ${teamName}`,
       });
-      setTeamName('');
       setTeamLeft(true);
     }
 
     if (error) {
       toast({
         title: 'Error',
-        description: `An error occured leaving the team`,
+        description: `An error occurred leaving the team`,
       });
-      setTeamName('');
     }
-  }
-
-  function MemberPagination() {
-    return (
-      <Pagination>
-        <PaginationContent>
-          <PaginationItem>
-            <PaginationPrevious
-              className="text-text dark:text-darkText"
-              href=''
-              onClick={(e) => {
-                e.preventDefault();
-                setPage(teamMembers?.metadata?.previousPage)
-              }}
-            />
-          </PaginationItem>
-          <PaginationItem>
-            <PaginationLink
-              className="text-text dark:text-darkText"
-              href=''
-              onClick={(e) => {
-                e.preventDefault();
-                setPage(teamMembers?.metadata?.currentPage)
-              }}
-            >
-              { teamMembers?.metadata?.currentPage }
-            </PaginationLink>
-          </PaginationItem>
-          { teamMembers?.metadata?.currentPage < teamMembers?.metadata?.totalPages && (
-            <>
-            <PaginationItem className="text-white">
-              <PaginationEllipsis className="text-text dark:text-darkText" />
-            </PaginationItem>
-              <PaginationItem>
-                <PaginationLink
-                  className="text-text dark:text-darkText"
-                  href=''
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setPage(teamMembers?.metadata?.totalPages)
-                  }}
-                >
-                  { teamMembers?.metadata?.totalPages }
-                </PaginationLink>
-              </PaginationItem>
-              <PaginationItem>
-                <PaginationNext
-                  className="text-text dark:text-darkText"
-                  href=''
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setPage(teamMembers?.metadata?.nextPage)
-                  }}
-                />
-              </PaginationItem>
-            </>
-          )}
-        </PaginationContent>
-      </Pagination>
-    )
   }
 
   useEffect(() => {
@@ -191,21 +117,12 @@ export default function TeamPage() {
       router.replace('/teams');
       return;
     }
-
-    if (!myTeam?.data?.vTeams?.teamId || isError) {
-      router.replace('/teams');
-      return;
-    }
-
-    router.replace(`/teams/${myTeam.data.vTeams.teamId}`);
-  }, [isLoading, teamLeft, myTeam, isError, router]);
+  }, [isLoading, teamLeft, router]);
 
   if (isLoading) return <Loader />;
 
-  return null;
-
-  /*
-    <div className="flex min-h-screen w-full flex-col border:border bg-bg text-text dark:border-darkBorder dark:bg-darkBg dark:text-darkText">
+  return (
+    <div className="flex min-h-screen w-full flex-col bg-bg text-text dark:bg-darkBg dark:text-darkText">
       <NavBar
         links={[
           { href: "/games", text: "Games" },
@@ -215,390 +132,62 @@ export default function TeamPage() {
           { href: "/teams", text: "Teams" },
         ]}
       />
-      <main className="flex min-h-[calc(100vh_-_theme(spacing.16))] flex-1 flex-col gap-4 bg-muted/40 p-4 md:gap-8 md:p-10">
-        <div className="mx-auto grid w-full max-w-6xl gap-2">
-          <h1 className="text-3xl text-text dark:text-darkText font-semibold">Team { myTeam?.data?.vTeams?.teamName }</h1>
-            <p className="text-sm text-muted-foreground max-w-3xl">
-              This is your current Wordrama team. Your games contribute to your personal stats and help your team compete on the leaderboard.
-            </p>
-        </div>
-        <div className="mx-auto grid w-full max-w-6xl items-start gap-6 md:grid-cols-[180px_1fr] lg:grid-cols-[250px_1fr]">
+
+      <main className="flex-1 p-6">
+        <div className="mx-auto max-w-6xl">
           <TeamNav />
-          <Tabs defaultValue="TEAM_STATS" className="">
-            <TabsList className='col-span-7 place-items-end'>
-              <TabsTrigger value="TEAM_MEMBERS">🎮 Members</TabsTrigger>
-              <TabsTrigger value="TEAM_STATS">👥 Team Stats</TabsTrigger>
-              <TabsTrigger value="ALL_TIME_STATS">🏆 All Time Stats</TabsTrigger>
-              <TabsTrigger value="DAILY_STATS">📆 Daily Stats</TabsTrigger>
-              <TabsTrigger value="WEEKLY_STATS">🕹️ Weekly Stats</TabsTrigger>
-              <TabsTrigger value="MONTHLY_STATS">📈 Monthly Stats</TabsTrigger>
-              <TabsTrigger value="YEARLY_STATS">🏅 Yearly Stats</TabsTrigger>
-            </TabsList>
-            <TabsContent value="TEAM_STATS">
-              <Card className="p-4 bg-bg">
-                <CardHeader>📈 Team Stats</CardHeader>
-                <CardContent>
-                  <div id="fullWidthTabContent" className="p-4 border-gray-200 dark:border-gray-600 text-center">
-                    <div className="p-4 bg-bg rounded-lg md:p-8 dark:bg-gray-800" id="stats" role="tabpanel" aria-labelledby="stats-tab">
-                        <dl className="grid grid-cols-2 p-4 mx-auto text-gray-900 sm:grid-cols-2 xl:grid-cols-4 gap-8 max-w-screen-xl dark:text-white sm:p-8">
-                            <div className="flex flex-col items-center justify-center">
-                          <dt className="mb-2 text-3xl font-extrabold">{ myTeam?.data?.vTeams?.averageLevel }</dt>
-                                <dd className="text-gray-500 dark:text-gray-400">🕹️ Average Level</dd>
-                            </div>
-                            <div className="flex flex-col items-center justify-center">
-                                <dt className="mb-2 text-3xl font-extrabold">
-                                  {
-                                    myTeam?.data?.vTeams?.totalCoins > 1000000 ?
-                                    `${Math.floor(myTeam?.data?.vTeams?.totalCoins / 1000000)}M` :
-                                    myTeam?.data?.vTeams?.totalCoins > 1000 ?
-                                    `${Math.floor(myTeam?.data?.vTeams?.totalCoins / 1000)}K` :
-                                    myTeam?.data?.vTeams?.totalCoins
-                                  }
-                                </dt>
-                                <dd className="text-gray-500 dark:text-gray-400">💰 Total Coins</dd>
-                            </div>
-                            <div className="flex flex-col items-center justify-center">
-                                <dt className="mb-2 text-3xl font-extrabold">
-                                  {
-                                    myTeam?.data?.vTeams?.alltimeGamesWon > 1000000 ?
-                                    `${(myTeam?.data?.vTeams?.alltimeGamesWon / 1000000).toFixed(2)}M` :
-                                    myTeam?.data?.vTeams?.alltimeGamesWon > 1000 ?
-                                    `${(myTeam?.data?.vTeams?.alltimeGamesWon / 1000).toFixed(2)}K` :
-                                    myTeam?.data?.vTeams?.alltimeGamesWon
-                                  }
-                                </dt>
-                                <dd className="text-gray-500 dark:text-gray-400">🔥 Games Won</dd>
-                            </div>
-                            <div className="flex flex-col items-center justify-center">
-                                <dt className="mb-2 text-3xl font-extrabold">{ Math.floor(((myTeam?.data?.vTeams?.alltimeGamesWon || 0) / (myTeam?.data?.vTeams?.alltimeGamesPlayed || 0)) * 100) || 0}%</dt>
-                                <dd className="text-gray-500 dark:text-gray-400">📈 % of Wins</dd>
-                            </div>
-                        </dl>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-            <TabsContent value="TEAM_MEMBERS">
-              <Card className="p-4 bg-bg">
-                <CardHeader>🎮 Team Members ({ teamMembers?.metadata?.totalItems || 0 })</CardHeader>
-                  <CardContent>
-                    <Table data={!isLoadingTeamMembers && !isErrorTeamMembers && orderBy(teamMembers?.data.map(({ players }) => ({...players, ...players.levels})) || [], 'level', 'desc')} columns={[
-                      columnHelper.accessor('displayName', {
-                        header: 'Player',
-                        cell: info => (
-                          <Link id={info.row.original.id} href={`/player/${info.row.original.id}`}>
-                            { info.getValue() }
-                            { info.row.original.id === myTeam?.data?.vTeams?.teamLeader && (
-                              <Badge className="ml-2">Team Leader</Badge>
-                            )}
-                          </Link>
-                        ),
-                      }),
-                      columnHelper.accessor('level', {
-                        header: 'Level',
-                        cell: info => info.getValue(),
-                      })
-                    ]} />
-                  </CardContent>
-                  <CardFooter>
-                    <Button onClick={(e) => { e.preventDefault(); handleLeaveTeam(); }} variant="default">Leave Team</Button>
-                    { teamMembers?.metadata?.totalPages > 1 && (
-                      <MemberPagination />
-                    )}
+
+          <h1 className="mb-6 text-3xl font-bold">My Teams</h1>
+
+          {teams.length === 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle>No teams yet</CardTitle>
+                <CardDescription>
+                  Join a team or create one if you have Creator access.
+                </CardDescription>
+              </CardHeader>
+              <CardFooter className="gap-3">
+                <Button onClick={() => router.push('/teams/join')}>
+                  Join Team
+                </Button>
+                <Button onClick={() => router.push('/teams/create')}>
+                  Create Team
+                </Button>
+              </CardFooter>
+            </Card>
+          )}
+
+          {teams.length > 0 && (
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {teams.map((team: any) => (
+                <Card key={team.teamId}>
+                  <CardHeader>
+                    <CardTitle>{team.teamName}</CardTitle>
+                    <CardDescription>
+                      {team.leader === user?.id ? 'Owner' : 'Member'}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardFooter className="gap-3">
+                    <Button onClick={() => router.push(`/teams/${team.teamId}`)}>
+                      View Team
+                    </Button>
+                    <Button
+                      variant="default"
+                      className="bg-red-600 text-white hover:bg-red-700"
+                      onClick={() => handleLeaveTeam(team.teamId, team.teamName)}
+                    >
+                      Leave Team
+                    </Button>
                   </CardFooter>
                 </Card>
-            </TabsContent>
-            <TabsContent value="ALL_TIME_STATS">
-              <Card className="p-4 bg-bg">
-                <CardHeader>🏆 All Time Stats</CardHeader>
-                <CardContent>
-                  <div id="fullWidthTabContent" className="p-4 border-gray-200 dark:border-gray-600 text-center">
-                    <div className="p-4 bg-bg rounded-lg md:p-8 dark:bg-gray-800" id="stats" role="tabpanel" aria-labelledby="stats-tab">
-                        <dl className="grid grid-cols-2 p-4 mx-auto text-gray-900 sm:grid-cols-2 xl:grid-cols-4 gap-8 max-w-screen-xl dark:text-white sm:p-8">
-                            <div className="flex flex-col items-center justify-center">
-                              <dt className="mb-2 text-3xl font-extrabold">{ myTeam?.data?.vTeams?.alltimeGamesPlayed }</dt>
-                                <dd className="text-gray-500 dark:text-gray-400">🕹️ Games Played</dd>
-                            </div>
-                            <div className="flex flex-col items-center justify-center">
-                                <dt className="mb-2 text-3xl font-extrabold">
-                                  { myTeam?.data?.vTeams?.alltimeGamesWon }
-                                </dt>
-                                <dd className="text-gray-500 dark:text-gray-400">🏆 Games Won</dd>
-                            </div>
-                            <div className="flex flex-col items-center justify-center">
-                                <dt className="mb-2 text-3xl font-extrabold">
-                                  { myTeam?.data?.vTeams?.alltimeGamesLost || 0 }
-                                </dt>
-                                <dd className="text-gray-500 dark:text-gray-400">😬 Games Lost</dd>
-                            </div>
-                            <div className="flex flex-col items-center justify-center">
-                                <dt className="mb-2 text-3xl font-extrabold">{ Math.floor(((myTeam?.data?.vTeams?.alltimeGamesWon || 0) / (myTeam?.data?.vTeams?.alltimeGamesPlayed || 0)) * 100) || 0}%</dt>
-                                <dd className="text-gray-500 dark:text-gray-400">📈 % of Wins</dd>
-                            </div>
-                            <div className="flex flex-col items-center justify-center">
-                                <dt className="mb-2 text-3xl font-extrabold">{ myTeam?.data?.vTeams?.alltimeGamesWonIn_1 || 0}</dt>
-                                <dd className="text-gray-500 dark:text-gray-400">Won in 1️⃣</dd>
-                            </div>
-                            <div className="flex flex-col items-center justify-center">
-                                <dt className="mb-2 text-3xl font-extrabold">{ myTeam?.data?.vTeams?.alltimeGamesWonIn_2 || 0}</dt>
-                                <dd className="text-gray-500 dark:text-gray-400">Won in 2️⃣</dd>
-                            </div>
-                            <div className="flex flex-col items-center justify-center">
-                                <dt className="mb-2 text-3xl font-extrabold">{ myTeam?.data?.vTeams?.alltimeGamesWonIn_3 || 0}</dt>
-                                <dd className="text-gray-500 dark:text-gray-400">Won in 3️⃣</dd>
-                            </div>
-                            <div className="flex flex-col items-center justify-center">
-                                <dt className="mb-2 text-3xl font-extrabold">{ myTeam?.data?.vTeams?.alltimeGamesWonIn_4 || 0}</dt>
-                                <dd className="text-gray-500 dark:text-gray-400">Won in 4️⃣</dd>
-                            </div>
-                            <div className="flex flex-col items-center justify-center">
-                                <dt className="mb-2 text-3xl font-extrabold">{ myTeam?.data?.vTeams?.alltimeGamesWonIn_5 || 0}</dt>
-                                <dd className="text-gray-500 dark:text-gray-400">Won in 5️⃣</dd>
-                            </div>
-                            <div className="flex flex-col items-center justify-center">
-                                <dt className="mb-2 text-3xl font-extrabold">{ myTeam?.data?.vTeams?.alltimeGamesWonIn_6 || 0}</dt>
-                                <dd className="text-gray-500 dark:text-gray-400">Won in 6️⃣</dd>
-                            </div>
-                        </dl>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-            <TabsContent value="DAILY_STATS">
-              <Card className="p-4 bg-bg">
-                <CardHeader>📆 Daily Stats</CardHeader>
-                <CardContent>
-                  <div id="fullWidthTabContent" className="p-4 border-gray-200 dark:border-gray-600 text-center">
-                    <div className="p-4 bg-bg rounded-lg md:p-8 dark:bg-gray-800" id="stats" role="tabpanel" aria-labelledby="stats-tab">
-                        <dl className="grid grid-cols-2 p-4 mx-auto text-gray-900 sm:grid-cols-2 xl:grid-cols-4 gap-8 max-w-screen-xl dark:text-white sm:p-8">
-                          <div className="flex flex-col items-center justify-center">
-                            <dt className="mb-2 text-3xl font-extrabold">{ myTeam?.data?.vTeams?.dailyGamesPlayed || 0 }</dt>
-                              <dd className="text-gray-500 dark:text-gray-400">🕹️ Games Played</dd>
-                          </div>
-                          <div className="flex flex-col items-center justify-center">
-                              <dt className="mb-2 text-3xl font-extrabold">
-                                { myTeam?.data?.vTeams?.dailyGamesWon || 0 }
-                              </dt>
-                              <dd className="text-gray-500 dark:text-gray-400">🏆 Games Won</dd>
-                          </div>
-                          <div className="flex flex-col items-center justify-center">
-                              <dt className="mb-2 text-3xl font-extrabold">
-                                { myTeam?.data?.vTeams?.dailyGamesLost || 0 }
-                              </dt>
-                              <dd className="text-gray-500 dark:text-gray-400">😬 Games Lost</dd>
-                          </div>
-                          <div className="flex flex-col items-center justify-center">
-                              <dt className="mb-2 text-3xl font-extrabold">{ Math.floor(((myTeam?.data?.vTeams?.dailyGamesWon || 0) / (myTeam?.data?.vTeams?.dailyGamesPlayed || 0)) * 100) || 0}%</dt>
-                              <dd className="text-gray-500 dark:text-gray-400">📈 % of Wins</dd>
-                          </div>
-                          <div className="flex flex-col items-center justify-center">
-                              <dt className="mb-2 text-3xl font-extrabold">{ myTeam?.data?.vTeams?.dailyGamesWonIn_1 || 0}</dt>
-                              <dd className="text-gray-500 dark:text-gray-400">Won in 1️⃣</dd>
-                          </div>
-                          <div className="flex flex-col items-center justify-center">
-                              <dt className="mb-2 text-3xl font-extrabold">{ myTeam?.data?.vTeams?.dailyGamesWonIn_2 || 0}</dt>
-                              <dd className="text-gray-500 dark:text-gray-400">Won in 2️⃣</dd>
-                          </div>
-                          <div className="flex flex-col items-center justify-center">
-                              <dt className="mb-2 text-3xl font-extrabold">{ myTeam?.data?.vTeams?.dailyGamesWonIn_3 || 0}</dt>
-                              <dd className="text-gray-500 dark:text-gray-400">Won in 3️⃣</dd>
-                          </div>
-                          <div className="flex flex-col items-center justify-center">
-                              <dt className="mb-2 text-3xl font-extrabold">{ myTeam?.data?.vTeams?.dailyGamesWonIn_4 || 0}</dt>
-                              <dd className="text-gray-500 dark:text-gray-400">Won in 4️⃣</dd>
-                          </div>
-                          <div className="flex flex-col items-center justify-center">
-                              <dt className="mb-2 text-3xl font-extrabold">{ myTeam?.data?.vTeams?.dailyGamesWonIn_5 || 0}</dt>
-                              <dd className="text-gray-500 dark:text-gray-400">Won in 5️⃣</dd>
-                          </div>
-                          <div className="flex flex-col items-center justify-center">
-                              <dt className="mb-2 text-3xl font-extrabold">{ myTeam?.data?.vTeams?.dailyGamesWonIn_6 || 0}</dt>
-                              <dd className="text-gray-500 dark:text-gray-400">Won in 6️⃣</dd>
-                          </div>
-                        </dl>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-            <TabsContent value="WEEKLY_STATS">
-              <Card className="p-4 bg-bg">
-                <CardHeader>🕹️ Weekly Stats</CardHeader>
-                <CardContent>
-                  <div id="fullWidthTabContent" className="p-4 border-gray-200 dark:border-gray-600 text-center">
-                    <div className="p-4 bg-bg rounded-lg md:p-8 dark:bg-gray-800" id="stats" role="tabpanel" aria-labelledby="stats-tab">
-                        <dl className="grid grid-cols-2 p-4 mx-auto text-gray-900 sm:grid-cols-2 xl:grid-cols-4 gap-8 max-w-screen-xl dark:text-white sm:p-8">
-                          <div className="flex flex-col items-center justify-center">
-                            <dt className="mb-2 text-3xl font-extrabold">{ myTeam?.data?.vTeams?.weeklyGamesPlayed || 0 }</dt>
-                              <dd className="text-gray-500 dark:text-gray-400">🕹️ Games Played</dd>
-                          </div>
-                          <div className="flex flex-col items-center justify-center">
-                              <dt className="mb-2 text-3xl font-extrabold">
-                                { myTeam?.data?.vTeams?.weeklyGamesWon || 0 }
-                              </dt>
-                              <dd className="text-gray-500 dark:text-gray-400">🏆 Games Won</dd>
-                          </div>
-                          <div className="flex flex-col items-center justify-center">
-                              <dt className="mb-2 text-3xl font-extrabold">
-                                { myTeam?.data?.vTeams?.weeklyGamesLost || 0 }
-                              </dt>
-                              <dd className="text-gray-500 dark:text-gray-400">😬 Games Lost</dd>
-                          </div>
-                          <div className="flex flex-col items-center justify-center">
-                              <dt className="mb-2 text-3xl font-extrabold">{ Math.floor(((myTeam?.data?.vTeams?.weeklyGamesWon || 0) / (myTeam?.data?.vTeams?.weeklyGamesPlayed || 0)) * 100) || 0}%</dt>
-                              <dd className="text-gray-500 dark:text-gray-400">📈 % of Wins</dd>
-                          </div>
-                          <div className="flex flex-col items-center justify-center">
-                              <dt className="mb-2 text-3xl font-extrabold">{ myTeam?.data?.vTeams?.weeklyGamesWonIn_1 || 0}</dt>
-                              <dd className="text-gray-500 dark:text-gray-400">Won in 1️⃣</dd>
-                          </div>
-                          <div className="flex flex-col items-center justify-center">
-                              <dt className="mb-2 text-3xl font-extrabold">{ myTeam?.data?.vTeams?.weeklyGamesWonIn_2 || 0}</dt>
-                              <dd className="text-gray-500 dark:text-gray-400">Won in 2️⃣</dd>
-                          </div>
-                          <div className="flex flex-col items-center justify-center">
-                              <dt className="mb-2 text-3xl font-extrabold">{ myTeam?.data?.vTeams?.weeklyGamesWonIn_3 || 0}</dt>
-                              <dd className="text-gray-500 dark:text-gray-400">Won in 3️⃣</dd>
-                          </div>
-                          <div className="flex flex-col items-center justify-center">
-                              <dt className="mb-2 text-3xl font-extrabold">{ myTeam?.data?.vTeams?.weeklyGamesWonIn_4 || 0}</dt>
-                              <dd className="text-gray-500 dark:text-gray-400">Won in 4️⃣</dd>
-                          </div>
-                          <div className="flex flex-col items-center justify-center">
-                              <dt className="mb-2 text-3xl font-extrabold">{ myTeam?.data?.vTeams?.weeklyGamesWonIn_5 || 0}</dt>
-                              <dd className="text-gray-500 dark:text-gray-400">Won in 5️⃣</dd>
-                          </div>
-                          <div className="flex flex-col items-center justify-center">
-                              <dt className="mb-2 text-3xl font-extrabold">{ myTeam?.data?.vTeams?.weeklyGamesWonIn_6 || 0}</dt>
-                              <dd className="text-gray-500 dark:text-gray-400">Won in 6️⃣</dd>
-                          </div>
-                        </dl>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-            <TabsContent value="MONTHLY_STATS">
-              <Card className="p-4 bg-bg">
-                <CardHeader>📈 Monthly Stats</CardHeader>
-                <CardContent>
-                  <div id="fullWidthTabContent" className="p-4 border-gray-200 dark:border-gray-600 text-center">
-                    <div className="p-4 bg-bg rounded-lg md:p-8 dark:bg-gray-800" id="stats" role="tabpanel" aria-labelledby="stats-tab">
-                        <dl className="grid grid-cols-2 p-4 mx-auto text-gray-900 sm:grid-cols-2 xl:grid-cols-4 gap-8 max-w-screen-xl dark:text-white sm:p-8">
-                          <div className="flex flex-col items-center justify-center">
-                            <dt className="mb-2 text-3xl font-extrabold">{ myTeam?.data?.vTeams?.monthlyGamesPlayed || 0 }</dt>
-                              <dd className="text-gray-500 dark:text-gray-400">🕹️ Games Played</dd>
-                          </div>
-                          <div className="flex flex-col items-center justify-center">
-                              <dt className="mb-2 text-3xl font-extrabold">
-                                { myTeam?.data?.vTeams?.monthlyGamesWon || 0 }
-                              </dt>
-                              <dd className="text-gray-500 dark:text-gray-400">🏆 Games Won</dd>
-                          </div>
-                          <div className="flex flex-col items-center justify-center">
-                              <dt className="mb-2 text-3xl font-extrabold">
-                                { myTeam?.data?.vTeams?.monthlyGamesLost || 0 }
-                              </dt>
-                              <dd className="text-gray-500 dark:text-gray-400">😬 Games Lost</dd>
-                          </div>
-                          <div className="flex flex-col items-center justify-center">
-                              <dt className="mb-2 text-3xl font-extrabold">{ Math.floor(((myTeam?.data?.vTeams?.monthlyGamesWon || 0) / (myTeam?.data?.vTeams?.monthlyGamesPlayed || 0)) * 100) || 0}%</dt>
-                              <dd className="text-gray-500 dark:text-gray-400">📈 % of Wins</dd>
-                          </div>
-                          <div className="flex flex-col items-center justify-center">
-                              <dt className="mb-2 text-3xl font-extrabold">{ myTeam?.data?.vTeams?.monthlyGamesWonIn_1 || 0}</dt>
-                              <dd className="text-gray-500 dark:text-gray-400">Won in 1️⃣</dd>
-                          </div>
-                          <div className="flex flex-col items-center justify-center">
-                              <dt className="mb-2 text-3xl font-extrabold">{ myTeam?.data?.vTeams?.monthlyGamesWonIn_2 || 0}</dt>
-                              <dd className="text-gray-500 dark:text-gray-400">Won in 2️⃣</dd>
-                          </div>
-                          <div className="flex flex-col items-center justify-center">
-                              <dt className="mb-2 text-3xl font-extrabold">{ myTeam?.data?.vTeams?.monthlyGamesWonIn_3 || 0}</dt>
-                              <dd className="text-gray-500 dark:text-gray-400">Won in 3️⃣</dd>
-                          </div>
-                          <div className="flex flex-col items-center justify-center">
-                              <dt className="mb-2 text-3xl font-extrabold">{ myTeam?.data?.vTeams?.monthlyGamesWonIn_4 || 0}</dt>
-                              <dd className="text-gray-500 dark:text-gray-400">Won in 4️⃣</dd>
-                          </div>
-                          <div className="flex flex-col items-center justify-center">
-                              <dt className="mb-2 text-3xl font-extrabold">{ myTeam?.data?.vTeams?.monthlyGamesWonIn_5 || 0}</dt>
-                              <dd className="text-gray-500 dark:text-gray-400">Won in 5️⃣</dd>
-                          </div>
-                          <div className="flex flex-col items-center justify-center">
-                              <dt className="mb-2 text-3xl font-extrabold">{ myTeam?.data?.vTeams?.monthlyGamesWonIn_6 || 0}</dt>
-                              <dd className="text-gray-500 dark:text-gray-400">Won in 6️⃣</dd>
-                          </div>
-                        </dl>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-            <TabsContent value="YEARLY_STATS">
-            <Card className="p-4 bg-bg">
-              <CardHeader>🏅 Yearly Stats</CardHeader>
-              <CardContent>
-                <div id="fullWidthTabContent" className="p-4 border-gray-200 dark:border-gray-600 text-center">
-                  <div className="p-4 bg-bg rounded-lg md:p-8 dark:bg-gray-800" id="stats" role="tabpanel" aria-labelledby="stats-tab">
-                      <dl className="grid grid-cols-2 p-4 mx-auto text-gray-900 sm:grid-cols-2 xl:grid-cols-4 gap-8 max-w-screen-xl dark:text-white sm:p-8">
-                        <div className="flex flex-col items-center justify-center">
-                          <dt className="mb-2 text-3xl font-extrabold">{ myTeam?.data?.vTeams?.yearlyGamesPlayed || 0 }</dt>
-                            <dd className="text-gray-500 dark:text-gray-400">🕹️ Games Played</dd>
-                        </div>
-                        <div className="flex flex-col items-center justify-center">
-                            <dt className="mb-2 text-3xl font-extrabold">
-                              { myTeam?.data?.vTeams?.yearlyGamesWon || 0 }
-                            </dt>
-                            <dd className="text-gray-500 dark:text-gray-400">🏆 Games Won</dd>
-                        </div>
-                        <div className="flex flex-col items-center justify-center">
-                            <dt className="mb-2 text-3xl font-extrabold">
-                              { myTeam?.data?.vTeams?.yearlyGamesLost || 0 }
-                            </dt>
-                            <dd className="text-gray-500 dark:text-gray-400">😬 Games Lost</dd>
-                        </div>
-                        <div className="flex flex-col items-center justify-center">
-                            <dt className="mb-2 text-3xl font-extrabold">{ Math.floor(((myTeam?.data?.vTeams?.yearlyGamesWon || 0) / (myTeam?.data?.vTeams?.yearlyGamesPlayed || 0)) * 100) || 0}%</dt>
-                            <dd className="text-gray-500 dark:text-gray-400">📈 % of Wins</dd>
-                        </div>
-                        <div className="flex flex-col items-center justify-center">
-                            <dt className="mb-2 text-3xl font-extrabold">{ myTeam?.data?.vTeams?.yearlyGamesWonIn_1 || 0}</dt>
-                            <dd className="text-gray-500 dark:text-gray-400">Won in 1️⃣</dd>
-                        </div>
-                        <div className="flex flex-col items-center justify-center">
-                            <dt className="mb-2 text-3xl font-extrabold">{ myTeam?.data?.vTeams?.yearlyGamesWonIn_2 || 0}</dt>
-                            <dd className="text-gray-500 dark:text-gray-400">Won in 2️⃣</dd>
-                        </div>
-                        <div className="flex flex-col items-center justify-center">
-                            <dt className="mb-2 text-3xl font-extrabold">{ myTeam?.data?.vTeams?.yearlyGamesWonIn_3 || 0}</dt>
-                            <dd className="text-gray-500 dark:text-gray-400">Won in 3️⃣</dd>
-                        </div>
-                        <div className="flex flex-col items-center justify-center">
-                            <dt className="mb-2 text-3xl font-extrabold">{ myTeam?.data?.vTeams?.yearlyGamesWonIn_4 || 0}</dt>
-                            <dd className="text-gray-500 dark:text-gray-400">Won in 4️⃣</dd>
-                        </div>
-                        <div className="flex flex-col items-center justify-center">
-                            <dt className="mb-2 text-3xl font-extrabold">{ myTeam?.data?.vTeams?.yearlyGamesWonIn_5 || 0}</dt>
-                            <dd className="text-gray-500 dark:text-gray-400">Won in 5️⃣</dd>
-                        </div>
-                        <div className="flex flex-col items-center justify-center">
-                            <dt className="mb-2 text-3xl font-extrabold">{ myTeam?.data?.vTeams?.yearlyGamesWonIn_6 || 0}</dt>
-                            <dd className="text-gray-500 dark:text-gray-400">Won in 6️⃣</dd>
-                        </div>
-                      </dl>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            </TabsContent>
-          </Tabs>
+              ))}
+            </div>
+          )}
         </div>
       </main>
+
       <Footer />
     </div>
-  )
-  */
+  );
 }

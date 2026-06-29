@@ -567,6 +567,23 @@ export const wordramaApiV3 = createApi({
       }),
     }),
 
+    changeSubscriptionPlan: builder.mutation<
+      any,
+      { subscriptionKey: "PLUS" | "CREATOR" }
+    >({
+      query: ({ subscriptionKey }) => ({
+        url: "/api/v3/billing/change-plan",
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: {
+          subscriptionKey,
+        },
+      }),
+    }),
+
     createItemCheckoutSession: builder.mutation<
       any,
       { itemId: string }
@@ -758,6 +775,7 @@ export const {
   useGetMyEntitlementsQuery,
   useGetCurrentSubscriptionQuery,
   useCreateCheckoutSessionMutation,
+  useChangeSubscriptionPlanMutation,
   useCreateItemCheckoutSessionMutation,
   useCreateBillingPortalSessionMutation,
   useCreateAccountMutation,

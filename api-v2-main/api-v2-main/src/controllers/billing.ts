@@ -62,6 +62,31 @@ async function getCurrentSubscription(req: ApiRequest, res: Response) {
   );
 }
 
+async function changePlan(req: ApiRequest, res: Response) {
+  const { subscriptionKey } = req.body;
+
+  if (!subscriptionKey || !['PLUS', 'CREATOR'].includes(subscriptionKey)) {
+    return badRequest(req, res, 'Invalid subscription plan');
+  }
+
+  const result = await billingService.changeSubscriptionPlan({
+    playerId: req.userId,
+    subscriptionKey,
+  });
+
+  if ('error' in result) {
+    return badRequest(req, res, result.error);
+  }
+
+  return successfulResponse(
+    req,
+    res,
+    result,
+    'Subscription plan changed',
+    1,
+  );
+}
+
 async function createBillingPortalSession(req: ApiRequest, res: Response) {
   const player = await playerService.getPlayerByUserId(req.userId);
 
@@ -128,6 +153,7 @@ export default {
   createCheckoutSession,
   getCheckoutSession,
   getCurrentSubscription,
+  changePlan,
   createBillingPortalSession,
   handleStripeWebhook,
   createItemCheckoutSession,

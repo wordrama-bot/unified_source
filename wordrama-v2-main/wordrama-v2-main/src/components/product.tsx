@@ -100,7 +100,7 @@ export default function Product({
         </Button>
       ) : isUnlockedBySubscription ? (
         <Button disabled className="mt-12 w-full">
-          Included with Creator
+          Included with Your Subscription
         </Button>
       ) : isLocked ? (
         <Button disabled className="mt-12 w-full">

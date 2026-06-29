@@ -1,6 +1,7 @@
 import PricingPlan from '@/components/pricing-plan';
 import {
   useCreateCheckoutSessionMutation,
+  useChangeSubscriptionPlanMutation,
   useCreateBillingPortalSessionMutation,
   useGetCurrentSubscriptionQuery,
 } from '@/redux/api/wordrama';
@@ -24,7 +25,7 @@ export const plans = {
       "Custom username",
       "All word packs (4-23)",
       "Premium themes",
-      "More coming soon"
+      "Join multiple teams"
     ]
   },
   
@@ -36,9 +37,9 @@ export const plans = {
       "Custom username",
       "All word packs (4-23)",
       "Premium themes",
-      "Avatars",
       "Create a team",
       "Join multiple teams",
+      "Avatars (Coming Soon!)",
       "Future creator features"
     ]
   }
@@ -47,8 +48,13 @@ export const plans = {
 export function PricingSection() {
   const [createCheckoutSession, { isLoading }] =
     useCreateCheckoutSessionMutation();
-  const [createBillingPortalSession, { isLoading: isPortalLoading }] =
-    useCreateBillingPortalSessionMutation();
+
+  const [changeSubscriptionPlan, { isLoading: isChangingPlan }] =
+    useChangeSubscriptionPlanMutation();
+
+  const [createBillingPortalSession, {
+    isLoading: isPortalLoading,
+  }] = useCreateBillingPortalSessionMutation();
   const { data: subscriptionResponse } = useGetCurrentSubscriptionQuery();
 
   const currentSubscription =
@@ -65,6 +71,18 @@ export function PricingSection() {
 
     if (result?.data?.checkoutUrl) {
       window.location.href = result.data.checkoutUrl;
+    }
+  };
+
+  const handleUpgrade = async (
+    subscriptionKey: "PLUS" | "CREATOR",
+  ) => {
+    const result = await changeSubscriptionPlan({
+      subscriptionKey,
+    }).unwrap();
+
+    if (result?.data?.subscription) {
+      window.location.reload();
     }
   };
 
@@ -91,25 +109,31 @@ export function PricingSection() {
               isCurrentPlan={plan.planName === currentPlanName}
               buttonText={
                 plan.planName === currentPlanName
-                  ? plan.planName === "Creator"
-                    ? "Manage Subscription"
-                    : "Current Plan"
-                  : plan.planName === "Plus"
-                    ? "Coming Soon"
+                  ? plan.planName === "Free"
+                    ? "Current Plan"
+                    : "Manage Subscription"
+                  : currentPlanName === "Plus" && plan.planName === "Creator"
+                    ? "Upgrade"
                     : currentPlanName !== "Free"
                       ? "Included"
-                      : "Subscribe"
+                      : plan.planName === "Free"
+                        ? "Current Plan"
+                        : "Subscribe"
               }
               onSubscribe={
-                plan.planName === "Creator" && plan.planName === currentPlanName
+                plan.planName === currentPlanName && plan.planName !== "Free"
                   ? handleManageSubscription
-                  : plan.planName === "Creator"
-                    ? () => handleSubscribe("CREATOR")
-                    : undefined
+                  : currentPlanName === "Plus" && plan.planName === "Creator"
+                    ? () => handleUpgrade("CREATOR")
+                    : plan.planName === "Plus"
+                      ? () => handleSubscribe("PLUS")
+                      : plan.planName === "Creator"
+                        ? () => handleSubscribe("CREATOR")
+                        : undefined
               }
               isLoading={
-                plan.planName === "Creator" &&
-                (isLoading || isPortalLoading)
+                (plan.planName === "Plus" || plan.planName === "Creator") &&
+                (isLoading || isPortalLoading || isChangingPlan)
               }
             />
           ))}

@@ -17,6 +17,11 @@ export interface GetCurrentSubscriptionRequest {
   playerId: string;
 }
 
+export interface ChangeSubscriptionPlanRequest {
+  playerId: string;
+  subscriptionKey: string;
+}
+
 export interface CreateBillingPortalSessionRequest {
   playerId: string;
 }
@@ -386,19 +391,50 @@ async function syncSubscriptionEntitlements(subscription: any) {
     return { received: true, subscription };
   }
 
-  const featureEntitlementKeys =
+  // Expire any currently active subscription entitlements for this subscription.
+  // We'll immediately recreate the correct ones for the current plan.
+  const { error: expireExistingError } = await db
+    .from('_player_entitlements')
+    .update({
+      status: 'EXPIRED',
+      expires_at: now,
+      updated_at: now,
+    })
+    .eq('subscription_id', subscription.id)
+    .eq('source_type', 'SUBSCRIPTION')
+    .eq('status', 'ACTIVE');
+
+  if (expireExistingError) {
+    console.error(
+      'Failed to expire existing active subscription entitlements before sync',
+      expireExistingError,
+    );
+
+    return {
+      error: 'Failed to expire existing subscription entitlements',
+    };
+  }
+
+  const subscriptionEntitlementKeys =
     SUBSCRIPTION_ENTITLEMENTS[
       subscription.subscription_key as keyof typeof SUBSCRIPTION_ENTITLEMENTS
     ] ?? [];
 
-  const catalogEntitlements =
-    subscription.subscription_key === 'CREATOR'
-      ? CATALOG.map((item) => ({
-          entitlementKey: item.entitlementKey,
-          entitlementType: item.entitlementType,
-          catalogItemId: item.catalogItemId,
-        }))
-      : [];
+  const catalogEntitlementKeys = new Set(
+    CATALOG.map((item) => item.entitlementKey),
+  );
+
+  const featureEntitlementKeys = subscriptionEntitlementKeys.filter(
+    (entitlementKey) => !catalogEntitlementKeys.has(entitlementKey),
+  );
+
+  const catalogEntitlements = CATALOG.filter((item) =>
+    subscriptionEntitlementKeys.includes(item.entitlementKey),
+  ).map((item) => ({
+    entitlementKey: item.entitlementKey,
+    entitlementType: item.entitlementType,
+    catalogItemId: item.catalogItemId,
+  }));
 
   const entitlementRows = [
     ...featureEntitlementKeys.map((entitlementKey) => ({
@@ -542,6 +578,143 @@ export async function getCurrentSubscription(
     subscription: mapSubscription(subscription),
     latestSubscription: mapSubscription(latestSubscription),
   };
+}
+
+export async function changeSubscriptionPlan(
+  request: ChangeSubscriptionPlanRequest,
+) {
+  const { playerId, subscriptionKey } = request;
+
+  if (!Object.values(SUBSCRIPTIONS).includes(subscriptionKey as any)) {
+    return { error: 'Invalid subscription key' };
+  }
+
+  const stripeSecretKey = process.env.STRIPE_SK;
+  if (!stripeSecretKey) {
+    return { error: 'Missing Stripe secret key' };
+  }
+
+  const stripeProduct =
+    STRIPE_PRODUCTS[subscriptionKey as keyof typeof STRIPE_PRODUCTS];
+
+  const stripePriceId = process.env[stripeProduct.envVar];
+
+  if (!stripePriceId) {
+    return {
+      error: `Missing Stripe price environment variable: ${stripeProduct.envVar}`,
+    };
+  }
+
+  const { data: currentSubscription, error: currentSubscriptionError } =
+    await db
+      .from('_player_subscriptions')
+      .select('*')
+      .eq('player_id', playerId)
+      .in('status', ['TRIALING', 'ACTIVE', 'PAST_DUE'])
+      .or(`current_period_end.is.null,current_period_end.gt.${new Date().toISOString()}`)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+  if (currentSubscriptionError) {
+    console.error('Failed to retrieve current subscription', currentSubscriptionError);
+    return { error: 'Failed to retrieve current subscription' };
+  }
+
+  if (!currentSubscription?.provider_subscription_id) {
+    return { error: 'No active Stripe subscription found' };
+  }
+
+  if (currentSubscription.subscription_key === subscriptionKey) {
+    return { error: 'You are already on this plan' };
+  }
+
+  const stripe = new Stripe(stripeSecretKey);
+
+  try {
+    const stripeSubscription = await stripe.subscriptions.retrieve(
+      currentSubscription.provider_subscription_id,
+    );
+
+    const subscriptionItemId = stripeSubscription.items.data[0]?.id;
+
+    if (!subscriptionItemId) {
+      return { error: 'No Stripe subscription item found' };
+    }
+
+    const updatedStripeSubscription = await stripe.subscriptions.update(
+      currentSubscription.provider_subscription_id,
+      {
+        items: [
+          {
+            id: subscriptionItemId,
+            price: stripePriceId,
+          },
+        ],
+        proration_behavior: 'create_prorations',
+        metadata: {
+          ...(stripeSubscription.metadata || {}),
+          playerId,
+          subscriptionKey,
+        },
+      },
+    );
+
+    const {
+      currentPeriodStart,
+      currentPeriodEnd,
+    } = getStripeSubscriptionPeriod(updatedStripeSubscription);
+
+    const mappedStatus = mapStripeSubscriptionStatus(
+      updatedStripeSubscription.status,
+    );
+
+    const { data: updatedSubscription, error: updateError } = await db
+      .from('_player_subscriptions')
+      .update({
+        subscription_key: subscriptionKey,
+        status: mappedStatus,
+        current_period_start: currentPeriodStart,
+        current_period_end: currentPeriodEnd,
+        cancel_at_period_end: updatedStripeSubscription.cancel_at_period_end,
+        cancelled_at: updatedStripeSubscription.canceled_at
+          ? new Date(updatedStripeSubscription.canceled_at * 1000).toISOString()
+          : null,
+        metadata: {
+          ...(currentSubscription.metadata || {}),
+          stripeStatus: updatedStripeSubscription.status,
+          changedPlanAt: new Date().toISOString(),
+          previousSubscriptionKey: currentSubscription.subscription_key,
+        },
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', currentSubscription.id)
+      .select('*')
+      .maybeSingle();
+
+    if (updateError || !updatedSubscription) {
+      console.error('Failed to update local subscription after plan change', updateError);
+      return { error: 'Failed to update local subscription after plan change' };
+    }
+
+    const entitlementSyncResult = await syncSubscriptionEntitlements(
+      updatedSubscription,
+    );
+
+    if ('error' in entitlementSyncResult) {
+      return entitlementSyncResult;
+    }
+
+    return {
+      subscription: updatedSubscription,
+      stripeSubscriptionId: updatedStripeSubscription.id,
+    };
+  } catch (error: any) {
+    console.error('Stripe subscription plan change failed', error);
+    return {
+      error: error?.message || 'Failed to change subscription plan',
+    };
+  }
 }
 
 export async function createBillingPortalSession(

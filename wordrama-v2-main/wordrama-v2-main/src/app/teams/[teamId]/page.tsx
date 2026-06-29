@@ -34,7 +34,7 @@ import NavBar from "@/components/navbar/h-nav";
 import Footer from "@/sections/footer";
 import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import {
-  useGetMyTeamQuery,
+  useGetMyTeamsQuery,
   useGetTeamMembersQuery,
   useGetTeamLeaderboardQuery,
   useLeaveTeamMutation,
@@ -120,13 +120,15 @@ export default function TeamPage() {
     isError: isErrorTeamMembers
   } = useGetTeamMembersQuery({ teamId: teamId || '', page: page });
   const { toast } = useToast();
-  const { data: currentUserTeam } = useGetMyTeamQuery();
+  const { data: currentUserTeams } = useGetMyTeamsQuery();
   const [joinTeam] = useJoinTeamMutation();
   const [leaveTeam] = useLeaveTeamMutation();
 
-  const alreadyOnTeam = !!currentUserTeam?.data?.vTeams?.teamId;
+  const isCurrentUsersTeam = currentUserTeams?.data?.teams?.some(
+    (team: any) => team.teamId === teamId,
+  );
 
-  const isCurrentUsersTeam = currentUserTeam?.data?.vTeams?.teamId === teamId;
+  const alreadyOnTeam = isCurrentUsersTeam;
     
   const viewedTeamName = myTeam?.data?.teamName;
 
@@ -158,7 +160,7 @@ export default function TeamPage() {
   }
 
   async function handleLeaveTeam() {
-    const { data, error } = await leaveTeam();
+    const { data, error } = await leaveTeam(teamId);
 
     if (error) {
       return toast({
