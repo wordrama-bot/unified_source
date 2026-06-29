@@ -189,6 +189,13 @@ export async function createItemCheckoutSession(
 
   const stripe = new Stripe(stripeSecretKey);
 
+  const marketplaceReturnPath =
+    catalogItem.itemType === 'THEME'
+      ? '/marketplace/themes'
+      : catalogItem.itemType === 'WORDLE_WORD_PACK' || catalogItem.itemType === 'WORD_PACK'
+        ? '/marketplace/word-packs'
+        : '/marketplace/all-items';
+
   try {
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',
@@ -199,8 +206,10 @@ export async function createItemCheckoutSession(
           quantity: 1,
         },
       ],
-      success_url: `${siteUrl}/marketplace/word-packs?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${siteUrl}/marketplace/word-packs?checkout=cancelled`,
+      success_url:
+        `${siteUrl}${marketplaceReturnPath}?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url:
+        `${siteUrl}${marketplaceReturnPath}?checkout=cancelled`,
       metadata: {
         playerId,
         itemId,

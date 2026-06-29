@@ -364,6 +364,7 @@
                       }}
                       buyWithStripe={() => handleStripePurchase(item.id)}
                       hasStripePrice={item.hasStripePrice}
+                      marketplaceImage={item.marketplaceImage}
                     />
                   );
                 })}

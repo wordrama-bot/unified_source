@@ -168,18 +168,18 @@ async function getStoreItems(playerId: string, filters) {
       'fef67eba-96db-4f5e-8b25-81487a1dbc9d',
       '3159552d-8c96-4bb5-aafa-ebf36aa5a2c2',
       'b8c73f14-79ad-4495-9fd9-a4be65d5fcbc',
-      '7f06b10e-d52a-4ae3-a888-d4823436704f',
+      '7f06b10e-d52a-4ae3-b77f-a7e9a7c5e5fb',
     ];
 
     const hasMegaPack = purchasedItems.includes(megaPackId);
-    const hasAllMegaPackChildren = megaPackChildIds.every((id) =>
-      purchasedItems.includes(id),
+    const hasAllMegaPackChildrenPurchased = megaPackChildIds.every(
+      (id) => purchasedItemSources.get(id) === 'PURCHASED',
     );
 
     const megaFiltered =
-      hasMegaPack || hasAllMegaPackChildren
+      hasMegaPack || hasAllMegaPackChildrenPurchased
         ? filteredData.filter((item) => {
-            if (item.id === megaPackId && hasAllMegaPackChildren) return false;
+            if (item.id === megaPackId && hasAllMegaPackChildrenPurchased) return false;
             if (megaPackChildIds.includes(item.id) && hasMegaPack) return false;
             return true;
           })

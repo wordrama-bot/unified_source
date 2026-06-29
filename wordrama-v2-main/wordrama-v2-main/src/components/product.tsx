@@ -18,7 +18,8 @@ export default function Product({
   removeItemFromCard,
   buyWithStripe,
   hasStripePrice = false,
-  isInCart = false
+  isInCart = false,
+  marketplaceImage,
 }: {
   itemId: string
   subItems: string[]
@@ -36,10 +37,20 @@ export default function Product({
   buyWithStripe?: any
   hasStripePrice?: boolean
   isInCart?: boolean
+  marketplaceImage?: string
 }) {
   return (
     <div className="border-border dark:border-darkBorder dark:bg-darkBg flex flex-col justify-between rounded-base border-2 bg-bg p-5">
       <div>
+        {marketplaceImage && (
+          <div className="mb-4 flex h-52 items-center justify-center rounded-base border-2 border-border bg-muted/20 dark:border-darkBorder">
+            <img
+              src={marketplaceImage}
+              alt={`${name} preview`}
+              className="max-h-full max-w-full object-contain"
+            />
+          </div>
+        )}
         <div className="flex items-center justify-between">
           <h3 className="text-2xl font-heading">{name}</h3>
           {(isPopular || isPurchased || isUnlockedBySubscription) && (

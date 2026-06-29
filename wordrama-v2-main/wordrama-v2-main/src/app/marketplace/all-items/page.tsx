@@ -71,13 +71,14 @@ const MARKETPLACE_THEME_SORT_ORDER: { [key: string]: number } = {
   '8642cdb8-7f8e-4c58-be01-3f9d5362326d': 4,
   '4085cec0-6c84-4732-b70c-a80938afe0a5': 5,
   'a0144a0f-6867-4140-a520-f64375f35990': 6,
-  '7855a094-b1df-49c5-abf0-622e651df69a': 7,
-  '49a35b50-db84-4854-847e-e9610874f878': 8,
-  'c58ed56e-3891-44c6-b195-b9d1c8bbe980': 9,
+  '91d60b4a-3dfa-4c90-8992-fae1e2bed0c9': 7,
+  '7855a094-b1df-49c5-abf0-622e651df69a': 8,
+  '49a35b50-db84-4854-847e-e9610874f878': 9,
+  'c58ed56e-3891-44c6-b195-b9d1c8bbe980': 10,
 };
 
 function getMarketplaceSortOrder(item: any): number {
-  if (item.type === 'WORD_PACK') {
+  if (item.type === 'WORDLE_WORD_PACK') {
     return 1000 + (MARKETPLACE_WORD_PACK_SORT_ORDER[item.id] ?? 500);
   }
 
@@ -226,6 +227,7 @@ export default function AllItemsMarketplacePage() {
       isInCart={itemsInCart.includes(item.id)}
       buyWithStripe={() => handleStripePurchase(item.id)}
       hasStripePrice={item.hasStripePrice}
+      marketplaceImage={item.marketplaceImage}
     />
   );
 };

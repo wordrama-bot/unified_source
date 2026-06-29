@@ -46,6 +46,23 @@
   import { useEffect } from 'react';
   import { useMarketplaceAccess } from "@/lib/useMarketplaceAccess";
 
+  const MARKETPLACE_THEME_SORT_ORDER: { [key: string]: number } = {
+    'eea2ee39-7ff5-4cfc-906b-608d01555afa': 1, // Cyberpunk
+    'c42e21b8-e3e2-487b-9307-698063f29dcd': 2, // Miami Vice
+    'db984ab5-f0a9-43a9-9800-702150de76f5': 3, // Galaxy
+    '8642cdb8-7f8e-4c58-be01-3f9d5362326d': 4, // Ice
+    '4085cec0-6c84-4732-b70c-a80938afe0a5': 5, // Lava
+    'a0144a0f-6867-4140-a520-f64375f35990': 6, // Forest
+    '91d60b4a-3dfa-4c90-8992-fae1e2bed0c9': 7, // Cabin
+    '7855a094-b1df-49c5-abf0-622e651df69a': 8, // Pirate
+    '49a35b50-db84-4854-847e-e9610874f878': 9, // Arcade
+    'c58ed56e-3891-44c6-b195-b9d1c8bbe980': 10, // Synthwave
+  };
+
+  function getMarketplaceSortOrder(item: any): number {
+    return MARKETPLACE_THEME_SORT_ORDER[item.id] ?? 999;
+  }
+
   function ShoppingCartIcon(props) {
     return (
       <svg
@@ -303,7 +320,7 @@
 
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4">
               {[...(storeItems?.data || [])]
-                .sort((a, b) => a.name.localeCompare(b.name))
+                .sort((a, b) => getMarketplaceSortOrder(a) - getMarketplaceSortOrder(b))
                 .map((item) => {
                   const isCashPrice = false;
 
@@ -339,6 +356,7 @@
                       }}
                       buyWithStripe={() => handleStripePurchase(item.id)}
                       hasStripePrice={item.hasStripePrice}
+                      marketplaceImage={item.marketplaceImage}
                     />
                   );
                 })}
