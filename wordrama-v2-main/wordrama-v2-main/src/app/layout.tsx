@@ -13,6 +13,7 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import GoogleAdsense from '@/components/adsense';
 import { ErrorBoundary } from '@/components/error-boundary';
 import CookieConsentBanner from '@/components/cookie-consent';
+import Script from 'next/script';
 
 const dmSans = DM_Sans({ subsets: ['latin'] });
 
@@ -146,9 +147,24 @@ export default function RootLayout({
 
         <link rel="preconnect" href="https://api.wordrama.io" />
         <link rel="preconnect" href="https://pagead2.googlesyndication.com" />
+        <link rel="preconnect" href="https://www.googletagmanager.com" />
         <link rel="preconnect" href="https://js.monitor.azure.com" />
         <link rel="preconnect" href="https://fundingchoicesmessages.google.com" />
         <link rel="preconnect" href="https://qflfxxbnhwaxkxsygjqu.supabase.co" />
+
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-TZGVP6PMBC"
+          strategy="afterInteractive"
+        />
+
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-TZGVP6PMBC');
+          `}
+        </Script>
 
         <GoogleAdsense pId="8970369628667981" />
       </head>
