@@ -841,10 +841,10 @@ export const appearanceThemes: AppearanceTheme[] = [
 
     keyboard: {
       key:
-        'bg-[#181720] hover:bg-[#232016] active:bg-[#2d281a] border border-[#8a6a2f] shadow-[inset_0_0_8px_rgba(0,0,0,0.65)]',
+        'bg-[#181720] hover:bg-[#232016] active:bg-[#2d281a] border border-[#8a6a2f] ring-1 ring-[#c8a84f]/20',
       keyText: 'text-[#f8e7b0]',
       absentKey:
-        'bg-[#0a0a08] hover:bg-[#11100d] active:bg-[#181713] border border-[#4f4328] text-[#8f8568] shadow-[inset_0_0_8px_rgba(0,0,0,0.8)]',
+        'bg-[#0a0a08] hover:bg-[#11100d] active:bg-[#181713] border border-[#4f4328] text-[#8f8568] ring-1 ring-[#c8a84f]/20',
     },
 
     modal: {
@@ -918,10 +918,10 @@ export const appearanceThemes: AppearanceTheme[] = [
 
     keyboard: {
       key:
-        'bg-[#172554] hover:bg-blue-800 active:bg-blue-700 border border-blue-500 shadow-[inset_0_0_8px_rgba(0,0,0,0.55)]',
+        'bg-[#172554] hover:bg-blue-800 active:bg-blue-700 border border-blue-500 ring-1 ring-cyan-400/40',
       keyText: 'text-lime-200',
       absentKey:
-        'bg-[#070a18] hover:bg-[#0b1028] active:bg-[#111936] border border-[#1e293b] text-slate-400 shadow-[inset_0_0_8px_rgba(0,0,0,0.75)]',
+        'bg-[#070a18] hover:bg-[#0b1028] active:bg-[#111936] border border-[#1e293b] text-slate-400 ring-1 ring-cyan-400/40',
     },
 
     modal: {
@@ -995,10 +995,10 @@ export const appearanceThemes: AppearanceTheme[] = [
 
     keyboard: {
       key:
-        'bg-[#6d28d9] hover:bg-fuchsia-500 active:bg-fuchsia-600 border border-cyan-300 shadow-[inset_0_0_8px_rgba(0,0,0,0.45)]',
+        'bg-[#6d28d9] hover:bg-fuchsia-500 active:bg-fuchsia-600 border border-cyan-300 ring-1 ring-pink-400/40',
       keyText: 'text-cyan-100',
       absentKey:
-        'bg-[#241044] hover:bg-[#35195e] active:bg-[#4c1d95] border border-pink-700 text-cyan-100 shadow-[inset_0_0_8px_rgba(0,0,0,0.65)]',
+        'bg-[#241044] hover:bg-[#35195e] active:bg-[#4c1d95] border border-pink-700 text-cyan-100 ring-1 ring-pink-400/40',
     },
 
     modal: {
