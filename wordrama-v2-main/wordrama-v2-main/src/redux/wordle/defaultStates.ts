@@ -41,7 +41,7 @@ export const wordleDefaultState: Mode = {
 
 export const initialState: InitialState = {
   isLoading: true,
-  gameMode: 'DAILY',
+  gameMode: 'INFINITE',
   wordLength: 5,
   wordPack: 'FIVE_LETTER',
   custom: { ...customGameDefaultState },
