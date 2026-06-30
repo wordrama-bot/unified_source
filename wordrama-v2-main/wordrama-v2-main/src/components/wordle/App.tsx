@@ -790,7 +790,7 @@ const [playLoseSoundChristmas] = useSound('/sounds/christmas-lost.mp3', {
 
                       if (!canUseAppearanceTheme(selectedTheme)) {
                         showErrorAlert(
-                          'This premium theme is locked. Purchase it from the Marketplace to unlock it.'
+                          'This premium theme is locked. Get it in the Marketplace or upgrade to Wordrama Plus or Creator for access.'
                         );
                         return;
                       }
