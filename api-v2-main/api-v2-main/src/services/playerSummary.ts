@@ -93,9 +93,8 @@ async function getGuessDistribution(playerId: string) {
 async function getStreakSummary(playerId: string) {
   const { data, error } = await db
     .from('_wordle_streak')
-    .select('*')
-    .eq('player', playerId)
-    .single();
+    .select('current_streak, best_streak')
+    .eq('player', playerId);
 
   if (error) {
     console.error('[playerSummary] getStreakSummary error:', error);
@@ -105,9 +104,17 @@ async function getStreakSummary(playerId: string) {
     };
   }
 
+  const rows = data || [];
+
   return {
-    currentStreak: data?.current_streak ?? data?.currentStreak ?? 0,
-    bestStreak: data?.best_streak ?? data?.bestStreak ?? 0,
+    currentStreak: Math.max(
+      0,
+      ...rows.map((row) => row?.current_streak ?? 0),
+    ),
+    bestStreak: Math.max(
+      0,
+      ...rows.map((row) => row?.best_streak ?? 0),
+    ),
   };
 }
 
