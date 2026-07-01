@@ -1,16 +1,39 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useGetAdminPlayerProfileQuery } from "@/redux/api/wordrama";
+import {
+  useAddAdminPlayerNoteMutation,
+  useGetAdminPlayerNotesQuery,
+  useGetAdminPlayerProfileQuery,
+  useGrantAdminPlayerCoinsMutation,
+} from "@/redux/api/wordrama";
 
 export default function AdminPlayerProfilePage() {
   const params = useParams();
   const playerId = String(params.playerId);
+  const [note, setNote] = useState("");
+  const [showGrantCoins, setShowGrantCoins] = useState(false);
+  const [coinAmount, setCoinAmount] = useState(100);
+  const [coinReason, setCoinReason] = useState("");
+  const [grantCoins, { isLoading: grantingCoins }] =
+    useGrantAdminPlayerCoinsMutation();
 
   const { data, isLoading, error } = useGetAdminPlayerProfileQuery(playerId, {
     skip: !playerId,
   });
+
+  const {
+    data: notesData,
+    isFetching: notesLoading,
+  } = useGetAdminPlayerNotesQuery(playerId, {
+    skip: !playerId,
+  });
+
+  const [addNote, { isLoading: addingNote }] = useAddAdminPlayerNoteMutation();
+
+  const notes = notesData?.data ?? [];
 
   const profile = data?.data;
 
@@ -41,74 +64,165 @@ export default function AdminPlayerProfilePage() {
       Number(streak.best_streak) > 0
   );
 
+  async function handleAddNote(event: React.FormEvent) {
+    event.preventDefault();
+
+    const cleanNote = note.trim();
+    if (!cleanNote) return;
+
+    await addNote({
+      playerId,
+      note: cleanNote,
+    }).unwrap();
+
+    setNote("");
+  }
+
+  async function handleGrantCoins(event: React.FormEvent) {
+    event.preventDefault();
+
+    const cleanReason = coinReason.trim();
+
+    if (!coinAmount || coinAmount <= 0 || !cleanReason) return;
+
+    await grantCoins({
+      playerId,
+      amount: Number(coinAmount),
+      reason: cleanReason,
+    }).unwrap();
+
+    setShowGrantCoins(false);
+    setCoinAmount(100);
+    setCoinReason("");
+  }
+
   return (
     <main className="mx-auto max-w-7xl px-6 py-10">
       <Link href="/admin" className="text-sm text-muted-foreground hover:underline">
         ← Back to Admin
       </Link>
 
-      <section className="mt-6 rounded-xl border bg-card p-6">
-        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-          <div className="flex items-start gap-4">
-            {identity.profile_image ? (
-              <img
-                src={identity.profile_image}
-                alt={`${identity.display_name || identity.username} avatar`}
-                className="h-16 w-16 rounded-full border object-cover"
-              />
-            ) : (
-              <div className="flex h-16 w-16 items-center justify-center rounded-full border text-xl font-bold">
-                {(identity.display_name || identity.username || "?").charAt(0).toUpperCase()}
-              </div>
-            )}
+      <div className="space-y-6">
+        <section className="mt-6 rounded-xl border bg-card p-6">
+          <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+            <div className="flex items-start gap-4">
+              {identity.profile_image ? (
+                <img
+                  src={identity.profile_image}
+                  alt={`${identity.display_name || identity.username} avatar`}
+                  className="h-16 w-16 rounded-full border object-cover"
+                />
+              ) : (
+                <div className="flex h-16 w-16 items-center justify-center rounded-full border text-xl font-bold">
+                  {(identity.display_name || identity.username || "?").charAt(0).toUpperCase()}
+                </div>
+              )}
 
-            <div>
-              <p className="text-sm uppercase tracking-wide text-muted-foreground">
-                Player Profile
-              </p>
-              <h1 className="mt-1 text-3xl font-bold">
-                {identity.display_name || identity.username}
-              </h1>
-              <a
-                href={`https://wordrama.io/player/${identity.id}`}
-                target="_blank"
-                rel="noreferrer"
-                className="mt-1 block text-muted-foreground hover:underline"
-              >
-                @{identity.username}
-              </a>
-              <div className="mt-2 flex flex-wrap items-center gap-2">
-                <p className="break-all text-xs text-muted-foreground">{identity.id}</p>
-                <button
-                  type="button"
-                  onClick={() => navigator.clipboard.writeText(identity.id)}
-                  className="rounded border px-2 py-1 text-xs hover:bg-muted"
+              <div>
+                <p className="text-sm uppercase tracking-wide text-muted-foreground">
+                  Player Profile
+                </p>
+                <h1 className="mt-1 text-3xl font-bold">
+                  {identity.display_name || identity.username}
+                </h1>
+                <a
+                  href={`https://wordrama.io/player/${identity.id}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-1 block text-muted-foreground hover:underline"
                 >
-                  Copy ID
-                </button>
+                  @{identity.username}
+                </a>
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                  <p className="break-all text-xs text-muted-foreground">{identity.id}</p>
+                  <button
+                    type="button"
+                    onClick={() => navigator.clipboard.writeText(identity.id)}
+                    className="rounded border px-2 py-1 text-xs hover:bg-muted"
+                  >
+                    Copy ID
+                  </button>
+                </div>
               </div>
             </div>
+
+            <div className="rounded-lg border p-3 text-sm">
+              <p>
+                <span className="text-muted-foreground">Created:</span>{" "}
+                {formatDate(identity.created_at)}
+              </p>
+              <p>
+                <span className="text-muted-foreground">Discord:</span>{" "}
+                {identity.discord_connected ? "🟣 Connected" : "⚪ Not connected"}
+              </p>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <div className="mt-6 space-y-4">
+        <Panel title="Quick Actions">
+          <div className="grid gap-3 sm:grid-cols-2">
+            <ActionButton label="Grant Coins" onClick={() => setShowGrantCoins(true)} />
+            <ActionButton label="Grant Entitlement" disabled />
+            <ActionButton label="Ban Player" disabled />
+            <ActionButton label="Unban Player" disabled />
+            <ActionButton label="Reset Streak" disabled />
+            <ActionButton label="Copy Player JSON" onClick={() => copyPlayerJson(profile)} />
+            <ActionButton label="Copy Player ID" onClick={() => navigator.clipboard.writeText(identity.id)} />
+            <ActionButton label="Refresh Player" onClick={() => window.location.reload()} />
           </div>
 
-          <div className="rounded-lg border p-3 text-sm">
-            <p>
-              <span className="text-muted-foreground">Created:</span>{" "}
-              {formatDate(identity.created_at)}
-            </p>
-            <p>
-              <span className="text-muted-foreground">Discord:</span>{" "}
-              {identity.discord_connected ? "🟣 Connected" : "⚪ Not connected"}
-            </p>
-          </div>
-        </div>
-      </section>
+          <p className="mt-4 text-xs text-muted-foreground">
+            Write actions are intentionally disabled until their backend audit logging is implemented.
+          </p>
+        </Panel>
 
-      <section className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="Games Played" value={gameplay.gamesPlayed} />
-        <StatCard label="Wins" value={gameplay.wins} />
-        <StatCard label="Losses" value={gameplay.losses} />
-        <StatCard label="Win %" value={`${gameplay.winPercentage}%`} />
-      </section>
+        <Panel title="Moderator Notes">
+          <form onSubmit={handleAddNote} className="space-y-3">
+            <textarea
+              className="min-h-[100px] w-full rounded-md border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
+              placeholder="Add an internal moderator note..."
+              value={note}
+              onChange={(event) => setNote(event.target.value)}
+            />
+
+            <button
+              type="submit"
+              disabled={addingNote || !note.trim()}
+              className="rounded-md border px-4 py-2 text-sm font-medium hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {addingNote ? "Adding..." : "Add Note"}
+            </button>
+          </form>
+
+          <div className="mt-5 space-y-3">
+            {notesLoading && (
+              <p className="text-sm text-muted-foreground">Loading notes...</p>
+            )}
+
+            {!notesLoading && notes.length === 0 && (
+              <p className="text-sm text-muted-foreground">✓ No moderator notes.</p>
+            )}
+
+            {notes.map((item: any) => (
+              <div key={item.id} className="rounded-lg border p-3">
+                <p className="whitespace-pre-wrap text-sm">{item.note}</p>
+                <p className="mt-2 text-xs text-muted-foreground">
+                  {formatDate(item.created_at)} · {getNoteAuthor(item)}
+                </p>
+              </div>
+            ))}
+          </div>
+        </Panel>
+
+        <section className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <StatCard label="Games Played" value={gameplay.gamesPlayed} />
+          <StatCard label="Wins" value={gameplay.wins} />
+          <StatCard label="Losses" value={gameplay.losses} />
+          <StatCard label="Win %" value={`${gameplay.winPercentage}%`} />
+        </section>
+      </div>
 
       <section className="mt-6 grid gap-6 lg:grid-cols-2">
         <Panel title="Discord">
@@ -244,6 +358,58 @@ export default function AdminPlayerProfilePage() {
           />
         </Panel>
       </section>
+
+      {showGrantCoins && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
+          <div className="w-full max-w-md rounded-xl border bg-card p-6 shadow-xl">
+            <h2 className="text-xl font-semibold">Grant Coins</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Add coins to {identity.display_name || identity.username}.
+            </p>
+
+            <form onSubmit={handleGrantCoins} className="mt-5 space-y-4">
+              <div>
+                <label className="text-sm font-medium">Amount</label>
+                <input
+                  type="number"
+                  min={1}
+                  step={1}
+                  value={coinAmount}
+                  onChange={(event) => setCoinAmount(Number(event.target.value))}
+                  className="mt-1 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-medium">Reason</label>
+                <textarea
+                  value={coinReason}
+                  onChange={(event) => setCoinReason(event.target.value)}
+                  placeholder="Required audit reason..."
+                  className="mt-1 min-h-[90px] w-full rounded-md border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
+                />
+              </div>
+
+              <div className="flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowGrantCoins(false)}
+                  className="rounded-md border px-4 py-2 text-sm hover:bg-muted"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={grantingCoins || !coinReason.trim() || coinAmount <= 0}
+                  className="rounded-md border px-4 py-2 text-sm font-medium hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {grantingCoins ? "Granting..." : "Grant Coins"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
@@ -429,4 +595,38 @@ function formatDate(value: any) {
   }
 
   return date.toLocaleString();
+}
+
+function getNoteAuthor(item: any) {
+  return (
+    item.admin?.display_name ||
+    item.admin?.username ||
+    item.admin_player_id ||
+    "Unknown admin"
+  );
+}
+
+function ActionButton({
+  label,
+  onClick,
+  disabled = false,
+}: {
+  label: string;
+  onClick?: () => void;
+  disabled?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      className="rounded-md border px-3 py-2 text-sm font-medium hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
+    >
+      {label}
+    </button>
+  );
+}
+
+function copyPlayerJson(profile: any) {
+  navigator.clipboard.writeText(JSON.stringify(profile, null, 2));
 }

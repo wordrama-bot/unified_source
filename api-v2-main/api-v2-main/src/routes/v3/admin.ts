@@ -24,6 +24,24 @@ router.get(
 );
 
 router.get(
+  '/players/:playerId/notes',
+  requireAdminPermission('players:read'),
+  adminController.playerNotes,
+);
+
+router.post(
+  '/players/:playerId/notes',
+  requireAdminPermission('support:write'),
+  adminController.createPlayerNote,
+);
+
+router.post(
+  '/players/:playerId/coins/grant',
+  requireAdminPermission('economy:write'),
+  adminController.grantCoins,
+);
+
+router.get(
   '/players/:playerId',
   requireAdminPermission('players:read'),
   adminController.playerProfile,

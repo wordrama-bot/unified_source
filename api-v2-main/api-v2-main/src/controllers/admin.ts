@@ -6,6 +6,11 @@ import {
   getPlayerAdminProfile,
   searchPlayers,
 } from '../services/admin/players';
+import {
+  addModeratorNote,
+  getModeratorNotes,
+} from '../services/admin/notes';
+import { grantPlayerCoins } from '../services/admin/coins';
 
 async function me(req: ApiRequest, res: Response) {
   return res.status(200).json({
@@ -67,9 +72,84 @@ async function playerProfile(req: ApiRequest, res: Response) {
   });
 }
 
+async function playerNotes(req: ApiRequest, res: Response) {
+  const { playerId } = req.params;
+
+  const data = await getModeratorNotes(playerId);
+
+  return res.status(200).json({
+    status: 200,
+    count: data.length,
+    data,
+    message: 'Moderator notes loaded',
+  });
+}
+
+async function createPlayerNote(req: ApiRequest, res: Response) {
+  const { playerId } = req.params;
+  const { note } = req.body;
+
+  if (!req.userId) {
+    return res.status(401).json({
+      status: 401,
+      count: 0,
+      data: {},
+      message: 'Unauthorized',
+    });
+  }
+
+  const data = await addModeratorNote({
+    targetPlayerId: playerId,
+    adminPlayerId: req.userId,
+    note: String(note ?? ''),
+    requestIp: req.ip,
+    userAgent: req.headers['user-agent'],
+  });
+
+  return res.status(201).json({
+    status: 201,
+    count: 1,
+    data,
+    message: 'Moderator note added',
+  });
+}
+
+async function grantCoins(req: ApiRequest, res: Response) {
+  const { playerId } = req.params;
+  const { amount, reason } = req.body;
+
+  if (!req.userId) {
+    return res.status(401).json({
+      status: 401,
+      count: 0,
+      data: {},
+      message: 'Unauthorized',
+    });
+  }
+
+  const data = await grantPlayerCoins({
+    targetPlayerId: playerId,
+    adminPlayerId: req.userId,
+    amount: Number(amount),
+    reason: String(reason ?? ''),
+    requestIp: req.ip,
+    userAgent: req.headers['user-agent'],
+  });
+
+  return res.status(201).json({
+    status: 201,
+    count: 1,
+    data,
+    message: 'Coins granted',
+  });
+}
+
 export default {
   me,
   overview,
   playerSearch,
   playerProfile,
+  playerNotes,
+  createPlayerNote,
+  grantCoins,
 };

@@ -768,6 +768,44 @@ export const wordramaApiV3 = createApi({
       providesTags: ["Admin"],
     }),
 
+    getAdminPlayerNotes: builder.query<any, string>({
+      query: (playerId) => ({
+        url: `/api/v3/admin/players/${playerId}/notes`,
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+      }),
+      providesTags: ["Admin"],
+    }),
+
+    addAdminPlayerNote: builder.mutation<
+      any,
+      { playerId: string; note: string }
+    >({
+      query: ({ playerId, note }) => ({
+        url: `/api/v3/admin/players/${playerId}/notes`,
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: { note },
+      }),
+      invalidatesTags: ["Admin"],
+    }),
+
+    grantAdminPlayerCoins: builder.mutation<
+      any,
+      { playerId: string; amount: number; reason: string }
+    >({
+      query: ({ playerId, amount, reason }) => ({
+        url: `/api/v3/admin/players/${playerId}/coins/grant`,
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: { amount, reason },
+      }),
+      invalidatesTags: ["Admin"],
+    }),
+
     createCustomWorlde: builder.mutation<void, any>({
       query: (body) => ({
         url: `/api/v3/game/wordle/custom`,
@@ -829,6 +867,9 @@ export const {
   useGetAdminMeQuery,
   useGetAdminOverviewQuery,
   useSearchAdminPlayersQuery,
+  useGetAdminPlayerNotesQuery,
+  useAddAdminPlayerNoteMutation,
+  useGrantAdminPlayerCoinsMutation,
   useGetAdminPlayerProfileQuery,
   useCreateCustomWorldeMutation,
   useGetWordleSavedStateQuery,
