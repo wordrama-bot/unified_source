@@ -54,6 +54,12 @@ router.post(
 );
 
 router.get(
+  '/players/:playerId/entitlements',
+  requireAdminPermission('players:read'),
+  adminController.playerEntitlements,
+);
+
+router.get(
   '/players/:playerId',
   requireAdminPermission('players:read'),
   adminController.playerProfile,

@@ -1,17 +1,34 @@
 import { db } from '../../models'
 
-export async function getPlayerEntitlements(playerId: string) {
-  const { data, error } = await db
+export async function getPlayerEntitlements(
+  playerId: string,
+  options?: {
+    includeInactive?: boolean;
+  },
+) {
+  let query = db
     .from('_player_entitlements')
     .select('*')
     .eq('player_id', playerId)
-    .eq('status', 'ACTIVE')
-    .order('created_at', { ascending: false })
+    .order('created_at', { ascending: false });
 
-  if (error) throw error
+  if (!options?.includeInactive) {
+    query = query.eq('status', 'ACTIVE');
+  }
 
-  const now = new Date().toISOString()
-  return (data ?? []).filter((row: any) => !row.expires_at || row.expires_at > now)
+  const { data, error } = await query;
+
+  if (error) throw error;
+
+  if (options?.includeInactive) {
+    return data ?? [];
+  }
+
+  const now = new Date().toISOString();
+
+  return (data ?? []).filter(
+    (row: any) => !row.expires_at || row.expires_at > now,
+  );
 }
 
 export async function hasPlayerEntitlement(

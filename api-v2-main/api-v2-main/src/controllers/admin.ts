@@ -15,6 +15,7 @@ import {
   banPlayer,
   unbanPlayer,
 } from '../services/admin/bans';
+import { getPlayerEntitlements } from '../services/marketplaceV2/entitlements';
 
 async function me(req: ApiRequest, res: Response) {
   return res.status(200).json({
@@ -209,6 +210,21 @@ async function unbanPlayerAccount(req: ApiRequest, res: Response) {
   });
 }
 
+async function playerEntitlements(req: ApiRequest, res: Response) {
+  const { playerId } = req.params;
+
+  const data = await getPlayerEntitlements(playerId, {
+    includeInactive: true,
+  });
+
+  return res.status(200).json({
+    status: 200,
+    count: data.length,
+    data,
+    message: 'Player entitlements loaded',
+  });
+}
+
 export default {
   me,
   overview,
@@ -219,4 +235,5 @@ export default {
   grantCoins,
   banPlayerAccount,
   unbanPlayerAccount,
+  playerEntitlements,
 };
