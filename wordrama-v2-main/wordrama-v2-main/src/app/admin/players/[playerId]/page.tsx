@@ -23,6 +23,13 @@ export default function AdminPlayerProfilePage() {
     useGrantAdminPlayerCoinsMutation();
   const [banPlayer, { isLoading: banningPlayer }] = useBanAdminPlayerMutation();
   const [unbanPlayer, { isLoading: unbanningPlayer }] = useUnbanAdminPlayerMutation();
+  const [showBanPlayer, setShowBanPlayer] = useState(false);
+  const [showUnbanPlayer, setShowUnbanPlayer] = useState(false);
+  const [banReason, setBanReason] = useState("");
+  const [banNotes, setBanNotes] = useState("");
+  const [banExpiresAt, setBanExpiresAt] = useState("");
+  const [unbanReason, setUnbanReason] = useState("");
+  const [selectedBanTargets, setSelectedBanTargets] = useState<Record<string, boolean>>({});
 
   const { data, isLoading, error } = useGetAdminPlayerProfileQuery(playerId, {
     skip: !playerId,
@@ -40,6 +47,8 @@ export default function AdminPlayerProfilePage() {
   const notes = notesData?.data ?? [];
 
   const profile = data?.data;
+
+  const banTargetOptions = buildBanTargetOptions(profile);
 
   if (isLoading) {
     return (
@@ -106,11 +115,19 @@ export default function AdminPlayerProfilePage() {
     const cleanReason = banReason.trim();
     if (!cleanReason) return;
 
+    const banTargets = banTargetOptions
+      .filter((target: any) => selectedBanTargets[target.key])
+      .map((target: any) => ({
+        banType: target.banType ?? target.key,
+        banValue: target.value,
+      }));
+
     await banPlayer({
       playerId,
       reason: cleanReason,
       notes: banNotes.trim() || undefined,
       expiresAt: banExpiresAt || null,
+      banTargets,
     }).unwrap();
 
     setShowBanPlayer(false);
@@ -203,7 +220,17 @@ export default function AdminPlayerProfilePage() {
           <div className="grid gap-3 sm:grid-cols-2">
             <ActionButton label="Grant Coins" onClick={() => setShowGrantCoins(true)} />
             <ActionButton label="Grant Entitlement" disabled />
-            <ActionButton label="Ban Player" onClick={() => setShowBanPlayer(true)} />
+            <ActionButton
+              label="Ban Player"
+              onClick={() => {
+                const initialTargets: Record<string, boolean> = {};
+                banTargetOptions.forEach((target: any) => {
+                  initialTargets[target.key] = target.defaultChecked;
+                });
+                setSelectedBanTargets(initialTargets);
+                setShowBanPlayer(true);
+              }}
+            />
             <ActionButton label="Unban Player" onClick={() => setShowUnbanPlayer(true)} />
             <ActionButton label="Reset Streak" disabled />
             <ActionButton label="Copy Player JSON" onClick={() => copyPlayerJson(profile)} />
@@ -264,9 +291,31 @@ export default function AdminPlayerProfilePage() {
 
       <section className="mt-6 grid gap-6 lg:grid-cols-2">
         <Panel title="Discord">
-          <KeyValue label="Username" value={identity._discord_link?.[0]?.username ?? "N/A"} />
-          <KeyValue label="Discord ID" value={identity._discord_link?.[0]?.user_id ?? "N/A"} />
-          <KeyValue label="Linked At" value={formatDate(identity._discord_link?.[0]?.created_at)} />
+          <KeyValue
+            label="Username"
+            value={
+              identity._discord_link?.username ??
+              profile.authIdentity?.discordGlobalName ??
+              profile.authIdentity?.discordUsername ??
+              "N/A"
+            }
+          />
+          <KeyValue
+            label="Discord ID"
+            value={
+              identity._discord_link?.user_id ??
+              profile.authIdentity?.discordId ??
+              "N/A"
+            }
+          />
+          <KeyValue
+            label="Auth Provider"
+            value={profile.authIdentity?.provider ?? "N/A"}
+          />
+          <KeyValue
+            label="Linked At"
+            value={formatDate(identity._discord_link?.created_at)}
+          />
         </Panel>
 
         <Panel title="Coins">
@@ -465,6 +514,43 @@ export default function AdminPlayerProfilePage() {
                   placeholder="Required moderation reason..."
                   className="mt-1 min-h-[90px] w-full rounded-md border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
                 />
+              </div>
+
+              <div>
+                <label className="text-sm font-medium">Ban Targets</label>
+                  <div className="mt-2 space-y-2 rounded-md border p-3">
+                    {banTargetOptions.map((target: any) => (
+                      <label
+                        key={target.key}
+                        className="flex items-start gap-3 rounded-md p-2 hover:bg-muted"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={Boolean(selectedBanTargets[target.key])}
+                          disabled={target.locked}
+                          onChange={(event) =>
+                            setSelectedBanTargets((current) => ({
+                              ...current,
+                              [target.key]: event.target.checked,
+                            }))
+                          }
+                          className="mt-1"
+                        />
+                        <span className="min-w-0">
+                          <span className="block text-sm font-medium">
+                            {target.label}
+                            {target.locked ? " (required)" : ""}
+                          </span>
+                          <span className="block break-all text-xs text-muted-foreground">
+                            {target.value}
+                          </span>
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  IP and username bans are optional because they can create false positives.
+                </p>
               </div>
 
               <div>
@@ -769,6 +855,53 @@ function ActionButton({
       {label}
     </button>
   );
+}
+
+function buildBanTargetOptions(profile: any) {
+  const targets = profile?.banTargets;
+
+  if (!targets) return [];
+
+  const options = [
+    {
+      key: "PLAYER",
+      label: "Player Account",
+      value: targets.playerId,
+      defaultChecked: true,
+      locked: true,
+    },
+    {
+      key: "EMAIL",
+      label: "Email",
+      value: targets.email,
+      defaultChecked: Boolean(targets.email),
+      locked: false,
+    },
+    {
+      key: "DISCORD",
+      label: "Discord ID",
+      value: targets.discordId,
+      defaultChecked: Boolean(targets.discordId),
+      locked: false,
+    },
+    {
+      key: "USERNAME",
+      label: "Username",
+      value: targets.username,
+      defaultChecked: false,
+      locked: false,
+    },
+    ...(targets.recentIps ?? []).map((ip: string) => ({
+      key: `IP:${ip}`,
+      label: "IP Address",
+      value: ip,
+      defaultChecked: false,
+      locked: false,
+      banType: "IP",
+    })),
+  ];
+
+  return options.filter((option) => Boolean(option.value));
 }
 
 function copyPlayerJson(profile: any) {

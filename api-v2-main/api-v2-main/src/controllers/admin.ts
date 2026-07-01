@@ -150,7 +150,7 @@ async function grantCoins(req: ApiRequest, res: Response) {
 
 async function banPlayerAccount(req: ApiRequest, res: Response) {
   const { playerId } = req.params;
-  const { reason, notes, expiresAt } = req.body;
+  const { reason, notes, expiresAt, banTargets } = req.body;
 
   if (!req.userId) {
     return res.status(401).json({
@@ -169,6 +169,7 @@ async function banPlayerAccount(req: ApiRequest, res: Response) {
     expiresAt: expiresAt ? String(expiresAt) : null,
     requestIp: req.ip,
     userAgent: req.headers['user-agent'],
+    banTargets: Array.isArray(banTargets) ? banTargets : undefined,
   });
 
   return res.status(201).json({

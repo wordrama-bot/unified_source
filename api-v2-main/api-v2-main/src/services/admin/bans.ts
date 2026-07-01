@@ -1,5 +1,10 @@
 import { db } from '../../models';
 
+type BanTarget = {
+  banType: 'PLAYER' | 'EMAIL' | 'DISCORD' | 'IP' | 'USERNAME';
+  banValue: string;
+};
+
 export async function banPlayer({
   targetPlayerId,
   adminPlayerId,
@@ -8,6 +13,7 @@ export async function banPlayer({
   expiresAt,
   requestIp,
   userAgent,
+  banTargets,
 }: {
   targetPlayerId: string;
   adminPlayerId: string;
@@ -16,6 +22,7 @@ export async function banPlayer({
   expiresAt?: string | null;
   requestIp?: string;
   userAgent?: string;
+  banTargets?: BanTarget[];
 }) {
   const cleanReason = reason.trim();
 
@@ -30,22 +37,40 @@ export async function banPlayer({
     .eq('ban_value', targetPlayerId)
     .eq('is_active', true);
 
-  const { data: ban, error } = await db
+    const targets: BanTarget[] =
+    banTargets && banTargets.length > 0
+      ? banTargets
+      : [{ banType: 'PLAYER', banValue: targetPlayerId }];
+
+  const uniqueTargets = Array.from(
+    new Map(
+      targets
+        .filter((target) => target.banValue)
+        .map((target) => [
+          `${target.banType}:${target.banValue}`,
+          target,
+        ]),
+    ).values(),
+  );
+
+  const rows = uniqueTargets.map((target) => ({
+    ban_type: target.banType,
+    ban_value: target.banValue,
+    reason: cleanReason,
+    notes: notes?.trim() || null,
+    created_by: adminPlayerId,
+    expires_at: expiresAt || null,
+    is_active: true,
+    metadata: {
+      source: 'admin_dashboard',
+      targetPlayerId,
+    },
+  }));
+
+  const { data: bans, error } = await db
     .from('_admin_bans')
-    .insert({
-      ban_type: 'PLAYER',
-      ban_value: targetPlayerId,
-      reason: cleanReason,
-      notes: notes?.trim() || null,
-      created_by: adminPlayerId,
-      expires_at: expiresAt || null,
-      is_active: true,
-      metadata: {
-        source: 'admin_dashboard',
-      },
-    })
-    .select('*')
-    .maybeSingle();
+    .insert(rows)
+    .select('*');
 
   if (error) {
     console.error('[admin.bans] banPlayer error', error);
@@ -60,16 +85,17 @@ export async function banPlayer({
     target_type: 'PLAYER',
     target_id: targetPlayerId,
     before_value: before.data ?? [],
-    after_value: ban,
+    after_value: bans ?? [],
     request_ip: requestIp ?? null,
     user_agent: userAgent ?? null,
     metadata: {
-      banId: ban?.id,
+      banIds: (bans ?? []).map((ban: any) => ban.id),
+      banTargets: uniqueTargets,
       expiresAt: expiresAt || null,
     },
   });
 
-  return ban;
+  return bans ?? [];
 }
 
 export async function unbanPlayer({

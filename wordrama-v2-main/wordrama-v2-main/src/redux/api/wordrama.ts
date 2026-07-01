@@ -808,14 +808,20 @@ export const wordramaApiV3 = createApi({
 
     banAdminPlayer: builder.mutation<
       any,
-      { playerId: string; reason: string; notes?: string; expiresAt?: string | null }
+      {
+        playerId: string;
+        reason: string;
+        notes?: string;
+        expiresAt?: string | null;
+        banTargets?: { banType: string; banValue: string }[];
+      }
     >({
-      query: ({ playerId, reason, notes, expiresAt }) => ({
+      query: ({ playerId, reason, notes, expiresAt, banTargets }) => ({
         url: `/api/v3/admin/players/${playerId}/ban`,
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: { reason, notes, expiresAt },
+        body: { reason, notes, expiresAt, banTargets },
       }),
       invalidatesTags: ["Admin"],
     }),

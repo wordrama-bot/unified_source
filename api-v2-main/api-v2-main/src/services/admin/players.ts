@@ -159,11 +159,70 @@ export async function getPlayerAdminProfile(playerId: string) {
     return null;
   }
 
+  const { data: authUserData } = await db.auth.admin.getUserById(playerId);
+
+  const discordLink = Array.isArray(identity.data._discord_link)
+    ? identity.data._discord_link[0]
+    : identity.data._discord_link;
+
+  const authUser = authUserData?.user;
+
+  const email = authUser?.email ?? null;
+
+  const authProvider = authUser?.app_metadata?.provider;
+
+  const discordId =
+    discordLink?.user_id ??
+    authUser?.user_metadata?.provider_id ??
+    (
+      authProvider === 'discord'
+        ? authUser?.user_metadata?.sub
+        : null
+    ) ??
+    null;
+
+  const recentIps = Array.from(
+    new Set(
+      (auditHistory.data ?? [])
+        .map((row: any) => row.ip)
+        .filter(Boolean),
+    ),
+  ).slice(0, 10);
+
+  const banTargets = {
+    playerId,
+    username: identity.data.username,
+    displayName: identity.data.display_name,
+    email,
+    discordId,
+    recentIps,
+  };
+
+  const authIdentity = {
+    email,
+    provider: authUser?.app_metadata?.provider ?? null,
+    providers: authUser?.app_metadata?.providers ?? [],
+    discordId,
+    discordUsername:
+      authUser?.user_metadata?.full_name ??
+      authUser?.user_metadata?.name ??
+      null,
+    discordGlobalName:
+      authUser?.user_metadata?.custom_claims?.global_name ??
+      null,
+    discordAvatar:
+      authUser?.user_metadata?.avatar_url ??
+      authUser?.user_metadata?.picture ??
+      null,
+  };
+
   const gamesPlayed = gameCount.count ?? 0;
   const wins = winCount.count ?? 0;
 
   return {
     identity: identity.data,
+    authIdentity,
+    banTargets,
     gameplaySummary: {
       gamesPlayed,
       wins,
