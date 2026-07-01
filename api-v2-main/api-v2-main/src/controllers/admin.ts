@@ -15,7 +15,11 @@ import {
   banPlayer,
   unbanPlayer,
 } from '../services/admin/bans';
-import { getPlayerEntitlements } from '../services/marketplaceV2/entitlements';
+import {
+  getPlayerEntitlements,
+  previewAdminGrantEntitlement,
+} from '../services/marketplaceV2/entitlements';
+import { getCatalogItems } from '../services/marketplaceV2/catalog';
 
 async function me(req: ApiRequest, res: Response) {
   return res.status(200).json({
@@ -225,6 +229,35 @@ async function playerEntitlements(req: ApiRequest, res: Response) {
   });
 }
 
+async function catalog(req: ApiRequest, res: Response) {
+  const data = getCatalogItems();
+
+  return res.status(200).json({
+    status: 200,
+    count: data.length,
+    data,
+    message: 'Marketplace catalog loaded',
+  });
+}
+
+async function previewGrantEntitlement(req: ApiRequest, res: Response) {
+  const { playerId } = req.params;
+  const { catalogItemId, expiresAt } = req.body;
+
+  const data = await previewAdminGrantEntitlement({
+    playerId,
+    catalogItemId: String(catalogItemId ?? ''),
+    expiresAt: expiresAt ? String(expiresAt) : null,
+  });
+
+  return res.status(200).json({
+    status: 200,
+    count: 1,
+    data,
+    message: 'Entitlement grant preview loaded',
+  });
+}
+
 export default {
   me,
   overview,
@@ -236,4 +269,6 @@ export default {
   banPlayerAccount,
   unbanPlayerAccount,
   playerEntitlements,
+  catalog,
+  previewGrantEntitlement,
 };

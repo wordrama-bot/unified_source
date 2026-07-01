@@ -342,3 +342,7 @@ export function getCatalogItemsByIds(ids: string[]): CatalogItem[] {
   const map = new Map(CATALOG.map(item => [item.catalogItemId, item]))
   return ids.map(id => map.get(id)).filter(Boolean) as CatalogItem[]
 }
+
+export function getCatalogItems(): CatalogItem[] {
+  return CATALOG;
+}
