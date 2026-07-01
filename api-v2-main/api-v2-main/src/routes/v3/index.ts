@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { validateToken, validateUserRole } from '../../middleware/tokenValidation';
 import { validatePlayerNotBanned } from '../../middleware/banEnforcement';
+import { auditAuthenticatedRequest } from '../../middleware/requestAudit';
 
 // Routes
 import { router as wrappedRouter } from './wrapped';
@@ -28,12 +29,14 @@ const authedPlayer = [
   validateToken,
   validateUserRole(['PLAYER', 'STREAMER', 'SERVICE_TOKEN']),
   validatePlayerNotBanned,
+  auditAuthenticatedRequest,
 ] as const;
 
 const authedStreamer = [
   validateToken,
   validateUserRole(['STREAMER', 'SERVICE_TOKEN']),
   validatePlayerNotBanned,
+  auditAuthenticatedRequest,
 ] as const;
 
 const authedService = [
