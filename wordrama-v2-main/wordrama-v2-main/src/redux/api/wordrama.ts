@@ -83,6 +83,7 @@ export const wordramaApiV3 = createApi({
     "Purchases",
     "Challenges",
     "PublicProfile",
+    "Admin",
   ],
   endpoints: (builder) => ({
     getWordleStreakByUserId: builder.query<
@@ -727,6 +728,46 @@ export const wordramaApiV3 = createApi({
       invalidatesTags: ["Stats", "Leaderboard", "Spellbee"],
     }),
 
+        getAdminMe: builder.query<any, void>({
+      query: () => ({
+        url: `/api/v3/admin/me`,
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+      }),
+      providesTags: ["Admin"],
+    }),
+
+    getAdminOverview: builder.query<any, void>({
+      query: () => ({
+        url: `/api/v3/admin/overview`,
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+      }),
+      providesTags: ["Admin"],
+    }),
+
+    searchAdminPlayers: builder.query<any, string>({
+      query: (q) => ({
+        url: `/api/v3/admin/players/search?q=${encodeURIComponent(q)}`,
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+      }),
+      providesTags: ["Admin"],
+    }),
+
+    getAdminPlayerProfile: builder.query<any, string>({
+      query: (playerId) => ({
+        url: `/api/v3/admin/players/${playerId}`,
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+      }),
+      providesTags: ["Admin"],
+    }),
+
     createCustomWorlde: builder.mutation<void, any>({
       query: (body) => ({
         url: `/api/v3/game/wordle/custom`,
@@ -785,6 +826,10 @@ export const {
   useDeleteAccountMutation,
   useSubmitWordleResultMutation,
   useSubmitSpellbeeResultMutation,
+  useGetAdminMeQuery,
+  useGetAdminOverviewQuery,
+  useSearchAdminPlayersQuery,
+  useGetAdminPlayerProfileQuery,
   useCreateCustomWorldeMutation,
   useGetWordleSavedStateQuery,
   useUpdateWordleSavedStateMutation,
