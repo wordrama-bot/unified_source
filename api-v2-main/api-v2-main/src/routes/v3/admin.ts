@@ -65,6 +65,12 @@ router.post(
   adminController.previewGrantEntitlement,
 );
 
+router.post(
+  '/players/:playerId/entitlements/grant',
+  requireAdminPermission('economy:write'),
+  adminController.grantEntitlement,
+);
+
 router.get(
   '/catalog',
   requireAdminPermission('players:read'),

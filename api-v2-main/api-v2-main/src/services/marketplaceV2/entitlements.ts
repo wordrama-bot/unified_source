@@ -121,3 +121,84 @@ export async function previewAdminGrantEntitlement({
     canGrant: !hasActivePermanent,
   };
 }
+
+export async function adminGrantEntitlement({
+  playerId,
+  adminPlayerId,
+  catalogItemId,
+  reason,
+  expiresAt,
+  requestIp,
+  userAgent,
+}: {
+  playerId: string;
+  adminPlayerId: string;
+  catalogItemId: string;
+  reason: string;
+  expiresAt?: string | null;
+  requestIp?: string;
+  userAgent?: string;
+}) {
+  const cleanReason = reason.trim();
+
+  if (!cleanReason) {
+    throw new Error('Reason is required.');
+  }
+
+  const preview = await previewAdminGrantEntitlement({
+    playerId,
+    catalogItemId,
+    expiresAt,
+  });
+
+  if (!preview.canGrant) {
+    throw new Error(preview.warnings[0] ?? 'Entitlement cannot be granted.');
+  }
+
+  const { data, error } = await db
+    .from('_player_entitlements')
+    .insert({
+      player_id: playerId,
+      entitlement_key: preview.catalogItem.entitlementKey,
+      entitlement_type: preview.catalogItem.entitlementType,
+      source_type: 'ADMIN',
+      status: 'ACTIVE',
+      starts_at: preview.requestedGrant.startsAt,
+      expires_at: preview.requestedGrant.expiresAt,
+      metadata: {
+        reason: cleanReason,
+        grantedBy: adminPlayerId,
+        catalogItemId: preview.catalogItem.catalogItemId,
+        sku: preview.catalogItem.sku,
+        itemName: preview.catalogItem.itemName,
+        source: 'admin_dashboard',
+      },
+    })
+    .select('*')
+    .maybeSingle();
+
+  if (error) {
+    console.error('[entitlements] adminGrantEntitlement error', error);
+    throw new Error('Unable to grant entitlement.');
+  }
+
+  await db.from('_moderation_actions').insert({
+    action_type: 'ENTITLEMENT_GRANTED',
+    target_user_id: playerId,
+    reason: cleanReason,
+    performed_by: adminPlayerId,
+    target_type: 'PLAYER',
+    target_id: playerId,
+    before_value: preview.existingEntitlements,
+    after_value: data,
+    request_ip: requestIp ?? null,
+    user_agent: userAgent ?? null,
+    metadata: {
+      catalogItemId,
+      entitlementKey: preview.catalogItem.entitlementKey,
+      expiresAt: preview.requestedGrant.expiresAt,
+    },
+  });
+
+  return data;
+}

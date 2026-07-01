@@ -16,6 +16,7 @@ import {
   unbanPlayer,
 } from '../services/admin/bans';
 import {
+  adminGrantEntitlement,
   getPlayerEntitlements,
   previewAdminGrantEntitlement,
 } from '../services/marketplaceV2/entitlements';
@@ -258,6 +259,37 @@ async function previewGrantEntitlement(req: ApiRequest, res: Response) {
   });
 }
 
+async function grantEntitlement(req: ApiRequest, res: Response) {
+  const { playerId } = req.params;
+  const { catalogItemId, reason, expiresAt } = req.body;
+
+  if (!req.userId) {
+    return res.status(401).json({
+      status: 401,
+      count: 0,
+      data: {},
+      message: 'Unauthorized',
+    });
+  }
+
+  const data = await adminGrantEntitlement({
+    playerId,
+    adminPlayerId: req.userId,
+    catalogItemId: String(catalogItemId ?? ''),
+    reason: String(reason ?? ''),
+    expiresAt: expiresAt ? String(expiresAt) : null,
+    requestIp: req.ip,
+    userAgent: req.headers['user-agent'],
+  });
+
+  return res.status(201).json({
+    status: 201,
+    count: 1,
+    data,
+    message: 'Entitlement granted',
+  });
+}
+
 export default {
   me,
   overview,
@@ -271,4 +303,5 @@ export default {
   playerEntitlements,
   catalog,
   previewGrantEntitlement,
+  grantEntitlement,
 };
