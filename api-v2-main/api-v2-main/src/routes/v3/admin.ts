@@ -41,6 +41,18 @@ router.post(
   adminController.grantCoins,
 );
 
+router.post(
+  '/players/:playerId/ban',
+  requireAdminPermission('moderation:write'),
+  adminController.banPlayerAccount,
+);
+
+router.post(
+  '/players/:playerId/unban',
+  requireAdminPermission('moderation:write'),
+  adminController.unbanPlayerAccount,
+);
+
 router.get(
   '/players/:playerId',
   requireAdminPermission('players:read'),

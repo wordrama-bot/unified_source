@@ -806,6 +806,34 @@ export const wordramaApiV3 = createApi({
       invalidatesTags: ["Admin"],
     }),
 
+    banAdminPlayer: builder.mutation<
+      any,
+      { playerId: string; reason: string; notes?: string; expiresAt?: string | null }
+    >({
+      query: ({ playerId, reason, notes, expiresAt }) => ({
+        url: `/api/v3/admin/players/${playerId}/ban`,
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: { reason, notes, expiresAt },
+      }),
+      invalidatesTags: ["Admin"],
+    }),
+
+    unbanAdminPlayer: builder.mutation<
+      any,
+      { playerId: string; reason: string }
+    >({
+      query: ({ playerId, reason }) => ({
+        url: `/api/v3/admin/players/${playerId}/unban`,
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: { reason },
+      }),
+      invalidatesTags: ["Admin"],
+    }),
+
     createCustomWorlde: builder.mutation<void, any>({
       query: (body) => ({
         url: `/api/v3/game/wordle/custom`,
@@ -870,6 +898,8 @@ export const {
   useGetAdminPlayerNotesQuery,
   useAddAdminPlayerNoteMutation,
   useGrantAdminPlayerCoinsMutation,
+  useBanAdminPlayerMutation,
+  useUnbanAdminPlayerMutation,
   useGetAdminPlayerProfileQuery,
   useCreateCustomWorldeMutation,
   useGetWordleSavedStateQuery,

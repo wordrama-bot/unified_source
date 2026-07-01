@@ -11,6 +11,10 @@ import {
   getModeratorNotes,
 } from '../services/admin/notes';
 import { grantPlayerCoins } from '../services/admin/coins';
+import {
+  banPlayer,
+  unbanPlayer,
+} from '../services/admin/bans';
 
 async function me(req: ApiRequest, res: Response) {
   return res.status(200).json({
@@ -144,6 +148,66 @@ async function grantCoins(req: ApiRequest, res: Response) {
   });
 }
 
+async function banPlayerAccount(req: ApiRequest, res: Response) {
+  const { playerId } = req.params;
+  const { reason, notes, expiresAt } = req.body;
+
+  if (!req.userId) {
+    return res.status(401).json({
+      status: 401,
+      count: 0,
+      data: {},
+      message: 'Unauthorized',
+    });
+  }
+
+  const data = await banPlayer({
+    targetPlayerId: playerId,
+    adminPlayerId: req.userId,
+    reason: String(reason ?? ''),
+    notes: notes ? String(notes) : undefined,
+    expiresAt: expiresAt ? String(expiresAt) : null,
+    requestIp: req.ip,
+    userAgent: req.headers['user-agent'],
+  });
+
+  return res.status(201).json({
+    status: 201,
+    count: 1,
+    data,
+    message: 'Player banned',
+  });
+}
+
+async function unbanPlayerAccount(req: ApiRequest, res: Response) {
+  const { playerId } = req.params;
+  const { reason } = req.body;
+
+  if (!req.userId) {
+    return res.status(401).json({
+      status: 401,
+      count: 0,
+      data: {},
+      message: 'Unauthorized',
+    });
+  }
+
+  const data = await unbanPlayer({
+    targetPlayerId: playerId,
+    adminPlayerId: req.userId,
+    reason: String(reason ?? ''),
+    requestIp: req.ip,
+    userAgent: req.headers['user-agent'],
+  });
+
+  return res.status(200).json({
+    status: 200,
+    count: data.length,
+    data,
+    message: 'Player unbanned',
+  });
+}
+
 export default {
   me,
   overview,
@@ -152,4 +216,6 @@ export default {
   playerNotes,
   createPlayerNote,
   grantCoins,
+  banPlayerAccount,
+  unbanPlayerAccount,
 };

@@ -8,6 +8,8 @@ import {
   useGetAdminPlayerNotesQuery,
   useGetAdminPlayerProfileQuery,
   useGrantAdminPlayerCoinsMutation,
+  useBanAdminPlayerMutation,
+  useUnbanAdminPlayerMutation,
 } from "@/redux/api/wordrama";
 
 export default function AdminPlayerProfilePage() {
@@ -19,6 +21,8 @@ export default function AdminPlayerProfilePage() {
   const [coinReason, setCoinReason] = useState("");
   const [grantCoins, { isLoading: grantingCoins }] =
     useGrantAdminPlayerCoinsMutation();
+  const [banPlayer, { isLoading: banningPlayer }] = useBanAdminPlayerMutation();
+  const [unbanPlayer, { isLoading: unbanningPlayer }] = useUnbanAdminPlayerMutation();
 
   const { data, isLoading, error } = useGetAdminPlayerProfileQuery(playerId, {
     skip: !playerId,
@@ -96,6 +100,40 @@ export default function AdminPlayerProfilePage() {
     setCoinReason("");
   }
 
+  async function handleBanPlayer(event: React.FormEvent) {
+    event.preventDefault();
+
+    const cleanReason = banReason.trim();
+    if (!cleanReason) return;
+
+    await banPlayer({
+      playerId,
+      reason: cleanReason,
+      notes: banNotes.trim() || undefined,
+      expiresAt: banExpiresAt || null,
+    }).unwrap();
+
+    setShowBanPlayer(false);
+    setBanReason("");
+    setBanNotes("");
+    setBanExpiresAt("");
+  }
+
+  async function handleUnbanPlayer(event: React.FormEvent) {
+    event.preventDefault();
+
+    const cleanReason = unbanReason.trim();
+    if (!cleanReason) return;
+
+    await unbanPlayer({
+      playerId,
+      reason: cleanReason,
+    }).unwrap();
+
+    setShowUnbanPlayer(false);
+    setUnbanReason("");
+  }
+
   return (
     <main className="mx-auto max-w-7xl px-6 py-10">
       <Link href="/admin" className="text-sm text-muted-foreground hover:underline">
@@ -165,8 +203,8 @@ export default function AdminPlayerProfilePage() {
           <div className="grid gap-3 sm:grid-cols-2">
             <ActionButton label="Grant Coins" onClick={() => setShowGrantCoins(true)} />
             <ActionButton label="Grant Entitlement" disabled />
-            <ActionButton label="Ban Player" disabled />
-            <ActionButton label="Unban Player" disabled />
+            <ActionButton label="Ban Player" onClick={() => setShowBanPlayer(true)} />
+            <ActionButton label="Unban Player" onClick={() => setShowUnbanPlayer(true)} />
             <ActionButton label="Reset Streak" disabled />
             <ActionButton label="Copy Player JSON" onClick={() => copyPlayerJson(profile)} />
             <ActionButton label="Copy Player ID" onClick={() => navigator.clipboard.writeText(identity.id)} />
@@ -404,6 +442,112 @@ export default function AdminPlayerProfilePage() {
                   className="rounded-md border px-4 py-2 text-sm font-medium hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {grantingCoins ? "Granting..." : "Grant Coins"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+      {showBanPlayer && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
+          <div className="w-full max-w-md rounded-xl border bg-card p-6 shadow-xl">
+            <h2 className="text-xl font-semibold">Ban Player</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Ban {identity.display_name || identity.username}. This creates an active PLAYER ban.
+            </p>
+
+            <form onSubmit={handleBanPlayer} className="mt-5 space-y-4">
+              <div>
+                <label className="text-sm font-medium">Reason</label>
+                <textarea
+                  value={banReason}
+                  onChange={(event) => setBanReason(event.target.value)}
+                  placeholder="Required moderation reason..."
+                  className="mt-1 min-h-[90px] w-full rounded-md border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-medium">Internal Notes</label>
+                <textarea
+                  value={banNotes}
+                  onChange={(event) => setBanNotes(event.target.value)}
+                  placeholder="Optional internal details..."
+                  className="mt-1 min-h-[70px] w-full rounded-md border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-medium">
+                  Expires At
+                  <span className="ml-1 text-xs text-muted-foreground">
+                    optional
+                  </span>
+                </label>
+                <input
+                  type="datetime-local"
+                  value={banExpiresAt}
+                  onChange={(event) => setBanExpiresAt(event.target.value)}
+                  className="mt-1 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
+                />
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Leave blank for a permanent ban.
+                </p>
+              </div>
+
+              <div className="flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowBanPlayer(false)}
+                  className="rounded-md border px-4 py-2 text-sm hover:bg-muted"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={banningPlayer || !banReason.trim()}
+                  className="rounded-md border border-red-500 px-4 py-2 text-sm font-medium text-red-400 hover:bg-red-500/10 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {banningPlayer ? "Banning..." : "Ban Player"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+      {showUnbanPlayer && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
+          <div className="w-full max-w-md rounded-xl border bg-card p-6 shadow-xl">
+            <h2 className="text-xl font-semibold">Unban Player</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Deactivate all active PLAYER bans for {identity.display_name || identity.username}.
+            </p>
+
+            <form onSubmit={handleUnbanPlayer} className="mt-5 space-y-4">
+              <div>
+                <label className="text-sm font-medium">Reason</label>
+                <textarea
+                  value={unbanReason}
+                  onChange={(event) => setUnbanReason(event.target.value)}
+                  placeholder="Required unban reason..."
+                  className="mt-1 min-h-[90px] w-full rounded-md border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
+                />
+              </div>
+
+              <div className="flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowUnbanPlayer(false)}
+                  className="rounded-md border px-4 py-2 text-sm hover:bg-muted"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={unbanningPlayer || !unbanReason.trim()}
+                  className="rounded-md border px-4 py-2 text-sm font-medium hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {unbanningPlayer ? "Unbanning..." : "Unban Player"}
                 </button>
               </div>
             </form>
