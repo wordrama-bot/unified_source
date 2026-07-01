@@ -204,8 +204,9 @@ export const appearanceThemes: AppearanceTheme[] = [
     },
 
     keyboard: {
-      key: 'bg-slate-800 hover:bg-slate-700 active:bg-slate-600 border border-slate-700',
+      key: 'bg-slate-800 hover:bg-slate-600 active:bg-slate-500 border border-slate-500',
       keyText: 'text-white',
+      absentKey: 'bg-slate-950 border border-slate-800 text-slate-500',
     },
 
     modal: {
@@ -269,13 +270,15 @@ export const appearanceThemes: AppearanceTheme[] = [
     board: {
       emptyCell: 'bg-[#fff7ed] border-[#d6a58f] text-[#5f2d36]',
       filledCell: 'bg-[#ffe4e6] border-[#b76e79] text-[#5f2d36]',
-      absentCell: 'bg-rose-200 border-rose-100 text-rose-950',
+      absentCell: 'bg-rose-200 border-rose-300 text-[#5f2d36]',
     },
 
     keyboard: {
-      key: 'bg-rose-300 hover:bg-rose-400 active:bg-rose-500',
+      key:
+        'bg-rose-400 hover:bg-rose-300 active:bg-rose-400 border border-rose-300',
       keyText: 'text-rose-950',
-      absentKey: 'bg-rose-200 hover:bg-rose-100 active:bg-rose-100 border border-rose-100',
+      absentKey:
+        'bg-rose-200 hover:bg-rose-500 active:bg-rose-600 border border-rose-500 text-white',
     },
 
     modal: {
