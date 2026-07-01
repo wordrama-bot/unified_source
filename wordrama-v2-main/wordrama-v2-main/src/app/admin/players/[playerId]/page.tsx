@@ -10,6 +10,9 @@ import {
   useGrantAdminPlayerCoinsMutation,
   useBanAdminPlayerMutation,
   useUnbanAdminPlayerMutation,
+  useGetAdminCatalogQuery,
+  usePreviewAdminGrantEntitlementMutation,
+  useGrantAdminEntitlementMutation,
 } from "@/redux/api/wordrama";
 
 export default function AdminPlayerProfilePage() {
@@ -30,6 +33,11 @@ export default function AdminPlayerProfilePage() {
   const [banExpiresAt, setBanExpiresAt] = useState("");
   const [unbanReason, setUnbanReason] = useState("");
   const [selectedBanTargets, setSelectedBanTargets] = useState<Record<string, boolean>>({});
+  const [showGrantEntitlement, setShowGrantEntitlement] = useState(false);
+  const [selectedCatalogItemId, setSelectedCatalogItemId] = useState("");
+  const [entitlementReason, setEntitlementReason] = useState("");
+  const [entitlementExpiresAt, setEntitlementExpiresAt] = useState("");
+  const [grantPreview, setGrantPreview] = useState<any>(null);
 
   const { data, isLoading, error } = useGetAdminPlayerProfileQuery(playerId, {
     skip: !playerId,
@@ -49,6 +57,12 @@ export default function AdminPlayerProfilePage() {
   const profile = data?.data;
 
   const banTargetOptions = buildBanTargetOptions(profile);
+
+  const { data: catalogData } = useGetAdminCatalogQuery();
+  const [previewGrantEntitlement, { isLoading: previewingGrant }] =
+    usePreviewAdminGrantEntitlementMutation();
+  const [grantEntitlement, { isLoading: grantingEntitlement }] =
+    useGrantAdminEntitlementMutation();
 
   if (isLoading) {
     return (
@@ -151,6 +165,43 @@ export default function AdminPlayerProfilePage() {
     setUnbanReason("");
   }
 
+  async function handlePreviewGrantEntitlement(event: React.FormEvent) {
+    event.preventDefault();
+
+    if (!selectedCatalogItemId) return;
+
+    const preview = await previewGrantEntitlement({
+      playerId,
+      catalogItemId: selectedCatalogItemId,
+      expiresAt: entitlementExpiresAt
+        ? new Date(entitlementExpiresAt).toISOString()
+        : null,
+    }).unwrap();
+
+    setGrantPreview(preview.data);
+  }
+
+  async function handleGrantEntitlement() {
+    const cleanReason = entitlementReason.trim();
+
+    if (!selectedCatalogItemId || !cleanReason) return;
+
+    await grantEntitlement({
+      playerId,
+      catalogItemId: selectedCatalogItemId,
+      reason: cleanReason,
+      expiresAt: entitlementExpiresAt
+        ? new Date(entitlementExpiresAt).toISOString()
+        : null,
+    }).unwrap();
+
+    setShowGrantEntitlement(false);
+    setSelectedCatalogItemId("");
+    setEntitlementReason("");
+    setEntitlementExpiresAt("");
+    setGrantPreview(null);
+  }
+
   return (
     <main className="mx-auto max-w-7xl px-6 py-10">
       <Link href="/admin" className="text-sm text-muted-foreground hover:underline">
@@ -219,7 +270,10 @@ export default function AdminPlayerProfilePage() {
         <Panel title="Quick Actions">
           <div className="grid gap-3 sm:grid-cols-2">
             <ActionButton label="Grant Coins" onClick={() => setShowGrantCoins(true)} />
-            <ActionButton label="Grant Entitlement" disabled />
+            <ActionButton
+              label="Grant Entitlement"
+              onClick={() => setShowGrantEntitlement(true)}
+            />
             <ActionButton
               label="Ban Player"
               onClick={() => {
@@ -445,6 +499,93 @@ export default function AdminPlayerProfilePage() {
           />
         </Panel>
       </section>
+
+      {showGrantEntitlement && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
+          <div className="w-full max-w-2xl rounded-xl border bg-card p-6 shadow-xl">
+            <h2 className="text-xl font-semibold">Grant Entitlement</h2>
+
+            <form onSubmit={handlePreviewGrantEntitlement} className="mt-5 space-y-4">
+              <select
+                value={selectedCatalogItemId}
+                onChange={(e) => {
+                  setSelectedCatalogItemId(e.target.value);
+                  setGrantPreview(null);
+                }}
+                className="w-full rounded-md border bg-background px-3 py-2 text-sm"
+              >
+                <option value="">Select catalog item...</option>
+                {(catalogData?.data ?? []).map((item: any) => (
+                  <option key={item.catalogItemId} value={item.catalogItemId}>
+                    {item.itemName} — {item.entitlementKey}
+                  </option>
+                ))}
+              </select>
+
+              <input
+                type="datetime-local"
+                value={entitlementExpiresAt}
+                onChange={(e) => {
+                  setEntitlementExpiresAt(e.target.value);
+                  setGrantPreview(null);
+                }}
+                className="w-full rounded-md border bg-background px-3 py-2 text-sm"
+              />
+
+              <textarea
+                value={entitlementReason}
+                onChange={(e) => setEntitlementReason(e.target.value)}
+                placeholder="Required audit reason..."
+                className="min-h-[90px] w-full rounded-md border bg-background px-3 py-2 text-sm"
+              />
+
+              <button type="submit" className="rounded-md border px-4 py-2 text-sm">
+                {previewingGrant ? "Previewing..." : "Preview Grant"}
+              </button>
+            </form>
+
+            {grantPreview && (
+              <div className="mt-5 rounded-lg border p-4 text-sm">
+                <p className="font-semibold">Preview</p>
+                <p>Item: {grantPreview.catalogItem?.itemName}</p>
+                <p>Key: {grantPreview.requestedGrant?.entitlementKey}</p>
+                <p>Temporary: {grantPreview.requestedGrant?.isTemporaryGrant ? "Yes" : "No"}</p>
+                <p>Can Grant: {grantPreview.canGrant ? "Yes" : "No"}</p>
+
+                {(grantPreview.warnings ?? []).length > 0 && (
+                  <div className="mt-3 rounded border border-yellow-500 p-3 text-yellow-300">
+                    {grantPreview.warnings.map((warning: string) => (
+                      <p key={warning}>{warning}</p>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div className="mt-5 flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setShowGrantEntitlement(false)}
+                className="rounded-md border px-4 py-2 text-sm"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={
+                  grantingEntitlement ||
+                  !grantPreview?.canGrant ||
+                  !entitlementReason.trim()
+                }
+                onClick={handleGrantEntitlement}
+                className="rounded-md border px-4 py-2 text-sm font-medium disabled:opacity-50"
+              >
+                {grantingEntitlement ? "Granting..." : "Confirm Grant"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {showGrantCoins && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
