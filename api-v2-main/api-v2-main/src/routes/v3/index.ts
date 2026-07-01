@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { validateToken, validateUserRole } from '../../middleware/tokenValidation';
+import { validatePlayerNotBanned } from '../../middleware/banEnforcement';
 
 // Routes
 import { router as wrappedRouter } from './wrapped';
@@ -26,11 +27,13 @@ export const router = Router();
 const authedPlayer = [
   validateToken,
   validateUserRole(['PLAYER', 'STREAMER', 'SERVICE_TOKEN']),
+  validatePlayerNotBanned,
 ] as const;
 
 const authedStreamer = [
   validateToken,
   validateUserRole(['STREAMER', 'SERVICE_TOKEN']),
+  validatePlayerNotBanned,
 ] as const;
 
 const authedService = [
