@@ -840,6 +840,43 @@ export const wordramaApiV3 = createApi({
       invalidatesTags: ["Admin"],
     }),
 
+    getAdminCatalog: builder.query<any, void>({
+      query: () => ({
+        url: `/api/v3/admin/catalog`,
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+      }),
+      providesTags: ["Admin"],
+    }),
+
+    previewAdminGrantEntitlement: builder.mutation<
+      any,
+      { playerId: string; catalogItemId: string; expiresAt?: string | null }
+    >({
+      query: ({ playerId, catalogItemId, expiresAt }) => ({
+        url: `/api/v3/admin/players/${playerId}/entitlements/grant/preview`,
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: { catalogItemId, expiresAt },
+      }),
+    }),
+
+    grantAdminEntitlement: builder.mutation<
+      any,
+      { playerId: string; catalogItemId: string; reason: string; expiresAt?: string | null }
+    >({
+      query: ({ playerId, catalogItemId, reason, expiresAt }) => ({
+        url: `/api/v3/admin/players/${playerId}/entitlements/grant`,
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: { catalogItemId, reason, expiresAt },
+      }),
+      invalidatesTags: ["Admin"],
+    }),
+
     createCustomWorlde: builder.mutation<void, any>({
       query: (body) => ({
         url: `/api/v3/game/wordle/custom`,
@@ -907,6 +944,9 @@ export const {
   useBanAdminPlayerMutation,
   useUnbanAdminPlayerMutation,
   useGetAdminPlayerProfileQuery,
+  useGetAdminCatalogQuery,
+  usePreviewAdminGrantEntitlementMutation,
+  useGrantAdminEntitlementMutation,
   useCreateCustomWorldeMutation,
   useGetWordleSavedStateQuery,
   useUpdateWordleSavedStateMutation,
