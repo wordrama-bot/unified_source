@@ -13,6 +13,7 @@ type Props = {
   guesses: string[]
   isRevealing?: boolean
   swapEnterAndDelete: boolean
+  showPlayAgainKey?: boolean
 }
 
 export const Keyboard = ({
@@ -23,6 +24,7 @@ export const Keyboard = ({
   guesses,
   isRevealing,
   swapEnterAndDelete = false,
+  showPlayAgainKey = false,
 }: Props) => {
   const charStatuses = getStatuses(solution, guesses)
 
@@ -90,7 +92,7 @@ export const Keyboard = ({
       </div>
       <div className="flex justify-center">
         <Key
-          width={81}
+          width={showPlayAgainKey && swapEnterAndDelete ? 110 : 81}
           value={
             swapEnterAndDelete
               ? ENTER_TEXT.toUpperCase()
@@ -99,7 +101,9 @@ export const Keyboard = ({
           onClick={onClick}
           solution={solution}
         >
-          {swapEnterAndDelete ? ENTER_TEXT : DELETE_TEXT}
+          {swapEnterAndDelete
+            ? showPlayAgainKey ? 'Play Again' : ENTER_TEXT
+            : DELETE_TEXT}
         </Key>
         {['Z', 'X', 'C', 'V', 'B', 'N', 'M'].map((key) => (
           <Key
@@ -112,7 +116,7 @@ export const Keyboard = ({
           />
         ))}
         <Key
-          width={81}
+          width={showPlayAgainKey && !swapEnterAndDelete ? 110 : 81}
           value={
             swapEnterAndDelete
               ? DELETE_TEXT.toUpperCase()
@@ -121,7 +125,9 @@ export const Keyboard = ({
           onClick={onClick}
           solution={solution}
         >
-          {swapEnterAndDelete ? DELETE_TEXT : ENTER_TEXT}
+          {swapEnterAndDelete
+            ? DELETE_TEXT
+            : showPlayAgainKey ? 'Play Again' : ENTER_TEXT}
         </Key>
       </div>
     </div>

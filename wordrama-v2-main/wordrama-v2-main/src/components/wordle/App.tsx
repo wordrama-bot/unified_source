@@ -108,6 +108,7 @@ import {
   getRandomWord,
   isWinningWord,
   isWordInWordList,
+  localeAwareUpperCase,
   unicodeLength,
 } from './lib/words'
 import { getWordleState } from '../../redux/wordle/helpers';
@@ -138,7 +139,7 @@ import Snowflake from '@/components/Snowflake';
 function App(){
   const { user } = useAuth();
   //const appInsights = getAppInsights();
-  const { theme, setTheme } = useTheme();
+  const { theme, resolvedTheme, setTheme } = useTheme();
   const { showError: showErrorAlert, showSuccess: showSuccessAlert } = useAlert();
   // Redux State
   const dispatch = useDispatch();
@@ -303,6 +304,13 @@ function App(){
         : {}),
     }));
 	}, [uiSavedState, isLoadingUiSavedState, myAccount, dispatch]);
+
+  // Keep next-themes from getting stuck in "system"
+  useEffect(() => {
+    if (theme === 'system') {
+      setTheme(resolvedTheme === 'dark' ? 'dark' : 'light');
+    }
+  }, [theme, resolvedTheme, setTheme]);
 
   const { data: wordleWordPack, isLoading: isLoadingWordPack, refetch: refetchWordPack  } = useGetWordleWordPackQuery(gameState.wordPack);
   const { data: wordOfTheDay, isLoading: isLoadingWoTD } = useGetWordleWoTDQuery(wordPack);
@@ -939,8 +947,8 @@ const [playLoseSoundChristmas] = useSound('/sounds/christmas-lost.mp3', {
 
                     <Switch
                       id="theme"
-                      checked={theme === 'dark'}
-                      onCheckedChange={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                      checked={resolvedTheme === 'dark'}
+                      onCheckedChange={(checked) => setTheme(checked ? 'dark' : 'light')}
                     />
                   </div>
 
@@ -1050,6 +1058,7 @@ const [playLoseSoundChristmas] = useSound('/sounds/christmas-lost.mp3', {
                 guesses={isCustom ? gameState.custom.guesses : gameState.modes[gameState.gameMode][gameState.wordPack].guesses || []}
                 isRevealing={isRevealing}
                 swapEnterAndDelete={gameUiState?.swapDeleteAndEnter || false}
+                showPlayAgainKey={isInfinite && (isGameWon || isGameLost)}
               />
             </div>
             <div className='flex justify-center items-center pt-10'>
@@ -1096,6 +1105,13 @@ const [playLoseSoundChristmas] = useSound('/sounds/christmas-lost.mp3', {
               <AlertDialog open={isStatsModalOpen}>
                 <AlertDialogContent className="max-w-lg">
                   <AlertDialogHeader>
+                    <div className="flex justify-center pb-2">
+                      <img
+                        className="h-16 w-auto"
+                        src="/images/wordrama-logo.png"
+                        alt="Wordrama Logo"
+                      />
+                    </div>
                     <AlertDialogTitle className='text-center'>
                       {isCustom
                         ? 'Custom Game'
@@ -1188,12 +1204,27 @@ const [playLoseSoundChristmas] = useSound('/sounds/christmas-lost.mp3', {
             ) : (
               <Drawer
                 open={isStatsModalOpen && !isCustom}
-                onClose={() => setIsStatsModalOpen(false)}
+                onOpenChange={setIsStatsModalOpen}
               >
-                  <DrawerContent className={streamerMode ? 'h-4/5 bg-bg' : 'bg-bg'}>
+                <DrawerContent className={streamerMode ? 'h-4/5 bg-bg' : 'bg-bg'}>
                   <div className="mx-auto w-full max-w-screen-lg">
-                    <DrawerHeader>
-                      <DrawerTitle className="text-center text-4xl">
+                    <DrawerHeader className="relative">
+                      <button
+                        type="button"
+                        aria-label="Close stats"
+                        onClick={() => setIsStatsModalOpen(false)}
+                        className="absolute right-4 top-4 rounded px-3 py-1 text-2xl font-bold text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                      >
+                        ×
+                      </button>
+                       <div className="flex justify-center pb-2">
+                        <img
+                          className="h-16 w-auto"
+                          src="/images/wordrama-logo.png"
+                          alt="Wordrama Logo"
+                        />
+                      </div>
+                      <DrawerTitle className="text-center text-4xl pr-10">
                         {gameMode === 'DAILY'
                           ? 'Daily Stats'
                           : gameMode === 'INFINITE'
@@ -1219,8 +1250,8 @@ const [playLoseSoundChristmas] = useSound('/sounds/christmas-lost.mp3', {
                       )}
                     </DrawerDescription>
                     <DrawerDescription className="text-center text-xl">
-                      { isInfinite && 'Press Enter to play again' }
-                      { isDaily && 'Come back tomorrow to play again or try out infinite mode' }
+                      { isInfinite && 'Swipe down or tap × to close, then type or press Enter to play again' }
+                      { isDaily && 'Come back tomorrow to play again or try out infinite mode by clicking the gear to open settings' }
                     </DrawerDescription>
                     { !isCustom && (
                       <div id="fullWidthTabContent" className={`p-4 border-gray-200 dark:border-gray-600 ${streamerMode ? 'ml-64 w-1/2' : ''}`}>
@@ -1250,11 +1281,6 @@ const [playLoseSoundChristmas] = useSound('/sounds/christmas-lost.mp3', {
                         </div>
                       </div>
                     )}
-                    <DrawerFooter>
-                      <DrawerClose asChild>
-
-                      </DrawerClose>
-                    </DrawerFooter>
                   </div>
                 </DrawerContent>
               </Drawer>
