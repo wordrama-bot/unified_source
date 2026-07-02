@@ -4,6 +4,8 @@ import { ServiceBusClient } from '@azure/service-bus';
 const connectionString =
   process.env.SERVICE_BUS_CONNECTION_STRING;
 
+let hasWarnedMissingServiceBus = false;
+
 export function createMessage(type = '', content) {
   if (!type)
     return {
@@ -19,34 +21,44 @@ export function createMessage(type = '', content) {
 }
 
 export async function enqueue(messages) {
-  //console.log(`[GAME LOOP] Processing message`);
+  if (!connectionString) {
+    if (!hasWarnedMissingServiceBus) {
+      console.warn(
+        '[GAME LOOP] SERVICE_BUS_CONNECTION_STRING missing, skipping enqueue'
+      );
+      hasWarnedMissingServiceBus = true;
+    }
+
+    return;
+  }
+
   const sbClient = new ServiceBusClient(connectionString);
   const sender = sbClient.createSender('game-loop');
 
   try {
     if (messages.length === 1) {
-      // console.log(`[GAME LOOP] Sending single message`);
       await sender.sendMessages(messages);
-      await sender.close();
-      await sbClient.close();
       return;
     }
 
     let batch = await sender.createMessageBatch();
-    for (let i = 0; i < messages.length; i++) {
-      if (!batch.tryAddMessage(messages[i])) {
+
+    for (const message of messages) {
+      if (!batch.tryAddMessage(message)) {
         await sender.sendMessages(batch);
         batch = await sender.createMessageBatch();
 
-        if (!batch.tryAddMessage(messages[i])) {
+        if (!batch.tryAddMessage(message)) {
           throw new Error('Message too big to fit in a batch');
         }
       }
     }
 
-    await sender.sendMessages(batch);
-    await sender.close();
+    if (batch.count > 0) {
+      await sender.sendMessages(batch);
+    }
   } finally {
+    await sender.close();
     await sbClient.close();
   }
 }

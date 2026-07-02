@@ -1,11 +1,15 @@
 import { Router } from 'express';
 import { validateToken, validateUserRole } from '../../middleware/tokenValidation';
+import { validatePlayerNotBanned } from '../../middleware/banEnforcement';
+import { auditAuthenticatedRequest } from '../../middleware/requestAudit';
 
 // Routes
 import { router as wrappedRouter } from './wrapped';
 import { router as playerRouter } from './player';
 import { router as teamRouter } from './teams';
 import { router as gameRouter } from './game';
+import { router as billingRouter } from './billing';
+import { router as adminRouter } from './admin';
 import { router as uiRouter } from './ui';
 import { router as leaderboardRouter } from './leaderboard';
 import { router as streamerRouter } from './streamer';
@@ -24,11 +28,15 @@ export const router = Router();
 const authedPlayer = [
   validateToken,
   validateUserRole(['PLAYER', 'STREAMER', 'SERVICE_TOKEN']),
+  validatePlayerNotBanned,
+  auditAuthenticatedRequest,
 ] as const;
 
 const authedStreamer = [
   validateToken,
   validateUserRole(['STREAMER', 'SERVICE_TOKEN']),
+  validatePlayerNotBanned,
+  auditAuthenticatedRequest,
 ] as const;
 
 const authedService = [
@@ -60,6 +68,10 @@ router.use('/ui', ...authedPlayer, uiRouter);
 router.use('/streamer', ...authedStreamer, streamerRouter);
 
 router.use('/store', ...authedPlayer, storeRouter);
+
+router.use('/billing', ...authedPlayer, billingRouter);
+
+router.use('/admin', validateToken, adminRouter);
 
 /* ---------------------------------- */
 /* SERVICE TOKEN ONLY ROUTES          */

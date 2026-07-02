@@ -70,7 +70,7 @@ const SplashScreen = ({ finishLoading }: any) => {
     >
       <Image
         id="logo"
-        src="https://utfs.io/f/vieUBZcrouNZQrdaKfbRj7hpV6g4Axl20D3nvSc9I1BEkdqr"
+        src="/images/wordrama-logo.png"
         alt="Wordrama Logo"
         width={200}
         height={200}

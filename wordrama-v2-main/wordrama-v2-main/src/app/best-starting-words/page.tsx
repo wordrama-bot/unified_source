@@ -1,6 +1,8 @@
 "use client"
-import NavBar from '@/components/navbar/h-nav';
+import Link from "next/link";
+import PublicNav from '@/components/navbar/public-nav';
 import Footer from '@/sections/footer';
+import GoogleAd from "@/components/GoogleAd";
 
 export default function BestStartingWordsPage() {
   const starterWords = [
@@ -18,17 +20,23 @@ export default function BestStartingWordsPage() {
 
   return (
     <div className="flex min-h-screen w-full flex-col border:border dark:border-darkBorder bg-bg dark:bg-darkBg text-text dark:text-darkText">
-      <NavBar
+      <PublicNav
         links={[
+          { href: "/free-play", text: "Quick Play" },
+          { href: "/marketplace", text: "Marketplace" },
+          { href: "/achievements", text: "Achievements" },
+          { href: "/teams", text: "Teams" },
           { href: "/about", text: "About" },
-          { href: "/free-play", text: "Wordle" },
-          { href: "/signup", text: "SignUp" },
+          { href: "/signup", text: "Sign Up / In" },
         ]}
       />
 
       <div className="container mx-auto p-4">
         <h1 className="text-4xl font-bold mb-6">Best Starting Words for Wordle</h1>
-        <p className="text-sm text-gray-500">Last updated March 13, 2026</p>
+        
+        <p className="mt-2 text-sm text-gray-400">
+          Last updated: May 14, 2026
+        </p>
 
         <p className="mt-4">
           One of the most common questions in Wordle-style games is simple: what is the best starting word?
@@ -149,15 +157,105 @@ export default function BestStartingWordsPage() {
             The best starting words are the ones that help you gather useful information early. There is
             no magic answer that wins every puzzle, but good openers improve your odds and make your solving
             process more efficient. Try a few of these options in Wordrama and see which one fits your style. 
-	    And remember, your favorite method might not work for others. If you watch your favorite Wordle 
-	    streamer on TikTok, be sure to ask them how they like to play before trying to get them to use 
-	    your method. Chances are that they have already heard of it and tried it. Happy playing!
+            And remember, your favorite method might not work for others. If you watch your favorite Wordle 
+            streamer on TikTok, be sure to ask them how they like to play before trying to get them to use 
+            your method. Chances are that they have already heard of it and tried it. Happy playing!
           </p>
           <p className="mt-4">
-            Want to test these starters out out? Jump into <a href="/free-play" className="text-blue-500 hover:underline">free play</a> and experiment with different opening words.
+            Want to test these starters out out? Jump into <a href="/free-play" className="text-blue-500 hover:underline">Quick Play</a> and experiment with different opening words.
           </p>
         </section>
       </div>
+
+      <section className="my-8">
+        <h2 className="text-2xl font-semibold">Why Starting Words Matter</h2>
+        <p className="mt-4">
+          A strong starting word gives you useful information early. The goal is not
+          always to guess the answer immediately, but to reveal common letters,
+          identify vowels, and eliminate unlikely options. Words with a balanced mix
+          of vowels and frequent consonants can make the second guess much easier.
+        </p>
+        <p className="mt-4">
+          Beginners often focus only on words they hope might be correct. More
+          experienced players usually treat the first guess as a scouting move. A
+          good opener helps narrow the puzzle quickly, especially when paired with a
+          second guess that tests different letters instead of repeating too many
+          known misses.
+        </p>
+      </section>
+
+      <section className="my-8">
+        <h2 className="text-2xl font-semibold">Common Starting Word Mistakes</h2>
+        <p className="mt-4">
+          One common mistake is using a word with repeated letters too early. Repeated
+          letters can be useful later, but they usually reveal less information on the
+          first turn. Another mistake is ignoring yellow letters. If a letter appears
+          in yellow, it belongs in the word, but it needs to be tested in a new
+          position.
+        </p>
+        <p className="mt-4">
+          Strong play comes from combining information across guesses. Green letters
+          should usually stay fixed, yellow letters should move to new positions, and
+          gray letters should be avoided unless you are testing a very specific word
+          pattern.
+        </p>
+      </section>
+
+      <section className="mt-14 rounded-2xl border border-white/10 bg-white/5 p-6">
+        <h2 className="text-2xl font-semibold">
+          Continue Learning
+        </h2>
+
+        <p className="mt-3 text-gray-300">
+          Learn how experienced Wordrama players approach opening guesses, deduction, and puzzle strategy.
+        </p>
+
+        <div className="mt-6 flex flex-wrap gap-4">
+          <Link
+            href="/how-to-play"
+            className="rounded-lg border border-white/20 px-4 py-2 font-semibold text-white"
+          >
+            How to Play
+          </Link>
+
+          <Link
+            href="/wordle-strategy"
+            className="rounded-lg border border-white/20 px-4 py-2 font-semibold text-white"
+          >
+            Strategy Guide
+          </Link>
+
+          <Link
+            href="/best-starting-words"
+            className="rounded-lg bg-white px-4 py-2 font-semibold text-darkBg"
+          >
+            Best Starting Words
+          </Link>
+
+          <Link
+            href="/wordle-tips"
+            className="rounded-lg border border-white/20 px-4 py-2 font-semibold text-white"
+          >
+            Wordle Tips
+          </Link>
+
+          <Link
+            href="/benefits-of-word-games"
+            className="rounded-lg border border-white/20 px-4 py-2 font-semibold text-white"
+          >
+            Benefits of Word Games
+          </Link>
+        </div>
+
+        <div className="mt-10">
+            <GoogleAd
+              client="ca-pub-8970369628667981"
+              slot="8219203779"
+              minHeight={280}
+            />
+        </div>
+        
+      </section>
 
       <Footer />
     </div>

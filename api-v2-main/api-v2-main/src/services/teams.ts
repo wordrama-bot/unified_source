@@ -38,10 +38,19 @@ async function getTeamByLeader(userId: string) {
 
   if (error) {
     console.error(error);
-    return {};
+    return null;
   }
 
-  return changeKeys.camelCase(data, 10);
+  if (!data) return null;
+
+  return changeKeys.camelCase({
+    teamId: data.id,
+    teamName: data.name,
+    leader: data.leader,
+    minimumLevel: data.minimum_level,
+    createdAt: data.created_at,
+    inviteCode: data.invite_code,
+  }, 10);
 }
 
 async function getTeamByName(teamName: string) {
@@ -56,7 +65,6 @@ async function getTeamByName(teamName: string) {
     return {};
   }
 
-  // Transform data to match frontend expectations
   if (data) {
     const transformedData = {
       teamId: data.id,
@@ -66,6 +74,7 @@ async function getTeamByName(teamName: string) {
       createdAt: data.created_at,
       inviteCode: data.invite_code,
     };
+
     return changeKeys.camelCase(transformedData, 10);
   }
 
@@ -74,9 +83,9 @@ async function getTeamByName(teamName: string) {
 
 async function getTeamById(teamId: string) {
   const { data, error } = await db
-    .from('_teams')
+    .from('_mv_team_wordle_stats')
     .select('*')
-    .eq('id', teamId)
+    .eq('team_id', teamId)
     .maybeSingle();
 
   if (error) {
@@ -87,12 +96,66 @@ async function getTeamById(teamId: string) {
   // Transform data to match frontend expectations
   if (data) {
     const transformedData = {
-      teamId: data.id,
-      teamName: data.name,
+      teamId: data.team_id,
+      teamName: data.team_name,
       leader: data.leader,
       minimumLevel: data.minimum_level,
       createdAt: data.created_at,
       inviteCode: data.invite_code,
+
+      memberCount: data.member_count,
+      averageLevel: data.average_level,
+      totalCoins: data.total_coins,
+
+      alltimeGamesPlayed: data.alltime_games_played,
+      alltimeGamesWon: data.alltime_games_won,
+      alltimeGamesLost: data.alltime_games_lost,
+      alltimeGamesWonIn_1: data.alltime_games_won_in_1,
+      alltimeGamesWonIn_2: data.alltime_games_won_in_2,
+      alltimeGamesWonIn_3: data.alltime_games_won_in_3,
+      alltimeGamesWonIn_4: data.alltime_games_won_in_4,
+      alltimeGamesWonIn_5: data.alltime_games_won_in_5,
+      alltimeGamesWonIn_6: data.alltime_games_won_in_6,
+
+      dailyGamesPlayed: data.daily_games_played,
+      dailyGamesWon: data.daily_games_won,
+      dailyGamesLost: data.daily_games_lost,
+      dailyGamesWonIn_1: data.daily_games_won_in_1,
+      dailyGamesWonIn_2: data.daily_games_won_in_2,
+      dailyGamesWonIn_3: data.daily_games_won_in_3,
+      dailyGamesWonIn_4: data.daily_games_won_in_4,
+      dailyGamesWonIn_5: data.daily_games_won_in_5,
+      dailyGamesWonIn_6: data.daily_games_won_in_6,
+
+      weeklyGamesPlayed: data.weekly_games_played,
+      weeklyGamesWon: data.weekly_games_won,
+      weeklyGamesLost: data.weekly_games_lost,
+      weeklyGamesWonIn_1: data.weekly_games_won_in_1,
+      weeklyGamesWonIn_2: data.weekly_games_won_in_2,
+      weeklyGamesWonIn_3: data.weekly_games_won_in_3,
+      weeklyGamesWonIn_4: data.weekly_games_won_in_4,
+      weeklyGamesWonIn_5: data.weekly_games_won_in_5,
+      weeklyGamesWonIn_6: data.weekly_games_won_in_6,
+
+      monthlyGamesPlayed: data.monthly_games_played,
+      monthlyGamesWon: data.monthly_games_won,
+      monthlyGamesLost: data.monthly_games_lost,
+      monthlyGamesWonIn_1: data.monthly_games_won_in_1,
+      monthlyGamesWonIn_2: data.monthly_games_won_in_2,
+      monthlyGamesWonIn_3: data.monthly_games_won_in_3,
+      monthlyGamesWonIn_4: data.monthly_games_won_in_4,
+      monthlyGamesWonIn_5: data.monthly_games_won_in_5,
+      monthlyGamesWonIn_6: data.monthly_games_won_in_6,
+
+      yearlyGamesPlayed: data.yearly_games_played,
+      yearlyGamesWon: data.yearly_games_won,
+      yearlyGamesLost: data.yearly_games_lost,
+      yearlyGamesWonIn_1: data.yearly_games_won_in_1,
+      yearlyGamesWonIn_2: data.yearly_games_won_in_2,
+      yearlyGamesWonIn_3: data.yearly_games_won_in_3,
+      yearlyGamesWonIn_4: data.yearly_games_won_in_4,
+      yearlyGamesWonIn_5: data.yearly_games_won_in_5,
+      yearlyGamesWonIn_6: data.yearly_games_won_in_6,
     };
     return changeKeys.camelCase(transformedData, 10);
   }
@@ -143,14 +206,14 @@ async function getTeams(offset: number = 0, limit: number = 10) {
 }
 
 async function getAllTeamsForLeaderboard(
-  orderBy: string = 'name',
+  orderBy: string = 'overall_rank',
   orderDirection: string = 'asc',
   offset: number = 0,
-  limit: number = 5,
+  limit: number = 10,
 ) {
   const { data, error } = await db
-    .from('_teams')
-    .select('id, name, leader, minimum_level, created_at')
+    .from('_v_team_leaderboard')
+    .select('*')
     .order(orderBy, { ascending: orderDirection === 'asc' })
     .range(offset, offset + limit - 1);
 
@@ -159,17 +222,7 @@ async function getAllTeamsForLeaderboard(
     return {};
   }
 
-  // Transform data to match frontend expectations
-  const transformedData = data?.map((team, index) => ({
-    teamId: team.id,
-    teamName: team.name,
-    leader: team.leader,
-    minimumLevel: team.minimum_level,
-    createdAt: team.created_at,
-    overallRank: offset + index + 1, // Calculate rank based on position
-  }));
-
-  return changeKeys.camelCase(transformedData, 10);
+  return changeKeys.camelCase(data, 10);
 }
 
 async function getMyTeam(userId: string) {
@@ -178,28 +231,31 @@ async function getMyTeam(userId: string) {
     .from('_team_member')
     .select(
       `
-      _teams (*)
-    `,
+        _teams (*)
+      `,
     )
     .eq('player', userId)
-    .maybeSingle();
+    .limit(1);
 
   if (memberError) {
     console.error('Error checking team membership:', memberError);
   }
 
   // If found as member, return that team
-  if (memberData && memberData._teams) {
+  const firstMembership = memberData?.[0];
+
+  if (firstMembership && firstMembership._teams) {
     const transformedData = {
       vTeams: {
-        teamId: memberData._teams.id,
-        teamName: memberData._teams.name,
-        leader: memberData._teams.leader,
-        minimumLevel: memberData._teams.minimum_level,
-        createdAt: memberData._teams.created_at,
-        inviteCode: memberData._teams.invite_code,
+        teamId: firstMembership._teams.id,
+        teamName: firstMembership._teams.name,
+        leader: firstMembership._teams.leader,
+        minimumLevel: firstMembership._teams.minimum_level,
+        createdAt: firstMembership._teams.created_at,
+        inviteCode: firstMembership._teams.invite_code,
       }
     };
+
     return changeKeys.camelCase(transformedData, 10);
   }
 
@@ -234,6 +290,35 @@ async function getMyTeam(userId: string) {
   return {};
 }
 
+async function getMyTeams(userId: string) {
+  const { data, error } = await db
+    .from('_team_member')
+    .select(
+      `
+      _teams (*)
+    `,
+    )
+    .eq('player', userId);
+
+  if (error) {
+    console.error('Error checking team memberships:', error);
+    return [];
+  }
+
+  const teams = (data || [])
+    .filter((member: any) => member._teams)
+    .map((member: any) => ({
+      teamId: member._teams.id,
+      teamName: member._teams.name,
+      leader: member._teams.leader,
+      minimumLevel: member._teams.minimum_level,
+      createdAt: member._teams.created_at,
+      inviteCode: member._teams.invite_code,
+    }));
+
+  return changeKeys.camelCase({ teams }, 10);
+}
+
 async function getTeamMembers(
   teamId: string,
   offset: number = 0,
@@ -264,6 +349,36 @@ async function getTeamMembers(
   return changeKeys.camelCase(data, 10);
 }
 
+async function getTeamMembershipsForPlayer(userId: string) {
+  const { data, error } = await db
+    .from('_team_member')
+    .select('id, team')
+    .eq('player', userId);
+
+  if (error) {
+    console.error(error);
+    return [];
+  }
+
+  return data || [];
+}
+
+async function isPlayerMemberOfTeam(userId: string, teamId: string) {
+  const { data, error } = await db
+    .from('_team_member')
+    .select('id')
+    .eq('player', userId)
+    .eq('team', teamId)
+    .maybeSingle();
+
+  if (error) {
+    console.error(error);
+    return false;
+  }
+
+  return !!data;
+}
+
 async function createTeam(
   userId: string,
   teamName: string,
@@ -287,7 +402,7 @@ async function createTeam(
 
   if (createTeamError) {
     console.error(createTeamError);
-    return {};
+    return null;
   }
 
   return changeKeys.camelCase(data);
@@ -331,71 +446,85 @@ async function joinTeam(userId: string, teamId: string) {
   return changeKeys.camelCase(data);
 }
 
-async function leaveTeam(userId: string) {
-  // First, check if this user is the leader of any team
+async function leaveTeam(userId: string, teamId: string) {
+  // First, confirm the user is actually a member of this specific team
+  const isMember = await isPlayerMemberOfTeam(userId, teamId);
+
+  if (!isMember) {
+    console.error('User is not a member of this team');
+    return {};
+  }
+
+  // Check if this user is the leader of this specific team
   const { data: leaderTeam } = await db
     .from('_teams')
     .select('id')
+    .eq('id', teamId)
     .eq('leader', userId)
     .maybeSingle();
 
   if (leaderTeam) {
-    // User is a team leader - need to handle leadership transfer
-    
-    // Get other team members (excluding the leaving leader)
+    // User is this team's leader - transfer leadership or delete the team
+
     const { data: otherMembers } = await db
       .from('_team_member')
       .select('player')
-      .eq('team', leaderTeam.id)
+      .eq('team', teamId)
       .neq('player', userId)
       .limit(1);
 
     if (otherMembers && otherMembers.length > 0) {
-      // Transfer leadership to the first available member
       const newLeader = otherMembers[0].player;
-      
+
       const { error: transferError } = await db
         .from('_teams')
         .update({ leader: newLeader })
-        .eq('id', leaderTeam.id);
+        .eq('id', teamId);
 
       if (transferError) {
         console.error('Failed to transfer leadership:', transferError);
         return {};
       }
 
-      // Remove the old leader from team members
       const { error: removeLeaderError } = await db
         .from('_team_member')
         .delete()
-        .eq('player', userId);
+        .eq('player', userId)
+        .eq('team', teamId);
 
       if (removeLeaderError) {
         console.error('Failed to remove old leader:', removeLeaderError);
         return {};
       }
-
     } else {
-      // No other members - delete the entire team
+      const { error: deleteMembershipError } = await db
+        .from('_team_member')
+        .delete()
+        .eq('player', userId)
+        .eq('team', teamId);
+
+      if (deleteMembershipError) {
+        console.error('Failed to delete leader membership:', deleteMembershipError);
+        return {};
+      }
+
       const { error: deleteTeamError } = await db
         .from('_teams')
         .delete()
-        .eq('id', leaderTeam.id);
+        .eq('id', teamId);
 
       if (deleteTeamError) {
         console.error('Failed to delete empty team:', deleteTeamError);
         return {};
       }
-
-      // Note: _team_member will be empty anyway since leader was the only member
     }
-
   } else {
-    // User is just a regular member - remove them normally
+    // User is a regular member of this specific team
     const { error: leaveTeamError } = await db
       .from('_team_member')
       .delete()
-      .eq('player', userId);
+      .eq('player', userId)
+      .eq('team', teamId);
 
     if (leaveTeamError) {
       console.error('Failed to leave team:', leaveTeamError);
@@ -419,7 +548,10 @@ export default {
   getTeamByName,
   getTeamByLeader,
   getTeamById,
+  getTeamMembershipsForPlayer,
+  isPlayerMemberOfTeam,
   getTeamByInviteCode,
+  getMyTeams,
   createTeam,
   joinTeam,
   leaveTeam,

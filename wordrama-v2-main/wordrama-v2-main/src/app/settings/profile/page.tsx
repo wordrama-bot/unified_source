@@ -21,6 +21,25 @@ import { useGetMyAccountQuery, useUpdateAccountMutation } from "@/redux/api/word
 
 import { MAX_FILE_SIZE_MB } from '@/lib/config';
 
+function getProfileErrorMessage(error: any, fallback: string) {
+  const backendMessage =
+    error?.data?.message ||
+    error?.data?.error ||
+    error?.message ||
+    '';
+
+  if (typeof backendMessage === 'string' && backendMessage.trim().length > 0) {
+    return backendMessage.replace(/Bad Request - /g, '');
+  }
+
+  if (error?.status === 400) return 'Please check your profile details and try again.';
+  if (error?.status === 401 || error?.status === 403) return 'Your login session expired. Please sign in again.';
+  if (error?.status === 409) return 'That username is already taken. Please try another one.';
+  if (error?.status >= 500) return 'We had trouble updating your profile. Please try again in a few minutes.';
+
+  return fallback;
+}
+
 export default function ProfilePage() {
   const { toast } = useToast();
   const hiddenFileInput = useRef(null);
@@ -51,13 +70,15 @@ export default function ProfilePage() {
       return;
     }
 
-    if (error) {
-      toast({
-        title: 'Username change failed',
-        description: 'The username might be taken',
-      });
-      return;
-    }
+    console.error('[Profile] updateUsername failed:', error);
+
+    toast({
+      title: 'Username change failed',
+      description: getProfileErrorMessage(
+        error,
+        'The username might be taken. Please try another one.',
+      ),
+    });
   }
 
   async function handleUpdateProfileImage() {
@@ -75,14 +96,18 @@ export default function ProfilePage() {
       return;
     }
 
-    if (error) {
-      setIsUploading(false)
-      toast({
-        title: 'Profile image updated failed',
-        description: 'Please try again later',
-      });
-      return;
-    }
+    setIsUploading(false);
+
+    console.error('[Profile] updateProfileImage failed:', error);
+
+    toast({
+      title: 'Profile image update failed',
+      description: getProfileErrorMessage(
+        error,
+        'We could not update your profile image. Please try again later.',
+      ),
+    });
+    return;
   }
 
   function handleFileClick(event) {
@@ -102,12 +127,24 @@ export default function ProfilePage() {
 
     if (data) {
       setProfileImage('');
+
       toast({
         title: 'Profile image deleted',
         description: 'Your profile image has been deleted',
       });
+
       return;
     }
+    
+    console.error('[Profile] deleteProfileImage failed:', error);
+
+    toast({
+      title: 'Profile image delete failed',
+      description: getProfileErrorMessage(
+        error,
+        'We could not delete your profile image. Please try again later.',
+      ),
+    });
   }
 
   function convertBase64(file) {
@@ -136,10 +173,12 @@ export default function ProfilePage() {
       const base64 = await convertBase64(file);
       setProfileImage(base64);
     } catch(err) {
+      console.error('[Profile] file upload failed:', err);
+
       toast({
-        title: 'Something went wrong',
-        description: '',
-      })
+        title: 'Could not read image',
+        description: 'Please choose a valid JPG or PNG file and try again.',
+      });
     }
   };
 

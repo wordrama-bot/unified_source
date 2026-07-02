@@ -1,18 +1,26 @@
-import MainLayout from '@/components/main-layout';
 import { type Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Achievements | Wordrama",
-  description: "Unlock milestones with Wordrama Achievements — track progress, earn badges, and join a competitive community!.",
-  keywords: ['what is wordrama', 'why wordrama', 'wordrama', 'wordrama io', 'wordrama.io', 'wordle with leaderboards', 'wordle leaderboard', 'wordle stats', 'competitive']
+  description:
+    "Learn how Wordrama achievements work, earn XP and coins, and track your progress through Wordrama.",
+  keywords: [
+    "wordrama achievements",
+    "wordrama xp",
+    "wordrama coins",
+    "wordrama progression",
+    "wordrama leaderboard",
+    "wordrama",
+    "wordrama io",
+    "wordrama.io",
+    "wordle achievements",
+    "wordle stats",
+    "competitive word games",
+  ],
 };
 
 export default function Layout({
-  children
+  children,
 }: Readonly<{ children: React.ReactNode }>) {
-  return (
-    <MainLayout>
-      { children }
-    </MainLayout>
-  )
+  return <>{children}</>;
 }

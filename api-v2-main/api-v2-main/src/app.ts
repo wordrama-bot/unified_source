@@ -8,6 +8,7 @@ import swaggerUi from 'swagger-ui-express';
 import swaggerFile from '../swagger.json';
 import v3Router from './routes/v3';
 import { router as v3PublicRouter } from './routes/v3/public';
+import { router as billingWebhookRouter } from './routes/v3/billingWebhook';
 
 // Config
 dotenv.config();
@@ -17,8 +18,13 @@ const port = process.env.PORT || 3000;
 
 // Middleware
 app.use(helmet());
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
+app.use(
+  '/api/v3/billing/webhook',
+  express.raw({ type: 'application/json' }),
+  billingWebhookRouter,
+);
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(express.json({ limit: '10mb' }));
 app.use(cookieParser.default());
 app.use(express.static('public'));
 

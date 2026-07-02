@@ -26,5 +26,7 @@ export const updateSettings = z.object({
   isDarkMode: z.boolean().optional(),
   wordleWordLength: z.number().int().positive().min(5).max(11).optional(),
   isConfettiEnabled: z.boolean().optional(),
+  appearanceThemeId: z.string().optional(),
+  keyboardStyleId: z.string().optional(),
 });
 export type UpdateSettings = z.infer<typeof updateSettings>;

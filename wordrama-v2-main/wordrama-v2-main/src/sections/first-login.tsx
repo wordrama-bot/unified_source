@@ -11,6 +11,36 @@ import { useCreateAccountMutation, useGetPublicPlayerByUsernameQuery } from '@/r
 import { redirect } from 'next/navigation';
 import { Loading } from './loading';
 
+function getCreateAccountErrorMessage(error: any) {
+  const backendMessage =
+    error?.data?.message ||
+    error?.data?.error ||
+    error?.message ||
+    '';
+
+  if (typeof backendMessage === 'string' && backendMessage.trim().length > 0) {
+    return backendMessage;
+  }
+
+  if (error?.status === 400) {
+    return 'Please check your profile details and try again.';
+  }
+
+  if (error?.status === 401 || error?.status === 403) {
+    return 'Your login session expired. Please sign in again.';
+  }
+
+  if (error?.status === 409) {
+    return 'That username is already taken. Please try another one.';
+  }
+
+  if (error?.status >= 500) {
+    return 'We had trouble creating your profile. Please try again in a few minutes.';
+  }
+
+  return 'We could not create your profile. Please try again.';
+}
+
 export default function FirstLogin() {
   const [createAccount] = useCreateAccountMutation();
   const [createAccResp, setCreateAccResp] = useState({});
@@ -22,7 +52,9 @@ export default function FirstLogin() {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [referralCode, setReferralCode] = useState('');
-  const { isSuccess: usernameTaken } = useGetPublicPlayerByUsernameQuery(username);
+  const { isSuccess: usernameTaken } = useGetPublicPlayerByUsernameQuery(username, {
+    skip: username.trim().length < 2,
+  });
 
   useEffect(() => {
     if (referralCode.length > 0 && referralCode.length !== 8) return setFormReady(false);
@@ -80,18 +112,23 @@ export default function FirstLogin() {
     }
 
     setUserLoading(true);
+
     const { data, error } = await createAccount({
       firstName,
       lastName,
       username,
-      profileImage,
     });
+
     setUserLoading(false);
 
-    if (error) return toast({
-      title: 'Something went wrong',
-      description: 'Please contact the team in Discord',
-    });
+    if (error) {
+      console.error('[FirstLogin] createAccount failed:', error);
+
+      return toast({
+        title: 'Could not create profile',
+        description: getCreateAccountErrorMessage(error),
+      });
+    }
 
     setCreateAccResp(data);
   }

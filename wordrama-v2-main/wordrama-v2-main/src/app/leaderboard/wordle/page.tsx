@@ -221,14 +221,27 @@ export default function WordleAllTimeLeaderboardPage() {
     isLoadingTop3AllTime
   ) return <Loading />;
   return (
-    <div className="flex min-h-screen w-full flex-col">
-      <main className="flex min-h-[calc(100vh_-_theme(spacing.16))] flex-1 flex-col gap-4 bg-muted/40 p-4 md:gap-8 md:p-10">
-        <div className="mx-auto grid w-full max-w-6xl gap-2">
-          <h1 className="text-3xl text-text dark:text-darkText font-semibold">Wordle | All Time Leaderboard</h1>
+    <div className="flex w-full flex-col bg-bg text-text dark:bg-darkBg dark:text-darkText">
+      <main className="flex flex-col gap-4 bg-bg p-4 text-text dark:bg-darkBg dark:text-darkText md:gap-8 md:p-10 bg-[linear-gradient(to_right,#80808033_1px,transparent_1px),linear-gradient(to_bottom,#80808033_1px,transparent_1px)] bg-[size:70px_70px]">
+        <div className="mx-auto w-container max-w-full px-5 text-center">
+          <h1 className="px-5 text-center text-3xl font-heading md:text-4xl lg:text-5xl">
+            Wordrama Leaderboard
+          </h1>
         </div>
-        <Card className="w-full max-w-6xl mx-auto">
+        <Card className="w-full max-w-6xl mx-auto bg-bg text-text dark:bg-darkBg dark:text-darkText">
           <CardHeader>
-            <CardTitle className="text-2xl font-bold">Leaderboard</CardTitle>
+            <CardTitle className="text-2xl font-bold">Leaderboard Info</CardTitle>
+            {wordPack === "all" && (
+              <div className="space-y-2">
+                <p className="text-sm text-muted-foreground">
+                  All-time Games Played now includes restored legacy totals prior to January 1, 2025. Some historical detail-level stats were not recoverable, so wins, losses, streaks, and word-pack breakdowns may not add up to Games Played.
+                </p>
+
+                <p className="text-sm text-muted-foreground">
+                  Please also note that leaderboards update at regular intervals to allow for faster loading times and manageable data costs. Daily leaderboards refresh every 10 minutes, weekly every 15 minutes, monthly every 30 minutes, yearly every hour, and all-time every 2 hours.
+                </p>
+              </div>
+            )}
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">

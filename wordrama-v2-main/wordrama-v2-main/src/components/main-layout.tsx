@@ -19,15 +19,20 @@ export default function Layout({
     <div className={cn("flex min-h-screen w-full flex-col border:border dark:border-darkBorder bg-bg dark:bg-darkBg text-text dark:text-darkText", className)}>
       <NavBar
         links={[
-          { href: "/login", text: "Login" },
+          { href: "/", text: "Home" },
+          { href: "/free-play", text: "Quick Play" },
+          { href: "/marketplace", text: "Marketplace" },
+          { href: "/achievements", text: "Achievements" },
+          { href: "/teams", text: "Teams" },
           { href: "/about", text: "About" },
-          { href: "/free-play", text: "Wordle" },
+          { href: "/login", text: "Sign Up / In" },
+          { href: "/tutorials", text: "Tutorials" },
         ]}
       />
       <Header
-        ctaLink='/login'
-        ctaText='Login'
-        heroText='You must be logged in to access this page'
+        ctaLink="/login"
+        ctaText="Sign Up / In"
+        heroText="Create a free account to access this page"
       />
       <Footer />
     </div>
@@ -46,7 +51,9 @@ export default function Layout({
           { href: "/teams", text: "Teams" },
         ]}
       />
-      { children }
+      <main className="w-full flex-1">
+        {children}
+      </main>
       <Footer />
     </div>
   );

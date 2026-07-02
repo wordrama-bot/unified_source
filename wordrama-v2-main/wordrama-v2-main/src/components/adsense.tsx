@@ -17,25 +17,8 @@ const SCRIPT_ID = "google-adsense-script";
 
 const GoogleAdsense: React.FC<Props> = ({ pId }) => {
   useEffect(() => {
-    const adConsent = window.localStorage.getItem("adConsent");
-    const cookiesAccepted = window.localStorage.getItem("cookiesAccepted");
-
-    const allowPersonalized =
-      adConsent === "personalized" || cookiesAccepted === "all";
-
-    const allowNonPersonalized = adConsent === "non_personalized";
-
-    if (!allowPersonalized && !allowNonPersonalized) {
-      return;
-    }
-
     if (document.getElementById(SCRIPT_ID)) {
       return;
-    }
-
-    // For non-personalized ads, tell AdSense before loading/pushing ads
-    if (allowNonPersonalized) {
-      (window.adsbygoogle = window.adsbygoogle || []).requestNonPersonalizedAds = 1;
     }
 
     const script = document.createElement("script");

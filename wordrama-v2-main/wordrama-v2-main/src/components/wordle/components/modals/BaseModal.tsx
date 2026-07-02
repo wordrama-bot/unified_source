@@ -9,9 +9,22 @@ type Props = {
   handleClose: () => void
   showTimeframe?: boolean
   toggleTimeFrame?: () => void
+  modalClassName?: string
+  titleClassName?: string
+  iconClassName?: string
 }
 
-export const BaseModal = ({ title, children, isOpen, handleClose, showTimeframe = false, toggleTimeFrame }: Props) => {
+export const BaseModal = ({
+  title,
+  children,
+  isOpen,
+  handleClose,
+  showTimeframe = false,
+  toggleTimeFrame,
+  modalClassName = 'bg-white dark:bg-gray-800',
+  titleClassName = 'text-gray-900 dark:text-gray-100',
+  iconClassName = 'dark:stroke-white',
+}: Props) => {
   return (
     <Transition.Root show={isOpen} as={Fragment}>
       <Dialog
@@ -40,14 +53,14 @@ export const BaseModal = ({ title, children, isOpen, handleClose, showTimeframe 
             leaveFrom="opacity-100 translate-y-0 sm:scale-100"
             leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
           >
-            <div className="inline-block transform overflow-hidden rounded-lg bg-white px-4 pt-5 pb-4 text-left align-bottom shadow-xl transition-all dark:bg-gray-800 sm:my-8 sm:w-full sm:max-w-sm sm:p-6 sm:align-middle">
+            <div className={`inline-block transform overflow-hidden rounded-lg px-4 pt-5 pb-4 text-left align-bottom shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-sm sm:p-6 sm:align-middle ${modalClassName}`}>
               <button
                 onClick={() => handleClose()}
                 tabIndex={0}
                 aria-pressed="false"
                 className="absolute right-4 top-4"
               >
-                <XCircleIcon className="h-6 w-6 cursor-pointer dark:stroke-white" />
+                <XCircleIcon className={`h-6 w-6 cursor-pointer ${iconClassName}`} />
               </button>
               {
                 showTimeframe === true && typeof toggleTimeFrame === 'function' && (
@@ -60,7 +73,7 @@ export const BaseModal = ({ title, children, isOpen, handleClose, showTimeframe 
                     aria-pressed="false"
                     className="absolute let-4 top-4"
                   >
-                    <ClockIcon className="h-6 w-6 cursor-pointer dark:stroke-white" />
+                    <ClockIcon className={`h-6 w-6 cursor-pointer ${iconClassName}`} />
                   </button>
                 )
               }
@@ -68,7 +81,7 @@ export const BaseModal = ({ title, children, isOpen, handleClose, showTimeframe 
                 <div className="text-center">
                   <Dialog.Title
                     as="h3"
-                    className="text-lg font-medium leading-6 text-gray-900 dark:text-gray-100"
+                    className={`text-lg font-medium leading-6 ${titleClassName}`}
                   >
                     {title}
                   </Dialog.Title>

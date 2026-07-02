@@ -20,18 +20,25 @@ export default function MarketplaceCategories({
       Icon: Wordle,
       text: 'All marketplace items in one place!',
     },
+    {
+      title: 'Word Packs',
+      link: '/marketplace/word-packs',
+      Icon: Wordle,
+      text: 'Get word packs with 4-23 letter words!',
+    },
+    {
+      title: 'Premium Themes',
+      link: '/marketplace/themes',
+      Icon: Wordle,
+      text: 'Color themes to enhance your experience!',
+    },
     //{
     //  title: 'Avatars (Beta)',
     //  link: '/marketplace/avatars',
     //  Icon: Wordle,
     //  text: 'Customise your profile with unique avatars!',
     //},
-    {
-      title: 'Word Packs',
-      link: '/marketplace/word-packs',
-      Icon: Wordle,
-      text: 'Get word packs with 4-23 letter words!',
-    }];
+    ];
   }
   return (
     <section className="border-t-border dark:border-t-darkBorder dark:bg-darkBg border-t-2 bg-bg py-20 font-base lg:py-[50px]">

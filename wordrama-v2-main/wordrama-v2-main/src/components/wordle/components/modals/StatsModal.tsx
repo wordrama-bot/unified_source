@@ -3,6 +3,8 @@ import { ChevronRightIcon } from '@heroicons/react/outline';
 import Countdown from 'react-countdown';
 import { useState } from 'react';
 import { Histogram } from '../stats/Histogram';
+import { getAppearanceTheme } from '@/config/themes'
+import { getWordleGameUiState } from '@/redux/ui/helpers'
 
 import {
   CUSTOM_GAME_TITLE,
@@ -61,6 +63,12 @@ export const StatsModal = ({
   const { data: weeklyStatsData, isLoading: isLoadingWeeklyStats } = useGetMyWeeklyWordleStatsQuery();
   const { data: monthlyStatsData, isLoading: isLoadingMonthlyStats } = useGetMyMonthlyWordleStatsQuery();
   const { data: yearlyStatsData, isLoading: isLoadingYearlyStats } = useGetMyYearlyWordleStatsQuery();
+
+  const gameUiState = getWordleGameUiState()
+
+  const appearanceTheme = getAppearanceTheme(
+    gameUiState?.appearanceThemeId
+  )
 
   function toggleTimeframe() {
     if (statsTimeframe === 'DAILY') return setStatsTimeframe('WEEKLY');
@@ -177,6 +185,9 @@ export const StatsModal = ({
         handleClose={handleClose}
         showTimeframe={!isCustomGame}
         toggleTimeFrame={toggleTimeframe}
+        modalClassName={appearanceTheme.modal.container}
+        titleClassName={appearanceTheme.modal.title}
+        iconClassName={appearanceTheme.modal.icon}
       >
       {!isCustomGame && timeframe && timeframe !== modeLabel && (
         <p className="text-sm text-gray-500 dark:text-gray-400 text-center mb-2">

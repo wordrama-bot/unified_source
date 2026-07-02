@@ -1,6 +1,30 @@
 // Import necessary functions and types from RTK Query
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { API_BASE_URL } from "@/lib/config";
+import { supabase } from "@/utils/supabase/client";
+
+const projectRef = "qflfxxbnhwaxkxsygjqu";
+
+function getStoredSupabaseAccessToken() {
+  if (typeof window === "undefined") return null;
+
+  try {
+    const raw = localStorage.getItem(`sb-${projectRef}-auth-token`);
+    if (!raw) return null;
+
+    const session = JSON.parse(raw);
+
+    return (
+      session?.access_token ||
+      session?.currentSession?.access_token ||
+      session?.data?.session?.access_token ||
+      null
+    );
+  } catch (e) {
+    console.warn("[wordramaApi] Failed to parse stored Supabase token", e);
+    return null;
+  }
+}
 
 // Setting up the API Slice
 export const wordramaApiV3 = createApi({
@@ -8,29 +32,23 @@ export const wordramaApiV3 = createApi({
   baseQuery: fetchBaseQuery({
     baseUrl: API_BASE_URL,
     credentials: "include",
-    prepareHeaders: (headers) => {
+    prepareHeaders: async (headers) => {
       try {
-        // Supabase project ref (yours)
-        const projectRef = "qflfxxbnhwaxkxsygjqu";
+        const { data } = await supabase.auth.getSession();
 
-        // Supabase stores the session JSON in localStorage under this key
-        const raw = localStorage.getItem(`sb-${projectRef}-auth-token`);
+        const accessToken =
+          data?.session?.access_token ||
+          getStoredSupabaseAccessToken();
 
-        if (raw) {
-          const session = JSON.parse(raw);
-
-          // session can be { access_token, token_type, ... } depending on Supabase version
-          const accessToken =
-            session?.access_token ||
-            session?.currentSession?.access_token ||
-            session?.data?.session?.access_token;
-
-          if (accessToken) {
-            headers.set("authorization", `Bearer ${accessToken}`);
-          }
+        if (accessToken) {
+          headers.set("authorization", `Bearer ${accessToken}`);
         }
       } catch (e) {
-        // ignore parse errors
+        const fallbackToken = getStoredSupabaseAccessToken();
+
+        if (fallbackToken) {
+          headers.set("authorization", `Bearer ${fallbackToken}`);
+        }
       }
 
       return headers;
@@ -65,6 +83,7 @@ export const wordramaApiV3 = createApi({
     "Purchases",
     "Challenges",
     "PublicProfile",
+    "Admin",
   ],
   endpoints: (builder) => ({
     getWordleStreakByUserId: builder.query<
@@ -518,6 +537,76 @@ export const wordramaApiV3 = createApi({
       providesTags: ["Player"],
     }),
 
+    getMyEntitlements: builder.query<any, void>({
+      query: () => ({
+        url: `/api/v3/player/me/entitlements`,
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+      }),
+      providesTags: ["Player"],
+    }),
+
+    getCurrentSubscription: builder.query<any, void>({
+      query: () => ({
+        url: `/api/v3/billing/subscription`,
+        method: "GET",
+        credentials: "include",
+      }),
+    }),
+
+    createCheckoutSession: builder.mutation<
+      any,
+      { subscriptionKey: "PLUS" | "CREATOR" }
+    >({
+      query: (body) => ({
+        url: `/api/v3/billing/checkout`,
+        method: "POST",
+        body,
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+      }),
+    }),
+
+    changeSubscriptionPlan: builder.mutation<
+      any,
+      { subscriptionKey: "PLUS" | "CREATOR" }
+    >({
+      query: ({ subscriptionKey }) => ({
+        url: "/api/v3/billing/change-plan",
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: {
+          subscriptionKey,
+        },
+      }),
+    }),
+
+    createItemCheckoutSession: builder.mutation<
+      any,
+      { itemId: string }
+    >({
+      query: (body) => ({
+        url: `/api/v3/billing/checkout/item`,
+        method: "POST",
+        body,
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+      }),
+    }),
+
+    createBillingPortalSession: builder.mutation<any, void>({
+      query: () => ({
+        url: `/api/v3/billing/portal`,
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+      }),
+    }),
+    
     getPublicPlayer: builder.query<any, string>({
       query: (playerId) => ({
         url: `/api/v3/players/by-playerid/${playerId}`,
@@ -639,6 +728,155 @@ export const wordramaApiV3 = createApi({
       invalidatesTags: ["Stats", "Leaderboard", "Spellbee"],
     }),
 
+        getAdminMe: builder.query<any, void>({
+      query: () => ({
+        url: `/api/v3/admin/me`,
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+      }),
+      providesTags: ["Admin"],
+    }),
+
+    getAdminOverview: builder.query<any, void>({
+      query: () => ({
+        url: `/api/v3/admin/overview`,
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+      }),
+      providesTags: ["Admin"],
+    }),
+
+    searchAdminPlayers: builder.query<any, string>({
+      query: (q) => ({
+        url: `/api/v3/admin/players/search?q=${encodeURIComponent(q)}`,
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+      }),
+      providesTags: ["Admin"],
+    }),
+
+    getAdminPlayerProfile: builder.query<any, string>({
+      query: (playerId) => ({
+        url: `/api/v3/admin/players/${playerId}`,
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+      }),
+      providesTags: ["Admin"],
+    }),
+
+    getAdminPlayerNotes: builder.query<any, string>({
+      query: (playerId) => ({
+        url: `/api/v3/admin/players/${playerId}/notes`,
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+      }),
+      providesTags: ["Admin"],
+    }),
+
+    addAdminPlayerNote: builder.mutation<
+      any,
+      { playerId: string; note: string }
+    >({
+      query: ({ playerId, note }) => ({
+        url: `/api/v3/admin/players/${playerId}/notes`,
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: { note },
+      }),
+      invalidatesTags: ["Admin"],
+    }),
+
+    grantAdminPlayerCoins: builder.mutation<
+      any,
+      { playerId: string; amount: number; reason: string }
+    >({
+      query: ({ playerId, amount, reason }) => ({
+        url: `/api/v3/admin/players/${playerId}/coins/grant`,
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: { amount, reason },
+      }),
+      invalidatesTags: ["Admin"],
+    }),
+
+    banAdminPlayer: builder.mutation<
+      any,
+      {
+        playerId: string;
+        reason: string;
+        notes?: string;
+        expiresAt?: string | null;
+        banTargets?: { banType: string; banValue: string }[];
+      }
+    >({
+      query: ({ playerId, reason, notes, expiresAt, banTargets }) => ({
+        url: `/api/v3/admin/players/${playerId}/ban`,
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: { reason, notes, expiresAt, banTargets },
+      }),
+      invalidatesTags: ["Admin"],
+    }),
+
+    unbanAdminPlayer: builder.mutation<
+      any,
+      { playerId: string; reason: string }
+    >({
+      query: ({ playerId, reason }) => ({
+        url: `/api/v3/admin/players/${playerId}/unban`,
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: { reason },
+      }),
+      invalidatesTags: ["Admin"],
+    }),
+
+    getAdminCatalog: builder.query<any, void>({
+      query: () => ({
+        url: `/api/v3/admin/catalog`,
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+      }),
+      providesTags: ["Admin"],
+    }),
+
+    previewAdminGrantEntitlement: builder.mutation<
+      any,
+      { playerId: string; catalogItemId: string; expiresAt?: string | null }
+    >({
+      query: ({ playerId, catalogItemId, expiresAt }) => ({
+        url: `/api/v3/admin/players/${playerId}/entitlements/grant/preview`,
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: { catalogItemId, expiresAt },
+      }),
+    }),
+
+    grantAdminEntitlement: builder.mutation<
+      any,
+      { playerId: string; catalogItemId: string; reason: string; expiresAt?: string | null }
+    >({
+      query: ({ playerId, catalogItemId, reason, expiresAt }) => ({
+        url: `/api/v3/admin/players/${playerId}/entitlements/grant`,
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: { catalogItemId, reason, expiresAt },
+      }),
+      invalidatesTags: ["Admin"],
+    }),
+
     createCustomWorlde: builder.mutation<void, any>({
       query: (body) => ({
         url: `/api/v3/game/wordle/custom`,
@@ -684,11 +922,31 @@ export const {
   useGetPublicPlayerSummaryQuery,
   useGetPublicPlayerByUsernameQuery,
   useGetMyAccountQuery,
+  useGetMyEntitlementsQuery,
+  useGetCurrentSubscriptionQuery,
+  useCreateCheckoutSessionMutation,
+  useChangeSubscriptionPlanMutation,
+  useCreateItemCheckoutSessionMutation,
+  useCreateBillingPortalSessionMutation,
   useCreateAccountMutation,
   useUpdateAccountMutation,
+  useUpdateSettingsMutation,
+  useUpdateStreamerSettingsMutation,
   useDeleteAccountMutation,
   useSubmitWordleResultMutation,
   useSubmitSpellbeeResultMutation,
+  useGetAdminMeQuery,
+  useGetAdminOverviewQuery,
+  useSearchAdminPlayersQuery,
+  useGetAdminPlayerNotesQuery,
+  useAddAdminPlayerNoteMutation,
+  useGrantAdminPlayerCoinsMutation,
+  useBanAdminPlayerMutation,
+  useUnbanAdminPlayerMutation,
+  useGetAdminPlayerProfileQuery,
+  useGetAdminCatalogQuery,
+  usePreviewAdminGrantEntitlementMutation,
+  useGrantAdminEntitlementMutation,
   useCreateCustomWorldeMutation,
   useGetWordleSavedStateQuery,
   useUpdateWordleSavedStateMutation,

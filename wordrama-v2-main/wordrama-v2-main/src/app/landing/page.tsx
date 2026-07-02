@@ -45,10 +45,11 @@ export default function LandingPage() {
       ]}/>
       <Footer />
       <ThemeSwitcher />
-      <Link href="/login">
+      <Link href="/login" aria-label="Sign Up or Log in">
         <Button
           size="icon"
           className="fixed left-10 top-10 z-50"
+          aria-label="Sign Up or Log in"
         >
           <User className="stroke-text h-6 w-6 w500:h-4 w500:w-4" />
         </Button>

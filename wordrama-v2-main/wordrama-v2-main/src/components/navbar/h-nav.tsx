@@ -11,6 +11,11 @@ import {
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import UserMenuDropDown from "@/components/navbar/user-menu";
 import { useGetMyAccountQuery } from "@/redux/api/wordrama";
+import { useGetMyEntitlementsQuery } from "@/redux/api/wordrama";
+import { useGetCurrentSubscriptionQuery } from "@/redux/api/wordrama";
+import { hasEntitlement } from "@/lib/entitlements";
+import { FEATURES } from "@/config/features";
+import { useMarketplaceAccess } from "@/lib/useMarketplaceAccess";
 
 import { showChristmas } from '@/lib/config';
 
@@ -22,34 +27,47 @@ export default function NavBar({
   isFirstLogin?: boolean
 }) {
   const { data: user, error } = useGetMyAccountQuery();
+  const { data: subscriptionResponse } = useGetCurrentSubscriptionQuery();
+  const currentSubscription =
+    subscriptionResponse?.data?.subscription;
+  const {
+    subscriptionKey,
+    isPlus,
+    isCreator,
+  } = useMarketplaceAccess();
+  const upgradeLabel =
+    isCreator
+      ? "Creator ✓"
+      : isPlus
+        ? "Upgrade to Creator"
+        : "Upgrade";
+  const handleUpgradeClick = () => {
+    if (isCreator) {
+      window.location.href = "/settings/billing";
+    } else {
+      window.location.href = "/subscribe";
+    }
+  };
 
   return (
     <header className="sticky top-0 flex h-16 items-center gap-4 border-b bg-bg dark:bg-darkBg text-text dark:text-darkText dark:border-darkBorder px-4 md:px-6">
       <nav
-        className={`${isFirstLogin || error ? '' : 'hidden'} flex-col gap-6 text-lg font-medium md:flex md:flex-row md:items-center md:gap-5 md:text-sm lg:gap-6`}
+        className={`hidden ${
+          user ? "md:flex" : ""
+        } flex-col gap-6 text-lg font-medium md:flex-row md:items-center md:gap-5 md:text-sm lg:gap-6`}
       >
         <Link
           href="/"
-          className="flex items-center gap-2 text-lg font-semibold md:text-base"
+          className="whitespace-nowrap text-muted-foreground transition-colors hover:text-foreground"
         >
-          <Image
-            src={
-              showChristmas
-                ? "https://utfs.io/f/vieUBZcrouNZHgZwgWPc5QTiy9PYrsMqS3jRhEFC148IZDw0"
-                : "https://utfs.io/f/vieUBZcrouNZQrdaKfbRj7hpV6g4Axl20D3nvSc9I1BEkdqr"
-            }
-            width={isFirstLogin || error ? 250 : 500}
-            height={50}
-            alt="Wordrama Logo"
-          />
-          <span className="sr-only">Wordrama</span>
+          Dashboard
         </Link>
 
         {links.map((link, linkIdx) => (
           <Link
             key={`mm-${linkIdx}`}
             href={link.href}
-            className="text-muted-foreground transition-colors hover:text-foreground"
+            className="whitespace-nowrap text-muted-foreground transition-colors hover:text-foreground"
           >
             {link.text}
           </Link>
@@ -63,6 +81,7 @@ export default function NavBar({
               variant="outline"
               size="icon"
               className="shrink-0 md:hidden"
+              aria-label="Open navigation menu"
             >
               <Menu className="h-5 w-5 dark:text-darkText" />
               <span className="sr-only">Toggle navigation menu</span>
@@ -72,21 +91,24 @@ export default function NavBar({
 
         <SheetContent side="left">
           <nav className="grid gap-6 text-lg font-medium">
-            <Link
-              href="/"
-              className="flex items-center gap-2 text-lg font-semibold"
-            >
+            <div className="flex items-center gap-2">
               <Image
                 src={
                   showChristmas
-                    ? "https://utfs.io/f/vieUBZcrouNZHgZwgWPc5QTiy9PYrsMqS3jRhEFC148IZDw0"
-                    : "https://utfs.io/f/vieUBZcrouNZQrdaKfbRj7hpV6g4Axl20D3nvSc9I1BEkdqr"
+                    ? "/images/wordrama-logo-christmas.png"
+                    : "/images/wordrama-logo.png"
                 }
                 width={250}
                 height={50}
                 alt="Wordrama Logo"
               />
-              <span className="sr-only">Wordrama</span>
+            </div>
+
+            <Link
+              href="/"
+              className="text-muted-foreground hover:text-foreground"
+            >
+              Dashboard
             </Link>
 
             {links.map((link, linkIdx) => (
@@ -125,7 +147,7 @@ export default function NavBar({
             </Link>
 
             <a
-              href="mailto:support@wordrama.io?subject=Wordrama Support Request"
+              href="/contact"
               className="text-muted-foreground hover:text-foreground"
             >
               Contact Us
@@ -185,26 +207,34 @@ export default function NavBar({
             </Link>
           </div>
 
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="secondary" size="icon" className="rounded-full">
-                {user?.data?.profileImage ? (
-                  <Image
-                    src={user?.data?.profileImage}
-                    width={64}
-                    height={64}
-                    alt={user?.data?.displayName || "Profile Image"}
-                    className="rounded-full"
-                  />
-                ) : (
-                  <CircleUser className="h-5 w-5 text-text dark:text-darkText" />
-                )}
-                <span className="sr-only">Toggle user menu</span>
-              </Button>
-            </DropdownMenuTrigger>
+          <div className="ml-2">
+            <Button onClick={handleUpgradeClick}>
+              {upgradeLabel}
+            </Button>
+          </div>
 
-            <UserMenuDropDown username={user?.data?.displayName} />
-          </DropdownMenu>
+          <div className="ml-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="secondary" size="icon" className="rounded-full" aria-label="Open user menu">
+                  {user?.data?.profileImage ? (
+                    <Image
+                      src={user?.data?.profileImage}
+                      width={64}
+                      height={64}
+                      alt={user?.data?.displayName || "Profile Image"}
+                      className="rounded-full"
+                    />
+                  ) : (
+                    <CircleUser className="h-5 w-5 text-text dark:text-darkText" />
+                  )}
+                  <span className="sr-only">Toggle user menu</span>
+                </Button>
+              </DropdownMenuTrigger>
+
+              <UserMenuDropDown username={user?.data?.displayName} />
+            </DropdownMenu>
+          </div>
         </div>
       )}
     </header>

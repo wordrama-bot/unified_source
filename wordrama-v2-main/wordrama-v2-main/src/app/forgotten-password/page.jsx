@@ -48,7 +48,7 @@ function AuthComponent() {
                 <div className="mb-6 flex flex-col gap-6">
                   <div className="flex items-center gap-3">
                     <h1 className="text-scale-1200 text-2xl">
-                      <img draggable="false" src="https://utfs.io/f/vieUBZcrouNZQrdaKfbRj7hpV6g4Axl20D3nvSc9I1BEkdqr" />
+                      <img draggable="false" src="/images/wordrama-logo.png" alt="Wordrama Logo" />
                     </h1>
                   </div>
                 </div>

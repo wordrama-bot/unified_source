@@ -1,7 +1,7 @@
 import express from 'express';
 import rateLimit from 'express-rate-limit';
-
 import playerController from '../../controllers/player';
+import accountDeletionFeedbackController from '../../controllers/accountDeletionFeedback';
 
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -18,6 +18,11 @@ router.get('/migrate/me', playerController.migratePlayer);
 /* Post routes */
 router.post('/player/me', limiter, playerController.addPlayer);
 router.post('/migrate/me', playerController.migratePlayer);
+router.post(
+  '/account-deletion-feedback',
+  limiter,
+  accountDeletionFeedbackController.create,
+);
 
 /* Patch routes */
 

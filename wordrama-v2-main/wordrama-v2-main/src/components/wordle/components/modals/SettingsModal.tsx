@@ -7,6 +7,8 @@ import {
 } from '../../constants/strings'
 import { BaseModal } from './BaseModal'
 import { SettingsToggle } from './SettingsToggle'
+import { getAppearanceTheme } from '@/config/themes'
+import { getWordleGameUiState } from '@/redux/ui/helpers'
 
 type Props = {
   isOpen: boolean
@@ -43,8 +45,21 @@ export const SettingsModal = ({
   handleSpeedRunMode,
   isCustomGame,
 }: Props) => {
+  const gameUiState = getWordleGameUiState()
+
+  const appearanceTheme = getAppearanceTheme(
+    gameUiState?.appearanceThemeId
+  )
+
   return (
-    <BaseModal title="Settings" isOpen={isOpen} handleClose={handleClose}>
+    <BaseModal
+      title="Settings"
+      isOpen={isOpen}
+      handleClose={handleClose}
+      modalClassName={appearanceTheme.modal.container}
+      titleClassName={appearanceTheme.modal.title}
+      iconClassName={appearanceTheme.modal.icon}
+    >
       <div className="mt-2 flex flex-col divide-y">
         <SettingsToggle
           settingName="Hard Mode"

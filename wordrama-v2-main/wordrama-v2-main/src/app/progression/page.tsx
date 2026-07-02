@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import Header from "@/sections/header";
+import NavBar from "@/components/navbar/h-nav";
 import Footer from "@/sections/footer";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,11 +18,15 @@ export default function ProgressionPage() {
   const playerId = searchParams.get("playerId");
 
   return (
-    <div className="flex min-h-screen w-full flex-col bg-bg dark:bg-darkBg text-text dark:text-darkText">
-      <Header
-	compact
-	heroText=""
-	showLogo={false}
+    <div className="flex min-h-screen w-full flex-col border:border bg-bg text-text dark:border-darkBorder dark:bg-darkBg dark:text-darkText">
+      <NavBar
+        links={[
+          { href: "/games", text: "Games" },
+          { href: "/leaderboard", text: "Leaderboard" },
+          { href: "/marketplace", text: "Marketplace" },
+          { href: "/achievements", text: "Achievements" },
+          { href: "/teams", text: "Teams" },
+        ]}
       />
 
       <main className="flex-1 px-4 py-8 md:px-8">
@@ -33,54 +37,79 @@ export default function ProgressionPage() {
             </h1>
             <p className="text-muted-foreground text-lg max-w-3xl mx-auto">
               Wordrama rewards consistent play, strong performance, and long-term
-              progression. Here’s how XP works today and how your profile level
-              and prestige are calculated.
+              progression with XP, levels, prestige, and coins. Here’s how XP and
+              Coins for solves works today and how your profile level and prestige
+              are calculated.
             </p>
           </div>
 
           <Card>
             <CardHeader>
-              <CardTitle>XP for Wordle Solves</CardTitle>
+              <CardTitle>XP and Coin Rewards for Wordle Solves</CardTitle>
               <CardDescription>
-                Fewer guesses earn more XP.
+                Fewer guesses earn more XP and more coins.
               </CardDescription>
             </CardHeader>
+
             <CardContent className="space-y-4 text-sm md:text-base">
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 <div className="rounded-xl border p-4 text-center">
                   <div className="text-2xl font-bold">1000 XP</div>
-                  <div className="text-muted-foreground">Solved in 1</div>
+                  <div className="text-lg font-semibold">25 coins</div>
+                  <div className="text-muted-foreground">Solves in 1 guess</div>
                 </div>
+
                 <div className="rounded-xl border p-4 text-center">
                   <div className="text-2xl font-bold">150 XP</div>
-                  <div className="text-muted-foreground">Solved in 2</div>
+                  <div className="text-lg font-semibold">15 coins</div>
+                  <div className="text-muted-foreground">Solves in 2 guesses</div>
                 </div>
+
                 <div className="rounded-xl border p-4 text-center">
                   <div className="text-2xl font-bold">100 XP</div>
-                  <div className="text-muted-foreground">Solved in 3</div>
+                  <div className="text-lg font-semibold">5 coins</div>
+                  <div className="text-muted-foreground">Solves in 3 guesses</div>
                 </div>
+
                 <div className="rounded-xl border p-4 text-center">
                   <div className="text-2xl font-bold">50 XP</div>
-                  <div className="text-muted-foreground">Solved in 4</div>
+                  <div className="text-lg font-semibold">4 coins</div>
+                  <div className="text-muted-foreground">Solves in 4 guesses</div>
                 </div>
+
                 <div className="rounded-xl border p-4 text-center">
                   <div className="text-2xl font-bold">30 XP</div>
-                  <div className="text-muted-foreground">Solved in 5</div>
+                  <div className="text-lg font-semibold">3 coins</div>
+                  <div className="text-muted-foreground">Solves in 5 guesses</div>
                 </div>
+
                 <div className="rounded-xl border p-4 text-center">
                   <div className="text-2xl font-bold">20 XP</div>
-                  <div className="text-muted-foreground">Solved in 6</div>
+                  <div className="text-lg font-semibold">2 coins</div>
+                  <div className="text-muted-foreground">Solves in 6 guesses</div>
                 </div>
               </div>
 
               <p>
-                In general, the better your solve, the more XP you earn. A
-                one-guess solve gives a huge reward, while later solves still
-                move your progress forward.
+                In general, the better your solve, the more XP and coins you earn. A
+                one-guess solve gives a huge XP reward, while later solves still move
+                your progression forward and add coins to your balance.
               </p>
+
               <p>
-                Some other game systems, such as challenges and rewards, can also
-                contribute XP on top of your normal gameplay earnings.
+                Coins can be used in the Wordrama marketplace, while XP contributes to
+                your profile level and long-term prestige progression.
+              </p>
+
+              <p>
+                Some other game systems, such as{" "}
+                <Link
+                  href="/achievements"
+                  className="underline hover:text-primary"
+                >
+                  achievements and challenges
+                </Link>
+                , can also contribute XP or coins on top of your normal gameplay earnings.
               </p>
             </CardContent>
           </Card>

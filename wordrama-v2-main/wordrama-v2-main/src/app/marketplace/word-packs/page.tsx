@@ -5,8 +5,8 @@
   import { useAuth } from '@/providers/auth-provider';
   import Header from '@/sections/header';
   import Loading from '@/sections/loading';
-
   import NavBar from '@/components/navbar/h-nav';
+  import Footer from "@/sections/footer";
   import Product from '@/components/product';
   import {
     Sheet,
@@ -36,8 +36,37 @@
   import { Separator } from '@/components/ui/separator';
   import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
   import { Switch } from '@/components/ui/switch';
-  import { useGetStoreItemsQuery, useGetPurchasesQuery, useGetMyAccountQuery, usePurchaseItemsWithCoinsMutation } from '@/redux/api/wordrama';
+  import {
+    useGetStoreItemsQuery,
+    useGetPurchasesQuery,
+    useGetMyAccountQuery,
+    usePurchaseItemsWithCoinsMutation,
+    useCreateItemCheckoutSessionMutation,
+  } from '@/redux/api/wordrama';
   import { useEffect } from 'react';
+  import { useMarketplaceAccess } from "@/lib/useMarketplaceAccess";
+
+  const MARKETPLACE_WORD_PACK_SORT_ORDER: { [key: string]: number } = {
+    'ba8671aa-7481-43e5-a1ac-f2b73433a315': 4,
+    'b1b96d0e-5b1a-403e-80be-88f3d2bae873': 11.5,
+    '7f06b10e-d52a-4ae3-b77f-a7e9a7c5e5fb': 12,
+    'b8c73f14-79ad-4495-9fd9-a4be65d5fcbc': 13,
+    '3159552d-8c96-4bb5-aafa-ebf36aa5a2c2': 14,
+    'fef67eba-96db-4f5e-8b25-81487a1dbc9d': 15,
+    '1ee2de50-072f-4718-b8ac-7663f3069f2e': 16,
+    '80e197a9-0829-4074-8e85-a88e6e8b7ea0': 17,
+    '425c96ab-beff-40ef-9774-feb6db135644': 18,
+    '1d348c05-c51e-4ea3-a888-d4823436704f': 19,
+    '6e66a620-8e17-4f75-aa0b-1c282aafb9d8': 20,
+    '72215e5b-6638-4388-84bc-55dcd36c0e05': 21,
+    'db526774-11da-47de-b410-5b47a4168db8': 22,
+    'ab14511c-f2ac-4b16-a8ef-7cb8ed61a2cc': 23,
+    '3d3ff93b-65c1-4d36-902e-3a889c71ac86': 999,
+  };
+
+  function getMarketplaceSortOrder(item: any): number {
+    return MARKETPLACE_WORD_PACK_SORT_ORDER[item.id] ?? 500;
+  }
 
   function ShoppingCartIcon(props) {
     return (
@@ -78,8 +107,8 @@
     const [ maxCoinPrice, setMaxCoinPrice ] = useState(1000000);
     const [ gameFilter, setGameFilter ] = useState('ALL');
     const [ itemTypeFilter, setItemTypeFilter ] = useState('WORDLE_WORD_PACK');
-    const [ showPurchased, setShowPurchased ] = useState(false);
-    const [ showUnavailable, setShowUnavailable ] = useState(false);
+    const [ showPurchased, setShowPurchased ] = useState(true);
+    const [ showUnavailable, setShowUnavailable ] = useState(true);
     const [ itemsInCart, addItemToCart ] = useState([] as string[]);
     const [ alertTitle, setAlertTitle ] = useState('');
     const [ alertText, setAlertText ] = useState('');
@@ -94,8 +123,23 @@
       showUnavailable
     });
     const [ purchaseItemsWithCoins ] = usePurchaseItemsWithCoinsMutation();
+    const [ createItemCheckoutSession] = useCreateItemCheckoutSessionMutation();
+    const handleStripePurchase = async (itemId: string) => {
+      try {
+        const result = await createItemCheckoutSession({
+          itemId,
+        }).unwrap();
+
+        if (result?.data?.checkoutUrl) {
+          window.location.href = result.data.checkoutUrl;
+        }
+      } catch (error) {
+        console.error('Failed to create Stripe checkout session', error);
+      }
+    };
     const basketSubTotal = !isLoadingStoreItems && storeItems ? storeItems?.data.filter(item => itemsInCart.includes(item.id)).reduce((acc: number, item: any) => acc + item.coinPrice, 0) : 0
     const hasEnoughCoins = myAccount?.data?.ledger?.coinBalance && myAccount?.data?.ledger?.coinBalance >= basketSubTotal;
+    const { subscriptionKey } = useMarketplaceAccess();
 
     async function handleCheckoutWithCoins() {
       const itemsToCheckout = [...itemsInCart];
@@ -114,158 +158,221 @@
     }
 
     if (isLoadingStoreItems || isLoadingMyAccount) return <Loading />;
+
     return (
-      <div className='bg-[linear-gradient(to_right,#80808033_1px,transparent_1px),linear-gradient(to_bottom,#80808033_1px,transparent_1px)] bg-[size:70px_70px]'>
+      <div className="flex min-h-screen w-full flex-col bg-bg text-text dark:bg-darkBg dark:text-darkText">
+        <NavBar
+          links={[
+            { href: "/games", text: "Games" },
+            { href: "/leaderboard", text: "Leaderboard" },
+            { href: "/marketplace", text: "Marketplace" },
+            { href: "/achievements", text: "Achievements" },
+            { href: "/teams", text: "Teams" },
+          ]}
+        />
+
         <Header
           showLogo={false}
-          heroText='Word Pack Marketplace'
-          className='min-h-[10dvh] dark:bg-darkBg inset-0 flex w-full flex-col items-center justify-center bg-bg bg-[linear-gradient(to_right,#80808033_1px,transparent_1px),linear-gradient(to_bottom,#80808033_1px,transparent_1px)] bg-[size:70px_70px]'
+          heroText="Word Pack Marketplace"
+          className="min-h-[10dvh] inset-0 flex w-full flex-col items-center justify-center bg-bg text-text dark:bg-darkBg dark:text-darkText bg-[linear-gradient(to_right,#80808033_1px,transparent_1px),linear-gradient(to_bottom,#80808033_1px,transparent_1px)] bg-[size:70px_70px]"
         />
-        <AlertDialog open={alertTitle && alertText && true}>
+
+        <AlertDialog open={!!(alertTitle && alertText)}>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>{ alertTitle }</AlertDialogTitle>
-              <AlertDialogDescription>
-                { alertText }
-              </AlertDialogDescription>
+              <AlertDialogTitle>{alertTitle}</AlertDialogTitle>
+              <AlertDialogDescription>{alertText}</AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogAction
                 onClick={() => {
-                  setAlertTitle('');
-                  setAlertText('');
-                }}>
-                  Close
-                </AlertDialogAction>
+                  setAlertTitle("");
+                  setAlertText("");
+                }}
+              >
+                Close
+              </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+
         <Sheet>
           <SheetTrigger asChild>
-            <Button className='fixed top-20 right-24' variant='default'>
-              <ShoppingCartIcon className='w-6 h-6' /> {itemsInCart.length > 0 ? `(${itemsInCart.length})` : ''}
+            <Button className="fixed right-24 top-20" variant="default">
+              <ShoppingCartIcon className="h-6 w-6" />
+              {itemsInCart.length > 0 ? `(${itemsInCart.length})` : ""}
             </Button>
           </SheetTrigger>
-          <SheetContent className="bg-bg">
+
+          <SheetContent className="bg-bg text-text dark:bg-darkBg dark:text-darkText">
             <SheetHeader>
               <SheetTitle>Basket</SheetTitle>
               <SheetDescription>
-                {itemsInCart.length === 0 && 'Your basket is empty'}
-                {itemsInCart.length > 0 && `Basket total: ${basketSubTotal} coins`}
+                {itemsInCart.length === 0 && "Your basket is empty"}
+                {itemsInCart.length > 0 &&
+                  `Basket total: ${basketSubTotal} coins`}
               </SheetDescription>
             </SheetHeader>
 
-            { !isProcessingOrder && !isLoadingStoreItems && itemsInCart.length > 0 && (
+            {!isProcessingOrder && !isLoadingStoreItems && itemsInCart.length > 0 && (
               <>
-                <Separator className='mt-2' />
-                <SheetFooter className='pt-4'>
-                  <Button>Clear basket</Button>
-                  <Button disabled={!hasEnoughCoins} onClick={() => handleCheckoutWithCoins()}>
-                    {hasEnoughCoins ? 'Checkout with Coins' : 'Not enough coins'}
+                <Separator className="mt-2" />
+                <SheetFooter className="pt-4">
+                  <Button onClick={() => addItemToCart([])}>
+                    Clear basket
+                  </Button>
+                  <Button
+                    disabled={!hasEnoughCoins}
+                    onClick={() => handleCheckoutWithCoins()}
+                  >
+                    {hasEnoughCoins ? "Checkout with Coins" : "Not enough coins"}
                   </Button>
                 </SheetFooter>
               </>
             )}
-            { isProcessingOrder && (
-              <div className='flex items-center justify-center'>
+
+            {isProcessingOrder && (
+              <div className="flex items-center justify-center">
                 <Spinner />
               </div>
             )}
+
             <div className="grid gap-4 py-4">
               <Separator />
-              {
-                !isProcessingOrder && !isLoadingStoreItems && itemsInCart.map((id, index) => (
-                  <div key={index} className='flex items-center justify-between'>
-                    <div>
-                      <h3 className='text-lg font-semibold'>{ !isLoadingStoreItems && storeItems && storeItems?.data.find(item => item.id === id)?.name}</h3>
-                      <p className='text-sm'>{!isLoadingStoreItems && storeItems && storeItems?.data.find(item => item.id === id)?.coinPrice} coins</p>
-                    </div>
-                    <div>
+              {!isProcessingOrder &&
+                !isLoadingStoreItems &&
+                itemsInCart.map((id, index) => {
+                  const cartItem = storeItems?.data.find((item) => item.id === id);
+
+                  return (
+                    <div key={index} className="flex items-center justify-between">
+                      <div>
+                        <h3 className="text-lg font-semibold">
+                          {cartItem?.name}
+                        </h3>
+                        <p className="text-sm">{cartItem?.coinPrice} coins</p>
+                      </div>
+
                       <Button
-                        variant='default'
+                        variant="default"
                         onClick={() =>
-                          addItemToCart(itemsInCart.filter((currId) => currId !== id))
+                          addItemToCart(
+                            itemsInCart.filter((currId) => currId !== id)
+                          )
                         }
                       >
                         Remove
                       </Button>
                     </div>
-                  </div>
-                ))
-              }
+                  );
+                })}
             </div>
           </SheetContent>
         </Sheet>
+
         <Sheet>
           <SheetTrigger asChild>
-            <Button className='fixed top-20 right-5' variant='default'><FilterIcon className='w-6 h-6'/></Button>
+            <Button
+              className="fixed right-5 top-20"
+              variant="default"
+              aria-label="Open marketplace filters"
+            >
+              <FilterIcon className="h-6 w-6" />
+            </Button>
           </SheetTrigger>
-          <SheetContent className="bg-bg">
+
+          <SheetContent className="bg-bg text-text dark:bg-darkBg dark:text-darkText">
             <SheetHeader>
               <SheetTitle>Filter</SheetTitle>
-              <SheetDescription>
-
-              </SheetDescription>
+              <SheetDescription />
             </SheetHeader>
+
             <div className="grid gap-4 py-4">
               <Separator />
+
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="name" className="text-right">
+                <Label htmlFor="showPurchased" className="text-right">
                   Show purchased
                 </Label>
-                <Switch checked={showPurchased} onCheckedChange={checked => setShowPurchased(checked)} />
-                <Label htmlFor="name" className="text-right">
+                <Switch
+                  checked={showPurchased}
+                  onCheckedChange={(checked) => setShowPurchased(checked)}
+                />
+
+                <Label htmlFor="showUnavailable" className="text-right">
                   Show unavailable
                 </Label>
-                <Switch checked={showUnavailable} onCheckedChange={checked => setShowUnavailable(checked)} />
+                <Switch
+                  checked={showUnavailable}
+                  onCheckedChange={(checked) => setShowUnavailable(checked)}
+                />
               </div>
+
               <Separator />
             </div>
-            {
-            // <SheetFooter>
-            //   <SheetClose asChild>
-            //     <Button type="submit">Save changes</Button>
-            //   </SheetClose>
-            // </SheetFooter>
-            }
           </SheetContent>
         </Sheet>
-        <div className='p-8'>
-          { storeItems?.data.length === 0 && (
-            <div className="text-center text-xl">
-              No items found.
-              <br />
-              Try changing the filters.
+
+        <main className="flex-1 bg-bg text-text dark:bg-darkBg dark:text-darkText">
+          <div className="p-8">
+            {storeItems?.data.length === 0 && (
+              <div className="text-center text-xl">
+                No marketplace items found.
+                <br />
+                Check back soon for new items.
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4">
+              {[...(storeItems?.data || [])]
+                .sort(
+                  (a, b) =>
+                    getMarketplaceSortOrder(a) - getMarketplaceSortOrder(b)
+                )
+                .map((item) => {
+                  const isCashPrice = false;
+
+                  const isWordPack = item.type === "WORD_PACK";
+                  const isLockedBySubscription =
+                    isWordPack && !item.isPurchased && subscriptionKey === "FREE";
+
+                  const price = isCashPrice ? item.realPrice : item.coinPrice;
+
+                  return (
+                    <Product
+                      key={item.id}
+                      itemId={item.id}
+                      name={item.name}
+                      type={item.type}
+                      description={item.description}
+                      price={price}
+                      isCashPrice={isCashPrice}
+                      isPurchased={item.isPurchased}
+                      isUnlockedBySubscription={item.isUnlockedBySubscription}
+                      subItems={[]}
+                      isInCart={itemsInCart.includes(item.id)}
+                      isLocked={isLockedBySubscription}
+                      addItemToCard={() => {
+                        if (!itemsInCart.includes(item.id)) {
+                          addItemToCart([...itemsInCart, item.id]);
+                        }
+                      }}
+                      removeItemFromCard={() => {
+                        addItemToCart(
+                          itemsInCart.filter((id) => id !== item.id)
+                        );
+                      }}
+                      buyWithStripe={() => handleStripePurchase(item.id)}
+                      hasStripePrice={item.hasStripePrice}
+                      marketplaceImage={item.marketplaceImage}
+                    />
+                  );
+                })}
             </div>
-          )}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {storeItems?.data.map((item) => {
-              const isCashPrice = false;
-              const subItems = [];
-              const cashPrice = '1';
-              return (
-                <Product
-                  itemId={item.id}
-                  name={item.name}
-                  type={item.type}
-                  description={item.description}
-                  price={isCashPrice ? cashPrice : item.coinPrice}
-                  isCashPrice={isCashPrice}
-                  isPurchased={item.isPurchased}
-                  subItems={[]}
-                  addItemToCard={() => {
-                    if (!itemsInCart.includes(item.id))
-                    addItemToCart([...itemsInCart, item.id]);
-                  }}
-                  removeItemFromCard={() => {
-                    addItemToCart(itemsInCart.filter((id) => id !== item.id));
-                  }}
-                  isInCart={itemsInCart.includes(item.id)}
-                />
-              );
-            })}
           </div>
-        </div>
+        </main>
+
+        <Footer />
       </div>
-    )
-  }
+    );
+}

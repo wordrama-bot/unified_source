@@ -25,7 +25,7 @@ import {
   useGetPublicPlayerQuery,
 } from "@/redux/api/wordrama";
 
-type StatusFilter = "ALL" | "LOCKED" | "IN_PROGRESS" | "COMPLETED";
+type StatusFilter = "ALL" | "LOCKED" | "IN_PROGRESS" | "COMPLETE";
 type ChallengeStatus = "LOCKED" | "UNLOCKED" | "IN_PROGRESS" | "COMPLETE" | string;
 
 function getRewardText(coinReward?: number, xpReward?: number) {
@@ -39,7 +39,7 @@ function getRewardText(coinReward?: number, xpReward?: number) {
 
 function getStatusLabel(status?: ChallengeStatus) {
   switch (status) {
-    case "COMPLETED":
+    case "COMPLETE":
       return "Complete";
     case "IN_PROGRESS":
       return "In Progress";
@@ -112,6 +112,32 @@ export default function ChallengesPage() {
       </header>
 
       <section className="border-t-border dark:border-t-darkBorder dark:bg-darkBg border-t-2 bg-bg py-20 font-base lg:py-[50px]">
+        <div className="mx-auto mb-10 w-container max-w-full px-5">
+          <div className="border-2 border-border dark:border-darkBorder shadow-light dark:shadow-dark dark:bg-darkBg rounded-base bg-bg p-5">
+            <h3 className="mb-3 text-2xl font-heading">How achievements work</h3>
+
+            <p className="mb-3">
+              Achievements reward you for reaching milestones across Wordrama, from playing your first game to solving words in fewer guesses, building streaks, linking your Discord, and climbing the leaderboard.
+            </p>
+
+            <p className="mb-3">
+              Some achievements award <strong>XP</strong>, which helps track your player progression on your profile. Others award <strong>coins</strong>, which can be used in the Marketplace to unlock cosmetics, themes, and other Wordrama rewards.
+            </p>
+
+            <div className="mt-5 flex flex-wrap gap-3">
+              <Link href="/marketplace">
+                <Button variant="default">Visit Marketplace</Button>
+              </Link>
+
+              {playerId && (
+                <Link href={`/player/${playerId}`}>
+                  <Button variant="neutral">View Player Profile</Button>
+                </Link>
+              )}
+            </div>
+          </div>
+        </div>
+
         <div className="mx-auto grid w-container max-w-full grid-cols-1 gap-5 px-5 sm:grid-cols-2 lg:grid-cols-3">
           {/* Filter sheet */}
           <Sheet>
@@ -154,8 +180,8 @@ export default function ChallengesPage() {
                     </div>
 
                     <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="COMPLETED" id="COMPLETED" />
-                      <Label htmlFor="COMPLETED">Complete</Label>
+                      <RadioGroupItem value="COMPLETE" id="COMPLETE" />
+                      <Label htmlFor="COMPLETE">Complete</Label>
                     </div>
                   </RadioGroup>
                 </div>
@@ -193,16 +219,14 @@ export default function ChallengesPage() {
 
           {/* Cards */}
           {challenges.map((challenge: any, challengeIdx: number) => {
-            const {
-              id,
-              challengeId,
-              name,
-              description,
-              coinReward,
-              xpReward,
-              progress,
-              status,
-            } = challenge ?? {};
+            const id = challenge?.id ?? challenge?.challenge_progress_id;
+            const challengeId = challenge?.challengeId ?? challenge?.challenge_id;
+            const name = challenge?.name;
+            const description = challenge?.description;
+            const coinReward = challenge?.coinReward ?? challenge?.coin_reward ?? 0;
+            const xpReward = challenge?.xpReward ?? challenge?.xp_reward ?? 0;
+            const progress = challenge?.progress ?? 0;
+            const status = String(challenge?.status ?? "").toUpperCase();
 
             const rewardText = getRewardText(coinReward, xpReward);
             const statusLabel = getStatusLabel(status);
@@ -241,7 +265,7 @@ export default function ChallengesPage() {
                     <Separator className="mt-4 mb-4" />
                     <Progress value={numericProgress} className="w-[100%]" />
                   </>
-                ) : status === "COMPLETED" ? (
+                ) : status === "COMPLETE" ? (
                   <p className="text-center text-6xl">🏆</p>
                 ) : null}
               </div>

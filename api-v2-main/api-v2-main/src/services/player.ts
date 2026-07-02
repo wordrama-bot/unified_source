@@ -44,7 +44,9 @@ async function getPlayerByUserId(userId: string) {
           is_hard_mode,
           is_dark_mode,
           wordle_word_length,
-          is_confetti_enabled
+          is_confetti_enabled,
+          appearance_theme_id,
+          keyboard_style_id
         ),
         _streamer_settings (
           hide_name,
@@ -223,6 +225,44 @@ async function getPublicPlayerProfileByUsername(username: string) {
 }
 
 async function addPlayer(userId: string, body: AddPlayer) {
+  const {
+    data: { user },
+    error: authUserError,
+  } = await db.auth.admin.getUserById(userId);
+
+  if (authUserError) {
+    console.error(authUserError);
+    throw new Error('Unable to verify account.');
+  }
+
+  const email = user?.email?.toLowerCase();
+
+  const discordId =
+    user?.user_metadata?.provider_id ||
+    user?.user_metadata?.sub;
+
+  if (email) {
+    const { data: emailBanned } = await db.rpc('is_admin_banned', {
+      p_ban_type: 'EMAIL',
+      p_ban_value: email,
+    });
+
+    if (emailBanned) {
+      throw new Error('Account access restricted.');
+    }
+  }
+
+  if (discordId) {
+    const { data: discordBanned } = await db.rpc('is_admin_banned', {
+      p_ban_type: 'DISCORD',
+      p_ban_value: discordId,
+    });
+
+    if (discordBanned) {
+      throw new Error('Account access restricted.');
+    }
+  }
+
   const { role, username, referralCode, ...player } = body;
   const { error: playerError } = await db
     .from('_players')

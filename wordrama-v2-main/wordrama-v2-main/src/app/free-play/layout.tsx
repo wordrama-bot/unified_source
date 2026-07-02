@@ -28,9 +28,12 @@ export default function Layout({
     <div className="flex min-h-screen w-full flex-col border:border dark:border-darkBorder bg-bg dark:bg-darkBg text-text dark:text-darkText">
       <NavBar
         links={[
-          { href: "/", text: "Home" },
+          { href: "/free-play", text: "Quick Play" },
+          { href: "/marketplace", text: "Marketplace" },
+          { href: "/achievements", text: "Achievements" },
+          { href: "/teams", text: "Teams" },
           { href: "/about", text: "About" },
-          { href: "/signup", text: "Sign Up" },
+          { href: "/signup", text: "Sign Up / In" },
         ]}
       />
         { children }

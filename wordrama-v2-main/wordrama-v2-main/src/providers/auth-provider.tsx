@@ -24,15 +24,30 @@ function AuthProvider({ children }: any) {
   const [loading, setLoading] = useState(true);
   const [accountDelete, setAccountDelete] = useState(false);
 
-  const logout = () => {
-    supabase.auth.signOut();
+  const logout = async () => {
+    await supabase.auth.signOut();
     localStorage.clear();
     sessionStorage.clear();
     setSession(null);
-    setUser({});
+    setUser(null);
     setAuth(false);
     setRole('PLAYER');
     setLoading(false);
+    
+    const publicAfterLogoutPaths = [
+      "/",
+      "/teams",
+      "/marketplace",
+      "/achievements",
+      "/about",
+      "/free-play",
+    ];
+
+    const currentPath = window.location.pathname;
+
+    const shouldStayOnPage = publicAfterLogoutPaths.includes(currentPath);
+
+    window.location.href = shouldStayOnPage ? currentPath : "/";
   }
 
   const deleteLogout = () => {

@@ -1,12 +1,12 @@
 "use client"
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { FilterIcon } from 'lucide-react';
 //import { getAppInsights } from '@/utils/appInsights';
 import { useAuth } from '@/providers/auth-provider';
 import Header from '@/sections/header';
 import Loading from '@/sections/loading';
-
 import NavBar from '@/components/navbar/h-nav';
+import Footer from "@/sections/footer";
 import Product from '@/components/product';
 import {
   Sheet,
@@ -18,6 +18,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
+import { useMarketplaceAccess } from "@/lib/useMarketplaceAccess";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -36,8 +37,57 @@ import { Slider } from '@/components/ui/slider';
 import { Separator } from '@/components/ui/separator';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Switch } from '@/components/ui/switch';
-import { useGetStoreItemsQuery, useGetPurchasesQuery, useGetMyAccountQuery, usePurchaseItemsWithCoinsMutation } from '@/redux/api/wordrama';
+import {
+    useGetStoreItemsQuery,
+    useGetPurchasesQuery,
+    useGetMyAccountQuery,
+    usePurchaseItemsWithCoinsMutation,
+    useCreateItemCheckoutSessionMutation,
+  } from '@/redux/api/wordrama';
 import { useEffect } from 'react';
+
+const MARKETPLACE_WORD_PACK_SORT_ORDER: { [key: string]: number } = {
+  'ba8671aa-7481-43e5-a1ac-f2b73433a315': 4,
+  'b1b96d0e-5b1a-403e-80be-88f3d2bae873': 11.5,
+  '7f06b10e-d52a-4ae3-b77f-a7e9a7c5e5fb': 12,
+  'b8c73f14-79ad-4495-9fd9-a4be65d5fcbc': 13,
+  '3159552d-8c96-4bb5-aafa-ebf36aa5a2c2': 14,
+  'fef67eba-96db-4f5e-8b25-81487a1dbc9d': 15,
+  '1ee2de50-072f-4718-b8ac-7663f3069f2e': 16,
+  '80e197a9-0829-4074-8e85-a88e6e8b7ea0': 17,
+  '425c96ab-beff-40ef-9774-feb6db135644': 18,
+  '1d348c05-c51e-4ea3-a888-d4823436704f': 19,
+  '6e66a620-8e17-4f75-aa0b-1c282aafb9d8': 20,
+  '72215e5b-6638-4388-84bc-55dcd36c0e05': 21,
+  'db526774-11da-47de-b410-5b47a4168db8': 22,
+  'ab14511c-f2ac-4b16-a8ef-7cb8ed61a2cc': 23,
+  '3d3ff93b-65c1-4d36-902e-3a889c71ac86': 999,
+};
+
+const MARKETPLACE_THEME_SORT_ORDER: { [key: string]: number } = {
+  'eea2ee39-7ff5-4cfc-906b-608d01555afa': 1,
+  'c42e21b8-e3e2-487b-9307-698063f29dcd': 2,
+  'db984ab5-f0a9-43a9-9800-702150de76f5': 3,
+  '8642cdb8-7f8e-4c58-be01-3f9d5362326d': 4,
+  '4085cec0-6c84-4732-b70c-a80938afe0a5': 5,
+  'a0144a0f-6867-4140-a520-f64375f35990': 6,
+  '91d60b4a-3dfa-4c90-8992-fae1e2bed0c9': 7,
+  '7855a094-b1df-49c5-abf0-622e651df69a': 8,
+  '49a35b50-db84-4854-847e-e9610874f878': 9,
+  'c58ed56e-3891-44c6-b195-b9d1c8bbe980': 10,
+};
+
+function getMarketplaceSortOrder(item: any): number {
+  if (item.type === 'WORDLE_WORD_PACK') {
+    return 1000 + (MARKETPLACE_WORD_PACK_SORT_ORDER[item.id] ?? 500);
+  }
+
+  if (item.type === 'THEME') {
+    return 2000 + (MARKETPLACE_THEME_SORT_ORDER[item.id] ?? 500);
+  }
+
+  return 9000;
+}
 
 function ShoppingCartIcon(props) {
   return (
@@ -72,21 +122,44 @@ function Spinner() {
   );
 }
 
+function MarketplaceSection({
+  title,
+  items,
+  renderItem,
+}: {
+  title: string;
+  items: any[];
+  renderItem: (item: any) => React.ReactNode;
+}) {
+  if (items.length === 0) return null;
+
+  return (
+    <section className="mb-10">
+      <h2 className="mb-4 text-3xl font-heading">{title}</h2>
+
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4">
+        {items.map(renderItem)}
+      </div>
+    </section>
+  );
+}
+
 export default function AllItemsMarketplacePage() {
   //getAppInsights().trackPageView({ name: 'All Items Marketplace' });
   const [ minCoinPrice, setMinCoinPrice ] = useState(0);
   const [ maxCoinPrice, setMaxCoinPrice ] = useState(1000000);
   const [ gameFilter, setGameFilter ] = useState('WORDLE');
   //ALL
-  const [ itemTypeFilter, setItemTypeFilter ] = useState('WORDLE_WORD_PACK');
+  const [ itemTypeFilter, setItemTypeFilter ] = useState('ALL');
   //ALL
-  const [ showPurchased, setShowPurchased ] = useState(false);
+  const [ showPurchased, setShowPurchased ] = useState(true);
   const [ showUnavailable, setShowUnavailable ] = useState(false);
   const [ itemsInCart, addItemToCart ] = useState([] as string[]);
   const [ alertTitle, setAlertTitle ] = useState('');
   const [ alertText, setAlertText ] = useState('');
   const [ isProcessingOrder, setIsProcessingOrder] = useState(false);
   const { data: myAccount, error: myAccountError, isLoadingMyAccount } = useGetMyAccountQuery();
+  const { subscriptionKey } = useMarketplaceAccess();
   const { data: storeItems, error: storeItemsError, isLoading: isLoadingStoreItems } = useGetStoreItemsQuery({
     minCoinPrice,
     maxCoinPrice,
@@ -96,8 +169,68 @@ export default function AllItemsMarketplacePage() {
     showUnavailable
   });
   const [ purchaseItemsWithCoins ] = usePurchaseItemsWithCoinsMutation();
+  const [ createItemCheckoutSession] = useCreateItemCheckoutSessionMutation();
+  const handleStripePurchase = async (itemId: string) => {
+    try {
+      const result = await createItemCheckoutSession({
+        itemId,
+      }).unwrap();
+
+      if (result?.data?.checkoutUrl) {
+        window.location.href = result.data.checkoutUrl;
+      }
+    } catch (error) {
+      console.error('Failed to create Stripe checkout session', error);
+    }
+  };
   const basketSubTotal = !isLoadingStoreItems && storeItems ? storeItems?.data.filter(item => itemsInCart.includes(item.id)).reduce((acc: number, item: any) => acc + item.coinPrice, 0) : 0
   const hasEnoughCoins = myAccount?.data?.ledger?.coinBalance && myAccount?.data?.ledger?.coinBalance >= basketSubTotal;
+
+  const marketplaceItems = [...(storeItems?.data || [])].sort(
+    (a, b) => getMarketplaceSortOrder(a) - getMarketplaceSortOrder(b)
+  );
+
+  const themeItems = marketplaceItems.filter((item) => item.type === 'THEME');
+  const wordPackItems = marketplaceItems.filter(
+    (item) => item.type === 'WORDLE_WORD_PACK' || item.type === 'WORD_PACK'
+  );
+  const gameModeItems = marketplaceItems.filter((item) => item.type === 'GAME_MODE');
+  const otherItems = marketplaceItems.filter(
+    (item) =>
+      !['THEME', 'WORD_PACK', 'WORDLE_WORD_PACK', 'GAME_MODE'].includes(item.type)
+  );
+
+  const renderProduct = (item: any) => {
+  const isCashPrice = false;
+  const cashPrice = "1";
+
+  return (
+    <Product
+      key={item.id}
+      itemId={item.id}
+      name={item.name}
+      type={item.type}
+      description={item.description}
+      price={isCashPrice ? cashPrice : item.coinPrice}
+      isCashPrice={isCashPrice}
+      isPurchased={item.isPurchased}
+      isUnlockedBySubscription={item.isUnlockedBySubscription}
+      subItems={[]}
+      addItemToCard={() => {
+        if (!itemsInCart.includes(item.id)) {
+          addItemToCart([...itemsInCart, item.id]);
+        }
+      }}
+      removeItemFromCard={() => {
+        addItemToCart(itemsInCart.filter((id) => id !== item.id));
+      }}
+      isInCart={itemsInCart.includes(item.id)}
+      buyWithStripe={() => handleStripePurchase(item.id)}
+      hasStripePrice={item.hasStripePrice}
+      marketplaceImage={item.marketplaceImage}
+    />
+  );
+};
 
   async function handleCheckoutWithCoins() {
     const itemsToCheckout = [...itemsInCart];
@@ -116,226 +249,245 @@ export default function AllItemsMarketplacePage() {
   }
 
   if (isLoadingStoreItems || isLoadingMyAccount) return <Loading />;
+
   return (
-    <div className='bg-[linear-gradient(to_right,#80808033_1px,transparent_1px),linear-gradient(to_bottom,#80808033_1px,transparent_1px)] bg-[size:70px_70px]'>
+    <div className="flex min-h-screen w-full flex-col bg-bg text-text dark:bg-darkBg dark:text-darkText">
+      <NavBar
+        links={[
+          { href: "/games", text: "Games" },
+          { href: "/leaderboard", text: "Leaderboard" },
+          { href: "/marketplace", text: "Marketplace" },
+          { href: "/achievements", text: "Achievements" },
+          { href: "/teams", text: "Teams" },
+        ]}
+      />
+
       <Header
         showLogo={false}
-        heroText='Marketplace'
-        className='min-h-[10dvh] dark:bg-darkBg inset-0 flex w-full flex-col items-center justify-center bg-bg bg-[linear-gradient(to_right,#80808033_1px,transparent_1px),linear-gradient(to_bottom,#80808033_1px,transparent_1px)] bg-[size:70px_70px]'
+        heroText="Marketplace"
+        className="min-h-[10dvh] inset-0 flex w-full flex-col items-center justify-center bg-bg text-text dark:bg-darkBg dark:text-darkText bg-[linear-gradient(to_right,#80808033_1px,transparent_1px),linear-gradient(to_bottom,#80808033_1px,transparent_1px)] bg-[size:70px_70px]"
       />
-      <AlertDialog open={alertTitle && alertText && true}>
+
+      <AlertDialog open={!!(alertTitle && alertText)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{ alertTitle }</AlertDialogTitle>
-            <AlertDialogDescription>
-              { alertText }
-            </AlertDialogDescription>
+            <AlertDialogTitle>{alertTitle}</AlertDialogTitle>
+            <AlertDialogDescription>{alertText}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogAction
               onClick={() => {
-                setAlertTitle('');
-                setAlertText('');
-              }}>
-                Close
-              </AlertDialogAction>
+                setAlertTitle("");
+                setAlertText("");
+              }}
+            >
+              Close
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
       <Sheet>
         <SheetTrigger asChild>
-          <Button className='fixed top-20 right-24' variant='default'>
-            <ShoppingCartIcon className='w-6 h-6' /> {itemsInCart.length > 0 ? `(${itemsInCart.length})` : ''}
+          <Button className="fixed right-24 top-20" variant="default">
+            <ShoppingCartIcon className="h-6 w-6" />
+            {itemsInCart.length > 0 ? `(${itemsInCart.length})` : ""}
           </Button>
         </SheetTrigger>
-        <SheetContent className="bg-bg">
+
+        <SheetContent className="bg-bg text-text dark:bg-darkBg dark:text-darkText">
           <SheetHeader>
             <SheetTitle>Basket</SheetTitle>
             <SheetDescription>
-              {itemsInCart.length === 0 && 'Your basket is empty'}
-              {itemsInCart.length > 0 && `Basket total: ${basketSubTotal} coins`}
+              {itemsInCart.length === 0 && "Your basket is empty"}
+              {itemsInCart.length > 0 &&
+                `Basket total: ${basketSubTotal} coins`}
             </SheetDescription>
           </SheetHeader>
 
-          { !isProcessingOrder && !isLoadingStoreItems && itemsInCart.length > 0 && (
+          {!isProcessingOrder && !isLoadingStoreItems && itemsInCart.length > 0 && (
             <>
-              <Separator className='mt-2' />
-              <SheetFooter className='pt-4'>
-                <Button>Clear basket</Button>
-                <Button disabled={!hasEnoughCoins} onClick={() => handleCheckoutWithCoins()}>
-                  {hasEnoughCoins ? 'Checkout with Coins' : 'Not enough coins'}
+              <Separator className="mt-2" />
+              <SheetFooter className="pt-4">
+                <Button onClick={() => addItemToCart([])}>
+                  Clear basket
+                </Button>
+                <Button
+                  disabled={!hasEnoughCoins}
+                  onClick={() => handleCheckoutWithCoins()}
+                >
+                  {hasEnoughCoins ? "Checkout with Coins" : "Not enough coins"}
                 </Button>
               </SheetFooter>
             </>
           )}
-          { isProcessingOrder && (
-            <div className='flex items-center justify-center'>
+
+          {isProcessingOrder && (
+            <div className="flex items-center justify-center">
               <Spinner />
             </div>
           )}
+
           <div className="grid gap-4 py-4">
             <Separator />
-            {
-              !isProcessingOrder && !isLoadingStoreItems && itemsInCart.map((id, index) => (
-                <div key={index} className='flex items-center justify-between'>
-                  <div>
-                    <h3 className='text-lg font-semibold'>{ !isLoadingStoreItems && storeItems && storeItems?.data.find(item => item.id === id)?.name}</h3>
-                    <p className='text-sm'>{!isLoadingStoreItems && storeItems && storeItems?.data.find(item => item.id === id)?.coinPrice} coins</p>
-                  </div>
-                  <div>
+            {!isProcessingOrder &&
+              !isLoadingStoreItems &&
+              itemsInCart.map((id, index) => {
+                const cartItem = storeItems?.data.find((item) => item.id === id);
+
+                return (
+                  <div key={index} className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-lg font-semibold">
+                        {cartItem?.name}
+                      </h3>
+                      <p className="text-sm">{cartItem?.coinPrice} coins</p>
+                    </div>
+
                     <Button
-                      variant='default'
+                      variant="default"
                       onClick={() =>
-                        addItemToCart(itemsInCart.filter((currId) => currId !== id))
+                        addItemToCart(
+                          itemsInCart.filter((currId) => currId !== id)
+                        )
                       }
                     >
                       Remove
                     </Button>
                   </div>
-                </div>
-              ))
-            }
+                );
+              })}
           </div>
         </SheetContent>
       </Sheet>
+
       <Sheet>
         <SheetTrigger asChild>
-          <Button className='fixed top-20 right-5' variant='default'><FilterIcon className='w-6 h-6'/></Button>
+          <Button
+            className="fixed right-5 top-20"
+            variant="default"
+            aria-label="Open marketplace filters"
+          >
+            <FilterIcon className="h-6 w-6" />
+          </Button>
         </SheetTrigger>
-        <SheetContent className="bg-bg">
+
+        <SheetContent className="bg-bg text-text dark:bg-darkBg dark:text-darkText">
           <SheetHeader>
             <SheetTitle>Filter</SheetTitle>
-            <SheetDescription>
-
-            </SheetDescription>
+            <SheetDescription />
           </SheetHeader>
+
           <div className="grid gap-4 py-4">
             <Separator />
-            {
-            // <Label htmlFor="name" className="text-center">
-            //   Coin Price
-            // </Label>
-            // <div className="grid grid-cols-4 items-center gap-4">
-            //   <Label htmlFor="name" className="text-right">
-            //     Min
-            //   </Label>
-            //   <Slider defaultValue={[1000]} max={1000000} step={100} className="col-span-3" />
-            // </div>
-            // <div className="grid grid-cols-4 items-center gap-4">
-            //   <Label htmlFor="name" className="text-right">
-            //     Max
-            //   </Label>
-            //   <Slider defaultValue={[1000000]} max={1000000} step={100} className="col-span-3" />
-            // </div>
-            // <Separator />
-            }
+
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="name" className="text-right">
+              <Label htmlFor="gameFilter" className="text-right">
                 Games
               </Label>
-              {
-                //ALL
-              }
-              <RadioGroup defaultValue="WORDLE" value={gameFilter} onValueChange={(value) => setGameFilter(value)}>
-                {/* <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="ALL" id="ALL" />
-                  <Label htmlFor="ALL">All</Label>
-                </div> */}
+
+              <RadioGroup
+                defaultValue="WORDLE"
+                value={gameFilter}
+                onValueChange={(value) => setGameFilter(value)}
+              >
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="WORDLE" id="WORDLE" />
                   <Label htmlFor="WORDLE">Wordle</Label>
                 </div>
-                {/* <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="WORD_SEARCH" id="WORD_SEARCH" />
-                  <Label htmlFor="WORD_SEARCH">Search</Label>
-                </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="GUESS_THE_WORD" id="GUESS_THE_WORD" />
-                    <Label htmlFor="GUESS_THE_WORD">Guess</Label>
-                  </div> */}
               </RadioGroup>
             </div>
+
             <Separator />
+
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="name" className="text-right">
+              <Label htmlFor="itemTypeFilter" className="text-right">
                 Item Types
               </Label>
-              {
-                //ALL
-              }
-              <RadioGroup defaultValue="WORDLE_WORD_PACK" value={itemTypeFilter} onValueChange={(value) => setItemTypeFilter(value)}>
-                {/* <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="ALL" id="ALL"  />
-                  <Label htmlFor="ALL">All</Label>
-                </div> */}
+
+              <RadioGroup
+                defaultValue="ALL"
+                value={itemTypeFilter}
+                onValueChange={(value) => setItemTypeFilter(value)}
+              >
                 <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="WORDLE_WORD_PACK" id="WORDLE_WORD_PACK" />
-                  <Label htmlFor="option-two">Words</Label>
+                  <RadioGroupItem value="ALL" id="ALL_ITEMS" />
+                  <Label htmlFor="ALL_ITEMS">All</Label>
                 </div>
-                {/* <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="AVATAR" id="AVATAR" />
-                  <Label htmlFor="AVATAR">Avatars</Label>
-                </div> */}
+
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="WORD_PACK" id="WORD_PACK" />
+                  <Label htmlFor="WORD_PACK">Word Packs</Label>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="THEME" id="THEME" />
+                  <Label htmlFor="THEME">Themes</Label>
+                </div>
               </RadioGroup>
             </div>
+
             <Separator />
+
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="name" className="text-right">
+              <Label htmlFor="showPurchased" className="text-right">
                 Show purchased
               </Label>
-              <Switch checked={showPurchased} onCheckedChange={checked => setShowPurchased(checked)} />
-              <Label htmlFor="name" className="text-right">
+              <Switch
+                checked={showPurchased}
+                onCheckedChange={(checked) => setShowPurchased(checked)}
+              />
+
+              <Label htmlFor="showUnavailable" className="text-right">
                 Show unavailable
               </Label>
-              <Switch checked={showUnavailable} onCheckedChange={checked => setShowUnavailable(checked)} />
+              <Switch
+                checked={showUnavailable}
+                onCheckedChange={(checked) => setShowUnavailable(checked)}
+              />
             </div>
+
             <Separator />
           </div>
-          {
-          // <SheetFooter>
-          //   <SheetClose asChild>
-          //     <Button type="submit">Save changes</Button>
-          //   </SheetClose>
-          // </SheetFooter>
-          }
         </SheetContent>
       </Sheet>
-      <div className='p-8'>
-        { storeItems?.data.length === 0 && (
-          <div className="text-center text-xl">
-            No items found.
-            <br />
-            Try changing the filters.
-          </div>
-        )}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {storeItems?.data.map((item) => {
-            const isCashPrice = false;
-            const subItems = [];
-            const cashPrice = '1';
-            return (
-              <Product
-                itemId={item.id}
-                name={item.name}
-                type={item.type}
-                description={item.description}
-                price={isCashPrice ? cashPrice : item.coinPrice}
-                isCashPrice={isCashPrice}
-                isPurchased={item.isPurchased}
-                subItems={[]}
-                addItemToCard={() => {
-                  if (!itemsInCart.includes(item.id))
-                  addItemToCart([...itemsInCart, item.id]);
-                }}
-                removeItemFromCard={() => {
-                  addItemToCart(itemsInCart.filter((id) => id !== item.id));
-                }}
-                isInCart={itemsInCart.includes(item.id)}
-              />
-            );
-          })}
+
+      <main className="flex-1 bg-bg text-text dark:bg-darkBg dark:text-darkText">
+        <div className="p-8">
+          {storeItems?.data.length === 0 && (
+            <div className="text-center text-xl">
+              No marketplace items found.
+              <br />
+              Check back soon for new items.
+            </div>
+          )}
+          <MarketplaceSection
+            title="Word Packs"
+            items={wordPackItems}
+            renderItem={renderProduct}
+          />
+          
+          <MarketplaceSection
+            title="Premium Themes"
+            items={themeItems}
+            renderItem={renderProduct}
+          />
+
+          <MarketplaceSection
+            title="Game Modes"
+            items={gameModeItems}
+            renderItem={renderProduct}
+          />
+
+          <MarketplaceSection
+            title="Other Items"
+            items={otherItems}
+            renderItem={renderProduct}
+          />
         </div>
-      </div>
+      </main>
+
+      <Footer />
     </div>
-  )
+  );
 }

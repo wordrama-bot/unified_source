@@ -1,21 +1,29 @@
 "use client"
-import NavBar from '@/components/navbar/h-nav';
+import Link from "next/link";
+import PublicNav from '@/components/navbar/public-nav';
 import Footer from '@/sections/footer';
+import GoogleAd from "@/components/GoogleAd";
 
 export default function WordleStrategyPage() {
   return (
     <div className="flex min-h-screen w-full flex-col border:border dark:border-darkBorder bg-bg dark:bg-darkBg text-text dark:text-darkText">
-      <NavBar
+      <PublicNav
         links={[
+          { href: "/free-play", text: "Quick Play" },
+          { href: "/marketplace", text: "Marketplace" },
+          { href: "/achievements", text: "Achievements" },
+          { href: "/teams", text: "Teams" },
           { href: "/about", text: "About" },
-          { href: "/free-play", text: "Wordle" },
-          { href: "/signup", text: "SignUp" },
+          { href: "/signup", text: "Sign Up / In" },
         ]}
       />
 
       <div className="container mx-auto p-4">
         <h1 className="text-4xl font-bold mb-6">Wordle Strategy Guide</h1>
-        <p className="text-sm text-gray-500">Last updated March 13, 2026</p>
+
+        <p className="mt-2 text-sm text-gray-400">
+          Last updated: May 14, 2026
+        </p>
 
         <p className="mt-4">
           If you want to improve at Wordle-style games, the best place to start is with strategy.
@@ -97,7 +105,7 @@ export default function WordleStrategyPage() {
           <h2 className="text-2xl font-semibold">6. Practice improves pattern recognition</h2>
           <p className="mt-4">
             The more you play, the more familiar you become with common endings, frequent consonant clusters,
-            and vowel patterns. That is why unlimited modes like Wordrama’s free play can be so helpful.
+            and vowel patterns. That is why unlimited modes like Wordrama’s Quick Play can be so helpful.
             Practice teaches you how to recognize traps, avoid bad guesses, and solve puzzles more efficiently.
           </p>
         </section>
@@ -110,10 +118,66 @@ export default function WordleStrategyPage() {
             Over time, these habits will improve your win rate and help you become a more confident player on Wordrama.
           </p>
           <p className="mt-4">
-            Ready to put these tips into practice? Head back to <a href="/free-play" className="text-blue-500 hover:underline">free play</a> and test your strategy.
+            Ready to put these tips into practice? Head back to <a href="/free-play" className="text-blue-500 hover:underline">Quick Play</a> and test your strategy.
           </p>
         </section>
       </div>
+
+      <section className="mt-14 rounded-2xl border border-white/10 bg-white/5 p-6">
+        <h2 className="text-2xl font-semibold">
+          Continue Learning
+        </h2>
+
+        <p className="mt-3 text-gray-300">
+          Explore more Wordrama guides to improve your guesses, starting words, and puzzle-solving habits.
+        </p>
+
+        <div className="mt-6 flex flex-wrap gap-4">
+          <Link
+            href="/how-to-play"
+            className="rounded-lg border border-white/20 px-4 py-2 font-semibold text-white"
+          >
+            How to Play
+          </Link>
+
+          <Link
+            href="/wordle-strategy"
+            className="rounded-lg bg-white px-4 py-2 font-semibold text-darkBg"
+          >
+            Strategy Guide
+          </Link>
+
+          <Link
+            href="/best-starting-words"
+            className="rounded-lg border border-white/20 px-4 py-2 font-semibold text-white"
+          >
+            Best Starting Words
+          </Link>
+
+          <Link
+            href="/wordle-tips"
+            className="rounded-lg border border-white/20 px-4 py-2 font-semibold text-white"
+          >
+            Wordle Tips
+          </Link>
+
+          <Link
+            href="/benefits-of-word-games"
+            className="rounded-lg border border-white/20 px-4 py-2 font-semibold text-white"
+          >
+            Benefits of Word Games
+          </Link>
+        </div>
+
+        <div className="mt-10">
+            <GoogleAd
+              client="ca-pub-8970369628667981"
+              slot="8219203779"
+              minHeight={280}
+            />
+        </div>
+        
+      </section>
 
       <Footer />
     </div>

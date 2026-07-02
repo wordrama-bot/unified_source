@@ -1,6 +1,6 @@
 "use client"
 //import { getAppInsights } from "@/utils/appInsights";
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,21 +11,19 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Avatar, AvatarFallback, AvatarImage
-} from "@/components/ui/avatar";
-import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { TeamNav } from "@/components/navbar/team";
-import { redirect } from "next/navigation";
+import NavBar from "@/components/navbar/h-nav";
+import Footer from "@/sections/footer";
+import { useRouter } from "next/navigation";
 import { useGetTeamByNameQuery, useGetMyTeamQuery, useJoinTeamMutation } from "@/redux/api/teams";
 
 export default function JoinTeamPage() {
   //getAppInsights().trackPageView({ name: 'Join Team' });
+  const router = useRouter();
   const { toast } = useToast();
   const [teamName, setTeamName] = useState('');
   const [teamJoined, setTeamJoined] = useState(false);
-  const { data: myTeam, isLoading: myTeamIsLoading, isError: myTeamIsError } = useGetMyTeamQuery();
   const { data: team, isError, refetch } = useGetTeamByNameQuery(teamName);
   const [joinTeam] = useJoinTeamMutation();
 
@@ -40,9 +38,14 @@ export default function JoinTeamPage() {
 
     if (error) {
       setTeamJoined(false);
+
+      const message =
+        (error as any)?.data?.message?.replace('Bad Request - ', '') ||
+        'Failed to join team';
+
       return toast({
         title: 'Whoops',
-        description: 'Failed to join team',
+        description: message,
       });
     }
 
@@ -51,20 +54,32 @@ export default function JoinTeamPage() {
         title: 'Success',
         description: 'Team Joined',
       });
+
       setTeamName('');
-      setTeamJoined(true);
+
+      window.location.href = '/teams/my-team';
+
       return;
     }
   }
 
-  if (teamJoined) return redirect('/teams/my-team');
-  else if (!myTeamIsLoading && myTeam) return redirect('/teams/my-team');
-
   return (
-    <div className="flex min-h-screen w-full flex-col">
+    <div className="flex min-h-screen w-full flex-col border:border bg-bg text-text dark:border-darkBorder dark:bg-darkBg dark:text-darkText">
+      <NavBar
+        links={[
+          { href: "/games", text: "Games" },
+          { href: "/leaderboard", text: "Leaderboard" },
+          { href: "/marketplace", text: "Marketplace" },
+          { href: "/achievements", text: "Achievements" },
+          { href: "/teams", text: "Teams" },
+        ]}
+      />
       <main className="flex min-h-[calc(100vh_-_theme(spacing.16))] flex-1 flex-col gap-4 bg-muted/40 p-4 md:gap-8 md:p-10">
         <div className="mx-auto grid w-full max-w-6xl gap-2">
-          <h1 className="text-3xl text-text dark:text-darkText font-semibold">Join a team</h1>
+          <h1 className="text-3xl text-text dark:text-darkText font-semibold">Join a Team</h1>
+            <p className="text-sm text-muted-foreground max-w-3xl">
+              Join an existing Wordrama team by entering its name. Free players can belong to one team, while Plus and Creator members can join multiple teams.
+            </p>
         </div>
         <div className="mx-auto grid w-full max-w-6xl items-start gap-6 md:grid-cols-[180px_1fr] lg:grid-cols-[250px_1fr]">
           <TeamNav />
@@ -90,12 +105,13 @@ export default function JoinTeamPage() {
                   handleJoinTeam();
                 }}
               >
-                Send
+                Join Team
               </Button>
             </CardFooter>
           </Card>
         </div>
       </main>
+      <Footer />
     </div>
   )
 }

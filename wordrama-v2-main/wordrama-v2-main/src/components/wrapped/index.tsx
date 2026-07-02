@@ -242,7 +242,7 @@ export default function WordramaWrapped() {
       // Trigger the sharing process after the image is fully generated
       shareImage(canvas)
     }
-    logo.src = 'https://utfs.io/f/vieUBZcrouNZQrdaKfbRj7hpV6g4Axl20D3nvSc9I1BEkdqr'
+    logo.src = '/images/wordrama-logo.png'
   }
 
   const shareImage = (canvas: HTMLCanvasElement) => {

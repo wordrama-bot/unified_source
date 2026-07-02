@@ -12,6 +12,8 @@ export type WordleLeaderboardUiState = {
 export type WordleGameUiState = {
     boardColour?: string,
     keyboardColour?: string,
+    appearanceThemeId?: string,
+    keyboardStyleId?: string,
     swapDeleteAndEnter?: boolean,
     confettiEnabled?: boolean,
     speedRunModeEnabled?: boolean,

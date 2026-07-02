@@ -7,6 +7,7 @@ export const router = express.Router();
 
 /* Get routes */
 router.get('/me', playerController.getPlayerProfile);
+router.get('/me/entitlements', playerController.getPlayerEntitlements);
 router.get('/friend-requests', friendsController.getFriendRequests);
 router.get('/friend-requests/sent', friendsController.getSentFriendRequests);
 router.get(

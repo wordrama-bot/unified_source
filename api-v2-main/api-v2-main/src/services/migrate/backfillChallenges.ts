@@ -5,11 +5,7 @@ type BackfillOptions = {
   offset?: number;
   limit?: number;
   logEvery?: number;
-
-  // If true, stop after processing exactly one page
   singlePage?: boolean;
-
-  // If set, process ONLY this player and return immediately
   targetPlayerId?: string;
 };
 
@@ -23,6 +19,7 @@ type BackfillResult = {
 };
 
 const CH = {
+  FIRST_GAME: "4d8b44d9-c06d-4eb1-8a13-68273649acee",
   FIRST_WORDLE: "6e0b4736-434f-441a-bd15-f1e6af871a9c",
   WIN_1: "5bc14e33-c61e-41ed-bdd5-f008ef3cdc69",
   WIN_2: "d298a278-583f-4470-ae2d-f214b14d3a29",
@@ -35,16 +32,35 @@ const CH = {
   KEBAB: "d82d4465-5d6a-4a92-9256-06933522a754",
   KING: "08fa66af-723a-4e74-8963-5aaf700b4fa0",
   DISCORD: "e2bbc084-5137-453b-87a2-d8f6308bcdc7",
+  INVITE: "1c897692-483d-4e48-99bb-3d0227201c13",
+  SOCIALS: "6586c8da-543f-4970-9bb5-e9d924378706",
   USERNAME: "f3675b82-0d1e-450f-aa53-37c3e958a5d6",
 };
 
 const STATUS = {
+  LOCKED: "LOCKED",
   UNLOCKED: "UNLOCKED",
+  IN_PROGRESS: "IN_PROGRESS",
   COMPLETE: "COMPLETE",
 } as const;
 
+function safePositiveInt(value: any, fallback: number) {
+  const n = Number(value);
+  return Number.isFinite(n) && n > 0 ? Math.floor(n) : fallback;
+}
+
+function safeNonNegativeInt(value: any, fallback: number) {
+  const n = Number(value);
+  return Number.isFinite(n) && n >= 0 ? Math.floor(n) : fallback;
+}
+
 function isNonEmptyString(v: any) {
   return typeof v === "string" && v.trim().length > 0;
+}
+
+function normalizeExistingStatus(status?: string) {
+  if (status === "COMPLETED") return STATUS.COMPLETE;
+  return status;
 }
 
 function isTransientNetworkError(err: any): boolean {
@@ -66,11 +82,6 @@ async function columnExists(table: string, column: string): Promise<boolean> {
   return !error;
 }
 
-/**
- * Fetch a page of players from _players (preferred).
- * Retries on transient connection resets.
- * Treats PGRST103 as end-of-table (returns empty list, no error).
- */
 async function getPlayersPage(
   offset: number,
   limit: number
@@ -78,25 +89,29 @@ async function getPlayersPage(
   let lastErr: any = null;
 
   for (let attempt = 0; attempt < 3; attempt++) {
-    const { data, error } = await db
+    const { data, error, count } = await db
       .from("_players")
       .select("id", { count: "exact" })
+      .order("created_at", { ascending: true })
       .range(offset, offset + limit - 1);
 
-    // End-of-range: stop paging without error
     if (error && (error as any).code === "PGRST103") {
       return { playerIds: [], source: "_players" };
     }
 
     if (!error) {
       const ids = (data || []).map((r: any) => r.id).filter(Boolean);
+
+      console.log(
+        `[backfillChallenges] getPlayersPage offset=${offset} limit=${limit} count=${count ?? "n/a"} rows=${ids.length}`
+      );
+
       return { playerIds: ids, source: "_players" };
     }
 
     lastErr = error;
 
     if (!isTransientNetworkError(error)) break;
-    // backoff 250ms, 500ms, 1000ms
     await sleep(250 * Math.pow(2, attempt));
   }
 
@@ -110,47 +125,55 @@ async function getExistingStatuses(playerId: string, challengeIds: string[]) {
     .eq("player_id", playerId)
     .in("challenge_id", challengeIds);
 
-  if (error) return new Map<string, string>();
-
   const m = new Map<string, string>();
+
+  if (error) return m;
+
   for (const row of data || []) {
-    m.set((row as any).challenge_id, (row as any).status);
+    m.set((row as any).challenge_id, normalizeExistingStatus((row as any).status) || "");
   }
+
   return m;
 }
 
-async function getPlayerProfile(playerId: string): Promise<{ usernameOk: boolean }> {
+async function getPlayerProfile(playerId: string): Promise<{
+  usernameOk: boolean;
+  discordConnected: boolean;
+}> {
   const { data, error } = await db
     .from("_players")
-    .select("id,username,display_name")
+    .select("id,username,display_name,discord_connected")
     .eq("id", playerId)
     .maybeSingle();
 
-  if (error || !data) return { usernameOk: false };
+  if (error || !data) {
+    return { usernameOk: false, discordConnected: false };
+  }
 
   const usernameOk =
     isNonEmptyString((data as any).username) ||
     isNonEmptyString((data as any).display_name);
 
-  return { usernameOk };
+  return {
+    usernameOk,
+    discordConnected: (data as any).discord_connected === true,
+  };
 }
 
 async function getWordleStats(playerId: string) {
-  // Any game
   const anyGame = await db
     .from("_wordle_game_result")
     .select("id", { count: "exact", head: true })
     .eq("player", playerId);
 
-  // Any loss
   const anyLoss = await db
     .from("_wordle_game_result")
     .select("id", { count: "exact", head: true })
     .eq("player", playerId)
     .eq("game_was_won", false);
 
-  // Wins by guess count 1..6
   const winByGuess: Record<number, boolean> = {};
+
   for (let n = 1; n <= 6; n++) {
     const r = await db
       .from("_wordle_game_result")
@@ -162,7 +185,6 @@ async function getWordleStats(playerId: string) {
     winByGuess[n] = (r.count || 0) > 0;
   }
 
-  // KEBAB win
   const kebab = await db
     .from("_wordle_game_result")
     .select("id", { count: "exact", head: true })
@@ -170,11 +192,12 @@ async function getWordleStats(playerId: string) {
     .eq("game_was_won", true)
     .eq("solution", "KEBAB");
 
-  // Streak
   const streak = await db
     .from("_wordle_streak")
     .select("best_streak")
     .eq("player", playerId)
+    .order("best_streak", { ascending: false })
+    .limit(1)
     .maybeSingle();
 
   const bestStreak = (streak.data as any)?.best_streak ?? 0;
@@ -188,9 +211,6 @@ async function getWordleStats(playerId: string) {
   };
 }
 
-/**
- * DISCORD: COMPLETE if exists a row in _discord_link with player=<playerId>
- */
 async function hasDiscordLink(playerId: string): Promise<boolean> {
   const { count, error } = await db
     .from("_discord_link")
@@ -201,10 +221,6 @@ async function hasDiscordLink(playerId: string): Promise<boolean> {
   return (count || 0) > 0;
 }
 
-/**
- * KING: best effort. If leaderboard views don't exist, returns false.
- * If they exist but schema differs, tries a couple common patterns.
- */
 async function isKingSomewhere(playerId: string): Promise<boolean> {
   const views = [
     "_v_leaderboard_daily",
@@ -215,9 +231,7 @@ async function isKingSomewhere(playerId: string): Promise<boolean> {
   ];
 
   for (const v of views) {
-    // If view doesn't exist, Supabase will error; treat as missing and continue
     try {
-      // pattern 1: rank + player_id
       const r1 = await db
         .from(v)
         .select("*")
@@ -229,15 +243,36 @@ async function isKingSomewhere(playerId: string): Promise<boolean> {
     } catch {}
 
     try {
-      // pattern 2: position + player
       const r2 = await db
+        .from(v)
+        .select("*")
+        .eq("rank", 1)
+        .eq("player", playerId)
+        .limit(1);
+
+      if (!r2.error && (r2.data?.length || 0) > 0) return true;
+    } catch {}
+
+    try {
+      const r3 = await db
+        .from(v)
+        .select("*")
+        .eq("position", 1)
+        .eq("player_id", playerId)
+        .limit(1);
+
+      if (!r3.error && (r3.data?.length || 0) > 0) return true;
+    } catch {}
+
+    try {
+      const r4 = await db
         .from(v)
         .select("*")
         .eq("position", 1)
         .eq("player", playerId)
         .limit(1);
 
-      if (!r2.error && (r2.data?.length || 0) > 0) return true;
+      if (!r4.error && (r4.data?.length || 0) > 0) return true;
     } catch {}
   }
 
@@ -245,12 +280,13 @@ async function isKingSomewhere(playerId: string): Promise<boolean> {
 }
 
 function resolvedStatus(existing: string | undefined, computedComplete: boolean) {
-  // Never downgrade: once COMPLETE, always COMPLETE
-  if (existing === STATUS.COMPLETE) return STATUS.COMPLETE;
+  const normalized = normalizeExistingStatus(existing);
+
+  if (normalized === STATUS.COMPLETE) return STATUS.COMPLETE;
   return computedComplete ? STATUS.COMPLETE : STATUS.UNLOCKED;
 }
 
-async function makeRow(
+function makeRow(
   playerId: string,
   challengeId: string,
   computedComplete: boolean,
@@ -259,7 +295,11 @@ async function makeRow(
 ) {
   const status = resolvedStatus(existingMap.get(challengeId), computedComplete);
   const row: any = { player_id: playerId, challenge_id: challengeId, status };
-  if (progressColExists) row.progress = status === STATUS.COMPLETE ? 100 : 0;
+
+  if (progressColExists) {
+    row.progress = status === STATUS.COMPLETE ? 100 : 0;
+  }
+
   return row;
 }
 
@@ -274,33 +314,37 @@ async function processOnePlayer(
   const stats = await getWordleStats(playerId);
   const profile = await getPlayerProfile(playerId);
   const king = await isKingSomewhere(playerId);
-  const discordLinked = await hasDiscordLink(playerId);
+  const discordLinked = profile.discordConnected || (await hasDiscordLink(playerId));
 
   const rows = [
-    await makeRow(playerId, CH.FIRST_WORDLE, stats.hasAnyGame, existing, progressColExists),
-    await makeRow(playerId, CH.LOSE_WORDLE, stats.hasLoss, existing, progressColExists),
+    makeRow(playerId, CH.FIRST_GAME, stats.hasAnyGame, existing, progressColExists),
+    makeRow(playerId, CH.FIRST_WORDLE, stats.hasAnyGame, existing, progressColExists),
+    makeRow(playerId, CH.LOSE_WORDLE, stats.hasLoss, existing, progressColExists),
 
-    await makeRow(playerId, CH.WIN_1, stats.winByGuess[1], existing, progressColExists),
-    await makeRow(playerId, CH.WIN_2, stats.winByGuess[2], existing, progressColExists),
-    await makeRow(playerId, CH.WIN_3, stats.winByGuess[3], existing, progressColExists),
-    await makeRow(playerId, CH.WIN_4, stats.winByGuess[4], existing, progressColExists),
-    await makeRow(playerId, CH.WIN_5, stats.winByGuess[5], existing, progressColExists),
-    await makeRow(playerId, CH.WIN_6, stats.winByGuess[6], existing, progressColExists),
+    makeRow(playerId, CH.WIN_1, stats.winByGuess[1], existing, progressColExists),
+    makeRow(playerId, CH.WIN_2, stats.winByGuess[2], existing, progressColExists),
+    makeRow(playerId, CH.WIN_3, stats.winByGuess[3], existing, progressColExists),
+    makeRow(playerId, CH.WIN_4, stats.winByGuess[4], existing, progressColExists),
+    makeRow(playerId, CH.WIN_5, stats.winByGuess[5], existing, progressColExists),
+    makeRow(playerId, CH.WIN_6, stats.winByGuess[6], existing, progressColExists),
 
-    await makeRow(playerId, CH.KEBAB, stats.hasKebab, existing, progressColExists),
-    await makeRow(playerId, CH.STREAK_100, stats.bestStreak >= 100, existing, progressColExists),
+    makeRow(playerId, CH.KEBAB, stats.hasKebab, existing, progressColExists),
+    makeRow(playerId, CH.STREAK_100, stats.bestStreak >= 100, existing, progressColExists),
 
-    await makeRow(playerId, CH.KING, king, existing, progressColExists),
+    makeRow(playerId, CH.KING, king, existing, progressColExists),
 
-    await makeRow(playerId, CH.USERNAME, profile.usernameOk, existing, progressColExists),
-    await makeRow(playerId, CH.DISCORD, discordLinked, existing, progressColExists),
+    makeRow(playerId, CH.USERNAME, profile.usernameOk, existing, progressColExists),
+    makeRow(playerId, CH.DISCORD, discordLinked, existing, progressColExists),
+
+    makeRow(playerId, CH.INVITE, false, existing, progressColExists),
+    makeRow(playerId, CH.SOCIALS, false, existing, progressColExists),
   ];
 
   if (!dryRun) {
-    // Important: you must have UNIQUE (player_id, challenge_id) for this to work
     const up = await db
       .from("_challenge_progress")
       .upsert(rows, { onConflict: "player_id,challenge_id" });
+
     if (up.error) throw up.error;
 
     result.writes += rows.length;
@@ -309,11 +353,13 @@ async function processOnePlayer(
   result.playersProcessed += 1;
 }
 
-export async function backfillChallenges(opts: BackfillOptions = {}): Promise<BackfillResult> {
+export async function backfillChallenges(
+  opts: BackfillOptions = {}
+): Promise<BackfillResult> {
   const dryRun = !!opts.dryRun;
-  const startOffset = Number.isFinite(opts.offset) ? Number(opts.offset) : 0;
-  const limit = Number.isFinite(opts.limit) ? Number(opts.limit) : 250;
-  const logEvery = Number.isFinite(opts.logEvery) ? Number(opts.logEvery) : 50;
+  const startOffset = safeNonNegativeInt(opts.offset, 0);
+  const limit = safePositiveInt(opts.limit, 250);
+  const logEvery = safePositiveInt(opts.logEvery, 50);
 
   const result: BackfillResult = {
     dryRun,
@@ -324,21 +370,37 @@ export async function backfillChallenges(opts: BackfillOptions = {}): Promise<Ba
     errors: [],
   };
 
+  console.log(
+    `[backfillChallenges] START dryRun=${dryRun} offset=${startOffset} limit=${limit} singlePage=${!!opts.singlePage} target=${opts.targetPlayerId || "none"}`
+  );
+
   const progressColExists = await columnExists("_challenge_progress", "progress");
   const touched = Object.values(CH);
 
+  console.log(
+    `[backfillChallenges] progressColExists=${progressColExists} challengesTouched=${touched.length}`
+  );
+
   const targetPlayerId = opts.targetPlayerId?.trim();
+
   if (targetPlayerId) {
-    console.log(`[backfillChallenges] TARGET player=${targetPlayerId} dryRun=${dryRun}`);
+    console.log(`[backfillChallenges] TARGET player=${targetPlayerId}`);
+
     try {
       await processOnePlayer(targetPlayerId, dryRun, progressColExists, touched, result);
     } catch (e: any) {
       console.log(`[backfillChallenges] ERROR player=${targetPlayerId}`, e);
-      result.errors.push({ stage: "process_player", playerId: targetPlayerId, error: e });
+      result.errors.push({
+        stage: "process_player",
+        playerId: targetPlayerId,
+        error: e,
+      });
     }
+
     console.log(
       `[backfillChallenges] DONE processed=${result.playersProcessed} writes=${result.writes} errors=${result.errors.length}`
     );
+
     return result;
   }
 
@@ -347,7 +409,9 @@ export async function backfillChallenges(opts: BackfillOptions = {}): Promise<Ba
   for (;;) {
     const page = await getPlayersPage(offset, limit);
 
-    console.log(`[backfillChallenges] page offset=${offset} limit=${limit} source=${page.source}`);
+    console.log(
+      `[backfillChallenges] page offset=${offset} limit=${limit} source=${page.source} fetched=${page.playerIds.length} first=${page.playerIds[0] || "n/a"}`
+    );
 
     if (page.error) {
       console.log(`[backfillChallenges] ERROR selecting players`, page.error);
@@ -355,14 +419,9 @@ export async function backfillChallenges(opts: BackfillOptions = {}): Promise<Ba
       break;
     }
 
-    console.log(
-      `[backfillChallenges] players fetched=${page.playerIds.length} first=${page.playerIds[0] || "n/a"}`
-    );
-
     if (page.playerIds.length === 0) break;
 
-    for (let i = 0; i < page.playerIds.length; i++) {
-      const playerId = page.playerIds[i];
+    for (const playerId of page.playerIds) {
       try {
         await processOnePlayer(playerId, dryRun, progressColExists, touched, result);
 
@@ -373,11 +432,14 @@ export async function backfillChallenges(opts: BackfillOptions = {}): Promise<Ba
         }
       } catch (e: any) {
         console.log(`[backfillChallenges] ERROR player=${playerId}`, e);
-        result.errors.push({ stage: "process_player", playerId, error: e });
+        result.errors.push({
+          stage: "process_player",
+          playerId,
+          error: e,
+        });
       }
     }
 
-    // Stop conditions
     if (page.playerIds.length < limit) break;
     if (opts.singlePage) break;
 

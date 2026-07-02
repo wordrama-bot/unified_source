@@ -30,13 +30,16 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { TeamNav } from "@/components/navbar/team";
+import NavBar from "@/components/navbar/h-nav";
+import Footer from "@/sections/footer";
 import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import {
-  useGetMyTeamQuery,
+  useGetMyTeamsQuery,
   useGetTeamMembersQuery,
   useGetTeamLeaderboardQuery,
   useLeaveTeamMutation,
-  useGetTeamByIdQuery
+  useGetTeamByIdQuery,
+  useJoinTeamMutation,
 } from "@/redux/api/teams";
 import { redirect, useParams, useSearchParams } from 'next/navigation';
 import Loader, { Loading } from '@/sections/loading';
@@ -92,6 +95,19 @@ const Table = ({ data, columns }) => {
   );
 };
 
+function formatWholeNumber(value: any) {
+  return Math.round(Number(value || 0)).toLocaleString();
+}
+
+function formatCompactNumber(value: any) {
+  const num = Math.round(Number(value || 0));
+
+  if (num >= 1000000) return `${Math.round(num / 1000000)}M`;
+  if (num >= 1000) return `${Math.round(num / 1000)}K`;
+
+  return num.toLocaleString();
+}
+
 export default function TeamPage() {
   //getAppInsights().trackPageView({ name: 'Team Page' });
   const [ page, setPage ] = useState(1);
@@ -103,7 +119,68 @@ export default function TeamPage() {
     isLoading: isLoadingTeamMembers,
     isError: isErrorTeamMembers
   } = useGetTeamMembersQuery({ teamId: teamId || '', page: page });
+  const { toast } = useToast();
+  const { data: currentUserTeams } = useGetMyTeamsQuery();
+  const [joinTeam] = useJoinTeamMutation();
+  const [leaveTeam] = useLeaveTeamMutation();
 
+  const isCurrentUsersTeam = currentUserTeams?.data?.teams?.some(
+    (team: any) => team.teamId === teamId,
+  );
+
+  const alreadyOnTeam = isCurrentUsersTeam;
+    
+  const viewedTeamName = myTeam?.data?.teamName;
+
+  async function handleJoinTeam() {
+    if (!viewedTeamName) return;
+
+    const { data, error } = await joinTeam(viewedTeamName);
+
+    if (error) {
+      const message =
+        (error as any)?.data?.message?.replace('Bad Request - ', '') ||
+        'Failed to join team';
+
+      return toast({
+        title: 'Whoops',
+        description: message,
+      });
+    }
+
+    if (data) {
+      toast({
+        title: 'Success',
+        description: `Joined ${viewedTeamName}`,
+      });
+
+      window.location.href = '/teams/my-team';
+      return;
+    }
+  }
+
+  async function handleLeaveTeam() {
+    const { data, error } = await leaveTeam(teamId);
+
+    if (error) {
+      return toast({
+        title: 'Whoops',
+        description: 'Failed to leave team',
+      });
+    }
+
+    if (data) {
+      toast({
+        title: 'Success',
+        description: 'You left the team',
+      });
+
+      window.location.href = '/teams';
+
+      return;
+    }
+  }
+  
   function MemberPagination() {
     return (
       <Pagination>
@@ -166,10 +243,43 @@ export default function TeamPage() {
 
   if (isLoading || isLoadingTeamMembers) return <Loader />;
   return (
-    <div className="flex min-h-screen w-full flex-col">
+    <div className="flex min-h-screen w-full flex-col border:border bg-bg text-text dark:border-darkBorder dark:bg-darkBg dark:text-darkText">
+      <NavBar
+        links={[
+          { href: "/games", text: "Games" },
+          { href: "/leaderboard", text: "Leaderboard" },
+          { href: "/marketplace", text: "Marketplace" },
+          { href: "/achievements", text: "Achievements" },
+          { href: "/teams", text: "Teams" },
+        ]}
+      />
       <main className="flex min-h-[calc(100vh_-_theme(spacing.16))] flex-1 flex-col gap-4 bg-muted/40 p-4 md:gap-8 md:p-10">
         <div className="mx-auto grid w-full max-w-6xl gap-2">
-          <h1 className="text-3xl text-text dark:text-darkText font-semibold">Team { myTeam?.data?.teamName }</h1>
+          <div className="flex items-center justify-between gap-4">
+            <h1 className="text-3xl text-text dark:text-darkText font-semibold">
+              Team {myTeam?.data?.teamName}
+            </h1>
+
+            {!alreadyOnTeam && viewedTeamName && (
+              <Button onClick={handleJoinTeam}>
+                Join {viewedTeamName}
+              </Button>
+            )}
+            {isCurrentUsersTeam && (
+              <Button
+                variant="default"
+                className="bg-red-600 text-white hover:bg-red-700"
+                onClick={handleLeaveTeam}
+              >
+                Leave Team
+              </Button>
+            )}
+          </div>
+          <div className="flex items-center justify-between gap-4">
+            <p>
+              Please note that team stats update every 2 hours.
+            </p>
+          </div>
         </div>
         <div className="mx-auto grid w-full max-w-6xl items-start gap-6 md:grid-cols-[180px_1fr] lg:grid-cols-[250px_1fr]">
           <TeamNav />
@@ -190,38 +300,33 @@ export default function TeamPage() {
                   <div id="fullWidthTabContent" className="p-4 border-gray-200 dark:border-gray-600 text-center">
                     <div className="p-4 bg-bg rounded-lg md:p-8 dark:bg-gray-800" id="stats" role="tabpanel" aria-labelledby="stats-tab">
                         <dl className="grid grid-cols-2 p-4 mx-auto text-gray-900 sm:grid-cols-2 xl:grid-cols-4 gap-8 max-w-screen-xl dark:text-white sm:p-8">
-                            <div className="flex flex-col items-center justify-center">
-                          <dt className="mb-2 text-3xl font-extrabold">{ myTeam?.data?.averageLevel }</dt>
-                                <dd className="text-gray-500 dark:text-gray-400">🕹️ Average Level</dd>
-                            </div>
-                            <div className="flex flex-col items-center justify-center">
-                                <dt className="mb-2 text-3xl font-extrabold">
-                                  {
-                                    myTeam?.data?.totalCoins > 1000000 ?
-                                    `${Math.floor(myTeam?.data?.totalCoins / 1000000)}M` :
-                                    myTeam?.data?.totalCoins > 1000 ?
-                                    `${Math.floor(myTeam?.data?.totalCoins / 1000)}K` :
-                                    myTeam?.data?.totalCoins
-                                  }
-                                </dt>
-                                <dd className="text-gray-500 dark:text-gray-400">💰 Total Coins</dd>
-                            </div>
-                            <div className="flex flex-col items-center justify-center">
-                                <dt className="mb-2 text-3xl font-extrabold">
-                                  {
-                                    myTeam?.data?.alltimeGamesWon > 1000000 ?
-                                    `${(myTeam?.data?.alltimeGamesWon / 1000000).toFixed(2)}M` :
-                                    myTeam?.data?.alltimeGamesWon > 1000 ?
-                                    `${(myTeam?.data?.alltimeGamesWon / 1000).toFixed(2)}K` :
-                                    myTeam?.data?.alltimeGamesWon
-                                  }
-                                </dt>
-                                <dd className="text-gray-500 dark:text-gray-400">🔥 Games Won</dd>
-                            </div>
-                            <div className="flex flex-col items-center justify-center">
-                                <dt className="mb-2 text-3xl font-extrabold">{ Math.floor(((myTeam?.data?.alltimeGamesWon || 0) / (myTeam?.data?.alltimeGamesPlayed || 0)) * 100) || 0}%</dt>
-                                <dd className="text-gray-500 dark:text-gray-400">📈 % of Wins</dd>
-                            </div>
+                          <div className="flex flex-col items-center justify-center">
+                            <dt className="mb-2 text-3xl font-extrabold">
+                              {formatWholeNumber(myTeam?.data?.averageLevel)}
+                            </dt>
+                            <dd className="text-gray-500 dark:text-gray-400">🕹️ Average Level</dd>
+                          </div>
+
+                          <div className="flex flex-col items-center justify-center">
+                            <dt className="mb-2 text-3xl font-extrabold">
+                              {formatCompactNumber(myTeam?.data?.totalCoins)}
+                            </dt>
+                            <dd className="text-gray-500 dark:text-gray-400">💰 Total Coins</dd>
+                          </div>
+
+                          <div className="flex flex-col items-center justify-center">
+                            <dt className="mb-2 text-3xl font-extrabold">
+                              {formatCompactNumber(myTeam?.data?.alltimeGamesWon)}
+                            </dt>
+                            <dd className="text-gray-500 dark:text-gray-400">🔥 Games Won</dd>
+                          </div>
+
+                          <div className="flex flex-col items-center justify-center">
+                            <dt className="mb-2 text-3xl font-extrabold">
+                              {Math.floor(((myTeam?.data?.alltimeGamesWon || 0) / (myTeam?.data?.alltimeGamesPlayed || 0)) * 100) || 0}%
+                            </dt>
+                            <dd className="text-gray-500 dark:text-gray-400">📈 % of Wins</dd>
+                          </div>
                         </dl>
                     </div>
                   </div>
@@ -238,7 +343,7 @@ export default function TeamPage() {
                         cell: info => (
                           <Link id={info.row.original.id} href={`/player/${info.row.original.id}`}>
                             { info.getValue() }
-                            { info.row.original.id === myTeam?.data?.teamLeader && (
+                            { info.row.original.id === myTeam?.data?.leader && (
                               <Badge className="ml-2">Team Leader</Badge>
                             )}
                           </Link>
@@ -545,6 +650,7 @@ export default function TeamPage() {
           </Tabs>
         </div>
       </main>
+      <Footer />
     </div>
   )
 }
