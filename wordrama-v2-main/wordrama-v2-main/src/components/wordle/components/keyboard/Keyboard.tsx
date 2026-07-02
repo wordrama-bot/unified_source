@@ -38,22 +38,27 @@ export const Keyboard = ({
 
   useEffect(() => {
     const listener = (e: KeyboardEvent) => {
-      if (e.code === 'Enter') {
+      if (e.isComposing || e.ctrlKey || e.altKey || e.metaKey) return
+
+      if (e.key === 'Enter') {
         onEnter()
-      } else if (e.code === 'Backspace') {
+        return
+      }
+
+      if (e.key === 'Backspace' || e.key === 'Delete') {
         onDelete()
-      } else {
-        const key = localeAwareUpperCase(e.key)
-        // TODO: check this test if the range works with non-english letters
-        if (key.length === 1 && key >= 'A' && key <= 'Z') {
-          onChar(key)
-        }
+        return
+      }
+
+      const key = localeAwareUpperCase(e.key)
+
+      if (/^[A-Z]$/.test(key)) {
+        onChar(key)
       }
     }
+
     window.addEventListener('keyup', listener)
-    return () => {
-      window.removeEventListener('keyup', listener)
-    }
+    return () => window.removeEventListener('keyup', listener)
   }, [onEnter, onDelete, onChar])
 
   return (

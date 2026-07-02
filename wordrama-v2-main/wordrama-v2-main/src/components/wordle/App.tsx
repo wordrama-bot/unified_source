@@ -456,12 +456,16 @@ const [playLoseSoundChristmas] = useSound('/sounds/christmas-lost.mp3', {
 
   // Called when a user presses a key on the virtual or physical keyboard
   function onChar(value: string) {
+    const key = localeAwareUpperCase(value)
+
+    if (!/^[A-Z]$/.test(key)) return
+
     if (
-      unicodeLength(`${currentGuess}${value}`) <= solution.length &&
+      unicodeLength(`${currentGuess}${key}`) <= solution.length &&
       guesses.length < MAX_CHALLENGES &&
       !isGameWon
     ) {
-      setCurrentGuess(`${currentGuess}${value}`);
+      setCurrentGuess(`${currentGuess}${key}`)
     }
   }
 
