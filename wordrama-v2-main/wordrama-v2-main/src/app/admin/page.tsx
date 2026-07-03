@@ -5,6 +5,7 @@ import {
   useGetAdminMeQuery,
   useGetAdminOverviewQuery,
   useSearchAdminPlayersQuery,
+  useGetSuspiciousGameplayQuery,
 } from "@/redux/api/wordrama";
 
 export default function AdminDashboardPage() {
@@ -31,6 +32,11 @@ export default function AdminDashboardPage() {
   } = useSearchAdminPlayersQuery(search.trim(), {
     skip: !shouldSearch,
   });
+
+  const {
+    data: suspiciousGameplayData,
+    isLoading: isLoadingSuspiciousGameplay,
+  } = useGetSuspiciousGameplayQuery();
 
   const overviewData = overview?.data;
   const players = useMemo(() => searchResults?.data ?? [], [searchResults]);
@@ -105,6 +111,80 @@ export default function AdminDashboardPage() {
           label="Players Online"
           value={overviewLoading ? "..." : overviewData?.playersOnline ?? "N/A"}
         />
+      </section>
+
+      <section className="mt-6">
+          <div className="rounded-lg border border-yellow-700 bg-zinc-900 p-4">
+            <div className="mb-3 flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-bold text-yellow-300">
+                  Gameplay Review Queue
+                </h2>
+                <p className="text-sm text-zinc-400">
+                  Flags players for unusual solve speed or one-guess patterns.
+                </p>
+              </div>
+              <div className="text-2xl font-bold text-yellow-300">
+                {suspiciousGameplayData?.data?.length ?? 0}
+              </div>
+            </div>
+
+            {isLoadingSuspiciousGameplay ? (
+              <p className="text-sm text-zinc-400">Loading review queue...</p>
+            ) : suspiciousGameplayData?.data?.length ? (
+              <div className="max-h-[500px] overflow-y-auto overflow-x-auto rounded-lg border border-zinc-800">
+                <table className="w-full text-left text-sm">
+                  <thead className="text-zinc-400">
+                    <tr>
+                      <th className="py-2">Player</th>
+                      <th className="py-2">Games</th>
+                      <th className="py-2">1 Guess</th>
+                      <th className="py-2">1 Guess %</th>
+                      <th className="py-2">24h 1 Guess</th>
+                      <th className="py-2">Games/hr</th>
+                      <th className="py-2">Flags</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {suspiciousGameplayData.data.map((row: any) => (
+                      <tr key={row.playerId} className="border-t border-zinc-800">
+                        <td className="py-2">
+                          <a
+                            href={`/admin/players/${row.playerId}`}
+                            className="font-medium text-blue-300 hover:underline"
+                          >
+                            {row.displayName || row.username || row.email || row.playerId}
+                          </a>
+                          <div className="text-xs text-zinc-500">{row.email}</div>
+                        </td>
+                        <td className="py-2">{row.totalGames}</td>
+                        <td className="py-2">{row.oneGuessWins}</td>
+                        <td className="py-2">{row.oneGuessRate}%</td>
+                        <td className="py-2">{row.oneGuessLast24h}</td>
+                        <td className="py-2">{row.gamesPerHour}</td>
+                        <td className="py-2">
+                          <div className="flex flex-wrap gap-1">
+                            {row.flags.map((flag: string) => (
+                              <span
+                                key={flag}
+                                className="rounded bg-yellow-900 px-2 py-1 text-xs text-yellow-200"
+                              >
+                                {flag}
+                              </span>
+                            ))}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <p className="text-sm text-green-400">
+                No suspicious gameplay currently flagged.
+              </p>
+            )}
+          </div>
       </section>
 
       <section className="mt-10 grid gap-6 lg:grid-cols-[2fr_1fr]">

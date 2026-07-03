@@ -21,6 +21,7 @@ import {
   previewAdminGrantEntitlement,
 } from '../services/marketplaceV2/entitlements';
 import { getCatalogItems } from '../services/marketplaceV2/catalog';
+import { getSuspiciousGameplay } from '../services/admin/suspiciousGameplay';
 
 async function me(req: ApiRequest, res: Response) {
   return res.status(200).json({
@@ -290,6 +291,15 @@ async function grantEntitlement(req: ApiRequest, res: Response) {
   });
 }
 
+async function suspiciousGameplay(req, res) {
+  const data = await getSuspiciousGameplay();
+
+  return res.status(200).json({
+    message: 'Suspicious gameplay review queue loaded',
+    data,
+  });
+}
+
 export default {
   me,
   overview,
@@ -304,4 +314,5 @@ export default {
   catalog,
   previewGrantEntitlement,
   grantEntitlement,
+  suspiciousGameplay,
 };

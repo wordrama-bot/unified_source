@@ -877,6 +877,16 @@ export const wordramaApiV3 = createApi({
       invalidatesTags: ["Admin"],
     }),
 
+    getSuspiciousGameplay: builder.query<any, void>({
+      query: () => ({
+        url: `/api/v3/admin/suspicious-gameplay`,
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+      }),
+      providesTags: ["Admin"],
+    }),
+
     createCustomWorlde: builder.mutation<void, any>({
       query: (body) => ({
         url: `/api/v3/game/wordle/custom`,
@@ -947,6 +957,7 @@ export const {
   useGetAdminCatalogQuery,
   usePreviewAdminGrantEntitlementMutation,
   useGrantAdminEntitlementMutation,
+  useGetSuspiciousGameplayQuery,
   useCreateCustomWorldeMutation,
   useGetWordleSavedStateQuery,
   useUpdateWordleSavedStateMutation,

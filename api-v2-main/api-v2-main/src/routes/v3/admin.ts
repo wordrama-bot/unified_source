@@ -78,6 +78,12 @@ router.get(
 );
 
 router.get(
+  '/suspicious-gameplay',
+  requireAdminPermission('players:read'),
+  adminController.suspiciousGameplay,
+);
+
+router.get(
   '/players/:playerId',
   requireAdminPermission('players:read'),
   adminController.playerProfile,
