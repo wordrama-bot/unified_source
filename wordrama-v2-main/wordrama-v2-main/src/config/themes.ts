@@ -247,7 +247,7 @@ export const appearanceThemes: AppearanceTheme[] = [
 
     app: {
       background: 'bg-rose-200',
-      panel: 'bg-rose-50',
+      panel: 'bg-rose-50 text-rose-950 border border-rose-300',
       text: 'text-rose-950',
       gameSurface:
         'bg-rose-100 text-rose-950 border border-rose-300 shadow-2xl',
@@ -278,12 +278,12 @@ export const appearanceThemes: AppearanceTheme[] = [
         'bg-rose-400 hover:bg-rose-300 active:bg-rose-400 border border-rose-300',
       keyText: 'text-rose-950',
       absentKey:
-        'bg-rose-200 hover:bg-rose-500 active:bg-rose-600 border border-rose-500 text-white',
+        'bg-rose-200 hover:bg-rose-500 active:bg-rose-600 border border-rose-500 text-rose-950',
     },
 
     modal: {
       container: 'bg-white border border-rose-300 text-gray-900',
-      title: '',
+      title: 'text-white',
       icon: 'stroke-rose-400',
     },
 
