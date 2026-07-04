@@ -25,6 +25,7 @@ export const wordleWordPackConfig = {
   friendlyNameByName: {
     FOUR_LETTER: '4 Letter',
     FIVE_LETTER: '5 Letter',
+    FIVE_LETTER_CRAZY: '5 Letter Crazy',
     SIX_LETTER: '6 Letter',
     SEVEN_LETTER: '7 Letter',
     EIGHT_LETTER: '8 Letter',
@@ -48,6 +49,7 @@ export const wordleWordPackConfig = {
   solutionLengthByName: {
     FOUR_LETTER: 4,
     FIVE_LETTER: 5,
+    FIVE_LETTER_CRAZY: 5,
     SIX_LETTER: 6,
     SEVEN_LETTER: 7,
     EIGHT_LETTER: 8,

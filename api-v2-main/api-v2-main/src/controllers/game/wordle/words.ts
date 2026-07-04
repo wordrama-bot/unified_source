@@ -13,6 +13,7 @@ export function checkIfValidWordPack(wordPack: string): boolean {
   const validWordPacks: string[] = [
     'FOUR_LETTER',
     'FIVE_LETTER',
+    'FIVE_LETTER_CRAZY',
     'SIX_LETTER',
     'SEVEN_LETTER',
     'EIGHT_LETTER',

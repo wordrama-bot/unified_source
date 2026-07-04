@@ -35,7 +35,19 @@ function wordleReducer(state: InitialState = initialState, { type, payload }: IS
       state = { ...state, isLoading: false, ...payload }
       break;
     case "SET_GAME_MODE":
-      state = { ...state, gameMode: payload.gameMode }
+      state = {
+        ...state,
+        gameMode: payload.gameMode,
+        modes: {
+          ...state.modes,
+          [payload.gameMode]: {
+            ...state.modes[payload.gameMode],
+            [state.wordPack]: {
+              ...(state.modes[payload.gameMode]?.[state.wordPack] || gameDefaultState),
+            },
+          },
+        },
+      }
       break;
     case "SET_WORD_LENGTH":
       //if (state.gameMode !== 'CUSTOM') {
@@ -44,7 +56,19 @@ function wordleReducer(state: InitialState = initialState, { type, payload }: IS
       state = { ...state, wordLength: payload.wordLength }
       break;
     case "SET_WORD_PACK":
-      state = { ...state, wordPack: payload.wordPack }
+      state = {
+        ...state,
+        wordPack: payload.wordPack,
+        modes: {
+          ...state.modes,
+          [state.gameMode]: {
+            ...state.modes[state.gameMode],
+            [payload.wordPack]: {
+              ...(state.modes[state.gameMode]?.[payload.wordPack] || gameDefaultState),
+            },
+          },
+        },
+      }
       break;
     case "RESET_GAME_STATE":
       state = {
@@ -53,7 +77,7 @@ function wordleReducer(state: InitialState = initialState, { type, payload }: IS
           ...state.modes,
           [state.gameMode]: {
             ...state.modes[state.gameMode],
-            [state.wordLength]: {
+            [state.wordPack]: {
               ...gameDefaultState
             }
           }
