@@ -67,9 +67,13 @@ export const localeAwareUpperCase = (text: string) => {
   return text.toUpperCase()
 }
 
-export const getRandomWord = (wordList: string[]) => {
-  const randomIndex = Math.floor(Math.random() * wordList.length) - 1
-  if (randomIndex < 0) throw new Error('Invalid index');
+export const getRandomWord = (wordList?: string[]) => {
+  if (!wordList || wordList.length === 0) {
+    console.error('getRandomWord called with an empty or undefined word list');
+    return '';
+  }
 
-  return localeAwareUpperCase(wordList[randomIndex % wordList.length])
+  const randomIndex = Math.floor(Math.random() * wordList.length);
+
+  return localeAwareUpperCase(wordList[randomIndex]);
 }
