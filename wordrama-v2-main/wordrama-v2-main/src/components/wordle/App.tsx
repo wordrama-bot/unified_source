@@ -714,7 +714,7 @@ const [playLoseSoundChristmas] = useSound('/sounds/christmas-lost.mp3', {
   if (gameLoading) return <Loader />;
   return (
     <Div100vh
-      className={`transition-colors ${pageBackgroundThemeClasses} ${pageTextThemeClasses}`}
+      className={`!h-auto min-h-screen transition-colors ${pageBackgroundThemeClasses} ${pageTextThemeClasses}`}
     >
       <TooltipProvider>
         { gameUiState.confettiEnabled && showConfetti ? (
@@ -1025,7 +1025,7 @@ const [playLoseSoundChristmas] = useSound('/sounds/christmas-lost.mp3', {
             </SheetContent>
           </Sheet>
 
-          <div className="mx-auto flex w-full grow flex-col px-1 pt-20 pb-8 sm:px-6 md:max-w-7xl lg:px-8 short:pb-2 short:pt-2">
+          <div className="mx-auto flex w-full grow flex-col px-1 pt-20 pb-12 sm:px-6 md:max-w-7xl lg:px-8 short:pt-2 short:pb-8">
             <div className={`mx-auto flex w-full max-w-xl flex-col rounded-2xl px-3 py-4 transition-colors ${gameSurfaceThemeClasses}`}>
               <div className="flex justify-center mb-4">
                 <img
