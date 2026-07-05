@@ -1,3 +1,4 @@
+create or replace view public._v_wordle_daily_stats as
  SELECT r.day,
     r.month,
     r.year,
@@ -90,42 +91,42 @@
         END) AS four_letter_games_won_in_6,
     sum(
         CASE
-            WHEN r.word_length = 5 AND r.game_was_won = true THEN 1
+            WHEN r.word_pack = 'FIVE_LETTER' AND r.game_was_won = true THEN 1
             ELSE 0
         END) AS five_letter_games_won,
     sum(
         CASE
-            WHEN r.word_length = 5 AND r.game_was_won = false THEN 1
+            WHEN r.word_pack = 'FIVE_LETTER' AND r.game_was_won = false THEN 1
             ELSE 0
         END) AS five_letter_games_lost,
     sum(
         CASE
-            WHEN r.word_length = 5 AND r.guess_count = 1 AND r.game_was_won = true THEN 1
+            WHEN r.word_pack = 'FIVE_LETTER' AND r.guess_count = 1 AND r.game_was_won = true THEN 1
             ELSE 0
         END) AS five_letter_games_won_in_1,
     sum(
         CASE
-            WHEN r.word_length = 5 AND r.guess_count = 2 AND r.game_was_won = true THEN 1
+            WHEN r.word_pack = 'FIVE_LETTER' AND r.guess_count = 2 AND r.game_was_won = true THEN 1
             ELSE 0
         END) AS five_letter_games_won_in_2,
     sum(
         CASE
-            WHEN r.word_length = 5 AND r.guess_count = 3 AND r.game_was_won = true THEN 1
+            WHEN r.word_pack = 'FIVE_LETTER' AND r.guess_count = 3 AND r.game_was_won = true THEN 1
             ELSE 0
         END) AS five_letter_games_won_in_3,
     sum(
         CASE
-            WHEN r.word_length = 5 AND r.guess_count = 4 AND r.game_was_won = true THEN 1
+            WHEN r.word_pack = 'FIVE_LETTER' AND r.guess_count = 4 AND r.game_was_won = true THEN 1
             ELSE 0
         END) AS five_letter_games_won_in_4,
     sum(
         CASE
-            WHEN r.word_length = 5 AND r.guess_count = 5 AND r.game_was_won = true THEN 1
+            WHEN r.word_pack = 'FIVE_LETTER' AND r.guess_count = 5 AND r.game_was_won = true THEN 1
             ELSE 0
         END) AS five_letter_games_won_in_5,
     sum(
         CASE
-            WHEN r.word_length = 5 AND r.guess_count = 6 AND r.game_was_won = true THEN 1
+            WHEN r.word_pack = 'FIVE_LETTER' AND r.guess_count = 6 AND r.game_was_won = true THEN 1
             ELSE 0
         END) AS five_letter_games_won_in_6,
     sum(
