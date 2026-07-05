@@ -265,6 +265,8 @@ function App(){
 
   const statsData = allTimeStats?.data ?? {};
 
+  const isFiveLetterCrazy = wordPack === 'FIVE_LETTER_CRAZY';
+
   const gamesWon =
     statsData[`${wordPackAllTimeStatsMap[wordPack]}GamesWon`] ?? 0;
 
@@ -1139,7 +1141,18 @@ const [playLoseSoundChristmas] = useSound('/sounds/christmas-lost.mp3', {
                       </div>
                     )}
                   </AlertDialogDescription>
-                  {!isCustom && (
+                  {!isCustom && isFiveLetterCrazy && (
+                    <div className="my-4 rounded-lg bg-bg dark:bg-gray-800 shadow p-6 text-center">
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                        Stats Coming Soon
+                      </h3>
+                      <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                        5 Letter Crazy games are being saved, but dedicated stats and leaderboards are coming in a future update.
+                      </p>
+                    </div>
+                  )}
+
+                  {!isCustom && !isFiveLetterCrazy && (
                     <div className="py-4">
                       <dl className="grid grid-cols-3 gap-4">
                         <div className="aspect-square w-full max-w-[120px] mx-auto overflow-hidden rounded-lg bg-bg dark:bg-gray-800 shadow flex flex-col items-center justify-center p-2">
@@ -1253,7 +1266,18 @@ const [playLoseSoundChristmas] = useSound('/sounds/christmas-lost.mp3', {
                       { isInfinite && 'Swipe down or tap × to close, then type or press Enter to play again' }
                       { isDaily && 'Come back tomorrow to play again or try out infinite mode by clicking the gear to open settings' }
                     </DrawerDescription>
-                    { !isCustom && (
+                    {!isCustom && isFiveLetterCrazy && (
+                      <div className="my-4 rounded-lg bg-bg dark:bg-gray-800 shadow p-6 text-center">
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                          Stats Coming Soon
+                        </h3>
+                        <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                          5 Letter Crazy games are being saved, but dedicated stats and leaderboards are coming in a future update.
+                        </p>
+                      </div>
+                    )}
+
+                    {!isCustom && !isFiveLetterCrazy && (
                       <div id="fullWidthTabContent" className={`p-4 border-gray-200 dark:border-gray-600 ${streamerMode ? 'ml-64 w-1/2' : ''}`}>
                         <div className="p-4 bg-bg rounded-lg md:p-8 dark:bg-gray-800" id="stats" role="tabpanel" aria-labelledby="stats-tab">
                             <dl className={`grid grid-cols-2 p-4 mx-auto text-gray-900 sm:grid-cols-3 ${streamerMode ? 'md:grid-cols-2 gap-8 max-w-md' : 'xl:grid-cols-5 gap-8 max-w-screen-xl'} dark:text-white sm:p-8`}>
