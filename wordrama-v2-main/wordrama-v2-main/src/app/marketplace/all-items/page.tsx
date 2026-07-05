@@ -48,6 +48,7 @@ import { useEffect } from 'react';
 
 const MARKETPLACE_WORD_PACK_SORT_ORDER: { [key: string]: number } = {
   'ba8671aa-7481-43e5-a1ac-f2b73433a315': 4,
+  '7ed7d3a6-3d07-4603-b9cf-6a6e717b9d1f': 5.5,
   'b1b96d0e-5b1a-403e-80be-88f3d2bae873': 11.5,
   '7f06b10e-d52a-4ae3-b77f-a7e9a7c5e5fb': 12,
   'b8c73f14-79ad-4495-9fd9-a4be65d5fcbc': 13,
