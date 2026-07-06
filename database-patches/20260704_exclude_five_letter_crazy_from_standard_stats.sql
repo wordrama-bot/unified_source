@@ -1,4 +1,3 @@
-create or replace view public._v_wordle_daily_stats as
  SELECT r.day,
     r.month,
     r.year,

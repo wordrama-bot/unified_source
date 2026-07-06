@@ -11,6 +11,7 @@ const ALLOWED_ORDER_COLUMNS = new Set([
 
   'alltime_rank_4_letter',
   'alltime_rank_5_letter',
+  'alltime_rank_five_letter_crazy',
   'alltime_rank_6_letter',
   'alltime_rank_7_letter',
   'alltime_rank_8_letter',
@@ -32,6 +33,7 @@ const ALLOWED_ORDER_COLUMNS = new Set([
 
   'yearly_rank_4_letter',
   'yearly_rank_5_letter',
+  'yearly_rank_five_letter_crazy',
   'yearly_rank_6_letter',
   'yearly_rank_7_letter',
   'yearly_rank_8_letter',
@@ -53,6 +55,7 @@ const ALLOWED_ORDER_COLUMNS = new Set([
 
   'monthly_rank_4_letter',
   'monthly_rank_5_letter',
+  'monthly_rank_five_letter_crazy',
   'monthly_rank_6_letter',
   'monthly_rank_7_letter',
   'monthly_rank_8_letter',
@@ -74,6 +77,7 @@ const ALLOWED_ORDER_COLUMNS = new Set([
 
   'weekly_rank_4_letter',
   'weekly_rank_5_letter',
+  'weekly_rank_five_letter_crazy',
   'weekly_rank_6_letter',
   'weekly_rank_7_letter',
   'weekly_rank_8_letter',
@@ -95,12 +99,25 @@ const ALLOWED_ORDER_COLUMNS = new Set([
 
   'daily_rank_4_letter',
   'daily_rank_5_letter',
+  'daily_rank_five_letter_crazy',
   'daily_rank_6_letter',
   'daily_rank_7_letter',
   'daily_rank_8_letter',
   'daily_rank_9_letter',
   'daily_rank_10_letter',
   'daily_rank_11_letter',
+  'daily_rank_12_letter',
+  'daily_rank_13_letter',
+  'daily_rank_14_letter',
+  'daily_rank_15_letter',
+  'daily_rank_16_letter',
+  'daily_rank_17_letter',
+  'daily_rank_18_letter',
+  'daily_rank_19_letter',
+  'daily_rank_20_letter',
+  'daily_rank_21_letter',
+  'daily_rank_22_letter',
+  'daily_rank_22_letter',
 ]);
 
 function sanitizeOrderBy(orderBy: string, fallback: string) {

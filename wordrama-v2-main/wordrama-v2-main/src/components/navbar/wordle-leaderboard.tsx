@@ -111,6 +111,7 @@ export function LeaderboardNav({
                     <SelectContent>
                       <SelectItem value="FOUR_LETTER">4 Letter</SelectItem>
                       <SelectItem value="FIVE_LETTER">5 Letter</SelectItem>
+                      <SelectItem value="FIVE_LETTER_CRAZY">5 Letter Crazy</SelectItem>
                       <SelectItem value="SIX_LETTER">6 Letter</SelectItem>
                       <SelectItem value="SEVEN_LETTER">7 Letter</SelectItem>
                       <SelectItem value="EIGHT_LETTER">8 Letter</SelectItem>

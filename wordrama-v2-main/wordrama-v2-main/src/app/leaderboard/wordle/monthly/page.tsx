@@ -69,84 +69,177 @@ export default function WordleMonthlyLeaderboardPage() {
   const [wordPack, setWordPack] = useState((searchParams.get('wordPack') || "all").toLowerCase())
   const [sortBy, setSortBy] = useState((searchParams.get('sortBy') || "rank").toLowerCase())//useState<SortKey>("score")
 
-  const WORD_NUMBER_WORDS = [
-    "",
-    "one",
-    "two",
-    "three",
-    "four",
-    "five",
-    "six",
-    "seven",
-    "eight",
-    "nine",
-    "ten",
-    "eleven",
-    "twelve",
-    "thirteen",
-    "fourteen",
-    "fifteen",
-    "sixteen",
-    "seventeen",
-    "eighteen",
-    "nineteen",
-    "twenty",
-    "twentyone",
-    "twentytwo",
-    "twentythree",
-  ];
-
-  const getWordPackPrefix = (pack: string) => {
-    if (pack === "all") return "";
-    const number = parseInt(pack.split(" ")[0], 10);
-    return `${WORD_NUMBER_WORDS[number]}Letter`;
+  const WORD_PACKS: Record<string, {
+    label: string;
+    prefix: string;
+    columnPrefix: string;
+    rankColumn: string;
+  }> = {
+    all: {
+      label: "All Word Packs",
+      prefix: "",
+      columnPrefix: "",
+      rankColumn: "monthly_rank",
+    },
+    "4 letter": {
+      label: "4 Letter",
+      prefix: "fourLetter",
+      columnPrefix: "four_letter",
+      rankColumn: "monthly_rank_4_letter",
+    },
+    "5 letter": {
+      label: "5 Letter",
+      prefix: "fiveLetter",
+      columnPrefix: "five_letter",
+      rankColumn: "monthly_rank_5_letter",
+    },
+    "5 letter crazy": {
+      label: "5 Letter Crazy",
+      prefix: "fiveLetterCrazy",
+      columnPrefix: "five_letter_crazy",
+      rankColumn: "monthly_rank_five_letter_crazy",
+    },
+    "6 letter": {
+      label: "6 Letter",
+      prefix: "sixLetter",
+      columnPrefix: "six_letter",
+      rankColumn: "monthly_rank_6_letter",
+    },
+    "7 letter": {
+      label: "7 Letter",
+      prefix: "sevenLetter",
+      columnPrefix: "seven_letter",
+      rankColumn: "monthly_rank_7_letter",
+    },
+    "8 letter": {
+      label: "8 Letter",
+      prefix: "eightLetter",
+      columnPrefix: "eight_letter",
+      rankColumn: "monthly_rank_8_letter",
+    },
+    "9 letter": {
+      label: "9 Letter",
+      prefix: "nineLetter",
+      columnPrefix: "nine_letter",
+      rankColumn: "monthly_rank_9_letter",
+    },
+    "10 letter": {
+      label: "10 Letter",
+      prefix: "tenLetter",
+      columnPrefix: "ten_letter",
+      rankColumn: "monthly_rank_10_letter",
+    },
+    "11 letter": {
+      label: "11 Letter",
+      prefix: "elevenLetter",
+      columnPrefix: "eleven_letter",
+      rankColumn: "monthly_rank_11_letter",
+    },
+    "12 letter": {
+      label: "12 Letter",
+      prefix: "twelveLetter",
+      columnPrefix: "twelve_letter",
+      rankColumn: "monthly_rank_12_letter",
+    },
+    "13 letter": {
+      label: "13 Letter",
+      prefix: "thirteenLetter",
+      columnPrefix: "thirteen_letter",
+      rankColumn: "monthly_rank_13_letter",
+    },
+    "14 letter": {
+      label: "14 Letter",
+      prefix: "fourteenLetter",
+      columnPrefix: "fourteen_letter",
+      rankColumn: "monthly_rank_14_letter",
+    },
+    "15 letter": {
+      label: "15 Letter",
+      prefix: "fifteenLetter",
+      columnPrefix: "fifteen_letter",
+      rankColumn: "monthly_rank_15_letter",
+    },
+    "16 letter": {
+      label: "16 Letter",
+      prefix: "sixteenLetter",
+      columnPrefix: "sixteen_letter",
+      rankColumn: "monthly_rank_16_letter",
+    },
+    "17 letter": {
+      label: "17 Letter",
+      prefix: "seventeenLetter",
+      columnPrefix: "seventeen_letter",
+      rankColumn: "monthly_rank_17_letter",
+    },
+    "18 letter": {
+      label: "18 Letter",
+      prefix: "eighteenLetter",
+      columnPrefix: "eighteen_letter",
+      rankColumn: "monthly_rank_18_letter",
+    },
+    "19 letter": {
+      label: "19 Letter",
+      prefix: "nineteenLetter",
+      columnPrefix: "nineteen_letter",
+      rankColumn: "monthly_rank_19_letter",
+    },
+    "20 letter": {
+      label: "20 Letter",
+      prefix: "twentyLetter",
+      columnPrefix: "twenty_letter",
+      rankColumn: "monthly_rank_20_letter",
+    },
+    "21 letter": {
+      label: "21 Letter",
+      prefix: "twentyoneLetter",
+      columnPrefix: "twentyone_letter",
+      rankColumn: "monthly_rank_21_letter",
+    },
+    "22 letter": {
+      label: "22 Letter",
+      prefix: "twentytwoLetter",
+      columnPrefix: "twentytwo_letter",
+      rankColumn: "monthly_rank_22_letter",
+    },
+    "23 letter": {
+      label: "23 Letter",
+      prefix: "twentythreeLetter",
+      columnPrefix: "twentythree_letter",
+      rankColumn: "monthly_rank_23_letter",
+    },
   };
 
-  const getWordPackNumberPrefix = (pack: string) => {
-    if (pack === "all") return "";
-    const number = parseInt(pack.split(" ")[0], 10);
-    return `${number}Letter`;
-  };
+  const selectedWordPack = WORD_PACKS[wordPack] ?? WORD_PACKS.all;
 
-  const prefix = getWordPackPrefix(wordPack);
-  const numberPrefix = getWordPackNumberPrefix(wordPack);
+  const prefix = selectedWordPack.prefix;
+  const numberPrefix = selectedWordPack.prefix;
 
   const getSortBy = (sortBy: string, pack: string) => {
-    const number = parseInt(pack.split(" ")[0], 10);
+    const selectedPack = WORD_PACKS[pack] ?? WORD_PACKS.all;
 
-    if (sortBy === "rank") {
-      if (pack === "all") return "monthly_rank";
-      return `monthly_rank_${number}_letter`;
-    } else if (sortBy === "games_won") {
-      if (pack === "all") return "games_won";
-      return `${WORD_NUMBER_WORDS[number]}_letter_games_won`;
-    } else if (sortBy === "games_lost") {
-      if (pack === "all") return "games_lost";
-      return `${WORD_NUMBER_WORDS[number]}_letter_games_lost`;
-    } else if (sortBy === "games_won_in_1") {
-      if (pack === "all") return "games_won_in_1";
-      return `${WORD_NUMBER_WORDS[number]}_letter_games_won_in_1`;
-    } else if (sortBy === "games_won_in_2") {
-      if (pack === "all") return "games_won_in_2";
-      return `${WORD_NUMBER_WORDS[number]}_letter_games_won_in_2`;
-    } else if (sortBy === "games_won_in_3") {
-      if (pack === "all") return "games_won_in_3";
-      return `${WORD_NUMBER_WORDS[number]}_letter_games_won_in_3`;
-    } else if (sortBy === "games_won_in_4") {
-      if (pack === "all") return "games_won_in_4";
-      return `${WORD_NUMBER_WORDS[number]}_letter_games_won_in_4`;
-    } else if (sortBy === "games_won_in_5") {
-      if (pack === "all") return "games_won_in_5";
-      return `${WORD_NUMBER_WORDS[number]}_letter_games_won_in_5`;
-    } else if (sortBy === "games_won_in_6") {
-      if (pack === "all") return "games_won_in_6";
-      return `${WORD_NUMBER_WORDS[number]}_letter_games_won_in_6`;
-    } else if (sortBy === "best_streak") {
-      if (pack === "all") return "overall_best_streak_rank";
-      return `${WORD_NUMBER_WORDS[number]}_letter_best_streak_rank`;
+    if (sortBy === "rank") return selectedPack.rankColumn;
+    if (sortBy === "games_won") {
+      return selectedPack.columnPrefix
+        ? `${selectedPack.columnPrefix}_games_won`
+        : "games_won";
+    }
+    if (sortBy === "games_lost") {
+      return selectedPack.columnPrefix
+        ? `${selectedPack.columnPrefix}_games_lost`
+        : "games_lost";
+    }
+    if (sortBy.startsWith("games_won_in_")) {
+      return selectedPack.columnPrefix
+        ? `${selectedPack.columnPrefix}_${sortBy}`
+        : sortBy;
+    }
+    if (sortBy === "best_streak") {
+      return selectedPack.columnPrefix
+        ? `${selectedPack.columnPrefix}_best_streak_rank`
+        : "overall_best_streak_rank";
     }
 
-    return "monthly_rank";
+    return selectedPack.rankColumn;
   };
 
   const sortByKey = getSortBy(sortBy, wordPack);
@@ -286,11 +379,28 @@ export default function WordleMonthlyLeaderboardPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Word Packs</SelectItem>
-                  {Array.from({ length: 20 }, (_, i) => i + 4).map((length) => (
-                    <SelectItem key={length} value={`${length} letter`}>
-                      {length} letter
-                    </SelectItem>
-                  ))}
+
+                  <SelectItem value="4 letter">4 Letter</SelectItem>
+                  <SelectItem value="5 letter">5 Letter</SelectItem>
+                  <SelectItem value="5 letter crazy">5 Letter Crazy</SelectItem>
+                  <SelectItem value="6 letter">6 Letter</SelectItem>
+                  <SelectItem value="7 letter">7 Letter</SelectItem>
+                  <SelectItem value="8 letter">8 Letter</SelectItem>
+                  <SelectItem value="9 letter">9 Letter</SelectItem>
+                  <SelectItem value="10 letter">10 Letter</SelectItem>
+                  <SelectItem value="11 letter">11 Letter</SelectItem>
+                  <SelectItem value="12 letter">12 Letter</SelectItem>
+                  <SelectItem value="13 letter">13 Letter</SelectItem>
+                  <SelectItem value="14 letter">14 Letter</SelectItem>
+                  <SelectItem value="15 letter">15 Letter</SelectItem>
+                  <SelectItem value="16 letter">16 Letter</SelectItem>
+                  <SelectItem value="17 letter">17 Letter</SelectItem>
+                  <SelectItem value="18 letter">18 Letter</SelectItem>
+                  <SelectItem value="19 letter">19 Letter</SelectItem>
+                  <SelectItem value="20 letter">20 Letter</SelectItem>
+                  <SelectItem value="21 letter">21 Letter</SelectItem>
+                  <SelectItem value="22 letter">22 Letter</SelectItem>
+                  <SelectItem value="23 letter">23 Letter</SelectItem>
                 </SelectContent>
               </Select>
               <DropdownMenu>
