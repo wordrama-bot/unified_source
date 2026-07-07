@@ -147,12 +147,8 @@ export interface LiveOverlayToken {
 
 export interface CreateTournamentInput {
   name: string;
-  joinCode: string;
   createdByPlayerId: LivePlayerId;
   visibility?: LiveTournamentVisibility;
-  startsAt?: LiveTimestamp | null;
-  endsAt?: LiveTimestamp | null;
-  maxEntrants?: number | null;
   bestOf?: LiveTournamentBestOf;
   config?: LiveJson;
   metadata?: LiveJson;
