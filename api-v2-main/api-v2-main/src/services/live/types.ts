@@ -174,7 +174,6 @@ export interface TournamentStatusInput {
 export interface JoinTournamentInput {
   tournamentId: LiveId;
   playerId: LivePlayerId;
-  displayNameSnapshot: string;
   metadata?: LiveJson;
 }
 
