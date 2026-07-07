@@ -198,12 +198,12 @@ export interface EligibilityResult {
 }
 
 export interface CreateMatchInput {
-  tournamentId?: LiveId | null;
-  matchType?: LiveMatchType;
+  tournamentId: LiveId;
+  requestedByPlayerId: LivePlayerId;
   wordPack: string;
   wordLength?: number;
   maxAttempts?: number;
-  roundNumber?: number | null;
+  roundNumber: number;
   matchNumber: number;
   playerIds: LivePlayerId[];
   solution: string;
@@ -216,11 +216,17 @@ export interface CreateMatchInput {
 
 export interface StartMatchInput {
   matchId: LiveId;
-  startedByPlayerId?: LivePlayerId;
+  requestedByPlayerId: LivePlayerId;
+}
+
+export interface CancelMatchInput {
+  matchId: LiveId;
+  requestedByPlayerId: LivePlayerId;
 }
 
 export interface FinishMatchInput {
   matchId: LiveId;
+  requestedByPlayerId: LivePlayerId;
   winnerPlayerId?: LivePlayerId | null;
   winnerReason?: LiveWinnerReason | null;
 }
@@ -232,6 +238,7 @@ export interface DetermineWinnerInput {
 export interface ForfeitPlayerInput {
   matchId: LiveId;
   playerId: LivePlayerId;
+  requestedByPlayerId: LivePlayerId;
 }
 
 export interface ValidateGuessInput {
