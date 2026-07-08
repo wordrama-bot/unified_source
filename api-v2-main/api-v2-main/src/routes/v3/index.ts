@@ -18,6 +18,7 @@ import { router as challengesRouter } from './challenges';
 import { router as migrateRouter } from './migrate';
 import { router as systemRouter } from './system';
 import { router as noRoleRouter } from './noRole';
+import { router as liveRouter } from './live';
 
 export const router = Router();
 
@@ -70,6 +71,8 @@ router.use('/streamer', ...authedStreamer, streamerRouter);
 router.use('/store', ...authedPlayer, storeRouter);
 
 router.use('/billing', ...authedPlayer, billingRouter);
+
+router.use('/live', ...authedPlayer, liveRouter);
 
 router.use('/admin', validateToken, adminRouter);
 
