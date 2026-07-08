@@ -292,6 +292,33 @@ export interface LiveGuessResult {
   matchResult?: MatchResultDecision | null;
 }
 
+export interface GetMatchStateInput {
+  matchId: LiveId;
+  playerId: LivePlayerId;
+}
+
+export type LiveMatchStateMatch = Omit<
+  LiveMatch,
+  'solution' | 'solutionHash' | 'solutionSaltId'
+> & {
+  solution?: string | null;
+  solutionHash?: string | null;
+  solutionSaltId?: string | null;
+};
+
+export interface LiveMatchState {
+  match: LiveMatchStateMatch;
+  players: LiveMatchPlayer[];
+  guesses: LiveMatchGuess[];
+  viewer: {
+    playerId: LivePlayerId;
+    isParticipant: boolean;
+    isTournamentCreator: boolean;
+    canViewAllGuesses: boolean;
+    canViewSolution: boolean;
+  };
+}
+
 export interface GenerateBracketInput {
   tournamentId: LiveId;
   entrants: LiveTournamentEntrant[];

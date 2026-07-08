@@ -4,5 +4,6 @@ export * from './tournament.service.js';
 export * from './registration.service.js';
 export * from './match.service.js';
 export * from './engine.service.js';
+export * from './state.service.js';
 export * from './bracket.service.js';
 export * from './overlay.service.js';
