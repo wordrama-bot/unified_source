@@ -241,6 +241,13 @@ export interface ForfeitPlayerInput {
   requestedByPlayerId: LivePlayerId;
 }
 
+export interface SubmitGuessInput {
+  matchId: LiveId;
+  playerId: LivePlayerId;
+  guess: string;
+  metadata?: LiveJson;
+}
+
 export interface ValidateGuessInput {
   matchId: LiveId;
   playerId: LivePlayerId;
@@ -276,6 +283,13 @@ export interface MatchResultDecision {
     playerId: LivePlayerId;
     result: LiveMatchResult;
   }>;
+}
+
+export interface LiveGuessResult {
+  match: LiveMatch;
+  player: LiveMatchPlayer;
+  guess: LiveMatchGuess;
+  matchResult?: MatchResultDecision | null;
 }
 
 export interface GenerateBracketInput {
