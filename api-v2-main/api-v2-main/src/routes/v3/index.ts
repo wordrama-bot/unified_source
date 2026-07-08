@@ -19,6 +19,7 @@ import { router as migrateRouter } from './migrate';
 import { router as systemRouter } from './system';
 import { router as noRoleRouter } from './noRole';
 import { router as liveRouter } from './live';
+import { router as liveDevRouter } from './live-dev';
 
 export const router = Router();
 
@@ -73,6 +74,10 @@ router.use('/store', ...authedPlayer, storeRouter);
 router.use('/billing', ...authedPlayer, billingRouter);
 
 router.use('/live', ...authedPlayer, liveRouter);
+
+if (process.env.NODE_ENV !== 'production') {
+  router.use('/live-dev', ...authedPlayer, liveDevRouter);
+}
 
 router.use('/admin', validateToken, adminRouter);
 
