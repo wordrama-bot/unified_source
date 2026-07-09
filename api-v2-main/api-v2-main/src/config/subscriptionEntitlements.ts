@@ -12,6 +12,8 @@ const PREMIUM_THEMES = [
   'THEME:PIRATE',
   'THEME:ARCADE',
   'THEME:SYNTHWAVE',
+  'THEME:EMPIRE',
+  'THEME:MATRIX',
 ] as const;
 
 const PREMIUM_WORD_PACKS = [

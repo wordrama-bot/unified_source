@@ -57,6 +57,8 @@
     '7855a094-b1df-49c5-abf0-622e651df69a': 8, // Pirate
     '49a35b50-db84-4854-847e-e9610874f878': 9, // Arcade
     'c58ed56e-3891-44c6-b195-b9d1c8bbe980': 10, // Synthwave
+    '147ed2fa-7a53-45f1-8721-60e2705dcda2': 11, // Empire
+    '0f291c62-c811-436d-96cc-cf92a8f240e5': 12, // Matrix
   };
 
   function getMarketplaceSortOrder(item: any): number {
