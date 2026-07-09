@@ -89,6 +89,8 @@ export const THEME_IDS = {
   PIRATE: 'theme.pirate',
   ARCADE: 'theme.arcade',
   SYNTHWAVE: 'theme.synthwave',
+  EMPIRE: 'theme.empire',
+  MATRIX: 'theme.matrix',
 } as const;
 
 export type ThemeId =
@@ -1030,6 +1032,139 @@ export const appearanceThemes: AppearanceTheme[] = [
     effects: {
       glow: 'shadow-[0_0_18px_rgba(236,72,153,.45)]',
       borderGlow: 'ring-1 ring-pink-400/60',
+    },
+  },
+  {
+    meta: {
+      id: THEME_IDS.EMPIRE,
+      name: 'Empire',
+      availability: 'premium',
+      entitlementKey: 'THEME:EMPIRE',
+    },
+
+    app: {
+      background: 'bg-neutral-950',
+      panel: 'bg-[#080808] text-white border border-red-700',
+      text: 'text-white',
+      gameSurface: 'bg-[#070707] text-white border border-red-700 shadow-2xl shadow-red-950/70',
+      actionButton: 'bg-red-900 hover:bg-red-800 active:bg-red-700 text-white border border-red-500 shadow-lg shadow-red-950/70',
+    },
+
+    surface: {
+      page: '',
+      card: '',
+      elevated: '',
+    },
+
+    button: {
+      primary: '',
+      secondary: '',
+      disabled: '',
+    },
+
+    board: {
+      emptyCell: 'bg-[#090909] border-red-600 text-white',
+      filledCell: 'bg-[#1a0606] border-red-400 text-white',
+    },
+
+    keyboard: {
+      key: 'bg-red-900 hover:bg-red-800 active:bg-red-700 border border-red-500',
+      keyText: 'text-white',
+      absentKey: 'bg-[#120606] border border-red-900 text-red-300/60',
+    },
+
+    modal: {
+      container: 'bg-[#090909] border border-red-600 text-white shadow-2xl shadow-red-950/80',
+      title: 'text-white',
+      icon: 'stroke-red-400',
+    },
+
+    feedback: {
+      success: 'text-green-500',
+      warning: 'text-amber-500',
+      error: 'text-red-500',
+      info: 'text-red-300',
+    },
+
+    overlay: {
+      backdrop: 'bg-black/70',
+    },
+
+    border: {
+      default: 'border-red-700',
+      strong: 'border-red-500',
+    },
+
+    effects: {
+      glow: 'shadow-[0_0_28px_rgba(239,68,68,0.35)]',
+      borderGlow: 'shadow-[0_0_10px_rgba(220,38,38,0.35)]',
+    },
+  },
+  {
+    meta: {
+      id: THEME_IDS.MATRIX,
+      name: 'Matrix',
+      availability: 'premium',
+      entitlementKey: 'THEME:MATRIX',
+    },
+
+    app: {
+      background: 'bg-black',
+      panel: 'bg-black text-green-300 border border-green-700',
+      text: 'text-green-300',
+      gameSurface: 'bg-black text-green-300 border border-green-500 shadow-2xl shadow-green-900/50',
+      actionButton: 'bg-green-900 hover:bg-green-950 active:bg-green-900 text-green-300 border border-green-500 shadow-lg shadow-green-950/70',
+    },
+
+    surface: {
+      page: '',
+      card: '',
+      elevated: '',
+    },
+
+    button: {
+      primary: '',
+      secondary: '',
+      disabled: '',
+    },
+
+    board: {
+      emptyCell: 'bg-black border-green-700 text-green-300',
+      filledCell: 'bg-green-950 border-green-400 text-green-100',
+    },
+
+    keyboard: {
+      key: 'bg-green-900 hover:bg-green-950 active:bg-green-800 border border-green-500',
+      keyText: 'text-green-200',
+      absentKey: 'bg-black border border-neutral-800 text-green-900',
+    },
+
+    modal: {
+      container:
+        'bg-[#020402] border border-green-500 text-green-200 shadow-2xl shadow-green-950/70',
+      title: 'text-green-100',
+      icon: 'stroke-green-400',
+    },
+
+    feedback: {
+      success: 'text-green-400',
+      warning: 'text-lime-300',
+      error: 'text-red-500',
+      info: 'text-emerald-300',
+    },
+
+    overlay: {
+      backdrop: 'bg-black/80',
+    },
+
+    border: {
+      default: 'border-green-600',
+      strong: 'border-green-400',
+    },
+
+    effects: {
+      glow: 'shadow-[0_0_18px_rgba(34,197,94,0.35)]',
+      borderGlow: 'shadow-[0_0_8px_rgba(34,197,94,0.30)]',
     },
   },
 ];
