@@ -349,6 +349,12 @@ const [playLoseSoundChristmas] = useSound('/sounds/christmas-lost.mp3', {
   volume: 0.2,
 });
 
+const activeSolution = isCustom
+    ? gameState.custom.solution
+    : gameState.modes[gameState.gameMode][gameState.wordPack].solution;
+
+  const isLongWord = activeSolution.length >= 10;
+
   // Local State
   const [gameLoading, setGameLoading] = useState(true);
   const [isUpdatingRemoteState, setUpdatingRemoteState] = useState(false);
@@ -1031,8 +1037,25 @@ const [playLoseSoundChristmas] = useSound('/sounds/christmas-lost.mp3', {
             </SheetContent>
           </Sheet>
 
-          <div className="mx-auto flex w-full grow flex-col px-1 pt-20 pb-12 sm:px-6 md:max-w-7xl lg:px-8 short:pt-2 short:pb-8">
-            <div className={`mx-auto flex w-full max-w-xl flex-col rounded-2xl px-3 py-4 transition-colors ${gameSurfaceThemeClasses}`}>
+          <div className="mx-auto flex w-full grow flex-col items-center px-1 pt-20 pb-12 sm:px-6 md:max-w-7xl lg:px-8 short:pt-2 short:pb-8">
+            <div
+              className={`
+                flex
+                w-full
+                self-center
+                flex-col
+                rounded-2xl
+                px-3
+                py-4
+                transition-colors
+                ${
+                  isLongWord
+                    ? 'max-w-xl md:w-fit md:max-w-none'
+                    : 'max-w-xl'
+                }
+                ${gameSurfaceThemeClasses}
+              `}
+            >
               <div className="flex justify-center mb-4">
                 <img
                   draggable="false"
