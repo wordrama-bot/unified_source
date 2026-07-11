@@ -549,7 +549,7 @@ function App(){
               currentRowClassName={currentRowClass}
             />
           </div>
-          {isGameWon || isGameLost && (<p className='text-center mb-5'>Press enter to play again</p>) }
+          {isGameWon || isGameLost && (<p className='text-center mb-5'>Press Enter or tap Play Again to start a new puzzle</p>) }
           <Keyboard
             onChar={onChar}
             onDelete={onDelete}
@@ -558,6 +558,10 @@ function App(){
             guesses={gameState.modes[gameState.gameMode][gameState.wordPack].guesses || []}
             isRevealing={isRevealing}
             swapEnterAndDelete={gameUiState?.swapDeleteAndEnter || false}
+             showPlayAgainKey={
+              (isGameWon || isGameLost) &&
+              !isRevealing
+            }
           />
           
           <section className="mx-auto mt-10 mb-16 max-w-4xl rounded-lg border border-border bg-bg/80 p-6 text-text shadow-light dark:border-darkBorder dark:bg-darkBg/80 dark:text-darkText">

@@ -1087,7 +1087,11 @@ const activeSolution = isCustom
                 guesses={isCustom ? gameState.custom.guesses : gameState.modes[gameState.gameMode][gameState.wordPack].guesses || []}
                 isRevealing={isRevealing}
                 swapEnterAndDelete={gameUiState?.swapDeleteAndEnter || false}
-                showPlayAgainKey={isInfinite && (isGameWon || isGameLost)}
+                showPlayAgainKey={
+                  isInfinite &&
+                  (isGameWon || isGameLost) &&
+                  !isRevealing
+                }
               />
             </div>
             <div className='flex justify-center items-center pt-10'>
