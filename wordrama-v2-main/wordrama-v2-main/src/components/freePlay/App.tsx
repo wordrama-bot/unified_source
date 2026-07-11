@@ -230,16 +230,26 @@ function App(){
     }
   }
 
-  function newInfiniteGame(){
+  function newInfiniteGame() {
     if (isLoadingWordPack) return;
-    const newSolution: string = getRandomWord(wordleWordPack?.data?.wordList);
+    if (!wordleWordPack?.data?.wordList?.length) return;
+
+    setShowConfetti(false);
+    setIsStatsModalOpen(false);
+    setCurrentRowClass('');
+    setCurrentGuess('');
+
+    const newSolution: string = getRandomWord(
+      wordleWordPack.data.wordList
+    );
+
     updateGameState({
       solution: newSolution,
       guesses: [],
       isGameWon: false,
       isGameLost: false,
       isGameInProgress: false,
-      resultSave: false
+      resultSave: false,
     });
   }
 
@@ -275,7 +285,7 @@ function App(){
         setIsStatsModalOpen(false);
         setShowConfetti(false);
         setCurrentGuess('');
-        newInfiniteGame();
+        return newInfiniteGame();
       }
     }
     // if (isGameWon || isGameLost) {
@@ -400,16 +410,26 @@ function App(){
     if (gameLoading) return;
     if (gameMode !== 'INFINITE') return;
     if (guesses.length >= 1 && guesses.length < 6) return;
-    const newSolution: string = getRandomWord(wordleWordPack?.data?.wordList);
+    if (!wordleWordPack?.data?.wordList?.length) return;
+
+    setShowConfetti(false);
+    setIsStatsModalOpen(false);
+    setCurrentRowClass('');
+    setCurrentGuess('');
+
+    const newSolution: string = getRandomWord(
+      wordleWordPack.data.wordList
+    );
+
     updateGameState({
       solution: newSolution,
       guesses: [],
       isGameWon: false,
       isGameLost: false,
       isGameInProgress: false,
-      resultSave: false
+      resultSave: false,
     });
-  }, [gameLoading, gameMode, wordPack, wordleWordPack])
+  }, [gameLoading, gameMode, wordPack, wordleWordPack]);
 
   // Check if all dependencies are ready and set the game to ready
   useEffect(() => {
@@ -424,24 +444,36 @@ function App(){
   // Show end game modal
   // If game was won show modal and confetti
   useEffect(() => {
+    setShowConfetti(isGameWon);
+
     if (isGameWon || isGameLost) {
-      if (isGameWon) setShowConfetti(true);
       if (gameUiState.speedRunModeEnabled === true) {
         setIsStatsModalOpen(false);
       } else {
         setIsStatsModalOpen(true);
       }
 
-      if (isGameLost) {
-        setCounter(counter + 1)
-      }
-      console.log(counter)
-      if(isGameWon || counter === 3) {
+      if (isGameWon) {
         setIsSignUpCTA(true);
       }
 
+      if (isGameLost) {
+        setCounter((currentCounter) => {
+          const nextCounter = currentCounter + 1;
+
+          if (nextCounter >= 3) {
+            setIsSignUpCTA(true);
+          }
+
+          return nextCounter;
+        });
+      }
     }
-  }, [isGameWon, isGameLost]);
+  }, [
+    isGameWon,
+    isGameLost,
+    gameUiState.speedRunModeEnabled,
+  ]);
 
   if (gameLoading) return 'Loading';
   return (

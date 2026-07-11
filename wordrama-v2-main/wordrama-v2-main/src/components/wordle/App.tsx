@@ -462,6 +462,11 @@ const activeSolution = isCustom
     if (isLoadingWordPack) return;
     if (!wordleWordPack?.data?.wordList?.length) return;
 
+    setShowConfetti(false);
+    setIsStatsModalOpen(false);
+    setCurrentRowClass('');
+    setCurrentGuess('');
+
     const newSolution: string = getRandomWord(wordleWordPack.data.wordList);
     //appInsights.trackEvent({ name: 'newInfiniteGame', properties: { wordPack, solution: newSolution, player: user.id } });
     updateGameState({
@@ -712,16 +717,16 @@ const activeSolution = isCustom
   // Show end game modal
   // If game was won show modal and confetti
   useEffect(() => {
+    setShowConfetti(isGameWon);
+
     if (isGameWon || isGameLost) {
-      if (isGameWon) setShowConfetti(true);
       if (gameUiState.speedRunModeEnabled === true) {
         setIsStatsModalOpen(false);
       } else {
         setIsStatsModalOpen(true);
       }
-
     }
-  }, [isGameWon, isGameLost]);
+  }, [isGameWon, isGameLost, gameUiState.speedRunModeEnabled]);
 
   if (gameLoading) return <Loader />;
   return (
