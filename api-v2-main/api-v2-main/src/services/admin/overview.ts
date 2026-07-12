@@ -1,5 +1,26 @@
 import { db } from '../../models';
 
+import { DateTime } from 'luxon';
+import { db } from '../../models';
+
+const ADMIN_TIME_ZONE = 'America/New_York';
+
+function startOfTodayIso() {
+  return DateTime.now()
+    .setZone(ADMIN_TIME_ZONE)
+    .startOf('day')
+    .toUTC()
+    .toISO();
+}
+
+function startOfHourIso() {
+  return DateTime.now()
+    .setZone(ADMIN_TIME_ZONE)
+    .startOf('hour')
+    .toUTC()
+    .toISO();
+}
+
 function startOfTodayIso() {
   const d = new Date();
   d.setHours(0, 0, 0, 0);
