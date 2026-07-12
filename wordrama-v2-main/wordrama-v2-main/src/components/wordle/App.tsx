@@ -4,7 +4,6 @@ import './App.css'
 import useSound from 'use-sound';
 import { default as GraphemeSplitter } from 'grapheme-splitter'
 import { useEffect, useState } from 'react'
-import Confetti from 'react-confetti'
 import Div100vh from 'react-div-100vh'
 import { useDispatch } from 'react-redux';
 import { isMobile, isTablet } from 'react-device-detect';
@@ -134,7 +133,7 @@ import { ChartBarIcon } from '@heroicons/react/outline'
 import { useTheme } from 'next-themes'
 import { useAuth } from '@/providers/auth-provider';
 import { showChristmas } from '@/lib/config';
-import Snowflake from '@/components/Snowflake';
+import { WinCelebration } from './components/celebrations/WinCelebration';
 
 function App(){
   const { user } = useAuth();
@@ -734,12 +733,12 @@ const activeSolution = isCustom
       className={`!h-auto min-h-screen transition-colors ${pageBackgroundThemeClasses} ${pageTextThemeClasses}`}
     >
       <TooltipProvider>
-        { gameUiState.confettiEnabled && showConfetti ? (
-        showChristmas ? (
-          <Snowflake />
-        ) : (
-          <Confetti className='w-full' />
-        )) : null}
+        <WinCelebration
+          enabled={gameUiState.confettiEnabled ?? false}
+          visible={showConfetti}
+          themeId={gameUiState.appearanceThemeId}
+          christmasEnabled={showChristmas}
+        />
         <div className="flex min-h-full flex-col">
           {/*  Game Settings  */}
           <Button className={`fixed top-20 right-4 ${gameActionButtonThemeClasses}`} variant='default' onClick={e => {
