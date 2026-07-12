@@ -1,5 +1,3 @@
-import { db } from '../../models';
-
 import { DateTime } from 'luxon';
 import { db } from '../../models';
 
@@ -19,18 +17,6 @@ function startOfHourIso() {
     .startOf('hour')
     .toUTC()
     .toISO();
-}
-
-function startOfTodayIso() {
-  const d = new Date();
-  d.setHours(0, 0, 0, 0);
-  return d.toISOString();
-}
-
-function startOfHourIso() {
-  const d = new Date();
-  d.setMinutes(0, 0, 0);
-  return d.toISOString();
 }
 
 export async function getAdminOverview() {
