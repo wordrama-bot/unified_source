@@ -18,6 +18,7 @@ export default function Snow() {
         position: 'fixed',
         width: '100vw',
         height: '100vh',
+        pointerEvents: 'none',
       }}
       snowflakeCount={150}
       radius={[5, 27]}

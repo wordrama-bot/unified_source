@@ -1,9 +1,85 @@
 .circle-icon {
-  transition: color 0.3s, stroke 0.3s; /* Smooth transition effect */
+  transition:
+    color 0.3s,
+    stroke 0.3s;
 }
 
 .circle-icon:hover {
   cursor: pointer;
-  stroke: gray; /* Circle color on hover */
-  color: gray; /* Text color on hover */
+  stroke: gray;
+  color: gray;
+}
+
+@keyframes matrix-stream-fall {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+
+  100% {
+    transform: translate3d(0, 220vh, 0);
+  }
+}
+
+@keyframes matrix-code-flicker {
+  0%,
+  19%,
+  22%,
+  62%,
+  64%,
+  100% {
+    filter: brightness(1);
+  }
+
+  20% {
+    filter: brightness(1.8);
+  }
+
+  21% {
+    filter: brightness(0.55);
+  }
+
+  63% {
+    filter: brightness(1.5);
+  }
+}
+
+.matrix-code-stream {
+  animation-name: matrix-stream-fall;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  animation-fill-mode: both;
+  line-height: 1.05;
+  will-change: transform;
+}
+
+.matrix-code-flicker {
+  animation-name: matrix-code-flicker;
+  animation-duration: 2.8s;
+  animation-timing-function: steps(2, end);
+  animation-iteration-count: infinite;
+}
+
+.matrix-code-character {
+  color: rgb(74, 222, 128);
+  text-shadow:
+    0 0 4px rgba(74, 222, 128, 1),
+    0 0 10px rgba(34, 197, 94, 0.9);
+}
+
+.matrix-code-head {
+  color: rgb(220, 252, 231);
+  text-shadow:
+    0 0 6px rgba(255, 255, 255, 1),
+    0 0 12px rgba(74, 222, 128, 1),
+    0 0 20px rgba(34, 197, 94, 0.9);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .matrix-code-stream {
+    animation-duration: 10s !important;
+  }
+
+  .matrix-code-flicker {
+    animation-duration: 2.8s;
+  }
 }
