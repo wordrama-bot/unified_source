@@ -17,6 +17,7 @@ import {
 import { getPlayerEntitlements } from '../services/marketplaceV2/entitlements';
 import playerService from '../services/player';
 import playerSummaryService from '../services/playerSummary';
+import avatarService from '../services/avatar';
 
 async function getPlayerProfile(req: ApiRequest, res: Response) {
   //@ts-ignore
@@ -141,6 +142,23 @@ async function migratePlayer(req: ApiRequest, res: Response) {
   return successfulResponse(req, res, player, 'Player Migrated', 1);
 }
 
+async function getMyAvatar(req: ApiRequest, res: Response) {
+  const avatar = await avatarService.getPlayerAvatar(req.userId);
+
+  return successfulResponse(req, res, avatar, 'Avatar found', avatar ? 1 : 0);
+}
+
+async function updateMyAvatar(req: ApiRequest, res: Response) {
+  const { avatarStyleKey } = req.body;
+
+  const avatar = await avatarService.updatePlayerAvatar(
+    req.userId,
+    avatarStyleKey ?? null,
+  );
+
+  return successfulResponse(req, res, avatar, 'Avatar updated', 1);
+}
+
 export default {
   getPlayerProfile,
   getPlayerEntitlements: getPlayerEntitlementsForMe,
@@ -152,4 +170,6 @@ export default {
   updatePlayerSettings,
   deletePlayer,
   migratePlayer,
+  getMyAvatar,
+  updateMyAvatar,
 };

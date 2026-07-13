@@ -377,6 +377,20 @@ export const CATALOG: CatalogItem[] = [
     isPurchasable: true,
     isStripePurchasable: true,
   },
+  {
+    catalogItemId: '5a9444bc-04c0-471e-a953-3c5b73b8c001',
+    sku: 'AVATAR-FRAME-BRONZE',
+    itemType: 'AVATAR',
+    itemName: 'Bronze Frame',
+    image: '/images/avatars/frames/bronze.png',
+    priceCoins: 1000,
+    priceUsdCents: 99,
+    stripePriceEnvVar: 'avatar_frame_bronze',
+    entitlementKey: 'FRAME:BRONZE',
+    entitlementType: 'AVATAR',
+    isPurchasable: true,
+    isStripePurchasable: true,
+  },
 ]
 
 export function getCatalogItemsByIds(ids: string[]): CatalogItem[] {

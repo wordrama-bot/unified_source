@@ -7,6 +7,7 @@ export const router = express.Router();
 
 /* Get routes */
 router.get('/me', playerController.getPlayerProfile);
+router.get('/me/avatar', playerController.getMyAvatar);
 router.get('/me/entitlements', playerController.getPlayerEntitlements);
 router.get('/friend-requests', friendsController.getFriendRequests);
 router.get('/friend-requests/sent', friendsController.getSentFriendRequests);
@@ -24,6 +25,7 @@ router.post(
 
 /* Patch routes */
 router.patch('/me', playerController.updatePlayer);
+router.patch('/me/avatar', playerController.updateMyAvatar);
 router.patch('/me/settings', playerController.updatePlayerSettings);
 router.patch(
   '/friend-requests/:requestId/accept',
