@@ -2,6 +2,7 @@ import express from 'express';
 import rateLimit from 'express-rate-limit';
 import playerController from '../../controllers/player';
 import accountDeletionFeedbackController from '../../controllers/accountDeletionFeedback';
+import { validateToken } from '../../middleware/tokenValidation';
 
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -13,11 +14,26 @@ const limiter = rateLimit({
 export const router = express.Router();
 
 /* Get routes */
-router.get('/migrate/me', playerController.migratePlayer);
+router.get(
+  '/migrate/me',
+  validateToken,
+  limiter,
+  playerController.migratePlayer,
+);
 
 /* Post routes */
-router.post('/player/me', limiter, playerController.addPlayer);
-router.post('/migrate/me', playerController.migratePlayer);
+router.post(
+  '/player/me',
+  validateToken,
+  limiter,
+  playerController.addPlayer,
+);
+router.post(
+  '/migrate/me',
+  validateToken,
+  limiter,
+  playerController.migratePlayer,
+);
 router.post(
   '/account-deletion-feedback',
   limiter,
