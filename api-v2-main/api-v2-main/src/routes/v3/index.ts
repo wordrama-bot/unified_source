@@ -74,19 +74,19 @@ router.use('/billing', ...authedPlayer, billingRouter);
 router.use('/admin', validateToken, adminRouter);
 
 /* ---------------------------------- */
+/* User-authenticated unscoped routes */
+/* ---------------------------------- */
+
+router.use('/', noRoleRouter);
+
+/* ---------------------------------- */
 /* SERVICE TOKEN ONLY ROUTES          */
 /* ---------------------------------- */
 
-// 🔥 Migration endpoint (challenge backfill lives here)
+// Migration endpoint (challenge backfill lives here)
 router.use('/migrate', ...authedService, migrateRouter);
 
 // Existing internal system routes
 router.use('/_system', ...authedService, systemRouter);
-
-/* ---------------------------------- */
-/* Fallback (KEEP LAST)               */
-/* ---------------------------------- */
-
-router.use('/', noRoleRouter);
 
 export default router;
