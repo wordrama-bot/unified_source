@@ -524,6 +524,20 @@ async function deletePlayer(userId: string) {
   return authData;
 }
 
+async function rollbackPlayerMigration(userId: string) {
+  const { error } = await db
+    .from('_players')
+    .delete()
+    .eq('id', userId);
+
+  if (error) {
+    console.error('[migratePlayer] rollback failed', {
+      userId,
+      error,
+    });
+  }
+}
+
 async function migratePlayer(userId: string) {
   const { data: profileData, error: profileError } = await db
     .from('profiles')
@@ -532,11 +546,18 @@ async function migratePlayer(userId: string) {
     .maybeSingle();
 
   if (profileError) {
-    console.error(profileError);
-    return {};
+    console.error('[migratePlayer] legacy profile lookup failed', {
+      userId,
+      error: profileError,
+    });
+    throw profileError;
   }
 
-  if (profileData?.has_migrated) {
+  if (!profileData) {
+    throw new Error(`Legacy profile not found for user ${userId}`);
+  }
+
+  if (profileData.has_migrated) {
     return await getPlayerByUserId(userId);
   }
 
@@ -547,8 +568,11 @@ async function migratePlayer(userId: string) {
     .maybeSingle();
 
   if (ledgerError) {
-    console.error(ledgerError);
-    return {};
+    console.error('[migratePlayer] legacy ledger lookup failed', {
+      userId,
+      error: ledgerError,
+    });
+    throw ledgerError;
   }
 
   const { data: wordleSettingsData, error: wordleSettingError } = await db
@@ -558,8 +582,11 @@ async function migratePlayer(userId: string) {
     .maybeSingle();
 
   if (wordleSettingError) {
-    console.error(wordleSettingError);
-    return {};
+    console.error('[migratePlayer] legacy settings lookup failed', {
+      userId,
+      error: wordleSettingError,
+    });
+    throw wordleSettingError;
   }
 
   const { error: migratedProfileError } = await db
@@ -578,9 +605,11 @@ async function migratePlayer(userId: string) {
     .maybeSingle();
 
   if (migratedProfileError) {
-    console.error(migratedProfileError);
-    await deletePlayer(userId);
-    return {};
+    console.error('[migratePlayer] _players insert failed', {
+      userId,
+      error: migratedProfileError,
+    });
+    throw migratedProfileError;
   }
 
   const { error: migratedReferralError } = await db
@@ -595,9 +624,12 @@ async function migratePlayer(userId: string) {
     .maybeSingle();
 
   if (migratedReferralError) {
-    console.error(migratedReferralError);
-    await deletePlayer(userId);
-    return {};
+    console.error('[migratePlayer] _referral_codes insert failed', {
+      userId,
+      error: migratedReferralError,
+    });
+    await rollbackPlayerMigration(userId);
+    throw migratedReferralError;
   }
 
   const { error: migratedLedgerError } = await db
@@ -605,16 +637,19 @@ async function migratePlayer(userId: string) {
     .insert(
       changeKeys.snakeCase({
         player: userId,
-        coinBalance: ledgerData.coin_count || 0,
+        coinBalance: ledgerData?.coin_count ?? 0,
       }),
     )
     .select('id')
     .maybeSingle();
 
   if (migratedLedgerError) {
-    console.error(migratedLedgerError);
-    await deletePlayer(userId);
-    return {};
+    console.error('[migratePlayer] _ledger insert failed', {
+      userId,
+      error: migratedLedgerError,
+    });
+    await rollbackPlayerMigration(userId);
+    throw migratedLedgerError;
   }
 
   const { error: migratedLevelsError } = await db
@@ -631,12 +666,15 @@ async function migratePlayer(userId: string) {
     .maybeSingle();
 
   if (migratedLevelsError) {
-    console.error(migratedLevelsError);
-    await deletePlayer(userId);
-    return {};
+    console.error('[migratePlayer] _levels insert failed', {
+      userId,
+      error: migratedLevelsError,
+    });
+    await rollbackPlayerMigration(userId);
+    throw migratedLevelsError;
   }
 
-  await db
+  const { error: migratedUiSavedStateError } = await db
     .from('_ui_saved_state')
     .insert({
       player: userId,
@@ -644,7 +682,16 @@ async function migratePlayer(userId: string) {
     .select('id')
     .maybeSingle();
 
-  await db
+  if (migratedUiSavedStateError) {
+    console.error('[migratePlayer] _ui_saved_state insert failed', {
+      userId,
+      error: migratedUiSavedStateError,
+    });
+    await rollbackPlayerMigration(userId);
+    throw migratedUiSavedStateError;
+  }
+
+  const { error: migratedWordleSavedStateError } = await db
     .from('_wordle_saved_state')
     .insert({
       player: userId,
@@ -652,24 +699,37 @@ async function migratePlayer(userId: string) {
     .select('id')
     .maybeSingle();
 
+  if (migratedWordleSavedStateError) {
+    console.error('[migratePlayer] _wordle_saved_state insert failed', {
+      userId,
+      error: migratedWordleSavedStateError,
+    });
+    await rollbackPlayerMigration(userId);
+    throw migratedWordleSavedStateError;
+  }
+
   const { error: migratedWordleSettingsError } = await db
     .from('_player_settings')
     .insert(
       changeKeys.snakeCase({
         player: userId,
-        isColourBlind: wordleSettingsData.is_colour_blind,
-        isHardMode: wordleSettingsData.is_hard_mode,
-        isDarkMode: wordleSettingsData.is_dark_mode,
+        isColourBlind: wordleSettingsData?.colour_blind ?? false,
+        isHardMode: wordleSettingsData?.hard_mode ?? false,
+        isDarkMode: wordleSettingsData?.dark_mode ?? true,
         wordleWordLength: 5,
-        isConfettiEnabled: wordleSettingsData.is_confetti_enabled,
+        isConfettiEnabled: wordleSettingsData?.confetti_enabled ?? true,
       }),
     )
     .select('id')
     .maybeSingle();
 
   if (migratedWordleSettingsError) {
-    console.error(migratedWordleSettingsError);
-    return {};
+    console.error('[migratePlayer] _player_settings insert failed', {
+      userId,
+      error: migratedWordleSettingsError,
+    });
+    await rollbackPlayerMigration(userId);
+    throw migratedWordleSettingsError;
   }
 
   const { error: migratedDiscordLinkError } = await db
@@ -684,20 +744,25 @@ async function migratePlayer(userId: string) {
     .maybeSingle();
 
   if (migratedDiscordLinkError) {
-    console.error(migratedDiscordLinkError);
-    await deletePlayer(userId);
-    return {};
+    console.error('[migratePlayer] _discord_link insert failed', {
+      userId,
+      error: migratedDiscordLinkError,
+    });
+    await rollbackPlayerMigration(userId);
+    throw migratedDiscordLinkError;
   }
 
-  [
+  const wordPacks = [
     'FOUR_LETTER',
     'FIVE_LETTER',
+    'FIVE_LETTER_CRAZY',
     'SIX_LETTER',
     'SEVEN_LETTER',
     'EIGHT_LETTER',
     'NINE_LETTER',
     'TEN_LETTER',
     'ELEVEN_LETTER',
+    'ELEVEN_LETTER_EXTENDED',
     'TWELVE_LETTER',
     'THIRTEEN_LETTER',
     'FOURTEEN_LETTER',
@@ -710,8 +775,10 @@ async function migratePlayer(userId: string) {
     'TWENTYONE_LETTER',
     'TWENTYTWO_LETTER',
     'TWENTYTHREE_LETTER',
-  ].forEach(async (wordPack: string) => {
-    await db
+  ];
+
+  for (const wordPack of wordPacks) {
+    const { error: dailyStreakError } = await db
       .from('_wordle_streak')
       .insert({
         player: userId,
@@ -723,7 +790,17 @@ async function migratePlayer(userId: string) {
       .select('id')
       .maybeSingle();
 
-    await db
+    if (dailyStreakError) {
+      console.error('[migratePlayer] DAILY streak insert failed', {
+        userId,
+        wordPack,
+        error: dailyStreakError,
+      });
+      await rollbackPlayerMigration(userId);
+      throw dailyStreakError;
+    }
+
+    const { error: infiniteStreakError } = await db
       .from('_wordle_streak')
       .insert({
         player: userId,
@@ -734,9 +811,19 @@ async function migratePlayer(userId: string) {
       })
       .select('id')
       .maybeSingle();
-  });
 
-  await db
+    if (infiniteStreakError) {
+      console.error('[migratePlayer] INFINITE streak insert failed', {
+        userId,
+        wordPack,
+        error: infiniteStreakError,
+      });
+      await rollbackPlayerMigration(userId);
+      throw infiniteStreakError;
+    }
+  }
+
+  const { error: migratedProfileFlagError } = await db
     .from('profiles')
     .update({
       has_migrated: true,
@@ -744,6 +831,15 @@ async function migratePlayer(userId: string) {
     .eq('user_id', userId)
     .select('id')
     .maybeSingle();
+
+  if (migratedProfileFlagError) {
+    console.error('[migratePlayer] failed to set legacy migration flag', {
+      userId,
+      error: migratedProfileFlagError,
+    });
+    await rollbackPlayerMigration(userId);
+    throw migratedProfileFlagError;
+  }
 
   return await getPlayerByUserId(userId);
 }
