@@ -136,9 +136,9 @@ async function deletePlayer(req: ApiRequest, res: Response) {
 async function migratePlayer(req: ApiRequest, res: Response) {
   //@ts-ignore
   const player = await playerService.migratePlayer(req.userId);
-  if (!player && player?.id) return notFoundResponse(req, res);
+  if (!player || !player?.id) return notFoundResponse(req, res);
 
-  return successfulResponse(req, res, player, 'Player Migrated', 1);
+  return successfulResponse(req, res, player, 'Player migrated', 1);
 }
 
 export default {
