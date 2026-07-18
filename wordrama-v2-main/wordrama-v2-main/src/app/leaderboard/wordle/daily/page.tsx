@@ -135,6 +135,12 @@ export default function WordleDailyLeaderboardPage() {
       columnPrefix: "eleven_letter",
       rankColumn: "daily_rank_11_letter",
     },
+    "11 letter extended": {
+      label: "11 Letter Extended",
+      prefix: "elevenLetterExtended",
+      columnPrefix: "eleven_letter_extended",
+      rankColumn: "daily_rank_11_letter_extended",
+    },
     "12 letter": {
       label: "12 Letter",
       prefix: "twelveLetter",
@@ -389,6 +395,7 @@ export default function WordleDailyLeaderboardPage() {
                   <SelectItem value="9 letter">9 Letter</SelectItem>
                   <SelectItem value="10 letter">10 Letter</SelectItem>
                   <SelectItem value="11 letter">11 Letter</SelectItem>
+                  <SelectItem value="11 letter extended">11 Letter Extended</SelectItem>
                   <SelectItem value="12 letter">12 Letter</SelectItem>
                   <SelectItem value="13 letter">13 Letter</SelectItem>
                   <SelectItem value="14 letter">14 Letter</SelectItem>
