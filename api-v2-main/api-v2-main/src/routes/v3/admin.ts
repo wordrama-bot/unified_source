@@ -89,4 +89,10 @@ router.get(
   adminController.playerProfile,
 );
 
+router.get(
+  '/players/:playerId/identity',
+  requireAdmin,
+  adminController.getPlayerIdentityReport,
+);
+
 export default router;
