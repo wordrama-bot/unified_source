@@ -1,5 +1,15 @@
 import { db } from '../../models';
 
+export class PlayerIdentityReportError extends Error {
+  code?: string;
+
+  constructor(message: string, code?: string) {
+    super(message);
+    this.name = 'PlayerIdentityReportError';
+    this.code = code;
+  }
+}
+
 export async function getPlayerIdentityReport(playerId: string) {
   const { data, error } = await db.rpc(
     'admin_get_player_identity',
@@ -13,10 +23,16 @@ export async function getPlayerIdentityReport(playerId: string) {
   if (error) {
     console.error(
       '[admin.playerIdentity] getPlayerIdentityReport',
-      error,
+      {
+        code: error.code,
+        message: error.message,
+      },
     );
 
-    throw new Error('Unable to load player identity report.');
+    throw new PlayerIdentityReportError(
+      'Unable to load player identity report.',
+      error.code,
+    );
   }
 
   return data;

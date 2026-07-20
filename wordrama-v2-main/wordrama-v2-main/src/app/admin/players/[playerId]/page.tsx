@@ -52,7 +52,7 @@ export default function AdminPlayerProfilePage() {
     },
   ] = useLazyGetAdminPlayerIdentityReportQuery();
 
-  const identityReport = identityReportData?.data;
+  const identityReport = identityReportData;
 
   const { data, isLoading, error } = useGetAdminPlayerProfileQuery(playerId, {
     skip: !playerId,
@@ -332,6 +332,23 @@ export default function AdminPlayerProfilePage() {
           </button>
         </div>
       </div>
+
+      {activeTab === "identity" && (
+        <div className="mt-6">
+          <Panel title="Player Identity">
+            {identityLoading ? (
+              <p className="text-sm text-muted-foreground">
+                Loading identity report...
+              </p>
+            ) : (
+              <pre className="overflow-auto rounded-lg border bg-muted p-4 text-xs">
+                {JSON.stringify(identityReport, null, 2)}
+              </pre>
+            )}
+          </Panel>
+        </div>
+      )}
+
       <div className="mt-6 space-y-4">
         <Panel title="Quick Actions">
           <div className="grid gap-3 sm:grid-cols-2">
@@ -565,22 +582,6 @@ export default function AdminPlayerProfilePage() {
           />
         </Panel>
       </section>
-
-      {activeTab === "identity" && (
-        <div className="mt-6">
-          <Panel title="Player Identity">
-            {identityLoading ? (
-              <p className="text-sm text-muted-foreground">
-                Loading identity report...
-              </p>
-            ) : (
-              <pre className="overflow-auto rounded-lg border bg-muted p-4 text-xs">
-                {JSON.stringify(identityReport, null, 2)}
-              </pre>
-            )}
-          </Panel>
-        </div>
-      )}
 
       {showGrantEntitlement && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">

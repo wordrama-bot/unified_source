@@ -93,12 +93,14 @@ export async function getPlayerIdentityReport(
       req.params.playerId,
     );
 
-    res.json(report);
-  } catch (error) {
-    console.error(error);
+    return res.status(200).json(report);
+  } catch (error: any) {
+    const timedOut = error?.code === '57014';
 
-    res.status(500).json({
-      message: 'Unable to load player identity report.',
+    return res.status(timedOut ? 504 : 500).json({
+      message: timedOut
+        ? 'The player identity report timed out. Please try again.'
+        : 'Unable to load player identity report.',
     });
   }
 }
