@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import {
   useAddAdminPlayerNoteMutation,
   useGetAdminPlayerNotesQuery,
   useGetAdminPlayerProfileQuery,
+  useLazyGetAdminPlayerIdentityReportQuery,
   useGrantAdminPlayerCoinsMutation,
   useBanAdminPlayerMutation,
   useUnbanAdminPlayerMutation,
@@ -39,6 +40,20 @@ export default function AdminPlayerProfilePage() {
   const [entitlementExpiresAt, setEntitlementExpiresAt] = useState("");
   const [grantPreview, setGrantPreview] = useState<any>(null);
 
+  const [activeTab, setActiveTab] = useState<"overview" | "identity">(
+    "overview"
+  );
+
+  const [
+    loadIdentity,
+    {
+      data: identityReportData,
+      isFetching: identityLoading,
+    },
+  ] = useLazyGetAdminPlayerIdentityReportQuery();
+
+  const identityReport = identityReportData?.data;
+
   const { data, isLoading, error } = useGetAdminPlayerProfileQuery(playerId, {
     skip: !playerId,
   });
@@ -63,6 +78,21 @@ export default function AdminPlayerProfilePage() {
     usePreviewAdminGrantEntitlementMutation();
   const [grantEntitlement, { isLoading: grantingEntitlement }] =
     useGrantAdminEntitlementMutation();
+
+  useEffect(() => {
+    if (
+      activeTab === "identity" &&
+      playerId &&
+      !identityReportData
+    ) {
+      loadIdentity(playerId);
+    }
+  }, [
+    activeTab,
+    playerId,
+    identityReportData,
+    loadIdentity,
+  ]);
 
   if (isLoading) {
     return (
@@ -220,7 +250,9 @@ export default function AdminPlayerProfilePage() {
                 />
               ) : (
                 <div className="flex h-16 w-16 items-center justify-center rounded-full border text-xl font-bold">
-                  {(identity.display_name || identity.username || "?").charAt(0).toUpperCase()}
+                  {(identity.display_name || identity.username || "?")
+                    .charAt(0)
+                    .toUpperCase()}
                 </div>
               )}
 
@@ -228,9 +260,11 @@ export default function AdminPlayerProfilePage() {
                 <p className="text-sm uppercase tracking-wide text-muted-foreground">
                   Player Profile
                 </p>
+
                 <h1 className="mt-1 text-3xl font-bold">
                   {identity.display_name || identity.username}
                 </h1>
+
                 <a
                   href={`https://wordrama.io/player/${identity.id}`}
                   target="_blank"
@@ -239,8 +273,12 @@ export default function AdminPlayerProfilePage() {
                 >
                   @{identity.username}
                 </a>
+
                 <div className="mt-2 flex flex-wrap items-center gap-2">
-                  <p className="break-all text-xs text-muted-foreground">{identity.id}</p>
+                  <p className="break-all text-xs text-muted-foreground">
+                    {identity.id}
+                  </p>
+
                   <button
                     type="button"
                     onClick={() => navigator.clipboard.writeText(identity.id)}
@@ -257,15 +295,43 @@ export default function AdminPlayerProfilePage() {
                 <span className="text-muted-foreground">Created:</span>{" "}
                 {formatDate(identity.created_at)}
               </p>
+
               <p>
                 <span className="text-muted-foreground">Discord:</span>{" "}
-                {identity.discord_connected ? "🟣 Connected" : "⚪ Not connected"}
+                {identity.discord_connected
+                  ? "🟣 Connected"
+                  : "⚪ Not connected"}
               </p>
             </div>
           </div>
         </section>
-      </div>
 
+        <div className="flex border-b">
+          <button
+            type="button"
+            onClick={() => setActiveTab("overview")}
+            className={`border-b-2 px-4 py-3 text-sm font-medium ${
+              activeTab === "overview"
+                ? "border-primary text-foreground"
+                : "border-transparent text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            Overview
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab("identity")}
+            className={`border-b-2 px-4 py-3 text-sm font-medium ${
+              activeTab === "identity"
+                ? "border-primary text-foreground"
+                : "border-transparent text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            Identity
+          </button>
+        </div>
+      </div>
       <div className="mt-6 space-y-4">
         <Panel title="Quick Actions">
           <div className="grid gap-3 sm:grid-cols-2">
@@ -499,6 +565,22 @@ export default function AdminPlayerProfilePage() {
           />
         </Panel>
       </section>
+
+      {activeTab === "identity" && (
+        <div className="mt-6">
+          <Panel title="Player Identity">
+            {identityLoading ? (
+              <p className="text-sm text-muted-foreground">
+                Loading identity report...
+              </p>
+            ) : (
+              <pre className="overflow-auto rounded-lg border bg-muted p-4 text-xs">
+                {JSON.stringify(identityReport, null, 2)}
+              </pre>
+            )}
+          </Panel>
+        </div>
+      )}
 
       {showGrantEntitlement && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
