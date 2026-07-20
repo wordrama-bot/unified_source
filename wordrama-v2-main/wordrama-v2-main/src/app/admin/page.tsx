@@ -38,6 +38,19 @@ export default function AdminDashboardPage() {
     isLoading: isLoadingSuspiciousGameplay,
   } = useGetSuspiciousGameplayQuery();
 
+  const suspiciousGameplayRows =
+    suspiciousGameplayData?.data ?? [];
+
+  const suspiciousGameplayCount =
+    suspiciousGameplayRows.length;
+
+  const flagLabels: Record<string, string> = {
+    ONE_GUESS_24H: "Multiple 1-Guess Wins",
+    ONE_GUESS_RATE: "High 1-Guess Rate",
+    TEN_PLUS_GAMES_60S: "10+ Games in 60s",
+    CONSISTENT_SUB_10S: "Consistent Sub-10s",
+  };
+
   const overviewData = overview?.data;
   const players = useMemo(() => searchResults?.data ?? [], [searchResults]);
 
@@ -101,7 +114,11 @@ export default function AdminDashboardPage() {
         />
         <AdminStatCard
           label="Suspicious Accounts"
-          value={overviewLoading ? "..." : overviewData?.suspiciousAccounts ?? 0}
+          value={
+            isLoadingSuspiciousGameplay
+              ? "..."
+              : suspiciousGameplayCount
+          }
         />
         <AdminStatCard
           label="Errors Requiring Review"
@@ -114,77 +131,194 @@ export default function AdminDashboardPage() {
       </section>
 
       <section className="mt-6">
-          <div className="rounded-lg border border-yellow-700 bg-zinc-900 p-4">
-            <div className="mb-3 flex items-center justify-between">
-              <div>
-                <h2 className="text-xl font-bold text-yellow-300">
-                  Gameplay Review Queue
-                </h2>
-                <p className="text-sm text-zinc-400">
-                  Flags players for unusual solve speed or one-guess patterns.
-                </p>
-              </div>
-              <div className="text-2xl font-bold text-yellow-300">
-                {suspiciousGameplayData?.data?.length ?? 0}
-              </div>
+        <div className="rounded-lg border border-yellow-700 bg-zinc-900 p-4">
+          <div className="mb-3 flex items-center justify-between">
+            <div>
+              <h2 className="text-xl font-bold text-yellow-300">
+                Gameplay Review Queue
+              </h2>
+              <p className="text-sm text-zinc-400">
+                Flags accounts for extreme one-minute bursts, sustained
+                sub-10-second play, or unusual one-guess patterns.
+              </p>
             </div>
 
-            {isLoadingSuspiciousGameplay ? (
-              <p className="text-sm text-zinc-400">Loading review queue...</p>
-            ) : suspiciousGameplayData?.data?.length ? (
-              <div className="max-h-[500px] overflow-y-auto overflow-x-auto rounded-lg border border-zinc-800">
-                <table className="w-full text-left text-sm">
-                  <thead className="text-zinc-400">
-                    <tr>
-                      <th className="py-2">Player</th>
-                      <th className="py-2">Games</th>
-                      <th className="py-2">1 Guess</th>
-                      <th className="py-2">1 Guess %</th>
-                      <th className="py-2">24h 1 Guess</th>
-                      <th className="py-2">Games/hr</th>
-                      <th className="py-2">Flags</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {suspiciousGameplayData.data.map((row: any) => (
-                      <tr key={row.playerId} className="border-t border-zinc-800">
-                        <td className="py-2">
-                          <a
-                            href={`/admin/players/${row.playerId}`}
-                            className="font-medium text-blue-300 hover:underline"
-                          >
-                            {row.displayName || row.username || row.email || row.playerId}
-                          </a>
-                          <div className="text-xs text-zinc-500">{row.email}</div>
-                        </td>
-                        <td className="py-2">{row.totalGames}</td>
-                        <td className="py-2">{row.oneGuessWins}</td>
-                        <td className="py-2">{row.oneGuessRate}%</td>
-                        <td className="py-2">{row.oneGuessLast24h}</td>
-                        <td className="py-2">{row.gamesPerHour}</td>
-                        <td className="py-2">
-                          <div className="flex flex-wrap gap-1">
-                            {row.flags.map((flag: string) => (
-                              <span
-                                key={flag}
-                                className="rounded bg-yellow-900 px-2 py-1 text-xs text-yellow-200"
-                              >
-                                {flag}
-                              </span>
-                            ))}
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            ) : (
-              <p className="text-sm text-green-400">
-                No suspicious gameplay currently flagged.
-              </p>
-            )}
+            <div className="text-2xl font-bold text-yellow-300">
+              {suspiciousGameplayCount}
+            </div>
           </div>
+
+          <div className="mb-4 rounded-md border border-zinc-800 bg-zinc-950/50 p-3 text-xs text-zinc-400">
+            <div className="mb-2 font-semibold text-zinc-300">
+              How to interpret this table
+            </div>
+
+            <ul className="space-y-1">
+              <li>
+                <strong>Games</strong> — Total Wordle games completed by the player.
+              </li>
+
+              <li>
+                <strong>1 Guess</strong> — Total games solved in a single guess.
+              </li>
+
+              <li>
+                <strong>1 Guess %</strong> — Percentage of all completed games solved in one guess.
+              </li>
+
+              <li>
+                <strong>24h 1 Guess</strong> — Number of one-guess solves completed during the last 24 hours.
+              </li>
+
+              <li>
+                <strong>Max / 60s</strong> — Highest number of completed games within any rolling 60-second period during the last 30 days.
+              </li>
+
+              <li>
+                <strong>Fast Session</strong> — Number of games in the player's fastest qualifying play session (minimum 30 games).
+              </li>
+
+              <li>
+                <strong>Median Gap</strong> — Median time between completed games during the fastest session. Lower values indicate more consistently rapid play.
+              </li>
+
+              <li>
+                <strong>Sub-10%</strong> — Percentage of completed games in the fastest session that occurred within 10 seconds of the previous completed game.
+              </li>
+
+              <li>
+                <strong>10+ Games in 60s</strong> — The player completed at least 10 games within a rolling 60-second period, indicating an unusually rapid burst of gameplay.
+              </li>
+
+              <li>
+                <strong>Consistent Sub-10s</strong> — The player completed a qualifying session (30+ games) with a median completion gap of 10 seconds or less and at least 75% of game transitions occurring within 10 seconds.
+              </li>
+
+              <li>
+                <strong>High 1-Guess Rate</strong> — The player's overall percentage of one-guess solves exceeds the review threshold.
+              </li>
+
+              <li>
+                <strong>Multiple 1-Guess Wins</strong> — The player recorded multiple one-guess solves within the last 24 hours.
+              </li>
+            </ul>
+
+            <p className="mt-3 border-t border-zinc-800 pt-3 text-zinc-500">
+              <strong>Note:</strong> These metrics are designed to identify accounts
+              that may warrant moderator review. A flag does not, by itself, indicate
+              cheating or misuse.
+            </p>
+          </div>
+
+          {isLoadingSuspiciousGameplay ? (
+            <p className="text-sm text-zinc-400">
+              Loading review queue...
+            </p>
+          ) : suspiciousGameplayRows.length > 0 ? (
+            <div className="max-h-[500px] overflow-x-auto overflow-y-auto rounded-lg border border-zinc-800">
+              <table className="w-full min-w-[1100px] text-left text-sm">
+                <thead className="sticky top-0 bg-zinc-900 text-zinc-400">
+                  <tr>
+                    <th className="px-3 py-2">Player</th>
+                    <th className="px-3 py-2">Games</th>
+                    <th className="px-3 py-2">1 Guess</th>
+                    <th className="px-3 py-2">1 Guess %</th>
+                    <th className="px-3 py-2">24h 1 Guess</th>
+                    <th className="px-3 py-2">Max / 60s</th>
+                    <th className="px-3 py-2">Fast Session</th>
+                    <th className="px-3 py-2">Median Gap</th>
+                    <th className="px-3 py-2">Sub-10%</th>
+                    <th className="px-3 py-2">Flags</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {suspiciousGameplayRows.map((row: any) => (
+                    <tr
+                      key={row.playerId}
+                      className="border-t border-zinc-800"
+                    >
+                      <td className="px-3 py-2">
+                        <a
+                          href={`/admin/players/${row.playerId}`}
+                          className="font-medium text-blue-300 hover:underline"
+                        >
+                          {row.displayName ||
+                            row.username ||
+                            row.email ||
+                            row.playerId}
+                        </a>
+
+                        <div className="text-xs text-zinc-500">
+                          {row.email}
+                        </div>
+                      </td>
+
+                      <td className="px-3 py-2">
+                        {row.totalGames}
+                      </td>
+
+                      <td className="px-3 py-2">
+                        {row.oneGuessWins}
+                      </td>
+
+                      <td className="px-3 py-2">
+                        {row.oneGuessRate}%
+                      </td>
+
+                      <td className="px-3 py-2">
+                        {row.oneGuessLast24h}
+                      </td>
+
+                      <td className="px-3 py-2">
+                        {row.maxGamesInRolling60Seconds}
+                      </td>
+
+                      <td className="px-3 py-2">
+                        {row.fastestSessionGames || "—"}
+                      </td>
+
+                      <td className="px-3 py-2">
+                        {row.fastestSessionMedianGapSeconds === null ||
+                        row.fastestSessionMedianGapSeconds === undefined
+                          ? "—"
+                          : `${Number(
+                              row.fastestSessionMedianGapSeconds,
+                            ).toFixed(2)}s`}
+                      </td>
+
+                      <td className="px-3 py-2">
+                        {row.fastestSessionSub10Rate === null ||
+                        row.fastestSessionSub10Rate === undefined
+                          ? "—"
+                          : `${Number(
+                              row.fastestSessionSub10Rate,
+                            ).toFixed(2)}%`}
+                      </td>
+
+                      <td className="px-3 py-2">
+                        <div className="flex flex-wrap gap-1">
+                          {row.flags.map((flag: string) => (
+                            <span
+                              key={flag}
+                              className="rounded bg-yellow-900 px-2 py-1 text-xs text-yellow-200"
+                            >
+                              {flagLabels[flag] ?? flag}
+                            </span>
+                          ))}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <p className="text-sm text-green-400">
+              No suspicious gameplay currently flagged.
+            </p>
+          )}
+        </div>
       </section>
 
       <section className="mt-10 grid gap-6 lg:grid-cols-[2fr_1fr]">
