@@ -43,10 +43,12 @@ async function getChallenges(userId) {
   const result = await fetch(
     `${serviceUrl}/${servicePath}/challenges/me${serviceAuth}${userId}`,
   ).then((response) => response.json());
+
   if (result.status !== 200) {
     console.error(result?.message);
     return {};
   }
+
   return result;
 }
 
@@ -118,6 +120,54 @@ async function handle100GamesChallenge(userId, challenges) {
 
   if (data && data?.gamesPlayed >= 100) {
     await handleUpdateChallengeProgress(challengeId, userId, 'COMPLETE', 100);
+  }
+}
+
+async function handleAllTimeChampionChallenge(userId, challenges) {
+  const challengeId = 'eb7590cc-d2a8-4952-a5e5-17e2bbe15202';
+
+  const challenge = challenges.find((c) => c.id === challengeId);
+
+  if (challenge?.status === 'COMPLETE') return;
+
+  const response = await fetch(
+    [
+      serviceUrl,
+      servicePath,
+      'leaderboard/wordle/position/all-time',
+      userId,
+    ].join('/'),
+    {
+      method: 'GET',
+    },
+  );
+
+  if (!response.ok) {
+    console.error(
+      `Failed to check All-Time Champion challenge for ${userId}:`,
+      response.status,
+      response.statusText,
+    );
+    return;
+  }
+
+  const { data } = await response.json();
+
+  if (!data) return;
+
+  const isChampion = Object.entries(data).some(
+    ([key, value]) =>
+      key.startsWith('alltimeRank') &&
+      Number(value) === 1,
+  );
+
+  if (isChampion) {
+    await handleUpdateChallengeProgress(
+      challengeId,
+      userId,
+      'COMPLETE',
+      100,
+    );
   }
 }
 
@@ -238,6 +288,10 @@ async function main() {
                 challenges?.data,
               );
               await handleFirstGameChallenge(
+                messageReceived.body.userId,
+                challenges?.data,
+              );
+              await handleAllTimeChampionChallenge(
                 messageReceived.body.userId,
                 challenges?.data,
               );

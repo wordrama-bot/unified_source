@@ -30,15 +30,24 @@ async function getLeaderboardPositionAllTime(req: ApiRequest, res: Response) {
   const leaderboard =
     await leaderboardService.getPlayerLeaderboardPositionAllTime(userId);
 
-  if (!Array.isArray(leaderboard)) return serviceUnavailable(res, leaderboard);
-  if (leaderboard.length === 0) return notFoundResponse(req, res);
+  if (
+    !leaderboard ||
+    typeof leaderboard !== 'object' ||
+    Array.isArray(leaderboard)
+  ) {
+    return serviceUnavailable(res, leaderboard);
+  }
+
+  if (Object.keys(leaderboard).length === 0) {
+    return notFoundResponse(req, res);
+  }
 
   return successfulResponse(
     req,
     res,
     leaderboard,
     'All Time Leaderboard Position Returned',
-    leaderboard.length,
+    1,
   );
 }
 

@@ -18,6 +18,7 @@ const ALLOWED_ORDER_COLUMNS = new Set([
   'alltime_rank_9_letter',
   'alltime_rank_10_letter',
   'alltime_rank_11_letter',
+  'alltime_rank_11_letter_extended',
   'alltime_rank_12_letter',
   'alltime_rank_13_letter',
   'alltime_rank_14_letter',
@@ -40,6 +41,7 @@ const ALLOWED_ORDER_COLUMNS = new Set([
   'yearly_rank_9_letter',
   'yearly_rank_10_letter',
   'yearly_rank_11_letter',
+  'yearly_rank_11_letter_extended',
   'yearly_rank_12_letter',
   'yearly_rank_13_letter',
   'yearly_rank_14_letter',
@@ -62,6 +64,7 @@ const ALLOWED_ORDER_COLUMNS = new Set([
   'monthly_rank_9_letter',
   'monthly_rank_10_letter',
   'monthly_rank_11_letter',
+  'monthly_rank_11_letter_extended',
   'monthly_rank_12_letter',
   'monthly_rank_13_letter',
   'monthly_rank_14_letter',
@@ -84,6 +87,7 @@ const ALLOWED_ORDER_COLUMNS = new Set([
   'weekly_rank_9_letter',
   'weekly_rank_10_letter',
   'weekly_rank_11_letter',
+  'weekly_rank_11_letter_extended',
   'weekly_rank_12_letter',
   'weekly_rank_13_letter',
   'weekly_rank_14_letter',
@@ -106,6 +110,7 @@ const ALLOWED_ORDER_COLUMNS = new Set([
   'daily_rank_9_letter',
   'daily_rank_10_letter',
   'daily_rank_11_letter',
+  'daily_rank_11_letter_extended',
   'daily_rank_12_letter',
   'daily_rank_13_letter',
   'daily_rank_14_letter',
@@ -242,11 +247,43 @@ async function getPlayerLeaderboardAllTime(
     return {};
   }
 
-  return data.map((row: any) => {
+  const rows = data ?? [];
+
+  const playerIds = rows
+    .map((row: any) => row.player)
+    .filter((playerId: string | null | undefined): playerId is string =>
+      Boolean(playerId),
+    );
+
+  const avatarStyleByPlayerId = new Map<string, string | null>();
+
+  if (playerIds.length > 0) {
+    const { data: avatarRows, error: avatarError } = await db
+      .from('_player_avatar')
+      .select('player_id, equipped_avatar_style_key')
+      .in('player_id', playerIds);
+
+    if (avatarError) {
+      console.error(
+        '[leaderboard] unable to load equipped avatar styles:',
+        avatarError,
+      );
+    } else {
+      for (const avatarRow of avatarRows ?? []) {
+        avatarStyleByPlayerId.set(
+          avatarRow.player_id,
+          avatarRow.equipped_avatar_style_key ?? null,
+        );
+      }
+    }
+  }
+
+  return rows.map((row: any) => {
     const camel = changeKeys.camelCase(row, 10) as any;
 
     return {
       ...camel,
+      avatarStyleKey: avatarStyleByPlayerId.get(row.player) ?? null,
       bestStreak: camel.overallBestStreak ?? 0,
       players: {
         levels: {

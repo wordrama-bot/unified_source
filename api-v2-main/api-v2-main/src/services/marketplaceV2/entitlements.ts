@@ -155,31 +155,25 @@ export async function adminGrantEntitlement({
     throw new Error(preview.warnings[0] ?? 'Entitlement cannot be granted.');
   }
 
-  const { data, error } = await db
-    .from('_player_entitlements')
-    .insert({
-      player_id: playerId,
-      entitlement_key: preview.catalogItem.entitlementKey,
-      entitlement_type: preview.catalogItem.entitlementType,
-      source_type: 'ADMIN',
-      status: 'ACTIVE',
-      starts_at: preview.requestedGrant.startsAt,
-      expires_at: preview.requestedGrant.expiresAt,
-      metadata: {
-        reason: cleanReason,
-        grantedBy: adminPlayerId,
-        catalogItemId: preview.catalogItem.catalogItemId,
-        sku: preview.catalogItem.sku,
-        itemName: preview.catalogItem.itemName,
-        source: 'admin_dashboard',
-      },
-    })
-    .select('*')
-    .maybeSingle();
+  const data = await grantEntitlement({
+    playerId,
+    entitlementKey: preview.catalogItem.entitlementKey,
+    entitlementType: preview.catalogItem.entitlementType,
+    sourceType: 'ADMIN',
+    startsAt: preview.requestedGrant.startsAt,
+    expiresAt: preview.requestedGrant.expiresAt,
+    metadata: {
+      reason: cleanReason,
+      grantedBy: adminPlayerId,
+      catalogItemId: preview.catalogItem.catalogItemId,
+      sku: preview.catalogItem.sku,
+      itemName: preview.catalogItem.itemName,
+      source: 'admin_dashboard',
+    },
+  });
 
-  if (error) {
-    console.error('[entitlements] adminGrantEntitlement error', error);
-    throw new Error('Unable to grant entitlement.');
+  if (!data) {
+    throw new Error('Player already has this entitlement.');
   }
 
   await db.from('_moderation_actions').insert({
@@ -199,6 +193,51 @@ export async function adminGrantEntitlement({
       expiresAt: preview.requestedGrant.expiresAt,
     },
   });
+
+  return data;
+}
+
+export async function grantEntitlement({
+  playerId,
+  entitlementKey,
+  entitlementType,
+  sourceType,
+  startsAt,
+  expiresAt,
+  metadata,
+}: {
+  playerId: string;
+  entitlementKey: string;
+  entitlementType: string;
+  sourceType: string;
+  startsAt?: string;
+  expiresAt?: string | null;
+  metadata?: Record<string, any>;
+}) {
+  const alreadyHas = await hasPlayerEntitlement(playerId, entitlementKey);
+
+  if (alreadyHas) {
+    return null;
+  }
+
+  const { data, error } = await db
+    .from('_player_entitlements')
+    .insert({
+      player_id: playerId,
+      entitlement_key: entitlementKey,
+      entitlement_type: entitlementType,
+      source_type: sourceType,
+      status: 'ACTIVE',
+      starts_at: startsAt ?? new Date().toISOString(),
+      expires_at: expiresAt ?? null,
+      metadata: metadata ?? {},
+    })
+    .select()
+    .maybeSingle();
+
+  if (error) {
+    throw error;
+  }
 
   return data;
 }

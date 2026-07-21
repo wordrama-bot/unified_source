@@ -4,7 +4,7 @@ import { db } from '../../models';
 async function getChallengeReward(challengeId: string) {
   const { data, error } = await db
     .from('_challenges')
-    .select('coin_reward, xp_reward')
+    .select('coin_reward, xp_reward, avatar_entitlement_key')
     .eq('id', challengeId)
     .maybeSingle();
 
@@ -71,7 +71,8 @@ async function getAllChallenges(
         coins_to_unlock,
         item_reward,
         coin_reward,
-        xp_reward
+        xp_reward,
+        avatar_entitlement_key
       `,
   )
   .neq('id', '6586c8da-543f-4970-9bb5-e9d924378706');

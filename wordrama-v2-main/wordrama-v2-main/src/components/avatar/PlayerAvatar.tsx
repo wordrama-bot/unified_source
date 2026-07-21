@@ -1,6 +1,10 @@
 import Image from 'next/image';
 
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from '@/components/ui/avatar';
 import { AVATAR_STYLES } from '@/config/avatarStyles';
 
 interface PlayerAvatarProps {
@@ -19,6 +23,11 @@ export default function PlayerAvatar({
   const avatarStyle = avatarStyleKey
     ? AVATAR_STYLES[avatarStyleKey]
     : undefined;
+
+  const isAccessory = avatarStyle?.placement === 'accessory';
+
+  const accessoryScale = avatarStyle?.accessoryScale ?? 0.65;
+  const accessoryTopOffset = avatarStyle?.accessoryTopOffset ?? -0.3;
 
   return (
     <div
@@ -42,13 +51,34 @@ export default function PlayerAvatar({
         </AvatarFallback>
       </Avatar>
 
-      {avatarStyle && (
+      {avatarStyle && !isAccessory && (
         <Image
-          src={avatarStyle.image}
-          alt={`${avatarStyle.name} avatar style`}
+          src={profileImage}
+          alt={displayName}
           fill
-          className="pointer-events-none select-none"
+          priority
+          sizes={`${size}px`}
+          className="object-cover"
         />
+      )}
+
+      {avatarStyle && isAccessory && (
+        <div
+          className="pointer-events-none absolute left-1/2 z-20 -translate-x-1/2"
+          style={{
+            width: size * accessoryScale,
+            height: size * accessoryScale,
+            top: size * accessoryTopOffset,
+          }}
+        >
+          <Image
+            src={avatarStyle.image}
+            alt={`${avatarStyle.name} avatar accessory`}
+            fill
+            sizes={`${size}px`}
+            className="select-none object-contain"
+          />
+        </div>
       )}
     </div>
   );

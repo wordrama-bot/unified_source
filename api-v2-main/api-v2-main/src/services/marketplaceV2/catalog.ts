@@ -391,6 +391,13 @@ export const CATALOG: CatalogItem[] = [
     isPurchasable: true,
     isStripePurchasable: true,
   },
+  {
+    catalogItemId: 'avatar-crown-alltime-champion',
+    sku: 'AVATAR:CROWN_ALLTIME_CHAMPION',
+    entitlementKey: 'AVATAR:CROWN_ALLTIME_CHAMPION',
+    entitlementType: 'AVATAR_STYLE',
+    itemName: 'Crown of Champions',
+  }
 ]
 
 export function getCatalogItemsByIds(ids: string[]): CatalogItem[] {

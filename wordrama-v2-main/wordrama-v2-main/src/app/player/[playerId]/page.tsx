@@ -45,26 +45,6 @@ import { Badge } from "@/components/ui/badge"
 import { wordleWordPackConfig } from '@/lib/config';
 //import { getAppInsights } from '@/utils/appInsights';
 
-function CrownIcon(props) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M11.562 3.266a.5.5 0 0 1 .876 0L15.39 8.87a1 1 0 0 0 1.516.294L21.183 5.5a.5.5 0 0 1 .798.519l-2.834 10.246a1 1 0 0 1-.956.734H5.81a1 1 0 0 1-.957-.734L2.02 6.02a.5.5 0 0 1 .798-.519l4.276 3.664a1 1 0 0 0 1.516-.294z" />
-      <path d="M5 21h14" />
-    </svg>
-  )
-}
-
 // function getRarityBorder(rarity: string) {
 //   switch (rarity) {
 //     case 'COMMON':
@@ -278,16 +258,10 @@ export default function ProfilePage() {
           //${avatarBorder}
         }
         <div className="relative">
-          {positions?.allTime?.alltimeRank === 1 && (
-            <div className="absolute top-[-145px] md:top-[-125px] left-1/2 -translate-x-1/2 flex h-64 w-64 items-center justify-center z-20">
-              <CrownIcon className="h-24 w-24 fill-yellow-500" />
-            </div>
-          )}
-
           <PlayerAvatar
             profileImage={data?.profileImage}
-            displayName={data?.displayName || data?.username || "Player"}
-            avatarStyleKey="FRAME:BRONZE"
+            displayName={data?.displayName || data?.username || 'Player'}
+            avatarStyleKey={data?.avatarStyleKey}
             size={256}
           />
         </div>

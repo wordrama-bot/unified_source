@@ -3,6 +3,7 @@ import { db } from '../../models';
 import challengeService from './';
 import ledgerService from '../ledger';
 import levelService from '../levels';
+import { grantEntitlement } from '../marketplaceV2/entitlements';
 
 type Progress = {
   progressId?: string;
@@ -99,6 +100,19 @@ async function updateChallengeProgress(
     }
     if (reward?.xpReward) {
       await levelService.changeXp(playerId, 'up', reward?.xpReward);
+    }
+
+    if (reward?.avatarEntitlementKey) {
+      await grantEntitlement({
+        playerId,
+        entitlementKey: reward.avatarEntitlementKey,
+        entitlementType: 'AVATAR_STYLE',
+        sourceType: 'ACHIEVEMENT',
+        metadata: {
+          challengeId,
+          source: 'challenge_reward',
+        },
+      });
     }
   }
 

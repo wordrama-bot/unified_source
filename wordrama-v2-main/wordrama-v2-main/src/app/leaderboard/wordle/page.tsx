@@ -12,7 +12,6 @@ import {
   HoverCardContent,
   HoverCardTrigger,
 } from "@/components/ui/hover-card"
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   Pagination,
   PaginationContent,
@@ -59,6 +58,7 @@ import {
 import Link from 'next/link';
 import { useSearchParams } from "next/navigation";
 import { getWordleLeaderboardUiState } from '@/redux/ui/helpers';
+import PlayerAvatar from '@/components/avatar/PlayerAvatar';
 
 export default function WordleAllTimeLeaderboardPage() {
   const router = useRouter();
@@ -356,10 +356,12 @@ export default function WordleAllTimeLeaderboardPage() {
                     </HoverCardTrigger>
                     <HoverCardContent className="w-80">
                       <div className="flex justify-between space-x-4">
-                        <Avatar className="h-24 w-24">
-                          <AvatarImage src={player?.profileImage} className="h-24 w-24"/>
-                          <AvatarFallback className="h-24 w-24">{ player?.displayName }</AvatarFallback>
-                        </Avatar>
+                        <PlayerAvatar
+                          profileImage={player?.profileImage}
+                          displayName={player?.displayName || 'Player'}
+                          avatarStyleKey={player?.avatarStyleKey}
+                          size={96}
+                        />
                         <div className="space-y-1">
                           <div className="text-lg font-semibold">{ player.displayName }</div>
                           <h4 className="text-sm font-semibold">Level { player.level }</h4>
@@ -484,10 +486,12 @@ export default function WordleAllTimeLeaderboardPage() {
                             </HoverCardTrigger>
                             <HoverCardContent className="w-80">
                               <div className="flex justify-between space-x-4">
-                                <Avatar className="h-24 w-24">
-                                  <AvatarImage src={entry?.profileImage} className="h-24 w-24"/>
-                                  <AvatarFallback className="h-24 w-24">{ entry?.displayName }</AvatarFallback>
-                                </Avatar>
+                                <PlayerAvatar
+                                  profileImage={entry?.profileImage}
+                                  displayName={entry?.displayName || 'Player'}
+                                  avatarStyleKey={entry?.avatarStyleKey}
+                                  size={96}
+                                />
                                 <div className="space-y-1">
                                   <div className="text-lg font-semibold">{ entry?.displayName }</div>
                                   <h4 className="text-sm font-semibold">Level { entry?.level }</h4>

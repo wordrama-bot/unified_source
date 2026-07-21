@@ -1,6 +1,7 @@
 import { db } from '../models';
 import playerService from './player';
 import leaderboardService from './leaderboard';
+import avatarService from './avatar';
 
 async function getAllTimeStats(playerId: string) {
   const { count: gamesPlayed, error: gamesError } = await db
@@ -181,15 +182,23 @@ async function getPublicPlayerSummary(playerId: string) {
 
   if (!profile || !profile?.id) return null;
 
-  const [stats, guessDistribution, streak, leaderboardPositions] = await Promise.all([
+  const [
+    stats,
+    guessDistribution,
+    streak,
+    leaderboardPositions,
+    avatar,
+  ] = await Promise.all([
     getAllTimeStats(playerId),
     getGuessDistribution(playerId),
     getStreakSummary(playerId),
     getLeaderboardPositions(playerId),
+    avatarService.getPlayerAvatar(playerId),
   ]);
 
   return {
     ...profile,
+    avatarStyleKey: avatar?.equipped_avatar_style_key ?? null,
     stats,
     guessDistribution,
     streak,
