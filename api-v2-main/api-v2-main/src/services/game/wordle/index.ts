@@ -38,6 +38,14 @@ async function getCustomByShareCode(shareCode: string) {
   return changeKeys.camelCase(data);
 }
 
+type RecentWordleResult = {
+  id: string;
+  guesses: string[];
+  game_was_won: boolean | null;
+  game_was_hard_mode: boolean | null;
+  guess_count: number;
+};
+
 async function submitWordleResult(userId: string, body: AddGameResult) {
   const guessCount = body.guesses.length;
   const gameWasWon = body.guesses.includes(body.solution);
@@ -65,7 +73,7 @@ async function submitWordleResult(userId: string, body: AddGameResult) {
       return {};
     }
 
-    const existingResult = recentResults?.find(
+    const existingResult = (recentResults as RecentWordleResult[] | null)?.find(
       (result) =>
         result.game_was_won === gameWasWon &&
         result.game_was_hard_mode === body.gameWasHardMode &&
