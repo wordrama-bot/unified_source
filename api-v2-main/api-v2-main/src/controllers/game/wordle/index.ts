@@ -45,18 +45,32 @@ async function getLast30(req: ApiRequest, res: Response) {
 }
 
 async function submitWordleResult(req: ApiRequest, res: Response) {
-  const validated: AddGameResult = addGameResultSchema.safeParse(req.body);
-  if (!validated.success) return badRequest(req, res, validated.error.message);
-  else if (Object.keys(validated.data).length === 0)
+  const validated = addGameResultSchema.safeParse(req.body);
+
+  if (!validated.success) {
+    return badRequest(req, res, validated.error.message);
+  }
+
+  if (Object.keys(validated.data).length === 0) {
     return badRequest(req, res, 'No fields to update');
+  }
 
   const result = await gameService.submitWordleResult(
     req.userId,
     validated.data,
   );
-  if (result?.id != req.userId) return notFoundResponse(req, res);
 
-  return successfulResponse(req, res, result, '[Wordle] Result Added', 1);
+  if (!result?.resultId) {
+    return notFoundResponse(req, res);
+  }
+
+  return successfulResponse(
+    req,
+    res,
+    result,
+    '[Wordle] Result Added',
+    1,
+  );
 }
 
 async function createCustom(req: ApiRequest, res: Response) {
