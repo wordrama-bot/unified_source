@@ -1,7 +1,6 @@
 import { Response } from 'express';
 import { ApiRequest } from '../../../types';
 import {
-  type AddGameResult,
   addGameResult as addGameResultSchema,
   type CreateCustom,
   createCustom as createCustomSchema,
