@@ -6,7 +6,8 @@ export const addGameResult = z.object({
   guesses: z.array(z.string()),
   gameWasHardMode: z.boolean(),
   type: z.string(),
-  shareCode: z.string().optional()
+  wordPack: z.string(),
+  shareCode: z.string().optional(),
 });
 export type AddGameResult = z.infer<typeof addGameResult>;
 
