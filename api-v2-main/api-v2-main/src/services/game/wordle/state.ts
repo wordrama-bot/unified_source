@@ -46,21 +46,44 @@ async function updateGameState(userId: string, gameState: any) {
       ? gameState?.custom
       : gameState?.modes?.[gameState?.gameMode]?.[gameState?.wordPack];
 
-  if (
-    currentGame &&
-    (currentGame.isGameWon || currentGame.isGameLost) &&
-    currentGame.resultSave
-  ) {
-    await gameService.submitWordleResult(userId, {
-      shareCode: '',
-      gameWasHardMode: false,
-      guesses: currentGame.guesses,
-      solution: currentGame.solution,
-      gameWasWon: currentGame.isGameWon,
-      type: gameState.gameMode,
-      wordPack: gameState.wordPack,
-    });
-  }
+    if (
+      currentGame &&
+      (currentGame.isGameWon || currentGame.isGameLost) &&
+      currentGame.resultSave
+    ) {
+      const result = await gameService.submitWordleResult(userId, {
+        shareCode: '',
+        gameWasHardMode: false,
+        guesses: currentGame.guesses,
+        solution: currentGame.solution,
+        gameWasWon: currentGame.isGameWon,
+        type: gameState.gameMode,
+        wordPack: gameState.wordPack,
+      });
+
+      if (result?.resultId) {
+        currentGame.resultSave = false;
+
+        const { data: consumedState, error: consumedStateError } = await db
+          .from('_wordle_saved_state')
+          .upsert(
+            {
+              player: userId,
+              game_state: gameState,
+            },
+            { onConflict: 'player' },
+          )
+          .select('game_state')
+          .maybeSingle();
+
+        if (consumedStateError) {
+          console.error(consumedStateError);
+          return {};
+        }
+
+        return consumedState?.game_state ?? gameState;
+      }
+    }
 
   return data?.game_state ?? {};
 }
