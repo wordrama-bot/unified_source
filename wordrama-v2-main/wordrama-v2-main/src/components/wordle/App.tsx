@@ -236,7 +236,20 @@ function App(){
   const isGameLost = isCustom ? gameState.custom.isGameLost : gameState.modes[gameState.gameMode][gameState.wordPack].isGameLost;
   const isGameInProgress = isCustom ? gameState.custom.isGameInProgress : gameState.modes[gameState.gameMode][gameState.wordPack].isGameInProgress;
 
-  const { data: last30Games, isLoading: isLoadingLast30Games, isError: isErrorLast30Games, error, status, refetch: refetchLast30 } = useGetLast30WordlesQuery(gameState.wordPack);
+  const {
+    data: last30Games,
+    isLoading: isLoadingLast30Games,
+    isError: isErrorLast30Games,
+    refetch: refetchLast30,
+  } = useGetLast30WordlesQuery(
+    {
+      gameMode,
+      wordPack,
+    },
+    {
+      skip: gameMode === 'CUSTOM',
+    },
+  );
   const { data: allTimeStats, isLoading: isLoadingAllTimeStats, refetch: refetchStats } = useGetMyAllTimeWordleStatsByGameModeQuery(gameState.gameMode);
   const wordPackAllTimeStatsMap: { [key: string]: string } = {
     FOUR_LETTER: 'fourLetter',
@@ -641,7 +654,11 @@ const activeSolution = isCustom
     const { isLoading, ...newRemoteState } = gameState;
     updateRemoteState(newRemoteState);
     refetchStats();
-    refetchLast30();
+
+    if (gameMode !== 'CUSTOM') {
+      refetchLast30();
+    }
+
     refetchStreak();
     refetchProfile();
   }, [gameState, gameLoading]);
