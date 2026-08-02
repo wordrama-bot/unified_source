@@ -25,21 +25,43 @@ async function getCustom(req: ApiRequest, res: Response) {
 }
 
 async function getLast30(req: ApiRequest, res: Response) {
-  const wordPack = req.params.wordPack;
-  if (!wordPack) return badRequest(req, res, 'No wordPack provided');
+  const { gameMode, wordPack } = req.params;
+
+  if (!gameMode) {
+    return badRequest(req, res, 'No gameMode provided');
+  }
+
+  if (!wordPack) {
+    return badRequest(req, res, 'No wordPack provided');
+  }
+
+  const normalizedGameMode = gameMode.toUpperCase();
+
+  if (!['DAILY', 'INFINITE'].includes(normalizedGameMode)) {
+    return badRequest(req, res, 'Invalid Game Mode');
+  }
 
   const isValidWordPack = checkIfValidWordPack(wordPack);
-  if (!isValidWordPack) return badRequest(req, res, 'Invalid Word Pack');
+  if (!isValidWordPack) {
+    return badRequest(req, res, 'Invalid Word Pack');
+  }
 
-  const last30 = await gameService.getLast30(req.userId, wordPack);
-  if (!last30 || last30.length < 1) return notFoundResponse(req, res);
+  const last30 = await gameService.getLast30(
+    req.userId,
+    normalizedGameMode,
+    wordPack,
+  );
+
+  if (!last30 || last30.length < 1) {
+    return notFoundResponse(req, res);
+  }
 
   return successfulResponse(
     req,
     res,
     last30,
     '[Wordle] Games Found',
-    last30.length || 0,
+    last30.length,
   );
 }
 

@@ -8,12 +8,19 @@ import { enqueue, createMessage } from '../../../utils/gameLoop';
 import streakService from './streak';
 import gameUtils from '../../../utils/game';
 
-async function getLast30(userId: string, wordPack: string) {
+async function getLast30(
+  userId: string,
+  gameMode: string,
+  wordPack: string,
+) {
   const { data, error } = await db
-    .from('_v_wordle_last_30')
+    .from('_wordle_game_result')
     .select('solution, game_was_won')
     .eq('player', userId)
-    .eq('word_pack', wordPack);
+    .eq('type', gameMode)
+    .eq('word_pack', wordPack)
+    .order('created_at', { ascending: false })
+    .limit(30);
 
   if (error) {
     console.error(error);

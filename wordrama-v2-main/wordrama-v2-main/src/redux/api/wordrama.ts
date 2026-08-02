@@ -98,9 +98,12 @@ export const wordramaApiV3 = createApi({
       }),
     }),
 
-    getLast30Wordles: builder.query<any, string>({
-      query: (wordPack) => ({
-        url: `/api/v3/game/wordle/last-30/${wordPack}`,
+    getLast30Wordles: builder.query<
+      any,
+      { gameMode: string; wordPack: string }
+    >({
+      query: ({ gameMode, wordPack }) => ({
+        url: `/api/v3/game/wordle/last-30/${gameMode}/${wordPack}`,
         method: "GET",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
