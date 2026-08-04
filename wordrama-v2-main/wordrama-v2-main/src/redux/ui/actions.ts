@@ -2,9 +2,9 @@ import { InitialState, type WordleLeaderboardUiState, type WordleGameUiState } f
 
 export function setInitialState(state: InitialState) {
   return {
-    type: "INIT",
-    payload: state
-  }
+    type: "SET_UI_STATE",
+    payload: state,
+  };
 }
 
 export function setWordleLeaderboardUiState(
