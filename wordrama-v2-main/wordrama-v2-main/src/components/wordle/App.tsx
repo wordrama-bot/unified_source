@@ -294,34 +294,46 @@ function App(){
   const { data: myWordPacks, isLoading: isLoadingWordPacks } = useGetMyWordPacksQuery();
   const availableWordPacks = Object.keys(wordleDefaultState)?.filter((wordPack) => myWordPacks?.data.includes(wordPack));
 
+  const [isUiHydrated, setIsUiHydrated] = useState(false);
+
   // API
   const { data: savedState, isLoading: isLoadingSavedState } = useGetWordleSavedStateQuery();
   const { data: uiSavedState, isLoading: isLoadingUiSavedState } = useGetUiSavedStateQuery();
-	useEffect(() => {
-	  if (isLoadingUiSavedState) return;
+  useEffect(() => {
+    if (isUiHydrated) return;
+    if (isLoadingUiSavedState) return;
     if (isLoadingMyAccount) return;
-	  if (!uiSavedState) return;
-	
-	  const wordleUi = uiSavedState?.data?.wordleGame;
-	  if (!wordleUi) return;
-	
-	  const accountAppearanceThemeId =
+
+    const wordleUi = uiSavedState?.data?.wordleGame;
+
+    const accountAppearanceThemeId =
       myAccount?.data?.playerSettings?.appearanceThemeId;
 
     const accountKeyboardStyleId =
       myAccount?.data?.playerSettings?.keyboardStyleId;
 
-    dispatch(setWordleGameUiState({
-      ...gameUiState,
-      ...wordleUi,
-      ...(accountAppearanceThemeId
-        ? { appearanceThemeId: accountAppearanceThemeId }
-        : {}),
-      ...(accountKeyboardStyleId
-        ? { keyboardStyleId: accountKeyboardStyleId }
-        : {}),
-    }));
-	}, [uiSavedState, isLoadingUiSavedState, myAccount, dispatch]);
+    if (wordleUi) {
+      dispatch(setWordleGameUiState({
+        ...gameUiState,
+        ...wordleUi,
+        ...(accountAppearanceThemeId
+          ? { appearanceThemeId: accountAppearanceThemeId }
+          : {}),
+        ...(accountKeyboardStyleId
+          ? { keyboardStyleId: accountKeyboardStyleId }
+          : {}),
+      }));
+    }
+
+    setIsUiHydrated(true);
+  }, [
+    isUiHydrated,
+    isLoadingUiSavedState,
+    isLoadingMyAccount,
+    uiSavedState,
+    myAccount,
+    dispatch,
+  ]);
 
   // Keep next-themes from getting stuck in "system"
   useEffect(() => {
@@ -646,27 +658,39 @@ const activeSolution = isCustom
     }
   }
 
-  // If game is loaded, keep remote state updated
-  // This also acts as a trigger for game won/lost
-  // functionality on the backend
+  // Persist game progress whenever the local game state changes.
+  // Refresh completed-game data only after the result is saved.
   useEffect(() => {
     if (gameLoading) return;
+
     const { isLoading, ...newRemoteState } = gameState;
-    updateRemoteState(newRemoteState);
-    refetchStats();
+    const shouldRefreshCompletedGameData = currentGame.resultSave;
 
-    if (gameMode !== 'CUSTOM') {
-      refetchLast30();
-    }
+    void updateRemoteState(newRemoteState)
+      .unwrap()
+      .then(() => {
+        if (!shouldRefreshCompletedGameData) return;
 
-    refetchStreak();
-    refetchProfile();
+        refetchStats();
+
+        if (gameMode !== 'CUSTOM') {
+          refetchLast30();
+        }
+
+        refetchStreak();
+        refetchProfile();
+      })
+      .catch((error) => {
+        console.error('[wordle] failed to save remote game state', error);
+      });
   }, [gameState, gameLoading]);
 
   useEffect(() => {
     if (gameLoading) return;
+    if (!isUiHydrated) return;
+
     updateUiState(gameUiState);
-  }, [gameUiState, gameLoading]);
+  }, [gameUiState, gameLoading, isUiHydrated]);
 
   // If game is not loaded, load the initial state from the remote state
   useEffect(() => {

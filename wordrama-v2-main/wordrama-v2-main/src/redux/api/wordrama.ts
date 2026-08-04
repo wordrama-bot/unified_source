@@ -263,20 +263,6 @@ export const wordramaApiV3 = createApi({
         headers: { "Content-Type": "application/json" },
         credentials: "include",
       }),
-      invalidatesTags: [
-        "Player",
-        "WordleLast30",
-        "WordleSavedState",
-        "WordleStreak",
-        "Stats",
-        "Leaderboard",
-        "Wordle",
-        "WordleDailyStats",
-        "WordleWeeklyStats",
-        "WordleMonthlyStats",
-        "WordleYearlyStats",
-        "WordleAllTimeStats",
-      ],
     }),
 
     getUiSavedState: builder.query<any, void>({
@@ -297,7 +283,6 @@ export const wordramaApiV3 = createApi({
         headers: { "Content-Type": "application/json" },
         credentials: "include",
       }),
-      invalidatesTags: ["UiSavedState"],
     }),
 
     getCustomWorlde: builder.query<any, string>({
