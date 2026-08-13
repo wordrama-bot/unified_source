@@ -24,15 +24,14 @@ async function updatePlayerAvatar(
   if (avatarStyleKey !== null) {
     const entitlements = await getPlayerEntitlements(playerId);
 
-    const ownsFrame = entitlements.some(
+    const ownsAvatarStyle = entitlements.some(
       (entitlement: any) =>
-        entitlement.status === 'ACTIVE' &&
-        entitlement.entitlement_type === 'AVATAR' &&
+        entitlement.entitlement_type === 'AVATAR_STYLE' &&
         entitlement.entitlement_key === avatarStyleKey,
     );
 
-    if (!ownsFrame) {
-      throw new Error('Player does not own this avatar frame.');
+    if (!ownsAvatarStyle) {
+      throw new Error('Player does not own this avatar style.');
     }
   }
 
