@@ -70,12 +70,25 @@ async function updateChallengeProgress(
   status: string,
   progress: number,
 ) {
-  const currentProgress = await getChallengeProgress(playerId, challengeId);
+  let currentProgress = await getChallengeProgress(playerId, challengeId);
+
+  if (!currentProgress?.id) {
+    await insertChallengeProgress({
+      playerId,
+      challengeId,
+      status: 'UNLOCKED',
+      progress: 0,
+    });
+
+    currentProgress = await getChallengeProgress(playerId, challengeId);
+  }
+
   if (
     currentProgress?.status === 'COMPLETE' ||
     currentProgress?.progress === 100
-  )
+  ) {
     return currentProgress;
+  }
 
   const { data, error } = await db
     .from('_challenge_progress')
@@ -95,11 +108,13 @@ async function updateChallengeProgress(
 
   if (currentProgress?.progress !== 100 && progress === 100) {
     const reward = await challengeService.getChallengeReward(challengeId);
+
     if (reward?.coinReward) {
-      await ledgerService.changeBalance(playerId, 'up', reward?.coinReward);
+      await ledgerService.changeBalance(playerId, 'up', reward.coinReward);
     }
+
     if (reward?.xpReward) {
-      await levelService.changeXp(playerId, 'up', reward?.xpReward);
+      await levelService.changeXp(playerId, 'up', reward.xpReward);
     }
 
     if (reward?.avatarEntitlementKey) {
