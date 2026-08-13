@@ -7,6 +7,7 @@ export type EntitlementType =
   | 'WORD_PACK'
   | 'THEME'
   | 'AVATAR'
+  | 'AVATAR_STYLE'
   | 'FEATURE';
 
 export interface CatalogItem {
