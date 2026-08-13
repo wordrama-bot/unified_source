@@ -1,5 +1,6 @@
 import { db } from '../models';
 import { getPlayerEntitlements } from './marketplaceV2/entitlements';
+import { CATALOG } from './marketplaceV2/catalog';
 
 async function getPlayerAvatar(playerId: string) {
   const { data, error } = await db
@@ -24,9 +25,18 @@ async function updatePlayerAvatar(
   if (avatarStyleKey !== null) {
     const entitlements = await getPlayerEntitlements(playerId);
 
+    const catalogItem = CATALOG.find(
+      (item) =>
+        item.entitlementKey === avatarStyleKey &&
+        item.entitlementType === 'AVATAR_STYLE',
+    );
+
+    if (!catalogItem) {
+      throw new Error('Invalid avatar style.');
+    }
+
     const ownsAvatarStyle = entitlements.some(
       (entitlement: any) =>
-        entitlement.entitlement_type === 'AVATAR_STYLE' &&
         entitlement.entitlement_key === avatarStyleKey,
     );
 
