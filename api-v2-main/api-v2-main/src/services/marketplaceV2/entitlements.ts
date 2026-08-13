@@ -28,7 +28,10 @@ export async function getPlayerEntitlements(
   const now = new Date().toISOString();
 
   return (data ?? []).filter(
-    (row: any) => !row.expires_at || row.expires_at > now,
+    (row: any) =>
+      !row.revoked_at &&
+      row.starts_at <= now &&
+      (!row.expires_at || row.expires_at > now),
   );
 }
 
@@ -45,6 +48,7 @@ export async function hasPlayerEntitlement(
     .eq('entitlement_key', entitlementKey)
     .eq('status', 'ACTIVE')
     .is('revoked_at', null)
+    .lte('starts_at', now)
     .or(`expires_at.is.null,expires_at.gt.${now}`)
     .limit(1)
     .maybeSingle();
