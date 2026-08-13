@@ -1,7 +1,6 @@
 import { Response } from 'express';
 import { ApiRequest } from '../../../types';
 import {
-  type AddGameResult,
   addGameResult as addGameResultSchema,
   type CreateCustom,
   createCustom as createCustomSchema,
@@ -26,37 +25,73 @@ async function getCustom(req: ApiRequest, res: Response) {
 }
 
 async function getLast30(req: ApiRequest, res: Response) {
-  const wordPack = req.params.wordPack;
-  if (!wordPack) return badRequest(req, res, 'No wordPack provided');
+  const { gameMode, wordPack } = req.params;
+
+  if (!gameMode) {
+    return badRequest(req, res, 'No gameMode provided');
+  }
+
+  if (!wordPack) {
+    return badRequest(req, res, 'No wordPack provided');
+  }
+
+  const normalizedGameMode = gameMode.toUpperCase();
+
+  if (!['DAILY', 'INFINITE'].includes(normalizedGameMode)) {
+    return badRequest(req, res, 'Invalid Game Mode');
+  }
 
   const isValidWordPack = checkIfValidWordPack(wordPack);
-  if (!isValidWordPack) return badRequest(req, res, 'Invalid Word Pack');
+  if (!isValidWordPack) {
+    return badRequest(req, res, 'Invalid Word Pack');
+  }
 
-  const last30 = await gameService.getLast30(req.userId, wordPack);
-  if (!last30 || last30.length < 1) return notFoundResponse(req, res);
+  const last30 = await gameService.getLast30(
+    req.userId,
+    normalizedGameMode,
+    wordPack,
+  );
+
+  if (!last30 || last30.length < 1) {
+    return notFoundResponse(req, res);
+  }
 
   return successfulResponse(
     req,
     res,
     last30,
     '[Wordle] Games Found',
-    last30.length || 0,
+    last30.length,
   );
 }
 
 async function submitWordleResult(req: ApiRequest, res: Response) {
-  const validated: AddGameResult = addGameResultSchema.safeParse(req.body);
-  if (!validated.success) return badRequest(req, res, validated.error.message);
-  else if (Object.keys(validated.data).length === 0)
+  const validated = addGameResultSchema.safeParse(req.body);
+
+  if (!validated.success) {
+    return badRequest(req, res, validated.error.message);
+  }
+
+  if (Object.keys(validated.data).length === 0) {
     return badRequest(req, res, 'No fields to update');
+  }
 
   const result = await gameService.submitWordleResult(
     req.userId,
     validated.data,
   );
-  if (result?.id != req.userId) return notFoundResponse(req, res);
 
-  return successfulResponse(req, res, result, '[Wordle] Result Added', 1);
+  if (!result?.resultId) {
+    return notFoundResponse(req, res);
+  }
+
+  return successfulResponse(
+    req,
+    res,
+    result,
+    '[Wordle] Result Added',
+    1,
+  );
 }
 
 async function createCustom(req: ApiRequest, res: Response) {

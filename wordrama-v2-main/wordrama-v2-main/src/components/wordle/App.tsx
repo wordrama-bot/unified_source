@@ -236,7 +236,20 @@ function App(){
   const isGameLost = isCustom ? gameState.custom.isGameLost : gameState.modes[gameState.gameMode][gameState.wordPack].isGameLost;
   const isGameInProgress = isCustom ? gameState.custom.isGameInProgress : gameState.modes[gameState.gameMode][gameState.wordPack].isGameInProgress;
 
-  const { data: last30Games, isLoading: isLoadingLast30Games, isError: isErrorLast30Games, error, status, refetch: refetchLast30 } = useGetLast30WordlesQuery(gameState.wordPack);
+  const {
+    data: last30Games,
+    isLoading: isLoadingLast30Games,
+    isError: isErrorLast30Games,
+    refetch: refetchLast30,
+  } = useGetLast30WordlesQuery(
+    {
+      gameMode,
+      wordPack,
+    },
+    {
+      skip: gameMode === 'CUSTOM',
+    },
+  );
   const { data: allTimeStats, isLoading: isLoadingAllTimeStats, refetch: refetchStats } = useGetMyAllTimeWordleStatsByGameModeQuery(gameState.gameMode);
   const wordPackAllTimeStatsMap: { [key: string]: string } = {
     FOUR_LETTER: 'fourLetter',
@@ -281,34 +294,46 @@ function App(){
   const { data: myWordPacks, isLoading: isLoadingWordPacks } = useGetMyWordPacksQuery();
   const availableWordPacks = Object.keys(wordleDefaultState)?.filter((wordPack) => myWordPacks?.data.includes(wordPack));
 
+  const [isUiHydrated, setIsUiHydrated] = useState(false);
+
   // API
   const { data: savedState, isLoading: isLoadingSavedState } = useGetWordleSavedStateQuery();
   const { data: uiSavedState, isLoading: isLoadingUiSavedState } = useGetUiSavedStateQuery();
-	useEffect(() => {
-	  if (isLoadingUiSavedState) return;
+  useEffect(() => {
+    if (isUiHydrated) return;
+    if (isLoadingUiSavedState) return;
     if (isLoadingMyAccount) return;
-	  if (!uiSavedState) return;
-	
-	  const wordleUi = uiSavedState?.data?.wordleGame;
-	  if (!wordleUi) return;
-	
-	  const accountAppearanceThemeId =
+
+    const wordleUi = uiSavedState?.data?.wordleGame;
+
+    const accountAppearanceThemeId =
       myAccount?.data?.playerSettings?.appearanceThemeId;
 
     const accountKeyboardStyleId =
       myAccount?.data?.playerSettings?.keyboardStyleId;
 
-    dispatch(setWordleGameUiState({
-      ...gameUiState,
-      ...wordleUi,
-      ...(accountAppearanceThemeId
-        ? { appearanceThemeId: accountAppearanceThemeId }
-        : {}),
-      ...(accountKeyboardStyleId
-        ? { keyboardStyleId: accountKeyboardStyleId }
-        : {}),
-    }));
-	}, [uiSavedState, isLoadingUiSavedState, myAccount, dispatch]);
+    if (wordleUi) {
+      dispatch(setWordleGameUiState({
+        ...gameUiState,
+        ...wordleUi,
+        ...(accountAppearanceThemeId
+          ? { appearanceThemeId: accountAppearanceThemeId }
+          : {}),
+        ...(accountKeyboardStyleId
+          ? { keyboardStyleId: accountKeyboardStyleId }
+          : {}),
+      }));
+    }
+
+    setIsUiHydrated(true);
+  }, [
+    isUiHydrated,
+    isLoadingUiSavedState,
+    isLoadingMyAccount,
+    uiSavedState,
+    myAccount,
+    dispatch,
+  ]);
 
   // Keep next-themes from getting stuck in "system"
   useEffect(() => {
@@ -633,23 +658,39 @@ const activeSolution = isCustom
     }
   }
 
-  // If game is loaded, keep remote state updated
-  // This also acts as a trigger for game won/lost
-  // functionality on the backend
+  // Persist game progress whenever the local game state changes.
+  // Refresh completed-game data only after the result is saved.
   useEffect(() => {
     if (gameLoading) return;
+
     const { isLoading, ...newRemoteState } = gameState;
-    updateRemoteState(newRemoteState);
-    refetchStats();
-    refetchLast30();
-    refetchStreak();
-    refetchProfile();
+    const shouldRefreshCompletedGameData = currentGame.resultSave;
+
+    void updateRemoteState(newRemoteState)
+      .unwrap()
+      .then(() => {
+        if (!shouldRefreshCompletedGameData) return;
+
+        refetchStats();
+
+        if (gameMode !== 'CUSTOM') {
+          refetchLast30();
+        }
+
+        refetchStreak();
+        refetchProfile();
+      })
+      .catch((error) => {
+        console.error('[wordle] failed to save remote game state', error);
+      });
   }, [gameState, gameLoading]);
 
   useEffect(() => {
     if (gameLoading) return;
+    if (!isUiHydrated) return;
+
     updateUiState(gameUiState);
-  }, [gameUiState, gameLoading]);
+  }, [gameUiState, gameLoading, isUiHydrated]);
 
   // If game is not loaded, load the initial state from the remote state
   useEffect(() => {

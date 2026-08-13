@@ -1,4 +1,4 @@
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import { ApiRequest } from '../types/auth.types';
 import { getPermissions } from '../services/admin/roles';
 import { getAdminOverview } from '../services/admin/overview';
@@ -22,6 +22,7 @@ import {
 } from '../services/marketplaceV2/entitlements';
 import { getCatalogItems } from '../services/marketplaceV2/catalog';
 import { getSuspiciousGameplay } from '../services/admin/suspiciousGameplay';
+import { getPlayerIdentityReport as getPlayerIdentityReportService } from '../services/admin/playerIdentity';
 
 async function me(req: ApiRequest, res: Response) {
   return res.status(200).json({
@@ -81,6 +82,27 @@ async function playerProfile(req: ApiRequest, res: Response) {
     data,
     message: 'Player admin profile loaded',
   });
+}
+
+export async function getPlayerIdentityReport(
+  req: ApiRequest,
+  res: Response,
+) {
+  try {
+    const report = await getPlayerIdentityReportService(
+      req.params.playerId,
+    );
+
+    return res.status(200).json(report);
+  } catch (error: any) {
+    const timedOut = error?.code === '57014';
+
+    return res.status(timedOut ? 504 : 500).json({
+      message: timedOut
+        ? 'The player identity report timed out. Please try again.'
+        : 'Unable to load player identity report.',
+    });
+  }
 }
 
 async function playerNotes(req: ApiRequest, res: Response) {
@@ -305,6 +327,7 @@ export default {
   overview,
   playerSearch,
   playerProfile,
+  getPlayerIdentityReport,
   playerNotes,
   createPlayerNote,
   grantCoins,

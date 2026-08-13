@@ -8,7 +8,10 @@ import spellbeeController from '../../controllers/game/spellbee';
 export const router = express.Router();
 
 /* Get routes */
-router.get('/wordle/last-30/:wordPack', wordleController.getLast30);
+router.get(
+  '/wordle/last-30/:gameMode/:wordPack',
+  wordleController.getLast30,
+);
 router.get('/wordle/game-state', wordleStateController.getGameState);
 router.get('/wordle/custom/:shareCode', wordleController.getCustom);
 router.get('/wordle/wordpack/:wordPack', wordleWordsController.getWordPack);

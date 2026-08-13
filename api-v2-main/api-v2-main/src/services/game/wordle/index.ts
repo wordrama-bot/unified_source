@@ -8,12 +8,19 @@ import { enqueue, createMessage } from '../../../utils/gameLoop';
 import streakService from './streak';
 import gameUtils from '../../../utils/game';
 
-async function getLast30(userId: string, wordPack: string) {
+async function getLast30(
+  userId: string,
+  gameMode: string,
+  wordPack: string,
+) {
   const { data, error } = await db
-    .from('_v_wordle_last_30')
+    .from('_wordle_game_result')
     .select('solution, game_was_won')
     .eq('player', userId)
-    .eq('word_pack', wordPack);
+    .eq('type', gameMode)
+    .eq('word_pack', wordPack)
+    .order('created_at', { ascending: false })
+    .limit(30);
 
   if (error) {
     console.error(error);
@@ -38,10 +45,57 @@ async function getCustomByShareCode(shareCode: string) {
   return changeKeys.camelCase(data);
 }
 
+type RecentWordleResult = {
+  id: string;
+  guesses: string[];
+  game_was_won: boolean | null;
+  game_was_hard_mode: boolean | null;
+  guess_count: number;
+};
+
 async function submitWordleResult(userId: string, body: AddGameResult) {
   const guessCount = body.guesses.length;
   const gameWasWon = body.guesses.includes(body.solution);
   const wordLength = body.solution.length;
+
+  if (body.type === 'DAILY') {
+    const duplicateWindowStart = new Date(
+      Date.now() - 10 * 60 * 1000,
+    ).toISOString();
+
+    const { data: recentResults, error: recentResultsError } = await db
+      .from('_wordle_game_result')
+      .select(
+        'id, guesses, game_was_won, game_was_hard_mode, guess_count',
+      )
+      .eq('player', userId)
+      .eq('type', body.type)
+      .eq('word_pack', body.wordPack)
+      .eq('solution', body.solution)
+      .gte('created_at', duplicateWindowStart)
+      .order('created_at', { ascending: true });
+
+    if (recentResultsError) {
+      console.error(recentResultsError);
+      return {};
+    }
+
+    const existingResult = (recentResults as RecentWordleResult[] | null)?.find(
+      (result) =>
+        result.game_was_won === gameWasWon &&
+        result.game_was_hard_mode === body.gameWasHardMode &&
+        result.guess_count === guessCount &&
+        JSON.stringify(result.guesses) === JSON.stringify(body.guesses),
+    );
+
+    if (existingResult) {
+      return {
+        resultId: existingResult.id,
+        duplicate: true,
+      };
+    }
+  }
+
   const { data, error } = await db
     .from('_wordle_game_result')
     .insert(
@@ -78,12 +132,19 @@ async function submitWordleResult(userId: string, body: AddGameResult) {
   }
 
   if (gameWasWon) {
-    await streakService.incrementWordleStreak(userId, body.wordPack, body.type);
+    await streakService.incrementWordleStreak(
+      userId,
+      body.wordPack,
+      body.type,
+    );
   } else {
-    await streakService.resetWordleStreak(userId, body.wordPack, body.type);
+    await streakService.resetWordleStreak(
+      userId,
+      body.wordPack,
+      body.type,
+    );
   }
 
-  // Try to enqueue challenge check message, but don't fail if service bus is unavailable
   try {
     await enqueue([
       createMessage('CHECK_WORDLE_CHALLENGES', {
@@ -97,11 +158,12 @@ async function submitWordleResult(userId: string, body: AddGameResult) {
       }),
     ]);
   } catch (error) {
-    console.warn('Failed to enqueue challenge check message:', error instanceof Error ? error.message : String(error));
-    // Continue execution even if messaging fails
+    console.warn(
+      'Failed to enqueue challenge check message:',
+      error instanceof Error ? error.message : String(error),
+    );
   }
 
-  //await playerService.getPlayerByUserId(userId);
   return { resultId: data.id };
 }
 

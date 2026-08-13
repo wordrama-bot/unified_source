@@ -98,9 +98,12 @@ export const wordramaApiV3 = createApi({
       }),
     }),
 
-    getLast30Wordles: builder.query<any, string>({
-      query: (wordPack) => ({
-        url: `/api/v3/game/wordle/last-30/${wordPack}`,
+    getLast30Wordles: builder.query<
+      any,
+      { gameMode: string; wordPack: string }
+    >({
+      query: ({ gameMode, wordPack }) => ({
+        url: `/api/v3/game/wordle/last-30/${gameMode}/${wordPack}`,
         method: "GET",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -260,20 +263,6 @@ export const wordramaApiV3 = createApi({
         headers: { "Content-Type": "application/json" },
         credentials: "include",
       }),
-      invalidatesTags: [
-        "Player",
-        "WordleLast30",
-        "WordleSavedState",
-        "WordleStreak",
-        "Stats",
-        "Leaderboard",
-        "Wordle",
-        "WordleDailyStats",
-        "WordleWeeklyStats",
-        "WordleMonthlyStats",
-        "WordleYearlyStats",
-        "WordleAllTimeStats",
-      ],
     }),
 
     getUiSavedState: builder.query<any, void>({
@@ -294,7 +283,6 @@ export const wordramaApiV3 = createApi({
         headers: { "Content-Type": "application/json" },
         credentials: "include",
       }),
-      invalidatesTags: ["UiSavedState"],
     }),
 
     getCustomWorlde: builder.query<any, string>({
@@ -768,6 +756,16 @@ export const wordramaApiV3 = createApi({
       providesTags: ["Admin"],
     }),
 
+    getAdminPlayerIdentityReport: builder.query<any, string>({
+      query: (playerId) => ({
+        url: `/api/v3/admin/players/${playerId}/identity`,
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+      }),
+      providesTags: ["Admin"],
+    }),
+
     getAdminPlayerNotes: builder.query<any, string>({
       query: (playerId) => ({
         url: `/api/v3/admin/players/${playerId}/notes`,
@@ -954,6 +952,7 @@ export const {
   useBanAdminPlayerMutation,
   useUnbanAdminPlayerMutation,
   useGetAdminPlayerProfileQuery,
+  useLazyGetAdminPlayerIdentityReportQuery,
   useGetAdminCatalogQuery,
   usePreviewAdminGrantEntitlementMutation,
   useGrantAdminEntitlementMutation,

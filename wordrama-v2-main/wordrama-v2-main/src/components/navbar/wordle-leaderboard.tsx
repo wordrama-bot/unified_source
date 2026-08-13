@@ -118,6 +118,7 @@ export function LeaderboardNav({
                       <SelectItem value="NINE_LETTER">9 Letter</SelectItem>
                       <SelectItem value="TEN_LETTER">10 Letter</SelectItem>
                       <SelectItem value="ELEVEN_LETTER">11 Letter</SelectItem>
+                      <SelectItem value="ELEVEN_LETTER_EXTENDED">11 Letter Extended</SelectItem>
                       <SelectItem value="TWELVE_LETTER">12 Letter</SelectItem>
                       <SelectItem value="THIRTEEN_LETTER">13 Letter</SelectItem>
                       <SelectItem value="FOURTEEN_LETTER">14 Letter</SelectItem>
