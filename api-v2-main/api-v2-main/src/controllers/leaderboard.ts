@@ -58,15 +58,24 @@ async function getLeaderboardPositionThisYear(req: ApiRequest, res: Response) {
   const leaderboard =
     await leaderboardService.getPlayerLeaderboardPositionThisYear(userId, year);
 
-  if (!Array.isArray(leaderboard)) return serviceUnavailable(res, leaderboard);
-  if (leaderboard.length === 0) return notFoundResponse(req, res);
+  if (
+    !leaderboard ||
+    typeof leaderboard !== 'object' ||
+    Array.isArray(leaderboard)
+  ) {
+    return serviceUnavailable(res, leaderboard);
+  }
+
+  if (Object.keys(leaderboard).length === 0) {
+    return notFoundResponse(req, res);
+  }
 
   return successfulResponse(
     req,
     res,
     leaderboard,
     'Yearly Leaderboard Position Returned',
-    leaderboard.length,
+    1,
   );
 }
 
@@ -81,15 +90,24 @@ async function getLeaderboardPositionThisMonth(req: ApiRequest, res: Response) {
       year,
     );
 
-  if (!Array.isArray(leaderboard)) return serviceUnavailable(res, leaderboard);
-  if (leaderboard.length === 0) return notFoundResponse(req, res);
+  if (
+    !leaderboard ||
+    typeof leaderboard !== 'object' ||
+    Array.isArray(leaderboard)
+  ) {
+    return serviceUnavailable(res, leaderboard);
+  }
+
+  if (Object.keys(leaderboard).length === 0) {
+    return notFoundResponse(req, res);
+  }
 
   return successfulResponse(
     req,
     res,
     leaderboard,
     'Monthly Leaderboard Position Returned',
-    leaderboard.length,
+    1,
   );
 }
 
@@ -104,15 +122,24 @@ async function getLeaderboardPositionThisWeek(req: ApiRequest, res: Response) {
       year,
     );
 
-  if (!Array.isArray(leaderboard)) return serviceUnavailable(res, leaderboard);
-  if (leaderboard.length === 0) return notFoundResponse(req, res);
+  if (
+    !leaderboard ||
+    typeof leaderboard !== 'object' ||
+    Array.isArray(leaderboard)
+  ) {
+    return serviceUnavailable(res, leaderboard);
+  }
+
+  if (Object.keys(leaderboard).length === 0) {
+    return notFoundResponse(req, res);
+  }
 
   return successfulResponse(
     req,
     res,
     leaderboard,
     'Weekly Leaderboard Position Returned',
-    leaderboard.length,
+    1,
   );
 }
 
@@ -128,15 +155,24 @@ async function getLeaderboardPositionToday(req: ApiRequest, res: Response) {
       year,
     );
 
-  if (!Array.isArray(leaderboard)) return serviceUnavailable(res, leaderboard);
-  if (leaderboard.length === 0) return notFoundResponse(req, res);
+  if (
+    !leaderboard ||
+    typeof leaderboard !== 'object' ||
+    Array.isArray(leaderboard)
+  ) {
+    return serviceUnavailable(res, leaderboard);
+  }
+
+  if (Object.keys(leaderboard).length === 0) {
+    return notFoundResponse(req, res);
+  }
 
   return successfulResponse(
     req,
     res,
     leaderboard,
     'Daily Leaderboard Position Returned',
-    leaderboard.length,
+    1,
   );
 }
 
