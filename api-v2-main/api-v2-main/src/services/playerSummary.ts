@@ -199,6 +199,7 @@ async function getPublicPlayerSummary(playerId: string) {
   return {
     ...profile,
     avatarStyleKey: avatar?.equipped_avatar_style_key ?? null,
+    avatarFrameKey: avatar?.equipped_avatar_frame_key ?? null,
     stats,
     guessDistribution,
     streak,
