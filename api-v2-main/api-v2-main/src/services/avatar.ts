@@ -2,6 +2,11 @@ import { db } from '../models';
 import { getPlayerEntitlements } from './marketplaceV2/entitlements';
 import { CATALOG } from './marketplaceV2/catalog';
 
+type AvatarEquipmentUpdate = {
+  avatarStyleKey?: string | null;
+  avatarFrameKey?: string | null;
+};
+
 async function getPlayerAvatar(playerId: string) {
   const { data, error } = await db
     .from('_player_avatar')
@@ -19,12 +24,22 @@ async function getPlayerAvatar(playerId: string) {
 
 async function updatePlayerAvatar(
   playerId: string,
-  avatarStyleKey: string | null,
+  {
+    avatarStyleKey,
+    avatarFrameKey,
+  }: AvatarEquipmentUpdate,
 ) {
-  // Allow unequipping
-  if (avatarStyleKey !== null) {
-    const entitlements = await getPlayerEntitlements(playerId);
 
+  if (
+    avatarStyleKey === undefined &&
+    avatarFrameKey === undefined
+  ) {
+    throw new Error('No avatar equipment update provided.');
+  }
+
+  const entitlements = await getPlayerEntitlements(playerId);
+
+  if (avatarStyleKey !== undefined && avatarStyleKey !== null) {
     const catalogItem = CATALOG.find(
       (item) =>
         item.entitlementKey === avatarStyleKey &&
@@ -45,17 +60,45 @@ async function updatePlayerAvatar(
     }
   }
 
+  if (avatarFrameKey !== undefined && avatarFrameKey !== null) {
+    const catalogItem = CATALOG.find(
+      (item) =>
+        item.entitlementKey === avatarFrameKey &&
+        item.entitlementType === 'AVATAR' &&
+        item.entitlementKey.startsWith('FRAME:'),
+    );
+
+    if (!catalogItem) {
+      throw new Error('Invalid avatar frame.');
+    }
+
+    const ownsAvatarFrame = entitlements.some(
+      (entitlement: any) =>
+        entitlement.entitlement_key === avatarFrameKey,
+    );
+
+    if (!ownsAvatarFrame) {
+      throw new Error('Player does not own this avatar frame.');
+    }
+  }
+
+  const update: Record<string, any> = {
+    player_id: playerId,
+  };
+
+  if (avatarStyleKey !== undefined) {
+    update.equipped_avatar_style_key = avatarStyleKey;
+  }
+
+  if (avatarFrameKey !== undefined) {
+    update.equipped_avatar_frame_key = avatarFrameKey;
+  }
+
   const { data, error } = await db
     .from('_player_avatar')
-    .upsert(
-      {
-        player_id: playerId,
-        equipped_avatar_style_key: avatarStyleKey,
-      },
-      {
-        onConflict: 'player_id',
-      },
-    )
+    .upsert(update, {
+      onConflict: 'player_id',
+    })
     .select()
     .maybeSingle();
 
