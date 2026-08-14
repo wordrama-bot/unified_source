@@ -256,11 +256,14 @@ async function getPlayerLeaderboardAllTime(
     );
 
   const avatarStyleByPlayerId = new Map<string, string | null>();
+  const avatarFrameByPlayerId = new Map<string, string | null>();
 
   if (playerIds.length > 0) {
     const { data: avatarRows, error: avatarError } = await db
       .from('_player_avatar')
-      .select('player_id, equipped_avatar_style_key')
+      .select(
+        'player_id, equipped_avatar_style_key, equipped_avatar_frame_key',
+      )
       .in('player_id', playerIds);
 
     if (avatarError) {
@@ -274,6 +277,10 @@ async function getPlayerLeaderboardAllTime(
           avatarRow.player_id,
           avatarRow.equipped_avatar_style_key ?? null,
         );
+        avatarFrameByPlayerId.set(
+          avatarRow.player_id,
+          avatarRow.equipped_avatar_frame_key ?? null,
+        );
       }
     }
   }
@@ -284,6 +291,7 @@ async function getPlayerLeaderboardAllTime(
     return {
       ...camel,
       avatarStyleKey: avatarStyleByPlayerId.get(row.player) ?? null,
+      avatarFrameKey: avatarFrameByPlayerId.get(row.player) ?? null,
       bestStreak: camel.overallBestStreak ?? 0,
       players: {
         levels: {
