@@ -149,11 +149,14 @@ async function getMyAvatar(req: ApiRequest, res: Response) {
 }
 
 async function updateMyAvatar(req: ApiRequest, res: Response) {
-  const { avatarStyleKey } = req.body;
+  const { avatarStyleKey, avatarFrameKey } = req.body;
 
   const avatar = await avatarService.updatePlayerAvatar(
     req.userId,
-    avatarStyleKey ?? null,
+    {
+      avatarStyleKey,
+      avatarFrameKey,
+    },
   );
 
   return successfulResponse(req, res, avatar, 'Avatar updated', 1);
