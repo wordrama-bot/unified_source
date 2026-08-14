@@ -123,10 +123,60 @@ async function handle100GamesChallenge(userId, challenges) {
   }
 }
 
-async function handleAllTimeChampionChallenge(userId, challenges) {
-  const challengeId = 'eb7590cc-d2a8-4952-a5e5-17e2bbe15202';
+const CHAMPION_CHALLENGES = [
+  {
+    challengeId: '4a73b85a-9e40-4ed4-a55d-a7de4ce20f8a',
+    period: 'daily',
+    rankPrefix: 'dailyRank',
+    name: 'Daily Champion',
+  },
+  {
+    challengeId: '3beaa47f-5638-4ba2-a42a-b45f3cb5b6bf',
+    period: 'weekly',
+    rankPrefix: 'weeklyRank',
+    name: 'Weekly Champion',
+  },
+  {
+    challengeId: '0af08641-fbe3-454d-b21f-8f2cbdfdb28a',
+    period: 'monthly',
+    rankPrefix: 'monthlyRank',
+    name: 'Monthly Champion',
+  },
+  {
+    challengeId: '95bb2ed7-c13b-4231-9625-e403725a5693',
+    period: 'yearly',
+    rankPrefix: 'yearlyRank',
+    name: 'Yearly Champion',
+  },
+  {
+    challengeId: 'eb7590cc-d2a8-4952-a5e5-17e2bbe15202',
+    period: 'all-time',
+    rankPrefix: 'alltimeRank',
+    name: 'All-Time Champion',
+  },
+];
 
-  const challenge = challenges.find((c) => c.id === challengeId);
+function hasRankOne(data, rankPrefix) {
+  return Object.entries(data).some(
+    ([key, value]) =>
+      key.startsWith(rankPrefix) &&
+      Number(value) === 1,
+  );
+}
+
+async function handleChampionChallenge(
+  userId,
+  challenges,
+  {
+    challengeId,
+    period,
+    rankPrefix,
+    name,
+  },
+) {
+  const challenge = challenges?.find(
+    (c) => c.id === challengeId,
+  );
 
   if (challenge?.status === 'COMPLETE') return;
 
@@ -134,7 +184,8 @@ async function handleAllTimeChampionChallenge(userId, challenges) {
     [
       serviceUrl,
       servicePath,
-      'leaderboard/wordle/position/all-time',
+      'leaderboard/wordle/position',
+      period,
       userId,
     ].join('/'),
     {
@@ -144,7 +195,7 @@ async function handleAllTimeChampionChallenge(userId, challenges) {
 
   if (!response.ok) {
     console.error(
-      `Failed to check All-Time Champion challenge for ${userId}:`,
+      `Failed to check ${name} challenge for ${userId}:`,
       response.status,
       response.statusText,
     );
@@ -153,20 +204,22 @@ async function handleAllTimeChampionChallenge(userId, challenges) {
 
   const { data } = await response.json();
 
-  if (!data) return;
+  if (!data || !hasRankOne(data, rankPrefix)) return;
 
-  const isChampion = Object.entries(data).some(
-    ([key, value]) =>
-      key.startsWith('alltimeRank') &&
-      Number(value) === 1,
+  await handleUpdateChallengeProgress(
+    challengeId,
+    userId,
+    'COMPLETE',
+    100,
   );
+}
 
-  if (isChampion) {
-    await handleUpdateChallengeProgress(
-      challengeId,
+async function handleChampionChallenges(userId, challenges) {
+  for (const config of CHAMPION_CHALLENGES) {
+    await handleChampionChallenge(
       userId,
-      'COMPLETE',
-      100,
+      challenges,
+      config,
     );
   }
 }
@@ -291,7 +344,7 @@ async function main() {
                 messageReceived.body.userId,
                 challenges?.data,
               );
-              await handleAllTimeChampionChallenge(
+              await handleChampionChallenges(
                 messageReceived.body.userId,
                 challenges?.data,
               );
