@@ -262,6 +262,7 @@ export default function ProfilePage() {
             profileImage={data?.profileImage}
             displayName={data?.displayName || data?.username || 'Player'}
             avatarStyleKey={data?.avatarStyleKey}
+            avatarFrameKey={data?.avatarFrameKey}
             size={256}
           />
         </div>

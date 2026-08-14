@@ -11,6 +11,7 @@ interface PlayerAvatarProps {
   profileImage?: string | null;
   displayName?: string;
   avatarStyleKey?: string | null;
+  avatarFrameKey?: string | null;
   size?: number;
 }
 
@@ -18,16 +19,30 @@ export default function PlayerAvatar({
   profileImage,
   displayName,
   avatarStyleKey,
+  avatarFrameKey,
   size = 40,
 }: PlayerAvatarProps) {
   const avatarStyle = avatarStyleKey
     ? AVATAR_STYLES[avatarStyleKey]
     : undefined;
 
-  const isAccessory = avatarStyle?.placement === 'accessory';
+  const avatarFrame = avatarFrameKey
+    ? AVATAR_STYLES[avatarFrameKey]
+    : undefined;
 
-  const accessoryScale = avatarStyle?.accessoryScale ?? 0.65;
-  const accessoryTopOffset = avatarStyle?.accessoryTopOffset ?? -0.3;
+  const accessory =
+    avatarStyle?.placement === 'accessory'
+      ? avatarStyle
+      : undefined;
+
+  const frame =
+    avatarFrame?.placement === 'overlay'
+      ? avatarFrame
+      : undefined;
+
+  const accessoryScale = accessory?.accessoryScale ?? 0.65;
+  const accessoryTopOffset =
+    accessory?.accessoryTopOffset ?? -0.3;
 
   return (
     <div
@@ -38,7 +53,7 @@ export default function PlayerAvatar({
       }}
     >
       <Avatar
-        className="absolute inset-0"
+        className="absolute inset-0 z-0"
         style={{
           width: size,
           height: size,
@@ -51,18 +66,17 @@ export default function PlayerAvatar({
         </AvatarFallback>
       </Avatar>
 
-      {avatarStyle && !isAccessory && (
+      {frame && (
         <Image
-          src={profileImage}
-          alt={displayName}
+          src={frame.image}
+          alt={`${frame.name} avatar frame`}
           fill
-          priority
           sizes={`${size}px`}
-          className="object-cover"
+          className="pointer-events-none z-10 select-none object-contain"
         />
       )}
 
-      {avatarStyle && isAccessory && (
+      {accessory && (
         <div
           className="pointer-events-none absolute left-1/2 z-20 -translate-x-1/2"
           style={{
@@ -72,8 +86,8 @@ export default function PlayerAvatar({
           }}
         >
           <Image
-            src={avatarStyle.image}
-            alt={`${avatarStyle.name} avatar accessory`}
+            src={accessory.image}
+            alt={`${accessory.name} avatar accessory`}
             fill
             sizes={`${size}px`}
             className="select-none object-contain"

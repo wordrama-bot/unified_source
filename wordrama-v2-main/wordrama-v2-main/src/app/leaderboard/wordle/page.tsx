@@ -366,6 +366,7 @@ export default function WordleAllTimeLeaderboardPage() {
                           profileImage={player?.profileImage}
                           displayName={player?.displayName || 'Player'}
                           avatarStyleKey={player?.avatarStyleKey}
+                          avatarFrameKey={player?.avatarFrameKey}
                           size={96}
                         />
                         <div className="space-y-1">
@@ -497,6 +498,7 @@ export default function WordleAllTimeLeaderboardPage() {
                                   profileImage={entry?.profileImage}
                                   displayName={entry?.displayName || 'Player'}
                                   avatarStyleKey={entry?.avatarStyleKey}
+                                  avatarFrameKey={entry?.avatarFrameKey}
                                   size={96}
                                 />
                                 <div className="space-y-1">
