@@ -52,6 +52,42 @@ export const AVATAR_STYLES: Record<string, AvatarStyle> = {
     placement: 'overlay',
   },
 
+  'AVATAR:CROWN_DAILY_CHAMPION': {
+    key: 'AVATAR:CROWN_DAILY_CHAMPION',
+    name: 'Daily Champion Crown',
+    image: '/images/avatars/styles/crown-daily-champion.png',
+    placement: 'accessory',
+    accessoryScale: 0.62,
+    accessoryTopOffset: -0.3,
+  },
+
+  'AVATAR:CROWN_WEEKLY_CHAMPION': {
+    key: 'AVATAR:CROWN_WEEKLY_CHAMPION',
+    name: 'Weekly Champion Crown',
+    image: '/images/avatars/styles/crown-weekly-champion.png',
+    placement: 'accessory',
+    accessoryScale: 0.62,
+    accessoryTopOffset: -0.3,
+  },
+
+  'AVATAR:CROWN_MONTHLY_CHAMPION': {
+    key: 'AVATAR:CROWN_MONTHLY_CHAMPION',
+    name: 'Monthly Champion Crown',
+    image: '/images/avatars/styles/crown-monthly-champion.png',
+    placement: 'accessory',
+    accessoryScale: 0.62,
+    accessoryTopOffset: -0.3,
+  },
+
+  'AVATAR:CROWN_YEARLY_CHAMPION': {
+    key: 'AVATAR:CROWN_YEARLY_CHAMPION',
+    name: 'Yearly Champion Crown',
+    image: '/images/avatars/styles/crown-yearly-champion.png',
+    placement: 'accessory',
+    accessoryScale: 0.62,
+    accessoryTopOffset: -0.3,
+  },
+
   'AVATAR:CROWN_ALLTIME_CHAMPION': {
     key: 'AVATAR:CROWN_ALLTIME_CHAMPION',
     name: 'Crown of Champions',
