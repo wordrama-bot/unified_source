@@ -228,6 +228,56 @@ async function getPlayerLeaderboardPositionToday(
   return changeKeys.camelCase(data, 10);
 }
 
+async function getAvatarCosmeticsByPlayerIds(playerIds: string[]) {
+  const avatarStyleByPlayerId = new Map<string, string | null>();
+  const avatarFrameByPlayerId = new Map<string, string | null>();
+
+  if (playerIds.length === 0) {
+    return {
+      avatarStyleByPlayerId,
+      avatarFrameByPlayerId,
+    };
+  }
+
+  const uniquePlayerIds = [...new Set(playerIds)];
+
+  const { data: avatarRows, error: avatarError } = await db
+    .from('_player_avatar')
+    .select(
+      'player_id, equipped_avatar_style_key, equipped_avatar_frame_key',
+    )
+    .in('player_id', uniquePlayerIds);
+
+  if (avatarError) {
+    console.error(
+      '[leaderboard] unable to load equipped avatar cosmetics:',
+      avatarError,
+    );
+
+    return {
+      avatarStyleByPlayerId,
+      avatarFrameByPlayerId,
+    };
+  }
+
+  for (const avatarRow of avatarRows ?? []) {
+    avatarStyleByPlayerId.set(
+      avatarRow.player_id,
+      avatarRow.equipped_avatar_style_key ?? null,
+    );
+
+    avatarFrameByPlayerId.set(
+      avatarRow.player_id,
+      avatarRow.equipped_avatar_frame_key ?? null,
+    );
+  }
+
+  return {
+    avatarStyleByPlayerId,
+    avatarFrameByPlayerId,
+  };
+}
+
 async function getPlayerLeaderboardAllTime(
   orderBy: string = 'alltime_rank',
   offset: number = 0,
@@ -255,35 +305,10 @@ async function getPlayerLeaderboardAllTime(
       Boolean(playerId),
     );
 
-  const avatarStyleByPlayerId = new Map<string, string | null>();
-  const avatarFrameByPlayerId = new Map<string, string | null>();
-
-  if (playerIds.length > 0) {
-    const { data: avatarRows, error: avatarError } = await db
-      .from('_player_avatar')
-      .select(
-        'player_id, equipped_avatar_style_key, equipped_avatar_frame_key',
-      )
-      .in('player_id', playerIds);
-
-    if (avatarError) {
-      console.error(
-        '[leaderboard] unable to load equipped avatar styles:',
-        avatarError,
-      );
-    } else {
-      for (const avatarRow of avatarRows ?? []) {
-        avatarStyleByPlayerId.set(
-          avatarRow.player_id,
-          avatarRow.equipped_avatar_style_key ?? null,
-        );
-        avatarFrameByPlayerId.set(
-          avatarRow.player_id,
-          avatarRow.equipped_avatar_frame_key ?? null,
-        );
-      }
-    }
-  }
+  const {
+    avatarStyleByPlayerId,
+    avatarFrameByPlayerId,
+  } = await getAvatarCosmeticsByPlayerIds(playerIds);
 
   return rows.map((row: any) => {
     const camel = changeKeys.camelCase(row, 10) as any;
@@ -326,11 +351,26 @@ async function getPlayerLeaderboardForTheYear(
     return {};
   }
 
-  return data.map((row: any) => {
+  const rows = data ?? [];
+
+  const playerIds = rows
+    .map((row: any) => row.player)
+    .filter((playerId: string | null | undefined): playerId is string =>
+      Boolean(playerId),
+    );
+
+  const {
+    avatarStyleByPlayerId,
+    avatarFrameByPlayerId,
+  } = await getAvatarCosmeticsByPlayerIds(playerIds);
+
+  return rows.map((row: any) => {
     const camel = changeKeys.camelCase(row, 10) as any;
 
     return {
       ...camel,
+      avatarStyleKey: avatarStyleByPlayerId.get(row.player) ?? null,
+      avatarFrameKey: avatarFrameByPlayerId.get(row.player) ?? null,
       players: {
         levels: {
           level: camel.level ?? 0,
@@ -366,11 +406,26 @@ async function getPlayerLeaderboardForTheMonth(
     return {};
   }
 
-  return data.map((row: any) => {
+  const rows = data ?? [];
+
+  const playerIds = rows
+    .map((row: any) => row.player)
+    .filter((playerId: string | null | undefined): playerId is string =>
+      Boolean(playerId),
+    );
+
+  const {
+    avatarStyleByPlayerId,
+    avatarFrameByPlayerId,
+  } = await getAvatarCosmeticsByPlayerIds(playerIds);
+
+  return rows.map((row: any) => {
     const camel = changeKeys.camelCase(row, 10) as any;
 
     return {
       ...camel,
+      avatarStyleKey: avatarStyleByPlayerId.get(row.player) ?? null,
+      avatarFrameKey: avatarFrameByPlayerId.get(row.player) ?? null,
       players: {
         levels: {
           level: camel.level ?? 0,
@@ -406,11 +461,26 @@ async function getPlayerLeaderboardForThisWeek(
     return {};
   }
 
-  return data.map((row: any) => {
+  const rows = data ?? [];
+
+  const playerIds = rows
+    .map((row: any) => row.player)
+    .filter((playerId: string | null | undefined): playerId is string =>
+      Boolean(playerId),
+    );
+
+  const {
+    avatarStyleByPlayerId,
+    avatarFrameByPlayerId,
+  } = await getAvatarCosmeticsByPlayerIds(playerIds);
+
+  return rows.map((row: any) => {
     const camel = changeKeys.camelCase(row, 10) as any;
 
     return {
       ...camel,
+      avatarStyleKey: avatarStyleByPlayerId.get(row.player) ?? null,
+      avatarFrameKey: avatarFrameByPlayerId.get(row.player) ?? null,
       players: {
         levels: {
           level: camel.level ?? 0,
@@ -448,11 +518,26 @@ async function getPlayerLeaderboardForToday(
     return {};
   }
 
-  return data.map((row: any) => {
+  const rows = data ?? [];
+
+  const playerIds = rows
+    .map((row: any) => row.player)
+    .filter((playerId: string | null | undefined): playerId is string =>
+      Boolean(playerId),
+    );
+
+  const {
+    avatarStyleByPlayerId,
+    avatarFrameByPlayerId,
+  } = await getAvatarCosmeticsByPlayerIds(playerIds);
+
+  return rows.map((row: any) => {
     const camel = changeKeys.camelCase(row, 10) as any;
 
     return {
       ...camel,
+      avatarStyleKey: avatarStyleByPlayerId.get(row.player) ?? null,
+      avatarFrameKey: avatarFrameByPlayerId.get(row.player) ?? null,
       players: {
         levels: {
           level: camel.level ?? 0,
