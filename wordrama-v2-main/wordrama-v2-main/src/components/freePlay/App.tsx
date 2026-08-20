@@ -5,7 +5,6 @@ import { useEffect, useState } from 'react'
 import Confetti from 'react-confetti'
 import Div100vh from 'react-div-100vh'
 import { useDispatch } from 'react-redux';
-import { useParams, redirect } from 'next/navigation';
 import { isMobile, isTablet } from 'react-device-detect';
 import { wordleWordPackConfig } from '../../lib/config';
 import Link from 'next/link'
@@ -106,43 +105,12 @@ import { useTheme } from 'next-themes'
 import GoogleAd from "../GoogleAd";
 
 function App(){
-  const pathParams = useParams();
-  const wordPackParam = pathParams.wordPackParam as string;
   //const appInsights = getAppInsights();
   //appInsights.trackPageView({ name: 'Wordle Free Play' });
   const { setTheme, theme } = useTheme();
   const { showError: showErrorAlert, showSuccess: showSuccessAlert } = useAlert();
   // Redux State
   const dispatch = useDispatch();
-
-  useEffect(() => {
-    if (!wordPackParam) return;
-    const paramMapper: { [key: string]: string } = {
-      '5-letter': 'FIVE_LETTER',
-      'five-letter': 'FIVE_LETTER',
-      'FIVE_LETTER': 'FIVE_LETTER',
-      '6-letter': 'SIX_LETTER',
-      'six-letter': 'SIX_LETTER',
-      'SIX_LETTER': 'SIX_LETTER',
-      '7-letter': 'SEVEN_LETTER',
-      'seven-letter': 'SEVEN_LETTER',
-      'SEVEN_LETTER': 'SEVEN_LETTER',
-      '8-letter': 'EIGHT_LETTER',
-      'eight-letter': 'EIGHT_LETTER',
-      'EIGHT_LETTER': 'EIGHT_LETTER',
-      '9-letter': 'NINE_LETTER',
-      'nine-letter': 'NINE_LETTER',
-      'NINE_LETTER': 'NINE_LETTER',
-      '10-letter': 'TEN_LETTER',
-      'ten-letter': 'TEN_LETTER',
-      'TEN_LETTER': 'TEN_LETTER',
-      '11-letter': 'ELEVEN_LETTER',
-      'eleven-letter': 'ELEVEN_LETTER',
-      'ELEVEN_LETTER': 'ELEVEN_LETTER',
-    }
-    if (!paramMapper[wordPackParam]) return redirect('/free-play');
-    dispatch(setWordPack(paramMapper[wordPackParam]));
-  }, [])
 
   const gameState = getWordleState();
   const gameUiState = getWordleGameUiState();
@@ -523,7 +491,7 @@ function App(){
                 )}
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
-                { gameMode !== 'CUSTOM' && !wordPackParam && (
+                { gameMode !== 'CUSTOM' && (
                   <Select defaultValue={wordPack} onValueChange={value => useWordPack(value)}>
                     <SelectTrigger className=" col-span-4">
                       <SelectValue placeholder="Select a WordPack" />
