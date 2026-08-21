@@ -14,57 +14,6 @@ export function validateToken(
   res: Response,
   next: NextFunction,
 ) {
-  if (req.query.authMethod) {
-    if (req.query.authMethod !== 'SERVICE_TOKEN')
-      return res.status(401).json({
-        data: {},
-        count: 0,
-        status: 401,
-        message: 'Invalid auth method',
-      });
-    if (!req.query.apiKey)
-      return res.status(401).json({
-        data: {},
-        count: 0,
-        status: 401,
-        message: 'apiKey required',
-      });
-    if (
-      !['LR8Kwk32HfW9eYCamh5yPp'].includes(
-        req.query.apiKey,
-      )
-    )
-      return res.status(401).json({
-        data: {},
-        count: 0,
-        status: 401,
-        message: 'Invalid apiKey',
-      });
-    if (!req.query.userId)
-      return res.status(400).json({
-        data: {},
-        count: 0,
-        status: 401,
-        message: 'userId required',
-      });
-
-    if (
-      req.query.apiKey === 'LR8Kwk32HfW9eYCamh5yPp' &&
-      req.query.action !== 'migrate'
-    )
-      return res.status(400).json({
-        data: {},
-        count: 0,
-        status: 401,
-        message: 'Invalid action for this apiKey',
-      });
-
-    req.userId = req.query.userId as string;
-    req.userEmail = '';
-    req.role = 'SERVICE_TOKEN';
-    req.roleId = roles['SERVICE_TOKEN'];
-    return next();
-  }
   // Validate the authorization header
   let authorizationHeader = req.headers.authorization;
   let cookie = '';
