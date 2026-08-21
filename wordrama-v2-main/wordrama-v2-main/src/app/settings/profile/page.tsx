@@ -147,40 +147,83 @@ export default function ProfilePage() {
     });
   }
 
-  function convertBase64(file) {
+  const MAX_PROFILE_IMAGE_DIMENSION = 512;
+  const MAX_PROFILE_IMAGE_DATA_URI_LENGTH = 450_000;
+
+  function resizeProfileImage(file: File): Promise<string> {
     return new Promise((resolve, reject) => {
-      const fileReader = new FileReader();
-      fileReader.readAsDataURL(file)
-      fileReader.onload = () => {
-        resolve(fileReader.result);
-      }
-      fileReader.onerror = (error) => {
-        reject(error);
-      }
+      const reader = new FileReader();
+
+      reader.onload = () => {
+        const image = new window.Image();
+
+        image.onload = () => {
+          const scale = Math.min(
+            1,
+            MAX_PROFILE_IMAGE_DIMENSION / image.width,
+            MAX_PROFILE_IMAGE_DIMENSION / image.height,
+          );
+
+          const width = Math.max(1, Math.round(image.width * scale));
+          const height = Math.max(1, Math.round(image.height * scale));
+
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+
+          const context = canvas.getContext('2d');
+
+          if (!context) {
+            reject(new Error('Could not create image canvas'));
+            return;
+          }
+
+          context.drawImage(image, 0, 0, width, height);
+
+          const dataUri = canvas.toDataURL('image/webp', 0.82);
+
+          if (dataUri.length > MAX_PROFILE_IMAGE_DATA_URI_LENGTH) {
+            reject(new Error('Processed image is still too large'));
+            return;
+          }
+
+          resolve(dataUri);
+        };
+
+        image.onerror = () => reject(new Error('Could not decode image'));
+        image.src = reader.result as string;
+      };
+
+      reader.onerror = () => reject(new Error('Could not read image'));
+      reader.readAsDataURL(file);
     });
-  };
+  }
 
   async function handleFileChange(event) {
     try {
-      const file = event.target.files[0];
-      if (file.size > 5 * 1000 * 1000) {
+      const file = event.target.files?.[0];
+
+      if (!file) return;
+
+      if (file.size > MAX_FILE_SIZE_MB * 1000 * 1000) {
         toast({
           title: 'Image too big',
-          description: 'Please use a file under 5MB',
-        })
+          description: `Please use a file under ${MAX_FILE_SIZE_MB}MB`,
+        });
         return;
       }
-      const base64 = await convertBase64(file);
-      setProfileImage(base64);
-    } catch(err) {
+
+      const resizedImage = await resizeProfileImage(file);
+      setProfileImage(resizedImage);
+    } catch (err) {
       console.error('[Profile] file upload failed:', err);
 
       toast({
-        title: 'Could not read image',
+        title: 'Could not process image',
         description: 'Please choose a valid JPG or PNG file and try again.',
       });
     }
-  };
+  }
 
   return (
     <div className="flex min-h-screen w-full flex-col">
@@ -264,7 +307,9 @@ export default function ProfilePage() {
                           ref={hiddenFileInput}
                           style={profileImage ? { display: 'none' } : { display: 'block' }}
                         />
-                        <Label htmlFor="avatar">JPG or PNG. 5MB max.</Label>
+                        <Label htmlFor="avatar">
+                          JPG or PNG. {MAX_FILE_SIZE_MB}MB max.
+                        </Label>
                       </div>
                     </div>
                   )}

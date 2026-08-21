@@ -4,7 +4,7 @@ import { z } from 'zod';
 export const addPlayer = z.object({
   firstName: z.string().optional(),
   lastName: z.string().optional(),
-  profileImage: z.string().optional(),
+  profileImage: z.string().max(500_000).optional(),
   username: z.string(),
   referralCode: z.string().optional(),
 });
@@ -14,7 +14,7 @@ export type AddPlayer = z.infer<typeof addPlayer>;
 export const updatePlayer = z.object({
   firstName: z.string().optional(),
   lastName: z.string().optional(),
-  profileImage: z.string().optional(),
+  profileImage: z.string().max(500_000).optional(),
   username: z.string().optional(),
   email: z.string().optional(),
 });
