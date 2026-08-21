@@ -30,7 +30,7 @@ export function validateToken(
         message: 'apiKey required',
       });
     if (
-      !['jg4nbCTbqjTuqXSx7oHZ69', 'LR8Kwk32HfW9eYCamh5yPp'].includes(
+      !['LR8Kwk32HfW9eYCamh5yPp'].includes(
         req.query.apiKey,
       )
     )
