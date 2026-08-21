@@ -37,7 +37,6 @@ export async function auditAuthenticatedRequest(
   try {
     if (
       req.userId &&
-      req.role !== 'SERVICE_TOKEN' &&
       !shouldSkipAudit(req)
     ) {
       await db.from('_audit').insert({
