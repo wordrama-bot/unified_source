@@ -277,6 +277,14 @@ async function addPlayer(userId: string, body: AddPlayer) {
     .select('id')
     .maybeSingle();
 
+  if (playerError) {
+    console.error('[addPlayer] _players insert failed', {
+      userId,
+      error: playerError,
+    });
+    return {};
+  }
+
   await db.auth.admin.updateUserById(userId, {
     user_metadata: {
       role: 'PLAYER',
@@ -374,7 +382,6 @@ async function addPlayer(userId: string, body: AddPlayer) {
   }
 
   if (
-    playerError ||
     ledgerError ||
     levelsError ||
     settingsError ||
@@ -384,7 +391,6 @@ async function addPlayer(userId: string, body: AddPlayer) {
     discordLinkError
   ) {
     console.error(
-      playerError,
       ledgerError,
       levelsError,
       settingsError,
