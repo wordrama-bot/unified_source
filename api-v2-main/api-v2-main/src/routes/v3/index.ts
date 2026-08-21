@@ -15,8 +15,6 @@ import { router as leaderboardRouter } from './leaderboard';
 import { router as streamerRouter } from './streamer';
 import { router as storeRouter } from './store';
 import { router as challengesRouter } from './challenges';
-import { router as migrateRouter } from './migrate';
-import { router as systemRouter } from './system';
 import { router as noRoleRouter } from './noRole';
 
 export const router = Router();
@@ -27,21 +25,16 @@ export const router = Router();
 
 const authedPlayer = [
   validateToken,
-  validateUserRole(['PLAYER', 'STREAMER', 'SERVICE_TOKEN']),
+  validateUserRole(['PLAYER', 'STREAMER']),
   validatePlayerNotBanned,
   auditAuthenticatedRequest,
 ] as const;
 
 const authedStreamer = [
   validateToken,
-  validateUserRole(['STREAMER', 'SERVICE_TOKEN']),
+  validateUserRole(['STREAMER']),
   validatePlayerNotBanned,
   auditAuthenticatedRequest,
-] as const;
-
-const authedService = [
-  validateToken,
-  validateUserRole(['SERVICE_TOKEN']),
 ] as const;
 
 /* ---------------------------------- */
@@ -78,15 +71,5 @@ router.use('/admin', validateToken, adminRouter);
 /* ---------------------------------- */
 
 router.use('/', noRoleRouter);
-
-/* ---------------------------------- */
-/* SERVICE TOKEN ONLY ROUTES          */
-/* ---------------------------------- */
-
-// Migration endpoint (challenge backfill lives here)
-router.use('/migrate', ...authedService, migrateRouter);
-
-// Existing internal system routes
-router.use('/_system', ...authedService, systemRouter);
 
 export default router;

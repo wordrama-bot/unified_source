@@ -10,7 +10,7 @@ export const router = express.Router();
 
 const authedPlayer = [
   validateToken,
-  validateUserRole(['PLAYER', 'STREAMER', 'SERVICE_TOKEN']),
+  validateUserRole(['PLAYER', 'STREAMER']),
 ] as const;
 
 /* Get routes */

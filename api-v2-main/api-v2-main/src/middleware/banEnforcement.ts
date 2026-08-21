@@ -12,10 +12,6 @@ export async function validatePlayerNotBanned(
       return next();
     }
 
-    if (req.role === 'SERVICE_TOKEN') {
-      return next();
-    }
-
     const now = new Date().toISOString();
 
     const { data, error } = await db
