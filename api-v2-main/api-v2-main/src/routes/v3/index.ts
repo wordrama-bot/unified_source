@@ -25,14 +25,14 @@ export const router = Router();
 
 const authedPlayer = [
   validateToken,
-  validateUserRole(['PLAYER', 'STREAMER', 'SERVICE_TOKEN']),
+  validateUserRole(['PLAYER', 'STREAMER']),
   validatePlayerNotBanned,
   auditAuthenticatedRequest,
 ] as const;
 
 const authedStreamer = [
   validateToken,
-  validateUserRole(['STREAMER', 'SERVICE_TOKEN']),
+  validateUserRole(['STREAMER']),
   validatePlayerNotBanned,
   auditAuthenticatedRequest,
 ] as const;
