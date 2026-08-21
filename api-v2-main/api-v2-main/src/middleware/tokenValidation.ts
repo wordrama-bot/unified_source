@@ -6,7 +6,6 @@ import { ApiRequest } from '../types/auth.types';
 export const roles: { [key: string]: string } = {
   PLAYER: '7b4f1418-8b83-4d9e-9972-7105b3942a07',
   STREAMER: 'f1b3f3b4-1b1b-4b3b-8b3b-1b1b3b1b3b1b',
-  SERVICE_TOKEN: '2542dc0c-1160-45f9-a79d-eb094379e351',
 };
 
 export function validateToken(
