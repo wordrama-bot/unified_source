@@ -170,15 +170,19 @@ async function getPlayerLeaderboardPositionAllTime(userId: string) {
     return {};
   }
 
+  if (!data) {
+    return null;
+  }
+
   const camel = changeKeys.camelCase(data, 10) as any;
 
   const profileImageByPlayerId = await getProfileImagesByPlayerIds(
-    data?.player ? [data.player] : [],
+    data.player ? [data.player] : [],
   );
 
   return {
     ...camel,
-    profileImage: profileImageByPlayerId.get(data?.player) ?? null,
+    profileImage: profileImageByPlayerId.get(data.player) ?? null,
   };
 }
 
@@ -198,15 +202,19 @@ async function getPlayerLeaderboardPositionThisYear(
     return {};
   }
 
+  if (!data) {
+    return null;
+  }
+
   const camel = changeKeys.camelCase(data, 10) as any;
 
   const profileImageByPlayerId = await getProfileImagesByPlayerIds(
-    data?.player ? [data.player] : [],
+    data.player ? [data.player] : [],
   );
 
   return {
     ...camel,
-    profileImage: profileImageByPlayerId.get(data?.player) ?? null,
+    profileImage: profileImageByPlayerId.get(data.player) ?? null,
   };
 }
 
@@ -228,15 +236,19 @@ async function getPlayerLeaderboardPositionThisMonth(
     return {};
   }
 
+  if (!data) {
+    return null;
+  }
+
   const camel = changeKeys.camelCase(data, 10) as any;
 
   const profileImageByPlayerId = await getProfileImagesByPlayerIds(
-    data?.player ? [data.player] : [],
+    data.player ? [data.player] : [],
   );
 
   return {
     ...camel,
-    profileImage: profileImageByPlayerId.get(data?.player) ?? null,
+    profileImage: profileImageByPlayerId.get(data.player) ?? null,
   };
 }
 
@@ -258,15 +270,19 @@ async function getPlayerLeaderboardPositionThisWeek(
     return {};
   }
 
+  if (!data) {
+    return null;
+  }
+
   const camel = changeKeys.camelCase(data, 10) as any;
 
   const profileImageByPlayerId = await getProfileImagesByPlayerIds(
-    data?.player ? [data.player] : [],
+    data.player ? [data.player] : [],
   );
 
   return {
     ...camel,
-    profileImage: profileImageByPlayerId.get(data?.player) ?? null,
+    profileImage: profileImageByPlayerId.get(data.player) ?? null,
   };
 }
 
@@ -290,15 +306,19 @@ async function getPlayerLeaderboardPositionToday(
     return {};
   }
 
+  if (!data) {
+    return null;
+  }
+
   const camel = changeKeys.camelCase(data, 10) as any;
 
   const profileImageByPlayerId = await getProfileImagesByPlayerIds(
-    data?.player ? [data.player] : [],
+    data.player ? [data.player] : [],
   );
 
   return {
     ...camel,
-    profileImage: profileImageByPlayerId.get(data?.player) ?? null,
+    profileImage: profileImageByPlayerId.get(data.player) ?? null,
   };
 }
 
