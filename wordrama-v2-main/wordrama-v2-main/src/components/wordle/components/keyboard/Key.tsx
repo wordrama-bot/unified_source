@@ -2,7 +2,6 @@ import classnames from 'classnames'
 import { ReactNode } from 'react'
 
 import { REVEAL_TIME_MS } from '../../constants/settings'
-import { getStoredIsHighContrastMode } from '../../lib/localStorage'
 import { getWordleGameUiState } from '@/redux/ui/helpers'
 import { CharStatus } from '../../lib/statuses'
 
@@ -39,8 +38,7 @@ export const Key = ({
     gameUiState?.appearanceThemeId
   )
 
-  const isHighContrast =
-    getStoredIsHighContrastMode() || gameUiState?.colorblindMode === true
+  const isHighContrast = gameUiState?.colorblindMode === true
 
   const keyboardStyleId =
     gameUiState?.keyboardStyleId || KEYBOARD_STYLE_IDS.FLAT
