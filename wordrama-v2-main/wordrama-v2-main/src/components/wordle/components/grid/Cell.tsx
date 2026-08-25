@@ -1,7 +1,6 @@
 import classnames from 'classnames'
 
 import { REVEAL_TIME_MS } from '../../constants/settings'
-import { getStoredIsHighContrastMode } from '../../lib/localStorage'
 import { getWordleGameUiState } from '@/redux/ui/helpers'
 import { CharStatus } from '../../lib/statuses'
 import { getAppearanceTheme } from '@/config/themes'
@@ -29,13 +28,7 @@ export const Cell = ({
   const gameUiState = getWordleGameUiState()
   const appearanceTheme = getAppearanceTheme(gameUiState?.appearanceThemeId)
 
-  console.log({
-    reduxTheme: gameUiState?.appearanceThemeId,
-    resolvedTheme: appearanceTheme.meta.id,
-  });
-
-  const isHighContrast =
-    getStoredIsHighContrastMode() || gameUiState?.colorblindMode === true
+  const isHighContrast = gameUiState?.colorblindMode === true
 
   const absentCellClasses =
     appearanceTheme.meta.id === 'theme.default'
