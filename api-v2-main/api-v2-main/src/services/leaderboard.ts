@@ -129,6 +129,35 @@ function sanitizeOrderBy(orderBy: string, fallback: string) {
   return ALLOWED_ORDER_COLUMNS.has(orderBy) ? orderBy : fallback;
 }
 
+async function getProfileImagesByPlayerIds(playerIds: string[]) {
+  const profileImageByPlayerId = new Map<string, string | null>();
+
+  if (playerIds.length === 0) {
+    return profileImageByPlayerId;
+  }
+
+  const uniquePlayerIds = [...new Set(playerIds)];
+
+  const { data: playerRows, error } = await db
+    .from('_players')
+    .select('id, profile_image')
+    .in('id', uniquePlayerIds);
+
+  if (error) {
+    console.error('[leaderboard] unable to load profile images:', error);
+    return profileImageByPlayerId;
+  }
+
+  for (const playerRow of playerRows ?? []) {
+    profileImageByPlayerId.set(
+      playerRow.id,
+      playerRow.profile_image ?? null,
+    );
+  }
+
+  return profileImageByPlayerId;
+}
+
 async function getPlayerLeaderboardPositionAllTime(userId: string) {
   const { data, error } = await db
     .from('_mv_wordle_alltime_leaderboard')
@@ -141,7 +170,20 @@ async function getPlayerLeaderboardPositionAllTime(userId: string) {
     return {};
   }
 
-  return changeKeys.camelCase(data, 10);
+  if (!data) {
+    return null;
+  }
+
+  const camel = changeKeys.camelCase(data, 10) as any;
+
+  const profileImageByPlayerId = await getProfileImagesByPlayerIds(
+    data.player ? [data.player] : [],
+  );
+
+  return {
+    ...camel,
+    profileImage: profileImageByPlayerId.get(data.player) ?? null,
+  };
 }
 
 async function getPlayerLeaderboardPositionThisYear(
@@ -160,7 +202,20 @@ async function getPlayerLeaderboardPositionThisYear(
     return {};
   }
 
-  return changeKeys.camelCase(data, 10);
+  if (!data) {
+    return null;
+  }
+
+  const camel = changeKeys.camelCase(data, 10) as any;
+
+  const profileImageByPlayerId = await getProfileImagesByPlayerIds(
+    data.player ? [data.player] : [],
+  );
+
+  return {
+    ...camel,
+    profileImage: profileImageByPlayerId.get(data.player) ?? null,
+  };
 }
 
 async function getPlayerLeaderboardPositionThisMonth(
@@ -181,7 +236,20 @@ async function getPlayerLeaderboardPositionThisMonth(
     return {};
   }
 
-  return changeKeys.camelCase(data, 10);
+  if (!data) {
+    return null;
+  }
+
+  const camel = changeKeys.camelCase(data, 10) as any;
+
+  const profileImageByPlayerId = await getProfileImagesByPlayerIds(
+    data.player ? [data.player] : [],
+  );
+
+  return {
+    ...camel,
+    profileImage: profileImageByPlayerId.get(data.player) ?? null,
+  };
 }
 
 async function getPlayerLeaderboardPositionThisWeek(
@@ -202,7 +270,20 @@ async function getPlayerLeaderboardPositionThisWeek(
     return {};
   }
 
-  return changeKeys.camelCase(data, 10);
+  if (!data) {
+    return null;
+  }
+
+  const camel = changeKeys.camelCase(data, 10) as any;
+
+  const profileImageByPlayerId = await getProfileImagesByPlayerIds(
+    data.player ? [data.player] : [],
+  );
+
+  return {
+    ...camel,
+    profileImage: profileImageByPlayerId.get(data.player) ?? null,
+  };
 }
 
 async function getPlayerLeaderboardPositionToday(
@@ -225,7 +306,20 @@ async function getPlayerLeaderboardPositionToday(
     return {};
   }
 
-  return changeKeys.camelCase(data, 10);
+  if (!data) {
+    return null;
+  }
+
+  const camel = changeKeys.camelCase(data, 10) as any;
+
+  const profileImageByPlayerId = await getProfileImagesByPlayerIds(
+    data.player ? [data.player] : [],
+  );
+
+  return {
+    ...camel,
+    profileImage: profileImageByPlayerId.get(data.player) ?? null,
+  };
 }
 
 async function getAvatarCosmeticsByPlayerIds(playerIds: string[]) {
@@ -301,9 +395,12 @@ async function getPlayerLeaderboardAllTime(
 
   const playerIds = rows
     .map((row: any) => row.player)
-    .filter((playerId: string | null | undefined): playerId is string =>
-      Boolean(playerId),
+    .filter(
+      (playerId: string | null | undefined): playerId is string =>
+        Boolean(playerId),
     );
+
+  const profileImageByPlayerId = await getProfileImagesByPlayerIds(playerIds);
 
   const {
     avatarStyleByPlayerId,
@@ -315,6 +412,7 @@ async function getPlayerLeaderboardAllTime(
 
     return {
       ...camel,
+      profileImage: profileImageByPlayerId.get(row.player) ?? null,
       avatarStyleKey: avatarStyleByPlayerId.get(row.player) ?? null,
       avatarFrameKey: avatarFrameByPlayerId.get(row.player) ?? null,
       bestStreak: camel.overallBestStreak ?? 0,
@@ -355,9 +453,12 @@ async function getPlayerLeaderboardForTheYear(
 
   const playerIds = rows
     .map((row: any) => row.player)
-    .filter((playerId: string | null | undefined): playerId is string =>
-      Boolean(playerId),
+    .filter(
+      (playerId: string | null | undefined): playerId is string =>
+        Boolean(playerId),
     );
+
+  const profileImageByPlayerId = await getProfileImagesByPlayerIds(playerIds);
 
   const {
     avatarStyleByPlayerId,
@@ -369,8 +470,10 @@ async function getPlayerLeaderboardForTheYear(
 
     return {
       ...camel,
+      profileImage: profileImageByPlayerId.get(row.player) ?? null,
       avatarStyleKey: avatarStyleByPlayerId.get(row.player) ?? null,
       avatarFrameKey: avatarFrameByPlayerId.get(row.player) ?? null,
+      bestStreak: camel.overallBestStreak ?? 0,
       players: {
         levels: {
           level: camel.level ?? 0,
@@ -410,9 +513,12 @@ async function getPlayerLeaderboardForTheMonth(
 
   const playerIds = rows
     .map((row: any) => row.player)
-    .filter((playerId: string | null | undefined): playerId is string =>
-      Boolean(playerId),
+    .filter(
+      (playerId: string | null | undefined): playerId is string =>
+        Boolean(playerId),
     );
+
+  const profileImageByPlayerId = await getProfileImagesByPlayerIds(playerIds);
 
   const {
     avatarStyleByPlayerId,
@@ -424,8 +530,10 @@ async function getPlayerLeaderboardForTheMonth(
 
     return {
       ...camel,
+      profileImage: profileImageByPlayerId.get(row.player) ?? null,
       avatarStyleKey: avatarStyleByPlayerId.get(row.player) ?? null,
       avatarFrameKey: avatarFrameByPlayerId.get(row.player) ?? null,
+      bestStreak: camel.overallBestStreak ?? 0,
       players: {
         levels: {
           level: camel.level ?? 0,
@@ -465,9 +573,12 @@ async function getPlayerLeaderboardForThisWeek(
 
   const playerIds = rows
     .map((row: any) => row.player)
-    .filter((playerId: string | null | undefined): playerId is string =>
-      Boolean(playerId),
+    .filter(
+      (playerId: string | null | undefined): playerId is string =>
+        Boolean(playerId),
     );
+
+  const profileImageByPlayerId = await getProfileImagesByPlayerIds(playerIds);
 
   const {
     avatarStyleByPlayerId,
@@ -479,8 +590,10 @@ async function getPlayerLeaderboardForThisWeek(
 
     return {
       ...camel,
+      profileImage: profileImageByPlayerId.get(row.player) ?? null,
       avatarStyleKey: avatarStyleByPlayerId.get(row.player) ?? null,
       avatarFrameKey: avatarFrameByPlayerId.get(row.player) ?? null,
+      bestStreak: camel.overallBestStreak ?? 0,
       players: {
         levels: {
           level: camel.level ?? 0,
@@ -522,9 +635,12 @@ async function getPlayerLeaderboardForToday(
 
   const playerIds = rows
     .map((row: any) => row.player)
-    .filter((playerId: string | null | undefined): playerId is string =>
-      Boolean(playerId),
+    .filter(
+      (playerId: string | null | undefined): playerId is string =>
+        Boolean(playerId),
     );
+
+  const profileImageByPlayerId = await getProfileImagesByPlayerIds(playerIds);
 
   const {
     avatarStyleByPlayerId,
@@ -536,8 +652,10 @@ async function getPlayerLeaderboardForToday(
 
     return {
       ...camel,
+      profileImage: profileImageByPlayerId.get(row.player) ?? null,
       avatarStyleKey: avatarStyleByPlayerId.get(row.player) ?? null,
       avatarFrameKey: avatarFrameByPlayerId.get(row.player) ?? null,
+      bestStreak: camel.overallBestStreak ?? 0,
       players: {
         levels: {
           level: camel.level ?? 0,
