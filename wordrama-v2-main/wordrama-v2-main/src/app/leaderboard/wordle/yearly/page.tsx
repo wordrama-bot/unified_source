@@ -12,7 +12,7 @@ import {
   HoverCardContent,
   HoverCardTrigger,
 } from "@/components/ui/hover-card"
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import PlayerAvatar from '@/components/avatar/PlayerAvatar';
 import {
   Pagination,
   PaginationContent,
@@ -348,10 +348,13 @@ export default function WordleYearlyLeaderboardPage() {
                     </HoverCardTrigger>
                     <HoverCardContent className="w-80">
                       <div className="flex justify-between space-x-4">
-                        <Avatar className="h-24 w-24">
-                          <AvatarImage src={player?.profileImage} className="h-24 w-24"/>
-                          <AvatarFallback className="h-24 w-24">{ player?.displayName }</AvatarFallback>
-                        </Avatar>
+                        <PlayerAvatar
+                          profileImage={player?.profileImage}
+                          displayName={player?.displayName || 'Player'}
+                          avatarStyleKey={player?.avatarStyleKey}
+                          avatarFrameKey={player?.avatarFrameKey}
+                          size={96}
+                        />
                         <div className="space-y-1">
                           <div className="text-lg font-semibold">{ player.displayName }</div>
                           <h4 className="text-sm font-semibold">Level { player.players.levels.level }</h4>
@@ -473,10 +476,13 @@ export default function WordleYearlyLeaderboardPage() {
                             </HoverCardTrigger>
                             <HoverCardContent className="w-80">
                               <div className="flex justify-between space-x-4">
-                                <Avatar className="h-24 w-24">
-                                  <AvatarImage src={entry?.profileImage} className="h-24 w-24"/>
-                                  <AvatarFallback className="h-24 w-24">{ entry?.displayName }</AvatarFallback>
-                                </Avatar>
+                                <PlayerAvatar
+                                  profileImage={entry?.profileImage}
+                                  displayName={entry?.displayName || 'Player'}
+                                  avatarStyleKey={entry?.avatarStyleKey}
+                                  avatarFrameKey={entry?.avatarFrameKey}
+                                  size={96}
+                                />
                                 <div className="space-y-1">
                                   <div className="text-lg font-semibold">{ entry?.displayName }</div>
                                   <h4 className="text-sm font-semibold">Level { entry?.players?.levels?.level }</h4>
