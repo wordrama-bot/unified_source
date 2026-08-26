@@ -57,7 +57,7 @@ function AuthComponent() {
                   view={view.id}
                   redirectTo={
                     typeof window !== 'undefined'
-                      ? `${window.location.origin}/auth-callback?flow=recovery`
+                      ? `${window.location.origin}/auth-recovery`
                       : undefined
                   }
                   magicLink={true}
