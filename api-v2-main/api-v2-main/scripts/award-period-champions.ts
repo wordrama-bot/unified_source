@@ -16,7 +16,15 @@ type PeriodConfig = {
   metrics: ChampionMetric[];
 };
 
+const VALID_PERIODS: Period[] = [
+  'daily',
+  'weekly',
+  'monthly',
+  'yearly',
+];
+
 const APPLY = process.argv.includes('--apply');
+const ALL_DUE = process.argv.includes('--all-due');
 
 const periodArg = process.argv.find((arg) =>
   arg.startsWith('--period='),
@@ -24,12 +32,21 @@ const periodArg = process.argv.find((arg) =>
 
 const period = periodArg?.split('=')[1] as Period | undefined;
 
+if (ALL_DUE && period) {
+  throw new Error(
+    'Use either --all-due or --period, not both.',
+  );
+}
+
 if (
-  !period ||
-  !['daily', 'weekly', 'monthly', 'yearly'].includes(period)
+  !ALL_DUE &&
+  (
+    !period ||
+    !VALID_PERIODS.includes(period)
+  )
 ) {
   throw new Error(
-    'Usage: bun run scripts/award-period-champions.ts --period=daily|weekly|monthly|yearly [--apply]',
+    'Usage: bun run scripts/award-period-champions.ts --all-due [--apply] OR --period=daily|weekly|monthly|yearly [--apply]',
   );
 }
 
@@ -91,6 +108,24 @@ const CONFIG: Record<Period, PeriodConfig> = {
   },
 };
 
+function getSundayBasedWeekNumber(date: DateTime) {
+  /*
+   * Match Moment.js week-of-year behavior used when Wordle results
+   * are stored: Sunday is the first day of the week and the first
+   * week is the week containing January 1.
+   */
+  const yearStart = DateTime.utc(date.year, 1, 1);
+
+  const yearStartSundayIndex = yearStart.weekday % 7;
+  const dayOfYearZeroBased = date.ordinal - 1;
+
+  return (
+    Math.floor(
+      (dayOfYearZeroBased + yearStartSundayIndex) / 7,
+    ) + 1
+  );
+}
+
 function getCompletedPeriodFilters(period: Period) {
   const now = DateTime.utc();
 
@@ -145,24 +180,6 @@ function getCompletedPeriodFilters(period: Period) {
       year: completed.year,
     },
   };
-}
-
-function getSundayBasedWeekNumber(date: DateTime) {
-  /*
-   * Match Moment.js week-of-year behavior used when Wordle results
-   * are stored: Sunday is the first day of the week and the first
-   * week is the week containing January 1.
-   */
-  const yearStart = DateTime.utc(date.year, 1, 1);
-
-  const yearStartSundayIndex = yearStart.weekday % 7;
-  const dayOfYearZeroBased = date.ordinal - 1;
-
-  return (
-    Math.floor(
-      (dayOfYearZeroBased + yearStartSundayIndex) / 7,
-    ) + 1
-  );
 }
 
 function getWinningMetrics(
@@ -232,37 +249,64 @@ async function getExistingProgress(
   return data ?? [];
 }
 
-async function main() {
-  const config = CONFIG[period];
+function validateApplyWindow(
+  period: Period,
+  now: DateTime,
+) {
+  if (!APPLY) {
+    return;
+  }
 
+  if (period === 'weekly' && now.weekday !== 7) {
+    throw new Error(
+      'Weekly champion awards may only be applied on Sunday UTC.',
+    );
+  }
+
+  if (period === 'monthly' && now.day !== 1) {
+    throw new Error(
+      'Monthly champion awards may only be applied on the first day of the month UTC.',
+    );
+  }
+
+  if (
+    period === 'yearly' &&
+    !(now.month === 1 && now.day === 1)
+  ) {
+    throw new Error(
+      'Yearly champion awards may only be applied on January 1 UTC.',
+    );
+  }
+}
+
+function getDuePeriods(now: DateTime): Period[] {
+  const duePeriods: Period[] = ['daily'];
+
+  if (now.weekday === 7) {
+    duePeriods.push('weekly');
+  }
+
+  if (now.day === 1) {
+    duePeriods.push('monthly');
+  }
+
+  if (now.month === 1 && now.day === 1) {
+    duePeriods.push('yearly');
+  }
+
+  return duePeriods;
+}
+
+async function runPeriod(period: Period) {
+  const config = CONFIG[period];
   const now = DateTime.utc();
 
-  if (APPLY) {
-    if (period === 'weekly' && now.weekday !== 7) {
-      throw new Error(
-        'Weekly champion awards may only be applied on Sunday UTC.',
-      );
-    }
-
-    if (period === 'monthly' && now.day !== 1) {
-      throw new Error(
-        'Monthly champion awards may only be applied on the first day of the month UTC.',
-      );
-    }
-
-    if (
-      period === 'yearly' &&
-      !(now.month === 1 && now.day === 1)
-    ) {
-      throw new Error(
-        'Yearly champion awards may only be applied on January 1 UTC.',
-      );
-    }
-  }
+  validateApplyWindow(period, now);
 
   const { label, filters } =
     getCompletedPeriodFilters(period);
 
+  console.log('');
   console.log(
     `Checking ${period} champions for completed period: ${label}`,
   );
@@ -340,6 +384,9 @@ async function main() {
     return;
   }
 
+  let completedCount = 0;
+  let skippedCount = 0;
+
   for (const player of preview) {
     if (
       player.challengeStatus === 'COMPLETE' ||
@@ -348,6 +395,8 @@ async function main() {
       console.log(
         `Skipping ${player.displayName}: challenge already complete.`,
       );
+
+      skippedCount++;
       continue;
     }
 
@@ -373,19 +422,47 @@ async function main() {
       );
     }
 
+    completedCount++;
+
     console.log(
       `Completed ${period} champion challenge for ${player.displayName}.`,
     );
   }
 
   console.log(
-    `${period} champion award run complete.`,
+    `${period} champion award run complete. Completed: ${completedCount}. Skipped: ${skippedCount}.`,
   );
+}
+
+async function main() {
+  const now = DateTime.utc();
+
+  if (!ALL_DUE) {
+    await runPeriod(period as Period);
+    return;
+  }
+
+  const duePeriods = getDuePeriods(now);
+
+  console.log(
+    `Champion award run started at ${now.toISO()}.`,
+  );
+
+  console.log(
+    `Periods due: ${duePeriods.join(', ')}`,
+  );
+
+  for (const duePeriod of duePeriods) {
+    await runPeriod(duePeriod);
+  }
+
+  console.log('');
+  console.log('All due champion award periods complete.');
 }
 
 main().catch((error) => {
   console.error(
-    `${period} champion award failed:`,
+    `${period ?? 'all-due'} champion award failed:`,
     error,
   );
 
