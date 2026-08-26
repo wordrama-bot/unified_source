@@ -14,7 +14,7 @@ import referralService from './referrals';
 
 const REFERRAL_COIN_REWARD = 500;
 
-async function getPlayerByUserId(userId: string) {
+async function getPlayerByUserId(userId: string, knownEmail?: string) {
   const { data, error } = await db
     .from('_players')
     .select(
@@ -85,14 +85,20 @@ async function getPlayerByUserId(userId: string) {
     return {};
   }
 
-  const {
-    data: { user },
-  } = await db.auth.admin.getUserById(userId);
+  let email = knownEmail;
+
+  if (!email) {
+    const {
+      data: { user },
+    } = await db.auth.admin.getUserById(userId);
+
+    email = user?.email;
+  }
 
   return changeKeys.camelCase(
     {
       ...data,
-      email: user?.email,
+      email,
     },
     10,
   );

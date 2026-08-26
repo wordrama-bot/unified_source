@@ -20,7 +20,10 @@ import playerSummaryService from '../services/playerSummary';
 
 async function getPlayerProfile(req: ApiRequest, res: Response) {
   //@ts-ignore
-  const player = await playerService.getPlayerByUserId(req.userId);
+  const player = await playerService.getPlayerByUserId(
+    req.userId,
+    req.userEmail,
+  );
   if (!player || !player?.id) return notFoundResponse(req, res);
 
   return successfulResponse(req, res, player, 'Player found', 1);
