@@ -535,6 +535,33 @@ export const wordramaApiV3 = createApi({
       providesTags: ["Player"],
     }),
 
+    getMyAvatar: builder.query<any, void>({
+      query: () => ({
+        url: `/api/v3/player/me/avatar`,
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+      }),
+      providesTags: ["Player"],
+    }),
+
+    updateMyAvatar: builder.mutation<
+      any,
+      {
+        avatarStyleKey?: string | null;
+        avatarFrameKey?: string | null;
+      }
+    >({
+      query: (body) => ({
+        url: `/api/v3/player/me/avatar`,
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body,
+      }),
+      invalidatesTags: ["Player", "Leaderboard"],
+    }),
+
     getCurrentSubscription: builder.query<any, void>({
       query: () => ({
         url: `/api/v3/billing/subscription`,
@@ -931,6 +958,8 @@ export const {
   useGetPublicPlayerByUsernameQuery,
   useGetMyAccountQuery,
   useGetMyEntitlementsQuery,
+  useGetMyAvatarQuery,
+  useUpdateMyAvatarMutation,
   useGetCurrentSubscriptionQuery,
   useCreateCheckoutSessionMutation,
   useChangeSubscriptionPlanMutation,
