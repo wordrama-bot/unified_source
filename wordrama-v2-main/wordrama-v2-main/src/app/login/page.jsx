@@ -63,6 +63,11 @@ function AuthComponent() {
                 <Auth
                   supabaseClient={supabase}
                   view={view.id}
+                  redirectTo={
+                    typeof window !== 'undefined' && view.id === 'forgotten_password'
+                      ? `${window.location.origin}/auth-recovery`
+                      : undefined
+                  }
                   magicLink={true}
                   appearance={{
                     theme: ThemeSupa,
