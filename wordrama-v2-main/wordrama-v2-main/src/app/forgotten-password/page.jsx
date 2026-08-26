@@ -55,6 +55,11 @@ function AuthComponent() {
                 <Auth
                   supabaseClient={supabase}
                   view={view.id}
+                  redirectTo={
+                    typeof window !== 'undefined'
+                      ? `${window.location.origin}/auth/callback`
+                      : undefined
+                  }
                   magicLink={true}
                   appearance={{
                     theme: ThemeSupa,
