@@ -57,7 +57,7 @@ function AuthComponent() {
                   view={view.id}
                   redirectTo={
                     typeof window !== 'undefined'
-                      ? `${window.location.origin}/auth-callback`
+                      ? `${window.location.origin}/auth-callback?flow=recovery`
                       : undefined
                   }
                   magicLink={true}
@@ -78,7 +78,7 @@ function AuthComponent() {
                       },
                     },
                   }}
-                  providers={['discord']}
+                  providers={[]}
                   socialLayout={socialLayout}
                   theme={theme}
                 />

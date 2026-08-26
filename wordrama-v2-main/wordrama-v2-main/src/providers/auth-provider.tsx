@@ -26,6 +26,10 @@ function AuthProvider({ children }: any) {
 
   const logout = async () => {
     await supabase.auth.signOut();
+    Cookies.remove('sb-qflfxxbnhwaxkxsygjqu-auth-token.0');
+    Cookies.remove('sb-qflfxxbnhwaxkxsygjqu-auth-token.1');
+    Cookies.remove('sb-qflfxxbnhwaxkxsygjqu-auth-token');
+    Cookies.remove('sb-qflfxxbnhwaxkxsygjqu-auth-token-code-verifier');
     localStorage.clear();
     sessionStorage.clear();
     setSession(null);
