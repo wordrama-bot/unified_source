@@ -3,7 +3,7 @@ import './App.css'
 //import { getAppInsights } from '@/utils/appInsights';
 import useSound from 'use-sound';
 import { default as GraphemeSplitter } from 'grapheme-splitter'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Div100vh from 'react-div-100vh'
 import { useDispatch } from 'react-redux';
 import { isMobile, isTablet } from 'react-device-detect';
@@ -356,6 +356,7 @@ function App(){
 
   const [updateRemoteState] = useUpdateWordleSavedStateMutation();
   const [updateRemoteUiState] = useUpdateUiSavedStateMutation();
+  const gameStateSaveQueueRef = useRef<Promise<void>>(Promise.resolve());
 
   const [playWinSound] = useSound('/sounds/win.mp3', {
   volume: 0.05,
@@ -665,24 +666,28 @@ const activeSolution = isCustom
 
     const { isLoading, ...newRemoteState } = gameState;
     const shouldRefreshCompletedGameData = currentGame.resultSave;
+    const savedGameMode = gameMode;
 
-    void updateRemoteState(newRemoteState)
-      .unwrap()
-      .then(() => {
-        if (!shouldRefreshCompletedGameData) return;
+    gameStateSaveQueueRef.current = gameStateSaveQueueRef.current.then(
+      async () => {
+        try {
+          await updateRemoteState(newRemoteState).unwrap();
 
-        refetchStats();
+          if (!shouldRefreshCompletedGameData) return;
 
-        if (gameMode !== 'CUSTOM') {
-          refetchLast30();
+          refetchStats();
+
+          if (savedGameMode !== 'CUSTOM') {
+            refetchLast30();
+          }
+
+          refetchStreak();
+          refetchProfile();
+        } catch (error) {
+          console.error('[wordle] failed to save remote game state', error);
         }
-
-        refetchStreak();
-        refetchProfile();
-      })
-      .catch((error) => {
-        console.error('[wordle] failed to save remote game state', error);
-      });
+      },
+    );
   }, [gameState, gameLoading]);
 
   useEffect(() => {
