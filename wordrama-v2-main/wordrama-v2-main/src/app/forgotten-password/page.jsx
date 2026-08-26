@@ -23,7 +23,7 @@ export default function ForgottenPassword() {
     setErrorMessage('');
 
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/auth-recovery`,
+      redirectTo: `${window.location.origin}/auth-callback`,
     });
 
     if (error) {
