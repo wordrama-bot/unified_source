@@ -125,30 +125,6 @@ async function handle100GamesChallenge(userId, challenges) {
 
 const CHAMPION_CHALLENGES = [
   {
-    challengeId: '4a73b85a-9e40-4ed4-a55d-a7de4ce20f8a',
-    period: 'daily',
-    rankPrefix: 'dailyRank',
-    name: 'Daily Champion',
-  },
-  {
-    challengeId: '3beaa47f-5638-4ba2-a42a-b45f3cb5b6bf',
-    period: 'weekly',
-    rankPrefix: 'weeklyRank',
-    name: 'Weekly Champion',
-  },
-  {
-    challengeId: '0af08641-fbe3-454d-b21f-8f2cbdfdb28a',
-    period: 'monthly',
-    rankPrefix: 'monthlyRank',
-    name: 'Monthly Champion',
-  },
-  {
-    challengeId: '95bb2ed7-c13b-4231-9625-e403725a5693',
-    period: 'yearly',
-    rankPrefix: 'yearlyRank',
-    name: 'Yearly Champion',
-  },
-  {
     challengeId: 'eb7590cc-d2a8-4952-a5e5-17e2bbe15202',
     period: 'all-time',
     rankPrefix: 'alltimeRank',
