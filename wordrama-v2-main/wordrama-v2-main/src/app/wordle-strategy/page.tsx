@@ -428,7 +428,7 @@ export default function WordleStrategyPage() {
 
             <p className="mt-4 leading-7">
               Suppose you know almost the entire pattern but several solutions
-              remain. If you have enough turns left, a scouting guess can test
+              remain. If you have enough turns left, a scouting guess, or "filler word", can test
               multiple distinguishing letters simultaneously.
             </p>
 
