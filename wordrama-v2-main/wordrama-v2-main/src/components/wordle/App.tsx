@@ -107,6 +107,7 @@ import {
   getPendingWordleResults,
   queueWordleResult,
   removeWordleResult,
+  type PendingWordleResult,
 } from '@/lib/wordleResultOutbox';
 
 import {
@@ -141,6 +142,125 @@ import { useTheme } from 'next-themes'
 import { useAuth } from '@/providers/auth-provider';
 import { showChristmas } from '@/lib/config';
 import { WinCelebration } from './components/celebrations/WinCelebration';
+
+function guessesArePrefix(
+  prefix: string[],
+  complete: string[],
+) {
+  return (
+    prefix.length <= complete.length &&
+    prefix.every(
+      (guess, index) => guess === complete[index],
+    )
+  );
+}
+
+function reconcileSavedStateWithPendingResults(
+  savedState: any,
+  pendingResults: PendingWordleResult[],
+) {
+  if (!savedState || pendingResults.length === 0) {
+    return savedState;
+  }
+
+  const activeMode = savedState.gameMode;
+  const activeWordPack = savedState.wordPack;
+
+  const activeGame =
+    activeMode === 'CUSTOM'
+      ? savedState.custom
+      : savedState.modes?.[activeMode]?.[activeWordPack];
+
+  if (!activeGame?.solution) {
+    return savedState;
+  }
+
+  const activeGuesses = activeGame.guesses || [];
+
+  // Find the first queued completion that proves the
+  // server's currently-active game was completed locally.
+  const anchorIndex = pendingResults.findIndex(
+    (result) =>
+      result.type === activeMode &&
+      result.wordPack === activeWordPack &&
+      result.solution === activeGame.solution &&
+      guessesArePrefix(
+        activeGuesses,
+        result.guesses,
+      ),
+  );
+
+  if (anchorIndex < 0) {
+    return savedState;
+  }
+
+  // Once we establish continuity with the stale server game,
+  // advance through later locally-completed games from the
+  // same mode/word pack.
+  let latestResult = pendingResults[anchorIndex];
+
+  for (
+    let index = anchorIndex + 1;
+    index < pendingResults.length;
+    index += 1
+  ) {
+    const candidate = pendingResults[index];
+
+    if (
+      candidate.type !== activeMode ||
+      candidate.wordPack !== activeWordPack
+    ) {
+      break;
+    }
+
+    latestResult = candidate;
+  }
+
+  const isGameWon =
+    latestResult.guesses.includes(latestResult.solution);
+
+  const reconciledGame = {
+    ...activeGame,
+    solution: latestResult.solution,
+    guesses: latestResult.guesses,
+    isGameInProgress: false,
+    isGameWon,
+    isGameLost:
+      !isGameWon &&
+      latestResult.guesses.length >= MAX_CHALLENGES,
+    resultSave: false,
+  };
+
+  console.info(
+    '[wordle] reconciled stale saved state from result outbox',
+    {
+      previousSolution: activeGame.solution,
+      restoredSolution: latestResult.solution,
+      restoredResultId: latestResult.resultId,
+    },
+  );
+
+  if (activeMode === 'CUSTOM') {
+    return {
+      ...savedState,
+      custom: {
+        ...savedState.custom,
+        ...reconciledGame,
+      },
+    };
+  }
+
+  return {
+    ...savedState,
+    modes: {
+      ...savedState.modes,
+      [activeMode]: {
+        ...savedState.modes?.[activeMode],
+        [activeWordPack]: reconciledGame,
+      },
+    },
+  };
+}
 
 function App(){
   const { user } = useAuth();
@@ -934,11 +1054,50 @@ const activeSolution = isCustom
 
   // If game is not loaded, load the initial state from the remote state
   useEffect(() => {
-    if (gameState.isLoading === false || isLoadingSavedState) return;
-    // TODO - Fix types
-    //@ts-ignore
-    dispatch(setInitialState(savedState?.data));
-  }, [isLoadingSavedState, savedState]);
+    if (gameState.isLoading === false) return;
+    if (isLoadingSavedState) return;
+    if (!user?.id) return;
+
+    let cancelled = false;
+
+    const hydrateGameState = async () => {
+      let initialState = savedState?.data;
+
+      try {
+        const pendingResults =
+          await getPendingWordleResults(user.id);
+
+        initialState =
+          reconcileSavedStateWithPendingResults(
+            initialState,
+            pendingResults,
+          );
+      } catch (error) {
+        console.error(
+          '[wordle] failed to reconcile saved state with result outbox',
+          error,
+        );
+      }
+
+      if (cancelled) return;
+
+      // TODO - Fix types
+      // @ts-ignore
+      dispatch(setInitialState(initialState));
+    };
+
+    void hydrateGameState();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    gameState.isLoading,
+    isLoadingSavedState,
+    savedState,
+    user?.id,
+    dispatch,
+  ]);
 
   // If the game is loaded and gameMode is daily,
   // load the word of the day
