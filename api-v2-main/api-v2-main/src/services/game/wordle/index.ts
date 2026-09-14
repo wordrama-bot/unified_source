@@ -146,7 +146,7 @@ async function submitWordleResult(userId: string, body: AddGameResult) {
     }
   }
 
-  if (body.type === 'DAILY') {
+  if (!body.resultId && body.type === 'DAILY') {
     const duplicateWindowStart = new Date(
       Date.now() - 10 * 60 * 1000,
     ).toISOString();
