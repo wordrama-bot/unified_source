@@ -424,7 +424,11 @@ function App(){
   const [isUiHydrated, setIsUiHydrated] = useState(false);
 
   // API
-  const { data: savedState, isLoading: isLoadingSavedState } = useGetWordleSavedStateQuery();
+  const {
+    data: savedState,
+    isLoading: isLoadingSavedState,
+    isError: isErrorSavedState,
+  } = useGetWordleSavedStateQuery();
   const { data: uiSavedState, isLoading: isLoadingUiSavedState } = useGetUiSavedStateQuery();
   useEffect(() => {
     if (isUiHydrated) return;
@@ -486,6 +490,7 @@ function App(){
   const [submitWordleResult] = useSubmitWordleResultMutation();
   const resultSyncInProgressRef = useRef(false);
   const resultFinalizationInProgressRef = useRef(false);
+  const pendingReconciledStateRef = useRef<any | null>(null);
   const gameStateSaveQueueRef = useRef<Promise<void>>(Promise.resolve());
 
   const [playWinSound] = useSound('/sounds/win.mp3', {
@@ -520,6 +525,8 @@ const activeSolution = isCustom
   const [isRevealing, setIsRevealing] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
   const [currentGuess, setCurrentGuess] = useState('');
+  const [isGameStateHydrated, setIsGameStateHydrated] =
+    useState(false);
 
   useEffect(() => {
     if (!isGameWon && !isGameLost) {
@@ -529,6 +536,7 @@ const activeSolution = isCustom
 
   const syncPendingWordleResults = useCallback(async () => {
     if (!user?.id) return 0;
+    if (!isGameStateHydrated) return 0;
     if (resultSyncInProgressRef.current) return 0;
 
     resultSyncInProgressRef.current = true;
@@ -536,7 +544,22 @@ const activeSolution = isCustom
     let syncedCount = 0;
 
     try {
-      const pendingResults = await getPendingWordleResults(user.id);
+      const reconciledState =
+        pendingReconciledStateRef.current;
+
+      if (reconciledState) {
+        const {
+          isLoading,
+          ...remoteState
+        } = reconciledState;
+
+        await updateRemoteState(remoteState).unwrap();
+
+        pendingReconciledStateRef.current = null;
+      }
+
+      const pendingResults =
+        await getPendingWordleResults(user.id);
 
       for (const pendingResult of pendingResults) {
         const resultPayload = {
@@ -599,7 +622,12 @@ const activeSolution = isCustom
     }
 
     return syncedCount;
-  }, [submitWordleResult, user?.id]);
+  }, [
+    isGameStateHydrated,
+    submitWordleResult,
+    updateRemoteState,
+    user?.id,
+  ]);
 
   useEffect(() => {
     if (!user?.id) return;
@@ -1056,6 +1084,8 @@ const activeSolution = isCustom
   useEffect(() => {
     if (gameState.isLoading === false) return;
     if (isLoadingSavedState) return;
+    if (isErrorSavedState) return;
+    if (!savedState?.data) return;
     if (!user?.id) return;
 
     let cancelled = false;
@@ -1067,11 +1097,18 @@ const activeSolution = isCustom
         const pendingResults =
           await getPendingWordleResults(user.id);
 
-        initialState =
+        const reconciledState =
           reconcileSavedStateWithPendingResults(
             initialState,
             pendingResults,
           );
+
+        if (reconciledState !== initialState) {
+          pendingReconciledStateRef.current =
+            reconciledState;
+        }
+
+        initialState = reconciledState;
       } catch (error) {
         console.error(
           '[wordle] failed to reconcile saved state with result outbox',
@@ -1084,6 +1121,8 @@ const activeSolution = isCustom
       // TODO - Fix types
       // @ts-ignore
       dispatch(setInitialState(initialState));
+
+      setIsGameStateHydrated(true);
     };
 
     void hydrateGameState();
@@ -1094,6 +1133,7 @@ const activeSolution = isCustom
   }, [
     gameState.isLoading,
     isLoadingSavedState,
+    isErrorSavedState,
     savedState,
     user?.id,
     dispatch,

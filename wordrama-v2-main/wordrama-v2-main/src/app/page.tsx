@@ -505,7 +505,7 @@ function Authenticated() {
 
   if (myAccount?.data?.hasMigrated === false) return <Migrate />
     else if (myAccount?.status === 200) return <AuthenticatedHome />
-    else if (error && user) return <FirstSetup />
+    else if ((error as any)?.status === 404 && user) return <FirstSetup />
     else if (!user) return <PublicHome />
 
   return (

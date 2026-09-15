@@ -38,8 +38,16 @@ export default function Layout({
     </div>
   )
 
-  if (error) return redirect('/');
-  if (isLoading && !error) return <Loader />
+  const accountErrorStatus = (error as any)?.status;
+
+  if (
+    accountErrorStatus === 401 ||
+    accountErrorStatus === 403
+  ) {
+    return redirect('/');
+  }
+
+  if (isLoading) return <Loader />
   return (
     <div className={cn("flex min-h-screen w-full flex-col border:border dark:border-darkBorder bg-bg dark:bg-darkBg text-text dark:text-darkText", className)}>
       <NavBar
