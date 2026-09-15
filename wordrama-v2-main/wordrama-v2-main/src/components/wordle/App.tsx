@@ -629,18 +629,10 @@ const activeSolution = isCustom
     user?.id,
   ]);
 
-  useEffect(() => {
-    if (!user?.id) return;
-
-    const syncAndRefresh = async () => {
-      if (
-        typeof navigator !== 'undefined' &&
-        !navigator.onLine
-      ) {
-        return;
-      }
-
-      const syncedCount = await syncPendingWordleResults();
+  const syncPendingWordleResultsAndRefresh =
+    useCallback(async () => {
+      const syncedCount =
+        await syncPendingWordleResults();
 
       if (syncedCount < 1) return;
 
@@ -652,6 +644,27 @@ const activeSolution = isCustom
 
       refetchStreak();
       refetchProfile();
+    }, [
+      gameMode,
+      syncPendingWordleResults,
+      refetchStats,
+      refetchLast30,
+      refetchStreak,
+      refetchProfile,
+    ]);
+
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const syncAndRefresh = async () => {
+      if (
+        typeof navigator !== 'undefined' &&
+        !navigator.onLine
+      ) {
+        return;
+      }
+
+      await syncPendingWordleResultsAndRefresh();
     };
 
     // Recover anything left over from a previous session.
@@ -682,12 +695,7 @@ const activeSolution = isCustom
     };
   }, [
     user?.id,
-    gameMode,
-    syncPendingWordleResults,
-    refetchStats,
-    refetchLast30,
-    refetchStreak,
-    refetchProfile,
+    syncPendingWordleResultsAndRefresh,
   ]);
 
   const isDaily = gameMode === 'DAILY';
@@ -976,7 +984,7 @@ const activeSolution = isCustom
 
         setCurrentGuess('');
 
-        void syncPendingWordleResults();
+        void syncPendingWordleResultsAndRefresh();
 
         return;
       }
@@ -1026,7 +1034,7 @@ const activeSolution = isCustom
           durationMs: 3000,
         });
 
-        void syncPendingWordleResults();
+        void syncPendingWordleResultsAndRefresh();
 
         return;
       }
