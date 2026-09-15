@@ -675,7 +675,15 @@ export const wordramaApiV3 = createApi({
       invalidatesTags: ["Player", "Settings", "Stats"],
     }),
 
-    submitWordleResult: builder.mutation<void, any>({
+    submitWordleResult: builder.mutation<
+      {
+        data?: {
+          resultId?: string;
+          duplicate?: boolean;
+        };
+      },
+      any
+    >({
       query: (body) => ({
         url: `/api/v3/game/wordle/result`,
         method: "POST",

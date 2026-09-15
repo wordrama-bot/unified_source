@@ -8,6 +8,8 @@ export const addGameResult = z.object({
   type: z.string(),
   wordPack: z.string(),
   shareCode: z.string().optional(),
+  resultId: z.string().uuid().optional(),
+  clientCompletedAt: z.string().datetime().optional(),
 });
 export type AddGameResult = z.infer<typeof addGameResult>;
 
