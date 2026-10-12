@@ -1,163 +1,175 @@
-"use client"
-import React, { useEffect, useState } from 'react';
-import { Provider as ReduxProvider } from "react-redux";
+import type { Metadata, Viewport } from "next";
+import { DM_Sans } from "next/font/google";
+import Script from "next/script";
 
-import { DM_Sans } from 'next/font/google';
-import './globals.css';
-import { ThemeProvider } from '@/providers/theme-provider';
-import AuthProvider from '@/providers/auth-provider';
-import { store } from '@/redux/config/store';
-import { usePathname } from "next/navigation";
-import { Toaster } from '@/components/ui/toaster';
-import { TooltipProvider } from '@/components/ui/tooltip';
-import GoogleAdsense from '@/components/adsense';
-import { ErrorBoundary } from '@/components/error-boundary';
-import CookieConsentBanner from '@/components/cookie-consent';
-import Script from 'next/script';
+import "./globals.css";
 
-const dmSans = DM_Sans({ subsets: ['latin'] });
+import AppProviders from "@/providers/app-providers";
+import GoogleAdsense from "@/components/adsense";
+
+const dmSans = DM_Sans({ subsets: ["latin"] });
+
+const siteUrl = "https://wordrama.io";
+
+const siteTitle =
+  "Wordrama | Free Daily Word Game & Wordle Alternative";
+
+const siteDescription =
+  "Play Wordrama, a free daily word game and Wordle alternative with classic 5-letter puzzles, longer word challenges, free play, achievements, teams, custom themes, and word packs.";
+
+export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
+
+  title: siteTitle,
+
+  description: siteDescription,
+
+  applicationName: "Wordrama",
+  authors: [{ name: "Wordrama.io" }],
+
+  robots: {
+    index: true,
+    follow: true,
+  },
+
+  openGraph: {
+    title: siteTitle,
+    description: siteDescription,
+    url: siteUrl,
+    siteName: "Wordrama",
+    locale: "en_US",
+    type: "website",
+    images: [
+      {
+        url: "/images/wordrama-logo-letter-large.png",
+      },
+    ],
+  },
+
+  twitter: {
+    card: "summary_large_image",
+    title: siteTitle,
+    description: siteDescription,
+    images: [
+      "/images/wordrama-logo-letter-large.png",
+    ],
+  },
+
+  icons: {
+    icon: [
+      {
+        url: "/images/wordrama-logo-letter-small.png",
+        sizes: "96x96",
+        type: "image/png",
+      },
+      {
+        url: "/images/wordrama-logo-letter-large.png",
+        type: "image/png",
+      },
+    ],
+    shortcut: "/favicon.ico",
+    apple: [
+      {
+        url: "/images/wordrama-logo-letter-small.png",
+        sizes: "180x180",
+      },
+    ],
+  },
+
+  manifest: "/site.webmanifest",
+
+  appleWebApp: {
+    title: "Wordrama",
+  },
+
+  other: {
+    "google-adsense-account": "ca-pub-8970369628667981",
+    "msapplication-TileColor": "#ffffff",
+  },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  themeColor: "#ffffff",
+};
+
+const organizationSchema = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: "Wordrama",
+  url: siteUrl,
+  logo:
+    "https://wordrama.io/images/wordrama-logo-letter-small.png",
+  description:
+    "Wordrama is an online word puzzle and vocabulary game platform featuring daily puzzles, multiplayer gameplay, leaderboards, statistics, and educational word game content.",
+};
+
+const websiteSchema = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: "Wordrama",
+  url: siteUrl,
+  description:
+    "Play Wordrama online and explore daily word puzzles, strategy guides, multiplayer word games, and vocabulary-building gameplay.",
+};
 
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode
+  children: React.ReactNode;
 }>) {
-  usePathname();
-
-  const [isCookiesVisible, setIsCookiesVisible] = useState(true);
-  const [cookieBannerKey, setCookieBannerKey] = useState(0);
-
-  useEffect(() => {
-    const openPreferences = () => {
-      setIsCookiesVisible(false);
-
-      window.setTimeout(() => {
-        setCookieBannerKey((prev) => prev + 1);
-        setIsCookiesVisible(true);
-      }, 0);
-    };
-
-    window.addEventListener("open-cookie-preferences", openPreferences);
-
-    return () => {
-      window.removeEventListener("open-cookie-preferences", openPreferences);
-    };
-  }, []);
-
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
-        <title>Wordrama | Free Daily Word Game & Wordle Alternative</title>
-
-        <meta
-          name="description"
-          content="Play Wordrama, a free daily word game and Wordle alternative with classic 5-letter puzzles, longer word challenges, free play, achievements, teams, custom themes, and word packs."
-        />
-        <meta name="robots" content="index, follow" />
-        <meta name="author" content="Wordrama.io" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <meta name="theme-color" content="#ffffff" />
-        <meta name="msapplication-TileColor" content="#ffffff" />
-        <meta name="google-adsense-account" content="ca-pub-8970369628667981" />
-
-        <meta
-          property="og:title"
-          content="Wordrama | Free Daily Word Game & Wordle Alternative"
-        />
-        <meta
-          property="og:description"
-          content="Play Wordrama, a free daily word game and Wordle alternative with classic 5-letter puzzles, longer word challenges, free play, achievements, teams, custom themes, and word packs."
-        />
-        <meta
-          property="og:image"
-          content="https://wordrama.io/images/wordrama-logo-letter-large.png"
-        />
-        <meta property="og:url" content="https://wordrama.io" />
-        <meta property="og:type" content="website" />
-        <meta property="og:site_name" content="Wordrama" />
-        <meta property="og:locale" content="en_US" />
-
-        <meta
-          name="twitter:card"
-          content="summary_large_image"
-        />
-        <meta
-          name="twitter:title"
-          content="Wordrama | Free Daily Word Game & Wordle Alternative"
-        />
-        <meta
-          name="twitter:description"
-          content="Play Wordrama, a free daily word game and Wordle alternative with classic 5-letter puzzles, longer word challenges, free play, achievements, teams, custom themes, and word packs."
-        />
-        <meta
-          name="twitter:image"
-          content="https://wordrama.io/images/wordrama-logo-letter-large.png"
-        />
-
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "Organization",
-              name: "Wordrama",
-              url: "https://wordrama.io",
-              logo: "https://wordrama.io/images/wordrama-logo-letter-small.png",
-              description:
-                "Wordrama is an online word puzzle and vocabulary game platform featuring daily puzzles, multiplayer gameplay, leaderboards, statistics, and educational word game content."
-            }),
+            __html: JSON.stringify(organizationSchema),
           }}
         />
 
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "WebSite",
-              name: "Wordrama",
-              url: "https://wordrama.io",
-              description:
-                "Play Wordrama online and explore daily word puzzles, strategy guides, multiplayer word games, and vocabulary-building gameplay."
-            }),
+            __html: JSON.stringify(websiteSchema),
           }}
         />
 
         <link
-          rel="icon"
-          type="image/png"
-          href="/images/wordrama-logo-letter-small.png"
-          sizes="96x96"
+          rel="preconnect"
+          href="https://api.wordrama.io"
         />
         <link
-          rel="icon"
-          type="image/png"
-          href="/images/wordrama-logo-letter-large.png"
+          rel="preconnect"
+          href="https://pagead2.googlesyndication.com"
         />
-        <link rel="shortcut icon" href="/favicon.ico" />
         <link
-          rel="apple-touch-icon"
-          sizes="180x180"
-          href="/images/wordrama-logo-letter-small.png"
+          rel="preconnect"
+          href="https://www.googletagmanager.com"
         />
-        <meta name="apple-mobile-web-app-title" content="Wordrama" />
-        <link rel="manifest" href="/site.webmanifest" />
-
-        <link rel="canonical" href="https://wordrama.io" />
-
-        <link rel="preconnect" href="https://api.wordrama.io" />
-        <link rel="preconnect" href="https://pagead2.googlesyndication.com" />
-        <link rel="preconnect" href="https://www.googletagmanager.com" />
-        <link rel="preconnect" href="https://js.monitor.azure.com" />
-        <link rel="preconnect" href="https://fundingchoicesmessages.google.com" />
-        <link rel="preconnect" href="https://qflfxxbnhwaxkxsygjqu.supabase.co" />
+        <link
+          rel="preconnect"
+          href="https://js.monitor.azure.com"
+        />
+        <link
+          rel="preconnect"
+          href="https://fundingchoicesmessages.google.com"
+        />
+        <link
+          rel="preconnect"
+          href="https://qflfxxbnhwaxkxsygjqu.supabase.co"
+        />
 
         <Script
           src="https://www.googletagmanager.com/gtag/js?id=G-TZGVP6PMBC"
           strategy="afterInteractive"
         />
 
-        <Script id="google-analytics" strategy="afterInteractive">
+        <Script
+          id="google-analytics"
+          strategy="afterInteractive"
+        >
           {`
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
@@ -165,29 +177,11 @@ export default function RootLayout({
             gtag('config', 'G-TZGVP6PMBC');
           `}
         </Script>
-
-        <GoogleAdsense pId="8970369628667981" />
       </head>
 
       <body className={dmSans.className}>
-        <ErrorBoundary>
-          <ThemeProvider attribute="class" disableTransitionOnChange>
-            <AuthProvider>
-              <ReduxProvider store={store}>
-                <TooltipProvider>
-                  {isCookiesVisible && (
-                    <CookieConsentBanner
-                      key={cookieBannerKey}
-                      forceOpen={cookieBannerKey > 0}
-                    />
-                  )}
-                  {children}
-                </TooltipProvider>
-                <Toaster />
-              </ReduxProvider>
-            </AuthProvider>
-          </ThemeProvider>
-        </ErrorBoundary>
+        <AppProviders>{children}</AppProviders>
+        <GoogleAdsense pId="8970369628667981" />
       </body>
     </html>
   );
