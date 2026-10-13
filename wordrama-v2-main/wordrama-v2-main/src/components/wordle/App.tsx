@@ -489,6 +489,8 @@ function App(){
   const [updateRemoteUiState] = useUpdateUiSavedStateMutation();
   const [submitWordleResult] = useSubmitWordleResultMutation();
   const resultSyncInProgressRef = useRef(false);
+  const resultSyncQueueRef =
+    useRef<Promise<number>>(Promise.resolve(0));
   const resultFinalizationInProgressRef = useRef(false);
   const pendingReconciledStateRef = useRef<any | null>(null);
   const gameStateSaveQueueRef = useRef<Promise<void>>(Promise.resolve());
@@ -534,7 +536,7 @@ const activeSolution = isCustom
     }
   }, [solution, isGameWon, isGameLost]);
 
-  const syncPendingWordleResults = useCallback(async () => {
+  const runPendingWordleResultSync = useCallback(async () => {
     if (!user?.id) return 0;
     if (!isGameStateHydrated) return 0;
     if (resultSyncInProgressRef.current) return 0;
@@ -628,6 +630,17 @@ const activeSolution = isCustom
     updateRemoteState,
     user?.id,
   ]);
+
+  const syncPendingWordleResults = useCallback(() => {
+    const queuedSync = resultSyncQueueRef.current.then(
+      () => runPendingWordleResultSync(),
+      () => runPendingWordleResultSync(),
+    );
+
+    resultSyncQueueRef.current = queuedSync;
+
+    return queuedSync;
+  }, [runPendingWordleResultSync]);
 
   const syncPendingWordleResultsAndRefresh =
     useCallback(async () => {
