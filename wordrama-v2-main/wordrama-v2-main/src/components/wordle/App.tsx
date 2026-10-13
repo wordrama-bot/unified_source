@@ -3,7 +3,7 @@ import './App.css'
 //import { getAppInsights } from '@/utils/appInsights';
 import useSound from 'use-sound';
 import { default as GraphemeSplitter } from 'grapheme-splitter'
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import Div100vh from 'react-div-100vh'
 import { useDispatch } from 'react-redux';
 import { isMobile, isTablet } from 'react-device-detect';
@@ -100,7 +100,15 @@ import {
   useGetMyAccountQuery,
   useGetMyEntitlementsQuery,
   useUpdateSettingsMutation,
+  useSubmitWordleResultMutation,
 } from '../../redux/api/wordrama';
+
+import {
+  getPendingWordleResults,
+  queueWordleResult,
+  removeWordleResult,
+  type PendingWordleResult,
+} from '@/lib/wordleResultOutbox';
 
 import {
   findFirstUnusedReveal,
@@ -134,6 +142,125 @@ import { useTheme } from 'next-themes'
 import { useAuth } from '@/providers/auth-provider';
 import { showChristmas } from '@/lib/config';
 import { WinCelebration } from './components/celebrations/WinCelebration';
+
+function guessesArePrefix(
+  prefix: string[],
+  complete: string[],
+) {
+  return (
+    prefix.length <= complete.length &&
+    prefix.every(
+      (guess, index) => guess === complete[index],
+    )
+  );
+}
+
+function reconcileSavedStateWithPendingResults(
+  savedState: any,
+  pendingResults: PendingWordleResult[],
+) {
+  if (!savedState || pendingResults.length === 0) {
+    return savedState;
+  }
+
+  const activeMode = savedState.gameMode;
+  const activeWordPack = savedState.wordPack;
+
+  const activeGame =
+    activeMode === 'CUSTOM'
+      ? savedState.custom
+      : savedState.modes?.[activeMode]?.[activeWordPack];
+
+  if (!activeGame?.solution) {
+    return savedState;
+  }
+
+  const activeGuesses = activeGame.guesses || [];
+
+  // Find the first queued completion that proves the
+  // server's currently-active game was completed locally.
+  const anchorIndex = pendingResults.findIndex(
+    (result) =>
+      result.type === activeMode &&
+      result.wordPack === activeWordPack &&
+      result.solution === activeGame.solution &&
+      guessesArePrefix(
+        activeGuesses,
+        result.guesses,
+      ),
+  );
+
+  if (anchorIndex < 0) {
+    return savedState;
+  }
+
+  // Once we establish continuity with the stale server game,
+  // advance through later locally-completed games from the
+  // same mode/word pack.
+  let latestResult = pendingResults[anchorIndex];
+
+  for (
+    let index = anchorIndex + 1;
+    index < pendingResults.length;
+    index += 1
+  ) {
+    const candidate = pendingResults[index];
+
+    if (
+      candidate.type !== activeMode ||
+      candidate.wordPack !== activeWordPack
+    ) {
+      break;
+    }
+
+    latestResult = candidate;
+  }
+
+  const isGameWon =
+    latestResult.guesses.includes(latestResult.solution);
+
+  const reconciledGame = {
+    ...activeGame,
+    solution: latestResult.solution,
+    guesses: latestResult.guesses,
+    isGameInProgress: false,
+    isGameWon,
+    isGameLost:
+      !isGameWon &&
+      latestResult.guesses.length >= MAX_CHALLENGES,
+    resultSave: false,
+  };
+
+  console.info(
+    '[wordle] reconciled stale saved state from result outbox',
+    {
+      previousSolution: activeGame.solution,
+      restoredSolution: latestResult.solution,
+      restoredResultId: latestResult.resultId,
+    },
+  );
+
+  if (activeMode === 'CUSTOM') {
+    return {
+      ...savedState,
+      custom: {
+        ...savedState.custom,
+        ...reconciledGame,
+      },
+    };
+  }
+
+  return {
+    ...savedState,
+    modes: {
+      ...savedState.modes,
+      [activeMode]: {
+        ...savedState.modes?.[activeMode],
+        [activeWordPack]: reconciledGame,
+      },
+    },
+  };
+}
 
 function App(){
   const { user } = useAuth();
@@ -297,7 +424,11 @@ function App(){
   const [isUiHydrated, setIsUiHydrated] = useState(false);
 
   // API
-  const { data: savedState, isLoading: isLoadingSavedState } = useGetWordleSavedStateQuery();
+  const {
+    data: savedState,
+    isLoading: isLoadingSavedState,
+    isError: isErrorSavedState,
+  } = useGetWordleSavedStateQuery();
   const { data: uiSavedState, isLoading: isLoadingUiSavedState } = useGetUiSavedStateQuery();
   useEffect(() => {
     if (isUiHydrated) return;
@@ -356,6 +487,12 @@ function App(){
 
   const [updateRemoteState] = useUpdateWordleSavedStateMutation();
   const [updateRemoteUiState] = useUpdateUiSavedStateMutation();
+  const [submitWordleResult] = useSubmitWordleResultMutation();
+  const resultSyncInProgressRef = useRef(false);
+  const resultSyncQueueRef =
+    useRef<Promise<number>>(Promise.resolve(0));
+  const resultFinalizationInProgressRef = useRef(false);
+  const pendingReconciledStateRef = useRef<any | null>(null);
   const gameStateSaveQueueRef = useRef<Promise<void>>(Promise.resolve());
 
   const [playWinSound] = useSound('/sounds/win.mp3', {
@@ -390,6 +527,189 @@ const activeSolution = isCustom
   const [isRevealing, setIsRevealing] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
   const [currentGuess, setCurrentGuess] = useState('');
+  const [isGameStateHydrated, setIsGameStateHydrated] =
+    useState(false);
+
+  useEffect(() => {
+    if (!isGameWon && !isGameLost) {
+      resultFinalizationInProgressRef.current = false;
+    }
+  }, [solution, isGameWon, isGameLost]);
+
+  const runPendingWordleResultSync = useCallback(async () => {
+    if (!user?.id) return 0;
+    if (!isGameStateHydrated) return 0;
+    if (resultSyncInProgressRef.current) return 0;
+
+    resultSyncInProgressRef.current = true;
+
+    let syncedCount = 0;
+
+    try {
+      const reconciledState =
+        pendingReconciledStateRef.current;
+
+      if (reconciledState) {
+        const {
+          isLoading,
+          ...remoteState
+        } = reconciledState;
+
+        await updateRemoteState(remoteState).unwrap();
+
+        pendingReconciledStateRef.current = null;
+      }
+
+      const pendingResults =
+        await getPendingWordleResults(user.id);
+
+      for (const pendingResult of pendingResults) {
+        const resultPayload = {
+          resultId: pendingResult.resultId,
+          clientCompletedAt: pendingResult.clientCompletedAt,
+          solution: pendingResult.solution,
+          guesses: pendingResult.guesses,
+          gameWasHardMode: pendingResult.gameWasHardMode,
+          type: pendingResult.type,
+          wordPack: pendingResult.wordPack,
+          ...(pendingResult.shareCode
+            ? { shareCode: pendingResult.shareCode }
+            : {}),
+        };
+
+        try {
+          const response = await submitWordleResult(
+            resultPayload,
+          ).unwrap();
+
+          if (
+            response?.data?.resultId !== pendingResult.resultId
+          ) {
+            console.warn(
+              '[wordle] result sync acknowledgement mismatch',
+              {
+                expectedResultId: pendingResult.resultId,
+                acknowledgedResultId: response?.data?.resultId,
+              },
+            );
+
+            // Never discard the durable local copy unless the
+            // server explicitly acknowledges this exact result UUID.
+            break;
+          }
+
+          await removeWordleResult(pendingResult.resultId);
+          syncedCount += 1;
+        } catch (error) {
+          console.warn(
+            '[wordle] pending result sync paused',
+            {
+              resultId: pendingResult.resultId,
+              error,
+            },
+          );
+
+          // Keep this result and all later results queued.
+          // We preserve submission order and retry later.
+          break;
+        }
+      }
+    } catch (error) {
+      console.error(
+        '[wordle] unable to process pending result outbox',
+        error,
+      );
+    } finally {
+      resultSyncInProgressRef.current = false;
+    }
+
+    return syncedCount;
+  }, [
+    isGameStateHydrated,
+    submitWordleResult,
+    updateRemoteState,
+    user?.id,
+  ]);
+
+  const syncPendingWordleResults = useCallback(() => {
+    const queuedSync = resultSyncQueueRef.current.then(
+      () => runPendingWordleResultSync(),
+      () => runPendingWordleResultSync(),
+    );
+
+    resultSyncQueueRef.current = queuedSync;
+
+    return queuedSync;
+  }, [runPendingWordleResultSync]);
+
+  const syncPendingWordleResultsAndRefresh =
+    useCallback(async () => {
+      const syncedCount =
+        await syncPendingWordleResults();
+
+      if (syncedCount < 1) return;
+
+      refetchStats();
+
+      if (gameMode !== 'CUSTOM') {
+        refetchLast30();
+      }
+
+      refetchStreak();
+      refetchProfile();
+    }, [
+      gameMode,
+      syncPendingWordleResults,
+      refetchStats,
+      refetchLast30,
+      refetchStreak,
+      refetchProfile,
+    ]);
+
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const syncAndRefresh = async () => {
+      if (
+        typeof navigator !== 'undefined' &&
+        !navigator.onLine
+      ) {
+        return;
+      }
+
+      await syncPendingWordleResultsAndRefresh();
+    };
+
+    // Recover anything left over from a previous session.
+    void syncAndRefresh();
+
+    const handleOnline = () => {
+      void syncAndRefresh();
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        void syncAndRefresh();
+      }
+    };
+
+    window.addEventListener('online', handleOnline);
+    document.addEventListener(
+      'visibilitychange',
+      handleVisibilityChange,
+    );
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      document.removeEventListener(
+        'visibilitychange',
+        handleVisibilityChange,
+      );
+    };
+  }, [
+    user?.id,
+    syncPendingWordleResultsAndRefresh,
+  ]);
 
   const isDaily = gameMode === 'DAILY';
   const isInfinite = gameMode === 'INFINITE';
@@ -524,8 +844,35 @@ const activeSolution = isCustom
     setCurrentGuess(new GraphemeSplitter().splitGraphemes(currentGuess).slice(0, -1).join(''))
   }
 
+  async function queueCompletedWordleGame(
+    completedGuesses: string[],
+  ) {
+    if (!user?.id) {
+      throw new Error('Cannot queue Wordle result without a player');
+    }
+
+    const resultId = crypto.randomUUID();
+    const clientCompletedAt = new Date().toISOString();
+
+    await queueWordleResult({
+      resultId,
+      playerId: user.id,
+      clientCompletedAt,
+      solution,
+      guesses: completedGuesses,
+      gameWasHardMode: false,
+      type: gameMode,
+      wordPack,
+      ...(isCustom && gameState.custom.joinCode
+        ? { shareCode: gameState.custom.joinCode }
+        : {}),
+    });
+
+    return resultId;
+  }
+
   // Called when a user presses enter on the virtual or physical keyboard
-  function onEnter() {
+  async function onEnter() {
     if (isGameWon || isGameLost) {
       if (isCustom) return;
       if (isDaily) {
@@ -603,48 +950,105 @@ const activeSolution = isCustom
     ) {
 
       if (winningWord) {
-        showSuccessAlert(WIN_MESSAGES[Math.floor(Math.random() * WIN_MESSAGES.length)], {
-          persist: false,
-          delayMs: REVEAL_TIME_MS * 5 + 1,
-          durationMs: 3000,
-        });
-        //appInsights.trackEvent({ name: 'gameWon', properties: { gameMode, wordPack, solution, guesses, player: user.id } });
+        if (resultFinalizationInProgressRef.current) return;
+        resultFinalizationInProgressRef.current = true;
+
+        const completedGuesses = [
+          ...guesses,
+          currentGuess,
+        ];
+
+        try {
+          await queueCompletedWordleGame(completedGuesses);
+        } catch (error) {
+          console.error(
+            '[wordle] failed to persist completed game locally',
+            error,
+          );
+
+          resultFinalizationInProgressRef.current = false;
+
+          setIsRevealing(false);
+
+          return showErrorAlert(
+            'Your game could not be saved safely. Please try again.',
+          );
+        }
+
+        showSuccessAlert(
+          WIN_MESSAGES[Math.floor(Math.random() * WIN_MESSAGES.length)],
+          {
+            persist: false,
+            delayMs: REVEAL_TIME_MS * 5 + 1,
+            durationMs: 3000,
+          },
+        );
+
         if (gameSoundEnabled) {
           handlePlayWinSound();
         }
+
         updateGameState({
           ...currentGame,
-          guesses: [
-            ...guesses,
-            currentGuess
-          ],
+          guesses: completedGuesses,
           isGameWon: true,
-          resultSave: true
+          resultSave: false,
         });
+
         setCurrentGuess('');
+
+        void syncPendingWordleResultsAndRefresh();
+
         return;
       }
 
       if (guesses.length === MAX_CHALLENGES - 1) {
-        //appInsights.trackEvent({ name: 'gameLost', properties: { gameMode, wordPack, solution, guesses, player: user.id } });
+        if (resultFinalizationInProgressRef.current) return;
+        resultFinalizationInProgressRef.current = true;
+
+        const completedGuesses = [
+          ...guesses,
+          currentGuess,
+        ];
+
+        try {
+          await queueCompletedWordleGame(completedGuesses);
+        } catch (error) {
+          console.error(
+            '[wordle] failed to persist completed game locally',
+            error,
+          );
+
+          resultFinalizationInProgressRef.current = false;
+
+          setIsRevealing(false);
+
+          return showErrorAlert(
+            'Your game could not be saved safely. Please try again.',
+          );
+        }
+
         if (gameSoundEnabled) {
           handlePlayLoseSound();
         }
+
         updateGameState({
           ...currentGame,
-          guesses: [
-            ...guesses,
-            currentGuess
-          ],
+          guesses: completedGuesses,
           isGameLost: true,
-          resultSave: true
-        })
+          resultSave: false,
+        });
+
         setCurrentGuess('');
+
         showErrorAlert(CORRECT_WORD_MESSAGE(solution), {
           persist: false,
           delayMs: REVEAL_TIME_MS * 5 + 1,
           durationMs: 3000,
         });
+
+        void syncPendingWordleResultsAndRefresh();
+
         return;
       }
 
@@ -699,11 +1103,62 @@ const activeSolution = isCustom
 
   // If game is not loaded, load the initial state from the remote state
   useEffect(() => {
-    if (gameState.isLoading === false || isLoadingSavedState) return;
-    // TODO - Fix types
-    //@ts-ignore
-    dispatch(setInitialState(savedState?.data));
-  }, [isLoadingSavedState, savedState]);
+    if (gameState.isLoading === false) return;
+    if (isLoadingSavedState) return;
+    if (isErrorSavedState) return;
+    if (!savedState?.data) return;
+    if (!user?.id) return;
+
+    let cancelled = false;
+
+    const hydrateGameState = async () => {
+      let initialState = savedState?.data;
+
+      try {
+        const pendingResults =
+          await getPendingWordleResults(user.id);
+
+        const reconciledState =
+          reconcileSavedStateWithPendingResults(
+            initialState,
+            pendingResults,
+          );
+
+        if (reconciledState !== initialState) {
+          pendingReconciledStateRef.current =
+            reconciledState;
+        }
+
+        initialState = reconciledState;
+      } catch (error) {
+        console.error(
+          '[wordle] failed to reconcile saved state with result outbox',
+          error,
+        );
+      }
+
+      if (cancelled) return;
+
+      // TODO - Fix types
+      // @ts-ignore
+      dispatch(setInitialState(initialState));
+
+      setIsGameStateHydrated(true);
+    };
+
+    void hydrateGameState();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    gameState.isLoading,
+    isLoadingSavedState,
+    isErrorSavedState,
+    savedState,
+    user?.id,
+    dispatch,
+  ]);
 
   // If the game is loaded and gameMode is daily,
   // load the word of the day

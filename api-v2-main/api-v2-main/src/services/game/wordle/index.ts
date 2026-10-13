@@ -47,18 +47,106 @@ async function getCustomByShareCode(shareCode: string) {
 
 type RecentWordleResult = {
   id: string;
+  player?: string;
+  solution?: string;
   guesses: string[];
   game_was_won: boolean | null;
   game_was_hard_mode: boolean | null;
   guess_count: number;
+  type?: string;
+  word_pack?: string | null;
+  share_code?: string | null;
+  client_completed_at?: string | null;
 };
+
+function timestampsMatch(
+  storedTimestamp?: string | null,
+  submittedTimestamp?: string,
+) {
+  if (!storedTimestamp && !submittedTimestamp) return true;
+  if (!storedTimestamp || !submittedTimestamp) return false;
+
+  const storedTime = Date.parse(storedTimestamp);
+  const submittedTime = Date.parse(submittedTimestamp);
+
+  return (
+    Number.isFinite(storedTime) &&
+    Number.isFinite(submittedTime) &&
+    storedTime === submittedTime
+  );
+}
+
+function isMatchingWordleResult(
+  result: RecentWordleResult,
+  userId: string,
+  body: AddGameResult,
+  gameWasWon: boolean,
+  guessCount: number,
+) {
+  return (
+    result.player === userId &&
+    result.solution === body.solution &&
+    result.game_was_won === gameWasWon &&
+    result.game_was_hard_mode === body.gameWasHardMode &&
+    result.guess_count === guessCount &&
+    result.type === body.type &&
+    result.word_pack === body.wordPack &&
+    (result.share_code ?? '') === (body.shareCode ?? '') &&
+    JSON.stringify(result.guesses) === JSON.stringify(body.guesses) &&
+    timestampsMatch(
+      result.client_completed_at,
+      body.clientCompletedAt,
+    )
+  );
+}
 
 async function submitWordleResult(userId: string, body: AddGameResult) {
   const guessCount = body.guesses.length;
   const gameWasWon = body.guesses.includes(body.solution);
   const wordLength = body.solution.length;
 
-  if (body.type === 'DAILY') {
+  if (body.resultId) {
+    const { data: existingResult, error: existingResultError } = await db
+      .from('_wordle_game_result')
+      .select(
+        'id, player, solution, guesses, game_was_won, game_was_hard_mode, guess_count, type, word_pack, share_code, client_completed_at',
+      )
+      .eq('id', body.resultId)
+      .maybeSingle();
+
+    if (existingResultError) {
+      console.error(existingResultError);
+      return {};
+    }
+
+    if (existingResult) {
+      if (
+        !isMatchingWordleResult(
+          existingResult as RecentWordleResult,
+          userId,
+          body,
+          gameWasWon,
+          guessCount,
+        )
+      ) {
+        console.warn(
+          '[wordle] result id reused with mismatched payload',
+          {
+            resultId: body.resultId,
+            userId,
+          },
+        );
+        return {};
+      }
+
+      return {
+        resultId: existingResult.id,
+        duplicate: true,
+      };
+    }
+  }
+
+  if (!body.resultId && body.type === 'DAILY') {
     const duplicateWindowStart = new Date(
       Date.now() - 10 * 60 * 1000,
     ).toISOString();
@@ -96,11 +184,21 @@ async function submitWordleResult(userId: string, body: AddGameResult) {
     }
   }
 
+  const {
+    resultId,
+    clientCompletedAt,
+    ...gameResult
+  } = body;
+
   const { data, error } = await db
     .from('_wordle_game_result')
     .insert(
       changeKeys.snakeCase({
-        ...body,
+        ...gameResult,
+        ...(resultId ? { id: resultId } : {}),
+        ...(clientCompletedAt
+          ? { clientCompletedAt }
+          : {}),
         player: userId,
         guessCount,
         gameWasWon,
@@ -115,6 +213,43 @@ async function submitWordleResult(userId: string, body: AddGameResult) {
     .maybeSingle();
 
   if (error) {
+    if (resultId && error.code === '23505') {
+      const { data: existingResult, error: existingResultError } = await db
+        .from('_wordle_game_result')
+        .select(
+          'id, player, solution, guesses, game_was_won, game_was_hard_mode, guess_count, type, word_pack, share_code, client_completed_at',
+        )
+        .eq('id', resultId)
+        .maybeSingle();
+
+      if (
+        !existingResultError &&
+        existingResult &&
+        isMatchingWordleResult(
+          existingResult as RecentWordleResult,
+          userId,
+          body,
+          gameWasWon,
+          guessCount,
+        )
+      ) {
+        return {
+          resultId: existingResult.id,
+          duplicate: true,
+        };
+      }
+
+      console.warn(
+        '[wordle] result id conflict with mismatched payload',
+        {
+          resultId,
+          userId,
+        },
+      );
+
+      return {};
+    }
+
     console.error(error);
     return {};
   }
