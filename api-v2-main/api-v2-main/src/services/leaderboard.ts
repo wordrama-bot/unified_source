@@ -1,6 +1,7 @@
 import * as changeKeys from 'change-case/keys';
 import { db } from '../models';
 import moment from 'moment-timezone';
+import { isWordramaOwner } from '../config/owner';
 
 const ALLOWED_ORDER_COLUMNS = new Set([
   'alltime_rank',
@@ -327,10 +328,7 @@ async function getAvatarCosmeticsByPlayerIds(playerIds: string[]) {
   const avatarFrameByPlayerId = new Map<string, string | null>();
 
   if (playerIds.length === 0) {
-    return {
-      avatarStyleByPlayerId,
-      avatarFrameByPlayerId,
-    };
+    return { avatarStyleByPlayerId, avatarFrameByPlayerId };
   }
 
   const uniquePlayerIds = [...new Set(playerIds)];
@@ -347,29 +345,120 @@ async function getAvatarCosmeticsByPlayerIds(playerIds: string[]) {
       '[leaderboard] unable to load equipped avatar cosmetics:',
       avatarError,
     );
-
-    return {
-      avatarStyleByPlayerId,
-      avatarFrameByPlayerId,
-    };
+    return { avatarStyleByPlayerId, avatarFrameByPlayerId };
   }
 
-  for (const avatarRow of avatarRows ?? []) {
+  const rows = avatarRows ?? [];
+
+  for (const row of rows) {
     avatarStyleByPlayerId.set(
-      avatarRow.player_id,
-      avatarRow.equipped_avatar_style_key ?? null,
+      row.player_id,
+      row.equipped_avatar_style_key ?? null,
     );
-
-    avatarFrameByPlayerId.set(
-      avatarRow.player_id,
-      avatarRow.equipped_avatar_frame_key ?? null,
-    );
+    avatarFrameByPlayerId.set(row.player_id, null);
   }
 
-  return {
-    avatarStyleByPlayerId,
-    avatarFrameByPlayerId,
-  };
+  const equippedFrames = rows.filter(
+    (row) => !!row.equipped_avatar_frame_key,
+  );
+
+  if (equippedFrames.length === 0) {
+    return { avatarStyleByPlayerId, avatarFrameByPlayerId };
+  }
+
+  const framePlayerIds = equippedFrames.map((row) => row.player_id);
+  const now = new Date().toISOString();
+
+  try {
+    const { data: entitlements, error: entitlementError } = await db
+      .from('_player_entitlements')
+      .select(
+        'player_id, entitlement_key, status, revoked_at, starts_at, expires_at',
+      )
+      .in('player_id', framePlayerIds)
+      .eq('status', 'ACTIVE')
+      .is('revoked_at', null)
+      .lte('starts_at', now)
+      .or(`expires_at.is.null,expires_at.gt.${now}`);
+
+    if (entitlementError) throw entitlementError;
+
+    const validEntitlements = new Set(
+      (entitlements ?? []).map(
+        (row) => `${row.player_id}:${row.entitlement_key}`,
+      ),
+    );
+
+    const subscriptionPlayers = equippedFrames
+      .filter(
+        (row) =>
+          row.equipped_avatar_frame_key === 'FRAME:PLUS' ||
+          row.equipped_avatar_frame_key === 'FRAME:CREATOR',
+      )
+      .map((row) => row.player_id);
+
+    const validSubscriptions = new Set<string>();
+
+    if (subscriptionPlayers.length > 0) {
+      const { data: subscriptions, error: subscriptionError } = await db
+        .from('_player_subscriptions')
+        .select('player_id, subscription_key')
+        .in('player_id', subscriptionPlayers)
+        .in('subscription_key', ['PLUS', 'CREATOR'])
+        .in('status', ['TRIALING', 'ACTIVE', 'PAST_DUE'])
+        .gt('current_period_end', now);
+
+      if (subscriptionError) throw subscriptionError;
+
+      for (const subscription of subscriptions ?? []) {
+        validSubscriptions.add(
+          `${subscription.player_id}:${subscription.subscription_key}`,
+        );
+      }
+    }
+
+    for (const row of equippedFrames) {
+      const frameKey = row.equipped_avatar_frame_key;
+      if (!frameKey) continue;
+
+      if (
+        !validEntitlements.has(`${row.player_id}:${frameKey}`)
+      ) {
+        continue;
+      }
+
+      if (
+        frameKey === 'FRAME:OWNER' &&
+        !isWordramaOwner(row.player_id)
+      ) {
+        continue;
+      }
+
+      if (
+        frameKey === 'FRAME:PLUS' &&
+        !validSubscriptions.has(`${row.player_id}:PLUS`)
+      ) {
+        continue;
+      }
+
+      if (
+        frameKey === 'FRAME:CREATOR' &&
+        !validSubscriptions.has(`${row.player_id}:CREATOR`)
+      ) {
+        continue;
+      }
+
+      avatarFrameByPlayerId.set(row.player_id, frameKey);
+    }
+  } catch (error) {
+    console.error(
+      '[leaderboard] unable to authorize avatar frames:',
+      error,
+    );
+    // Fail closed: leave frames hidden if verification fails.
+  }
+
+  return { avatarStyleByPlayerId, avatarFrameByPlayerId };
 }
 
 async function getPlayerLeaderboardAllTime(

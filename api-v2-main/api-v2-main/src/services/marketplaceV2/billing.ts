@@ -415,7 +415,7 @@ async function syncSubscriptionEntitlements(subscription: any) {
     };
   }
 
-  const subscriptionEntitlementKeys =
+  const subscriptionEntitlementKeys: readonly string[] =
     SUBSCRIPTION_ENTITLEMENTS[
       subscription.subscription_key as keyof typeof SUBSCRIPTION_ENTITLEMENTS
     ] ?? [];

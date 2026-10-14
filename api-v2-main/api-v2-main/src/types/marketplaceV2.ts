@@ -15,6 +15,7 @@ export interface CatalogItem {
   sku: string
   itemType: MarketplaceItemType
   itemName: string
+  image?: string
 
   priceCoins: number
   priceUsdCents?: number

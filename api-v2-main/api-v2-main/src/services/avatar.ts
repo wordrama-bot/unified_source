@@ -1,6 +1,9 @@
 import { db } from '../models';
 import { getPlayerEntitlements } from './marketplaceV2/entitlements';
 import { CATALOG } from './marketplaceV2/catalog';
+import { isWordramaOwner } from '../config/owner';
+import { getCurrentSubscription } from './marketplaceV2/billing';
+import { getAuthorizedAvatarFrameKey } from './avatarFrameAccess';
 
 type AvatarEquipmentUpdate = {
   avatarStyleKey?: string | null;
@@ -14,12 +17,22 @@ async function getPlayerAvatar(playerId: string) {
     .eq('player_id', playerId)
     .maybeSingle();
 
-  if (error) {
+    if (error) {
     console.error(error);
     return null;
   }
 
-  return data;
+  if (!data) return null;
+
+  const authorizedFrameKey = await getAuthorizedAvatarFrameKey(
+    playerId,
+    data.equipped_avatar_frame_key,
+  );
+
+  return {
+    ...data,
+    equipped_avatar_frame_key: authorizedFrameKey,
+  };
 }
 
 async function updatePlayerAvatar(
@@ -48,6 +61,32 @@ async function updatePlayerAvatar(
 
     if (!catalogItem) {
       throw new Error('Invalid avatar style.');
+    }
+
+    if (
+      avatarFrameKey === 'FRAME:OWNER' &&
+      !isWordramaOwner(playerId)
+    ) {
+      throw new Error('Owner frame is restricted to the Wordrama owner.');
+    }
+
+    if (
+      avatarFrameKey === 'FRAME:PLUS' ||
+      avatarFrameKey === 'FRAME:CREATOR'
+    ) {
+      const result = await getCurrentSubscription({ playerId });
+
+      const requiredPlan =
+        avatarFrameKey === 'FRAME:PLUS' ? 'PLUS' : 'CREATOR';
+
+      if (
+        result.error ||
+        result.subscription?.subscriptionKey !== requiredPlan
+      ) {
+        throw new Error(
+          `${requiredPlan} frame requires an active ${requiredPlan} subscription.`,
+        );
+      }
     }
 
     const ownsAvatarStyle = entitlements.some(

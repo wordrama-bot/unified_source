@@ -1,5 +1,6 @@
 import { db } from '../models';
 import * as changeKeys from 'change-case/keys';
+import { awardPrestigeFrames } from './prestigeFrames';
 
 const baseXP = 50;
 const baseGrowthFactor = 1.08;
@@ -66,6 +67,17 @@ async function changeXp(
   if (updatedError) {
     console.error(updatedError);
     return {};
+  }
+
+  if (updatedData) {
+    try {
+      await awardPrestigeFrames(userId, prestige);
+    } catch (error) {
+      console.error(
+        '[levels] Unable to award prestige frames:',
+        error,
+      );
+    }
   }
 
   return updatedData;

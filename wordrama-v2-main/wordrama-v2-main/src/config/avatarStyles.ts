@@ -31,6 +31,20 @@ export const AVATAR_STYLES: Record<string, AvatarStyle> = {
     placement: 'overlay',
   },
 
+  'FRAME:PLATINUM': {
+    key: 'FRAME:PLATINUM',
+    name: 'Platinum Champion',
+    image: '/images/avatars/frames/platinum.svg',
+    placement: 'overlay',
+  },
+
+  'FRAME:DIAMOND': {
+    key: 'FRAME:DIAMOND',
+    name: 'Diamond Champion',
+    image: '/images/avatars/frames/diamond.svg',
+    placement: 'overlay',
+  },
+
   'FRAME:PLUS': {
     key: 'FRAME:PLUS',
     name: 'Wordrama Plus',

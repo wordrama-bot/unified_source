@@ -1,5 +1,6 @@
 import { db } from '../../models'
 import { CATALOG } from './catalog';
+import { isWordramaOwner } from '../../config/owner';
 
 export async function getPlayerEntitlements(
   playerId: string,
@@ -218,6 +219,24 @@ export async function grantEntitlement({
   expiresAt?: string | null;
   metadata?: Record<string, any>;
 }) {
+  if (
+    entitlementKey === 'FRAME:OWNER' &&
+    !isWordramaOwner(playerId)
+  ) {
+    throw new Error(
+      'Owner frame can only be granted to the designated Wordrama owner.',
+    );
+  }
+
+  if (
+    entitlementKey === 'FRAME:PLUS' ||
+    entitlementKey === 'FRAME:CREATOR'
+  ) {
+    throw new Error(
+      'Subscription frames must be granted through subscription billing.',
+    );
+  }
+
   const alreadyHas = await hasPlayerEntitlement(playerId, entitlementKey);
 
   if (alreadyHas) {
