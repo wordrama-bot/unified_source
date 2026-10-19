@@ -493,6 +493,8 @@ function App(){
     useRef<Promise<number>>(Promise.resolve(0));
   const resultFinalizationInProgressRef = useRef(false);
   const pendingReconciledStateRef = useRef<any | null>(null);
+  const shouldPersistGameStateRef = useRef(false);
+  const hiddenAtRef = useRef<number | null>(null);
   const gameStateSaveQueueRef = useRef<Promise<void>>(Promise.resolve());
 
   const [playWinSound] = useSound('/sounds/win.mp3', {
@@ -650,11 +652,15 @@ const activeSolution = isCustom
   }, [runPendingWordleResultSync]);
 
   const syncPendingWordleResultsAndRefresh =
-    useCallback(async () => {
+    useCallback(async (forceRefresh = false) => {
       const syncedCount =
         await syncPendingWordleResults();
 
-      if (syncedCount < 1) return;
+      // A successful result submission already invalidates and refreshes
+      // the mounted Wordle result-dependent queries.
+      if (syncedCount > 0) return;
+
+      if (!forceRefresh) return;
 
       refetchStats();
 
@@ -676,7 +682,9 @@ const activeSolution = isCustom
   useEffect(() => {
     if (!user?.id) return;
 
-    const syncAndRefresh = async () => {
+    const syncAndRefresh = async (
+      forceRefresh = false,
+    ) => {
       if (
         typeof navigator !== 'undefined' &&
         !navigator.onLine
@@ -684,20 +692,34 @@ const activeSolution = isCustom
         return;
       }
 
-      await syncPendingWordleResultsAndRefresh();
+      await syncPendingWordleResultsAndRefresh(
+        forceRefresh,
+      );
     };
 
     // Recover anything left over from a previous session.
     void syncAndRefresh();
 
     const handleOnline = () => {
-      void syncAndRefresh();
+      void syncAndRefresh(true);
     };
 
     const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
-        void syncAndRefresh();
+      if (document.visibilityState === 'hidden') {
+        hiddenAtRef.current = Date.now();
+        return;
       }
+
+      if (document.visibilityState !== 'visible') return;
+
+      const hiddenAt = hiddenAtRef.current;
+      hiddenAtRef.current = null;
+
+      const wasAwayLongEnough =
+        hiddenAt !== null &&
+        Date.now() - hiddenAt >= 30_000;
+
+      void syncAndRefresh(wasAwayLongEnough);
     };
 
     window.addEventListener('online', handleOnline);
@@ -781,8 +803,16 @@ const activeSolution = isCustom
     return;
   }
 
-  function updateGameState(updatedState: GameState) {
+  function updateGameState(
+    updatedState: GameState,
+    persistRemote = false,
+  ) {
+    if (persistRemote) {
+      shouldPersistGameStateRef.current = true;
+    }
+
     dispatch(setGameState(updatedState));
+
     if (updatedState.resultSave) {
       setTimeout(() => {
         if (updatedState.isGameWon || updatedState.isGameLost) {
@@ -821,14 +851,17 @@ const activeSolution = isCustom
 
     const newSolution: string = getRandomWord(wordleWordPack.data.wordList);
     //appInsights.trackEvent({ name: 'newInfiniteGame', properties: { wordPack, solution: newSolution, player: user.id } });
-    updateGameState({
-      solution: newSolution,
-      guesses: [],
-      isGameWon: false,
-      isGameLost: false,
-      isGameInProgress: false,
-      resultSave: false
-    });
+    updateGameState(
+      {
+        solution: newSolution,
+        guesses: [],
+        isGameWon: false,
+        isGameLost: false,
+        isGameInProgress: false,
+        resultSave: false,
+      },
+      true,
+    );
   }
 
   // Called when a user presses a key on the virtual or physical keyboard
@@ -995,12 +1028,15 @@ const activeSolution = isCustom
           handlePlayWinSound();
         }
 
-        updateGameState({
-          ...currentGame,
-          guesses: completedGuesses,
-          isGameWon: true,
-          resultSave: false,
-        });
+        updateGameState(
+          {
+            ...currentGame,
+            guesses: completedGuesses,
+            isGameWon: true,
+            resultSave: false,
+          },
+          true,
+        );
 
         setCurrentGuess('');
 
@@ -1039,12 +1075,15 @@ const activeSolution = isCustom
           handlePlayLoseSound();
         }
 
-        updateGameState({
-          ...currentGame,
-          guesses: completedGuesses,
-          isGameLost: true,
-          resultSave: false,
-        });
+        updateGameState(
+          {
+            ...currentGame,
+            guesses: completedGuesses,
+            isGameLost: true,
+            resultSave: false,
+          },
+          true,
+        );
 
         setCurrentGuess('');
 
@@ -1059,47 +1098,54 @@ const activeSolution = isCustom
         return;
       }
 
-      updateGameState({
-        ...currentGame,
-        guesses: [
-          ...guesses,
-          currentGuess
-        ]
-      })
+      updateGameState(
+        {
+          ...currentGame,
+          guesses: [
+            ...guesses,
+            currentGuess,
+          ],
+        },
+        true,
+      );
       setCurrentGuess('');
     }
   }
 
-  // Persist game progress whenever the local game state changes.
-  // Refresh completed-game data only after the result is saved.
+  // Persist the game board after each submitted guess.
+  // Typing within the active row remains local-only.
   useEffect(() => {
     if (gameLoading) return;
+    if (!shouldPersistGameStateRef.current) return;
 
-    const { isLoading, ...newRemoteState } = gameState;
-    const shouldRefreshCompletedGameData = currentGame.resultSave;
-    const savedGameMode = gameMode;
+    shouldPersistGameStateRef.current = false;
 
-    gameStateSaveQueueRef.current = gameStateSaveQueueRef.current.then(
-      async () => {
-        try {
-          await updateRemoteState(newRemoteState).unwrap();
+    const {
+      isLoading,
+      ...newRemoteState
+    } = gameState;
 
-          if (!shouldRefreshCompletedGameData) return;
+    gameStateSaveQueueRef.current =
+      gameStateSaveQueueRef.current.then(
+        async () => {
+          try {
+            await updateRemoteState(newRemoteState).unwrap();
 
-          refetchStats();
+            // A newer successful checkpoint supersedes any older failed one.
+            pendingReconciledStateRef.current = null;
+          } catch (error) {
+            // Keep only the latest unsaved session checkpoint.
+            // Result delivery is independent and may continue.
+            pendingReconciledStateRef.current = newRemoteState;
 
-          if (savedGameMode !== 'CUSTOM') {
-            refetchLast30();
+            console.error(
+              '[wordle] failed to save game-state checkpoint; queued for recovery',
+              error,
+            );
           }
-
-          refetchStreak();
-          refetchProfile();
-        } catch (error) {
-          console.error('[wordle] failed to save remote game state', error);
-        }
-      },
-    );
-  }, [gameState, gameLoading]);
+        },
+      );
+  }, [gameState, gameLoading, updateRemoteState]);
 
   useEffect(() => {
     if (gameLoading) return;
