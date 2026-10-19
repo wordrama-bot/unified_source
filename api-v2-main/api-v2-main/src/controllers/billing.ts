@@ -112,16 +112,34 @@ async function createBillingPortalSession(req: ApiRequest, res: Response) {
 }
 
 async function handleStripeWebhook(req: ApiRequest, res: Response) {
-  const result = await billingService.handleStripeWebhook({
-    rawBody: req.body,
-    signature: req.headers['stripe-signature'],
-  });
+  try {
+    const result = await billingService.handleStripeWebhook({
+      rawBody: req.body,
+      signature: req.headers['stripe-signature'],
+    });
 
-  if ('error' in result) {
-    return res.status(400).json({ error: result.error });
+    if ('error' in result) {
+      console.error('Stripe webhook processing failed', result.error);
+
+      const errorMessage = String(result.error);
+
+      const isValidationError =
+        errorMessage === 'Missing Stripe signature' ||
+        errorMessage === 'Invalid Stripe webhook signature';
+
+      return res.status(isValidationError ? 400 : 500).json({
+        error: errorMessage,
+      });
+    }
+
+    return res.status(200).json({ received: true });
+  } catch (error) {
+    console.error('Unexpected Stripe webhook error', error);
+
+    return res.status(500).json({
+      error: 'Internal Stripe webhook processing error',
+    });
   }
-
-  return res.status(200).json({ received: true });
 }
 
 async function createItemCheckoutSession(req: ApiRequest, res: Response) {

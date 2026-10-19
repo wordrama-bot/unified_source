@@ -192,23 +192,27 @@ async function getStoreItems(playerId: string, filters) {
     | {
         id: string;
         coinPrice: number;
+        purchasableWithCoins: boolean;
+        discontinued: boolean;
       }
     | undefined
   > {
     const { data, error } = await db
       .from('_items')
-      .select('id, coin_price')
+      .select('id, coin_price, purchasable_with_coins, discontinued')
       .eq('id', itemId)
       .maybeSingle();
 
-    if (error) {
-      console.error(error);
+    if (error || !data) {
+      if (error) console.error(error);
       return;
     }
 
-    return changeKeys.camelCase(data, 10) as {
-      id: string;
-      coinPrice: number;
+    return {
+      id: data.id,
+      coinPrice: Number(data.coin_price),
+      purchasableWithCoins: data.purchasable_with_coins === true,
+      discontinued: data.discontinued === true,
     };
   }
 
@@ -246,6 +250,24 @@ async function getStoreItems(playerId: string, filters) {
     for (const id of itemIds) {
       const storeItemPrice = await getItemPrice(id);
       if (!storeItemPrice) return { error: 'Item not found' };
+
+      if (
+        !storeItemPrice.purchasableWithCoins ||
+        storeItemPrice.discontinued
+      ) {
+        return {
+          error: 'This item is not available for purchase with coins',
+        };
+      }
+
+      if (
+        !Number.isFinite(storeItemPrice.coinPrice) ||
+        storeItemPrice.coinPrice <= 0
+      ) {
+        return {
+          error: 'Invalid coin price for this item',
+        };
+      }
 
       const { coinBalance: playerBalance } =
         await ledgerService.getBalance(playerId);
