@@ -1185,12 +1185,12 @@ export const appearanceThemes: AppearanceTheme[] = [
     app: {
       background: 'bg-[#100D16]',
       panel:
-        'bg-[#201827] text-[#F0E5D5] border border-[#74667F]',
+        'bg-[#201827] text-[#F0E5D5] border border-[#9364C8]',
       text: 'text-[#F0E5D5]',
       gameSurface:
-        'bg-[#18131F] text-[#F0E5D5] border border-[#A99BB8] shadow-[0_0_24px_3px_rgba(185,104,53,0.35)]',
+        'bg-[#18131F] text-[#F0E5D5] border border-[#B78AE8] shadow-[0_0_24px_3px_rgba(185,104,53,1.0)]',
       actionButton:
-        'bg-[#382B42] hover:bg-[#4D3A59] active:bg-[#201827] text-[#F0E5D5] border border-[#B96835] shadow-[0_0_10px_rgba(185,104,53,0.20)]',
+        'bg-[#6936A3] hover:bg-[#8145C4] active:bg-[#201827] text-[#F0E5D5] border border-[#B96AFF] shadow-[0_0_10px_rgba(185,104,53,0.20)]',
     },
 
     surface: {
@@ -1207,16 +1207,16 @@ export const appearanceThemes: AppearanceTheme[] = [
 
     board: {
       emptyCell:
-        'bg-[#16111D] border-[#887794] text-[#F0E5D5]',
+        'bg-[#16111D] border-[#A879D9] text-[#F0E5D5]',
       filledCell:
-        'bg-[#382B42] border-[#C2B1CD] text-[#F0E5D5]',
+        'bg-[#6936A3] border-[#D2A8FF] text-[#F0E5D5]',
       absentCell:
         'bg-[#17141C] border-[#332B3B] text-[#82778C]',
     },
 
     keyboard: {
       key:
-        'bg-[#382B42] hover:bg-[#4D3A59] active:bg-[#5B4768] border border-[#74667F]',
+        'bg-[#6936A3] hover:bg-[#8145C4] active:bg-[#9957DE] border border-[#9364C8]',
       keyText: 'text-[#F0E5D5]',
       absentKey:
         'bg-[#17141C] border border-[#332B3B] text-[#82778C]',
@@ -1224,7 +1224,7 @@ export const appearanceThemes: AppearanceTheme[] = [
 
     modal: {
       container:
-        'bg-[#201827] border border-[#A99BB8] text-[#F0E5D5] shadow-2xl shadow-black/80',
+        'bg-[#201827] border border-[#B78AE8] text-[#F0E5D5] shadow-2xl shadow-black/80',
       title: 'text-[#F0E5D5]',
       icon: 'stroke-[#D2EDD8]',
     },
@@ -1233,7 +1233,7 @@ export const appearanceThemes: AppearanceTheme[] = [
       success: 'text-[#9ED8B4]',
       warning: 'text-[#E6C275]',
       error: 'text-[#E89A9A]',
-      info: 'text-[#C2B1CD]',
+      info: 'text-[#D2A8FF]',
     },
 
     overlay: {
@@ -1241,8 +1241,8 @@ export const appearanceThemes: AppearanceTheme[] = [
     },
 
     border: {
-      default: 'border-[#74667F]',
-      strong: 'border-[#C2B1CD]',
+      default: 'border-[#9364C8]',
+      strong: 'border-[#D2A8FF]',
     },
 
     effects: {
@@ -1261,12 +1261,12 @@ export const appearanceThemes: AppearanceTheme[] = [
 
     app: {
       background: 'bg-[#120B08]',
-      panel: 'bg-[#22130D] text-[#F6E8D2] border border-[#C96B2C]',
+      panel: 'bg-[#22130D] text-[#F6E8D2] border border-[#FF8A1F]',
       text: 'text-[#F6E8D2]',
       gameSurface:
-        'bg-[#1A110D] text-[#F6E8D2] border border-[#E28A3B] shadow-[0_0_30px_4px_rgba(226,138,59,0.35)]',
+        'bg-[#1A110D] text-[#F6E8D2] border border-[#FF982C] shadow-[0_0_30px_4px_rgba(255,138,31,1.0)]',
       actionButton:
-        'bg-[#8A4A1F] hover:bg-[#A85A28] active:bg-[#6B3514] text-[#FFF4E8] border border-[#F2A65A] shadow-[0_0_10px_rgba(226,138,59,0.28)]',
+        'bg-[#C65A14] hover:bg-[#E87318] active:bg-[#A9470D] text-[#FFF4E8] border border-[#FFC247] shadow-[0_0_10px_rgba(255,138,31,0.35)]',
     },
 
     surface: {
@@ -1283,16 +1283,16 @@ export const appearanceThemes: AppearanceTheme[] = [
 
     board: {
       emptyCell:
-        'bg-[#1B120E] border-[#E28A3B] text-[#F6E8D2]',
+        'bg-[#1B120E] border-[#FF982C] text-[#F6E8D2]',
       filledCell:
-        'bg-[#3B2418] border-[#F2A65A] text-[#FFF4E8]',
+        'bg-[#58301A] border-[#FFC247] text-[#FFF4E8]',
       absentCell:
         'bg-[#15100D] border-[#3B2A20] text-[#8F7768]',
     },
 
     keyboard: {
       key:
-        'bg-[#8A4A1F] hover:bg-[#A85A28] active:bg-[#6B3514] border border-[#C96B2C]',
+        'bg-[#C65A14] hover:bg-[#E87318] active:bg-[#A9470D] border border-[#FF8A1F]',
       keyText: 'text-[#FFF4E8]',
       absentKey:
         'bg-[#15100D] border border-[#3B2A20] text-[#8F7768]',
@@ -1300,16 +1300,16 @@ export const appearanceThemes: AppearanceTheme[] = [
 
     modal: {
       container:
-        'bg-[#22130D] border border-[#E28A3B] text-[#F6E8D2] shadow-2xl shadow-black/80',
+        'bg-[#22130D] border border-[#FF982C] text-[#F6E8D2] shadow-2xl shadow-black/80',
       title: 'text-[#FFF4E8]',
-      icon: 'stroke-[#F2A65A]',
+      icon: 'stroke-[#FFC247]',
     },
 
     feedback: {
       success: 'text-[#8BE28B]',
       warning: 'text-[#F6C453]',
       error: 'text-[#F28B82]',
-      info: 'text-[#F2A65A]',
+      info: 'text-[#FFC247]',
     },
 
     overlay: {
@@ -1317,8 +1317,8 @@ export const appearanceThemes: AppearanceTheme[] = [
     },
 
     border: {
-      default: 'border-[#C96B2C]',
-      strong: 'border-[#F2A65A]',
+      default: 'border-[#FF8A1F]',
+      strong: 'border-[#FFC247]',
     },
 
     effects: {
