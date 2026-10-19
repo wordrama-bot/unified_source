@@ -6,6 +6,7 @@ import {
 } from '../../config/stripeProducts';
 import { SUBSCRIPTIONS } from '../../config/subscriptions';
 import { SUBSCRIPTION_ENTITLEMENTS } from '../../config/subscriptionEntitlements';
+import { getPlayerEntitlements } from './entitlements';
 import { CATALOG } from './catalog';
 import { randomUUID } from 'node:crypto';
 import { HOLIDAY_THEME_BUNDLE } from '../../config/holidayThemeBundle';
@@ -310,6 +311,8 @@ export async function createItemCheckoutSession(
     );
 
   if (isHolidayProduct) {
+    // Verify that the holiday product has been activated
+    // and is eligible for Stripe-only purchasing.
     const { data: holidayItem, error: holidayItemError } = await db
       .from('_items')
       .select(
@@ -336,6 +339,79 @@ export async function createItemCheckoutSession(
       return {
         error: 'This holiday product is not currently available for purchase',
       };
+    }
+
+    // Retrieve active entitlements, including admin grants,
+    // individual purchases, and previous bundle purchases.
+    // Fail closed if ownership cannot be verified.
+    let entitlements;
+
+    try {
+      entitlements = await getPlayerEntitlements(playerId);
+    } catch (error) {
+      console.error(
+        'Failed to verify holiday product ownership',
+        error,
+      );
+
+      return {
+        error: 'Unable to verify product ownership. Please try again.',
+      };
+    }
+
+    // Only permanent ownership counts.
+    // Subscription-based or expiring access must not be
+    // treated as a permanent purchase.
+    const permanentEntitlementKeys = new Set<string>(
+      entitlements
+        .filter(
+          (entitlement: any) =>
+            entitlement.status === 'ACTIVE' &&
+            ['ADMIN', 'ORDER_ITEM'].includes(
+              entitlement.source_type,
+            ) &&
+            entitlement.expires_at == null &&
+            !entitlement.revoked_at
+        )
+        .map(
+          (entitlement: any) =>
+            entitlement.entitlement_key as string
+        )
+    );
+
+    const ownsCompleteCollection =
+      permanentEntitlementKeys.has(
+        HOLIDAY_THEME_BUNDLE.entitlementKey
+      ) ||
+      HOLIDAY_THEME_BUNDLE.themes.every((theme) =>
+        permanentEntitlementKeys.has(theme.entitlementKey)
+      );
+
+    const isHolidayBundle =
+      itemId === HOLIDAY_THEME_BUNDLE.catalogItemId;
+
+    if (isHolidayBundle && ownsCompleteCollection) {
+      return {
+        error: 'You already own the complete holiday theme collection',
+      };
+    }
+
+    if (!isHolidayBundle) {
+      const selectedTheme = HOLIDAY_THEME_BUNDLE.themes.find(
+        (theme) => theme.catalogItemId === itemId
+      );
+
+      if (
+        selectedTheme &&
+        (
+          permanentEntitlementKeys.has(selectedTheme.entitlementKey) ||
+          ownsCompleteCollection
+        )
+      ) {
+        return {
+          error: 'You already permanently own this holiday theme',
+        };
+      }
     }
   }
 
@@ -364,6 +440,7 @@ export async function createItemCheckoutSession(
   const stripe = new Stripe(stripeSecretKey);
 
   const marketplaceReturnPath =
+    itemId === HOLIDAY_THEME_BUNDLE.catalogItemId ||
     catalogItem.itemType === 'THEME'
       ? '/marketplace/themes'
       : catalogItem.itemType === 'WORDLE_WORD_PACK' ||
