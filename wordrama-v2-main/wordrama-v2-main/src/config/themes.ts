@@ -91,6 +91,13 @@ export const THEME_IDS = {
   SYNTHWAVE: 'theme.synthwave',
   EMPIRE: 'theme.empire',
   MATRIX: 'theme.matrix',
+  HAUNTED_HOLLOW: 'theme.haunted-hollow',
+  PUMPKIN_FRIGHT: 'theme.pumpkin-fright',
+  HARVEST_HEARTH: 'theme.harvest-hearth',
+  EVERGREEN_NOEL: 'theme.evergreen-noel',
+  WINTER_WONDERLAND: 'theme.winter-wonderland',
+  FESTIVAL_OF_LIGHTS: 'theme.festival-of-lights',
+  UMOJA: 'theme.umoja',
 } as const;
 
 export type ThemeId =
@@ -1165,6 +1172,544 @@ export const appearanceThemes: AppearanceTheme[] = [
     effects: {
       glow: 'shadow-[0_0_18px_rgba(34,197,94,0.35)]',
       borderGlow: 'shadow-[0_0_8px_rgba(34,197,94,0.30)]',
+    },
+  },
+  {
+    meta: {
+      id: THEME_IDS.HAUNTED_HOLLOW,
+      name: 'Haunted Hollow',
+      availability: 'premium',
+      entitlementKey: 'THEME:HAUNTED_HOLLOW',
+    },
+
+    app: {
+      background: 'bg-[#100D16]',
+      panel:
+        'bg-[#201827] text-[#F0E5D5] border border-[#74667F]',
+      text: 'text-[#F0E5D5]',
+      gameSurface:
+        'bg-[#18131F] text-[#F0E5D5] border border-[#A99BB8] shadow-[0_0_24px_3px_rgba(185,104,53,0.35)]',
+      actionButton:
+        'bg-[#382B42] hover:bg-[#4D3A59] active:bg-[#201827] text-[#F0E5D5] border border-[#B96835] shadow-[0_0_10px_rgba(185,104,53,0.20)]',
+    },
+
+    surface: {
+      page: '',
+      card: '',
+      elevated: '',
+    },
+
+    button: {
+      primary: '',
+      secondary: '',
+      disabled: '',
+    },
+
+    board: {
+      emptyCell:
+        'bg-[#16111D] border-[#887794] text-[#F0E5D5]',
+      filledCell:
+        'bg-[#382B42] border-[#C2B1CD] text-[#F0E5D5]',
+      absentCell:
+        'bg-[#17141C] border-[#332B3B] text-[#82778C]',
+    },
+
+    keyboard: {
+      key:
+        'bg-[#382B42] hover:bg-[#4D3A59] active:bg-[#5B4768] border border-[#74667F]',
+      keyText: 'text-[#F0E5D5]',
+      absentKey:
+        'bg-[#17141C] border border-[#332B3B] text-[#82778C]',
+    },
+
+    modal: {
+      container:
+        'bg-[#201827] border border-[#A99BB8] text-[#F0E5D5] shadow-2xl shadow-black/80',
+      title: 'text-[#F0E5D5]',
+      icon: 'stroke-[#D2EDD8]',
+    },
+
+    feedback: {
+      success: 'text-[#9ED8B4]',
+      warning: 'text-[#E6C275]',
+      error: 'text-[#E89A9A]',
+      info: 'text-[#C2B1CD]',
+    },
+
+    overlay: {
+      backdrop: 'bg-black/80',
+    },
+
+    border: {
+      default: 'border-[#74667F]',
+      strong: 'border-[#C2B1CD]',
+    },
+
+    effects: {
+      glow: 'shadow-[0_0_22px_rgba(169,155,184,0.18)]',
+      borderGlow:
+        'shadow-[0_0_12px_rgba(210,237,216,0.20)]',
+    },
+  },
+  {
+    meta: {
+      id: THEME_IDS.PUMPKIN_FRIGHT,
+      name: 'Pumpkin Fright',
+      availability: 'premium',
+      entitlementKey: 'THEME:PUMPKIN_FRIGHT',
+    },
+
+    app: {
+      background: 'bg-[#120B08]',
+      panel: 'bg-[#22130D] text-[#F6E8D2] border border-[#C96B2C]',
+      text: 'text-[#F6E8D2]',
+      gameSurface:
+        'bg-[#1A110D] text-[#F6E8D2] border border-[#E28A3B] shadow-[0_0_30px_4px_rgba(226,138,59,0.35)]',
+      actionButton:
+        'bg-[#8A4A1F] hover:bg-[#A85A28] active:bg-[#6B3514] text-[#FFF4E8] border border-[#F2A65A] shadow-[0_0_10px_rgba(226,138,59,0.28)]',
+    },
+
+    surface: {
+      page: '',
+      card: '',
+      elevated: '',
+    },
+
+    button: {
+      primary: '',
+      secondary: '',
+      disabled: '',
+    },
+
+    board: {
+      emptyCell:
+        'bg-[#1B120E] border-[#E28A3B] text-[#F6E8D2]',
+      filledCell:
+        'bg-[#3B2418] border-[#F2A65A] text-[#FFF4E8]',
+      absentCell:
+        'bg-[#15100D] border-[#3B2A20] text-[#8F7768]',
+    },
+
+    keyboard: {
+      key:
+        'bg-[#8A4A1F] hover:bg-[#A85A28] active:bg-[#6B3514] border border-[#C96B2C]',
+      keyText: 'text-[#FFF4E8]',
+      absentKey:
+        'bg-[#15100D] border border-[#3B2A20] text-[#8F7768]',
+    },
+
+    modal: {
+      container:
+        'bg-[#22130D] border border-[#E28A3B] text-[#F6E8D2] shadow-2xl shadow-black/80',
+      title: 'text-[#FFF4E8]',
+      icon: 'stroke-[#F2A65A]',
+    },
+
+    feedback: {
+      success: 'text-[#8BE28B]',
+      warning: 'text-[#F6C453]',
+      error: 'text-[#F28B82]',
+      info: 'text-[#F2A65A]',
+    },
+
+    overlay: {
+      backdrop: 'bg-black/80',
+    },
+
+    border: {
+      default: 'border-[#C96B2C]',
+      strong: 'border-[#F2A65A]',
+    },
+
+    effects: {
+      glow: 'shadow-[0_0_22px_rgba(226,138,59,0.20)]',
+      borderGlow: 'shadow-[0_0_12px_rgba(242,166,90,0.25)]',
+    },
+  },
+  {
+    meta: {
+      id: THEME_IDS.HARVEST_HEARTH,
+      name: 'Harvest Hearth',
+      availability: 'premium',
+      entitlementKey: 'THEME:HARVEST_HEARTH',
+    },
+
+    app: {
+      background: 'bg-[#24191E]',
+      panel:
+        'bg-[#43262E] text-[#F0DDBB] border border-[#B78B49]',
+      text: 'text-[#F0DDBB]',
+      gameSurface:
+        'bg-[#43262E] text-[#F0DDBB] border border-[#B78B49] shadow-[0_0_28px_4px_rgba(183,139,73,0.30)]',
+      actionButton:
+        'bg-[#854234] hover:bg-[#9B5240] active:bg-[#6D332B] text-[#FFF0DB] border border-[#D0A663] shadow-lg shadow-black/40',
+    },
+
+    surface: {
+      page: '',
+      card: '',
+      elevated: '',
+    },
+
+    button: {
+      primary: '',
+      secondary: '',
+      disabled: '',
+    },
+
+    board: {
+      emptyCell:
+        'bg-[#2C1D24] border-[#B78B49] text-[#F0DDBB]',
+      filledCell:
+        'bg-[#854234] border-[#D0A663] text-[#FFF0DB]',
+      absentCell:
+        'bg-[#271D22] border-[#51363B] text-[#8C7375]',
+    },
+
+    keyboard: {
+      key:
+        'bg-[#854234] hover:bg-[#9B5240] active:bg-[#6D332B] border border-[#B78B49]',
+      keyText: 'text-[#FFF0DB]',
+      absentKey:
+        'bg-[#271D22] border border-[#51363B] text-[#8C7375]',
+    },
+
+    modal: {
+      container:
+        'bg-[#43262E] border border-[#B78B49] text-[#F0DDBB] shadow-2xl shadow-black/70',
+      title: 'text-[#F0DDBB]',
+      icon: 'stroke-[#D0A663]',
+    },
+
+    feedback: {
+      success: 'text-[#A5D6A7]',
+      warning: 'text-[#F1CE83]',
+      error: 'text-[#ECA09C]',
+      info: 'text-[#D2AF70]',
+    },
+
+    overlay: {
+      backdrop: 'bg-black/70',
+    },
+
+    border: {
+      default: 'border-[#A78447]',
+      strong: 'border-[#D2AF70]',
+    },
+
+    effects: {
+      glow: 'shadow-[0_0_22px_rgba(210,175,112,0.26)]',
+      borderGlow: 'shadow-[0_0_12px_rgba(210,175,112,0.22)]',
+    },
+  },
+  {
+    meta: {
+      id: THEME_IDS.EVERGREEN_NOEL,
+      name: 'Evergreen Noel',
+      availability: 'premium',
+      entitlementKey: 'THEME:EVERGREEN_NOEL',
+    },
+
+    app: {
+      background: 'bg-[#091C1A]',
+      panel:
+        'bg-[#12352F] text-[#FFF0D6] border border-[#D8B76C]',
+      text: 'text-[#FFF0D6]',
+      gameSurface:
+        'bg-[#102B27] text-[#FFF0D6] border border-[#D8B76C] shadow-[0_0_28px_4px_rgba(216,183,108,0.32)]',
+      actionButton:
+        'bg-[#8C293D] hover:bg-[#A6344A] active:bg-[#6E1F30] text-[#FFF0D6] border border-[#D8B76C] shadow-[0_0_12px_rgba(216,183,108,0.25)]',
+    },
+
+    surface: {
+      page: '',
+      card: '',
+      elevated: '',
+    },
+
+    button: {
+      primary: '',
+      secondary: '',
+      disabled: '',
+    },
+
+    board: {
+      emptyCell:
+        'bg-[#0B231F] border-[#D8B76C] text-[#FFF0D6]',
+      filledCell:
+        'bg-[#245348] border-[#E8CC91] text-[#FFF0D6]',
+      absentCell:
+        'bg-[#0B1D1A] border-[#284038] text-[#758C80]',
+    },
+
+    keyboard: {
+      key:
+        'bg-[#8C293D] hover:bg-[#A6344A] active:bg-[#6E1F30] border border-[#D8B76C]',
+      keyText: 'text-[#FFF0D6]',
+      absentKey:
+        'bg-[#0B1D1A] border border-[#284038] text-[#758C80]',
+    },
+
+    modal: {
+      container:
+        'bg-[#12352F] border border-[#D8B76C] text-[#FFF0D6] shadow-2xl shadow-black/70',
+      title: 'text-[#FFF0D6]',
+      icon: 'stroke-[#D8B76C]',
+    },
+
+    feedback: {
+      success: 'text-[#A5DBB6]',
+      warning: 'text-[#F1CE83]',
+      error: 'text-[#F0A0A0]',
+      info: 'text-[#E8CC91]',
+    },
+
+    overlay: {
+      backdrop: 'bg-black/75',
+    },
+
+    border: {
+      default: 'border-[#8C293D]',
+      strong: 'border-[#D8B76C]',
+    },
+
+    effects: {
+      glow:
+        'shadow-[0_0_22px_rgba(216,183,108,0.28)]',
+      borderGlow:
+        'shadow-[0_0_12px_rgba(216,183,108,0.25)]',
+    },
+  },
+  {
+    meta: {
+      id: THEME_IDS.WINTER_WONDERLAND,
+      name: 'Winter Wonderland',
+      availability: 'premium',
+      entitlementKey: 'THEME:WINTER_WONDERLAND',
+    },
+
+    app: {
+      background: 'bg-[#0D1520]',
+      panel:
+        'bg-[#182434] text-[#DFEAF0] border border-[#728DA1]',
+      text: 'text-[#DFEAF0]',
+      gameSurface:
+        'bg-[#182434] text-[#DFEAF0] border border-[#94ADBE] shadow-[0_0_28px_4px_rgba(148,173,190,0.30)]',
+      actionButton:
+        'bg-[#435B70] hover:bg-[#526D82] active:bg-[#293B4D] text-[#DFEAF0] border border-[#94ADBE] shadow-[0_0_12px_rgba(148,173,190,0.22)]',
+    },
+
+    surface: {
+      page: '',
+      card: '',
+      elevated: '',
+    },
+
+    button: {
+      primary: '',
+      secondary: '',
+      disabled: '',
+    },
+
+    board: {
+      emptyCell:
+        'bg-[#101C29] border-[#94ADBE] text-[#DFEAF0]',
+      filledCell:
+        'bg-[#435B70] border-[#BDD0DC] text-[#F1F6F9]',
+      absentCell:
+        'bg-[#111A24] border-[#2A3A49] text-[#708496]',
+    },
+
+    keyboard: {
+      key:
+        'bg-[#435B70] hover:bg-[#526D82] active:bg-[#344A5D] border border-[#728DA1]',
+      keyText: 'text-[#DFEAF0]',
+      absentKey:
+        'bg-[#111A24] border border-[#2A3A49] text-[#708496]',
+    },
+
+    modal: {
+      container:
+        'bg-[#182434] border border-[#94ADBE] text-[#DFEAF0] shadow-2xl shadow-black/75',
+      title: 'text-[#DFEAF0]',
+      icon: 'stroke-[#BDD0DC]',
+    },
+
+    feedback: {
+      success: 'text-[#A6D5BB]',
+      warning: 'text-[#E8C780]',
+      error: 'text-[#E9A5AA]',
+      info: 'text-[#BDD0DC]',
+    },
+
+    overlay: {
+      backdrop: 'bg-black/80',
+    },
+
+    border: {
+      default: 'border-[#728DA1]',
+      strong: 'border-[#BDD0DC]',
+    },
+
+    effects: {
+      glow:
+        'shadow-[0_0_22px_rgba(148,173,190,0.26)]',
+      borderGlow:
+        'shadow-[0_0_12px_rgba(189,208,220,0.24)]',
+    },
+  },
+  {
+    meta: {
+      id: THEME_IDS.FESTIVAL_OF_LIGHTS,
+      name: 'Festival of Lights',
+      availability: 'premium',
+      entitlementKey: 'THEME:FESTIVAL_OF_LIGHTS',
+    },
+
+    app: {
+      background: 'bg-[#090F29]',
+      panel:
+        'bg-[#14275A] text-[#F5F1E9] border border-[#C7D3E5]',
+      text: 'text-[#F5F1E9]',
+      gameSurface:
+        'bg-[#101F47] text-[#F5F1E9] border border-[#C7D3E5] shadow-[0_0_28px_4px_rgba(244,210,94,0.34)]',
+      actionButton:
+        'bg-[#24448B] hover:bg-[#3156A1] active:bg-[#1B3470] text-[#F5F1E9] border border-[#F4D25E] shadow-[0_0_12px_rgba(244,210,94,0.24)]',
+    },
+
+    surface: {
+      page: '',
+      card: '',
+      elevated: '',
+    },
+
+    button: {
+      primary: '',
+      secondary: '',
+      disabled: '',
+    },
+
+    board: {
+      emptyCell:
+        'bg-[#0D1940] border-[#C7D3E5] text-[#F5F1E9]',
+      filledCell:
+        'bg-[#24448B] border-[#E1E8F2] text-[#F5F1E9]',
+      absentCell:
+        'bg-[#0C1633] border-[#30446B] text-[#7788AA]',
+    },
+
+    keyboard: {
+      key:
+        'bg-[#24448B] hover:bg-[#3156A1] active:bg-[#1B3470] border border-[#718AB8]',
+      keyText: 'text-[#F5F1E9]',
+      absentKey:
+        'bg-[#0C1633] border border-[#30446B] text-[#7788AA]',
+    },
+
+    modal: {
+      container:
+        'bg-[#14275A] border border-[#C7D3E5] text-[#F5F1E9] shadow-2xl shadow-black/75',
+      title: 'text-[#F5F1E9]',
+      icon: 'stroke-[#F4D25E]',
+    },
+
+    feedback: {
+      success: 'text-[#A6DDBF]',
+      warning: 'text-[#F4D25E]',
+      error: 'text-[#EAA2AB]',
+      info: 'text-[#C7D3E5]',
+    },
+
+    overlay: {
+      backdrop: 'bg-black/80',
+    },
+
+    border: {
+      default: 'border-[#718AB8]',
+      strong: 'border-[#C7D3E5]',
+    },
+
+    effects: {
+      glow:
+        'shadow-[0_0_22px_rgba(244,210,94,0.28)]',
+      borderGlow:
+        'shadow-[0_0_12px_rgba(199,211,229,0.28)]',
+    },
+  },
+  {
+    meta: {
+      id: THEME_IDS.UMOJA,
+      name: 'Umoja',
+      availability: 'premium',
+      entitlementKey: 'THEME:UMOJA',
+    },
+
+    app: {
+      background: 'bg-[#101311]',
+      panel:
+        'bg-[#222522] text-[#F4E8CE] border border-[#D1A64D]',
+      text: 'text-[#F4E8CE]',
+      gameSurface:
+        'bg-[#1B1F1C] text-[#F4E8CE] border border-[#D1A64D] shadow-[0_0_28px_4px_rgba(209,166,77,0.30)]',
+      actionButton:
+        'bg-[#9B3035] hover:bg-[#B43C42] active:bg-[#792429] text-[#F4E8CE] border border-[#D1A64D] shadow-[0_0_12px_rgba(209,166,77,0.20)]',
+    },
+
+    surface: {
+      page: '',
+      card: '',
+      elevated: '',
+    },
+
+    button: {
+      primary: '',
+      secondary: '',
+      disabled: '',
+    },
+
+    board: {
+      emptyCell:
+        'bg-[#111713] border-[#39845C] text-[#F4E8CE]',
+      filledCell:
+        'bg-[#176B46] border-[#D1A64D] text-[#F4E8CE]',
+      absentCell:
+        'bg-[#141815] border-[#343C35] text-[#79847A]',
+    },
+
+    keyboard: {
+      key:
+        'bg-[#9B3035] hover:bg-[#B43C42] active:bg-[#792429] border border-[#D1A64D]',
+      keyText: 'text-[#F4E8CE]',
+      absentKey:
+        'bg-[#141815] border border-[#343C35] text-[#79847A]',
+    },
+
+    modal: {
+      container:
+        'bg-[#222522] border border-[#D1A64D] text-[#F4E8CE] shadow-2xl shadow-black/75',
+      title: 'text-[#F4E8CE]',
+      icon: 'stroke-[#D1A64D]',
+    },
+
+    feedback: {
+      success: 'text-[#8FD8A9]',
+      warning: 'text-[#E9C576]',
+      error: 'text-[#EFA0A0]',
+      info: 'text-[#D1A64D]',
+    },
+
+    overlay: {
+      backdrop: 'bg-black/80',
+    },
+
+    border: {
+      default: 'border-[#176B46]',
+      strong: 'border-[#D1A64D]',
+    },
+
+    effects: {
+      glow: 'shadow-[0_0_22px_rgba(209,166,77,0.25)]',
+      borderGlow: 'shadow-[0_0_12px_rgba(209,166,77,0.22)]',
     },
   },
 ];

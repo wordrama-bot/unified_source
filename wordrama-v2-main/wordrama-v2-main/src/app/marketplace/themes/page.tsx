@@ -46,6 +46,26 @@
   import { useEffect } from 'react';
   import { useMarketplaceAccess } from "@/lib/useMarketplaceAccess";
 
+  // 2026 Fall/Winter Holiday Collection
+  // Stripe-only purchases, independent of subscriptions.
+  const HOLIDAY_BUNDLE_ID =
+    'd9730def-c114-405d-9395-9dd1345de763';
+
+  const HOLIDAY_THEME_IDS = [
+    '1372a7b8-9445-437d-8852-1f4bcb7366c9', // Haunted Hollow
+    'a5b473b5-5c42-4073-aa8f-f17c762f37db', // Pumpkin Fright
+    '43af0984-2268-4ab6-93e3-7e5299d63657', // Harvest Hearth
+    '8ceef83c-50aa-44af-bc4f-8769e681d0e7', // Evergreen Noel
+    '92627593-4806-40fd-a664-37bf93912e95', // Winter Wonderland
+    'b42950a2-c2ce-4a75-9fcf-110335c464af', // Festival of Lights
+    'f13e3c3d-6b78-48c0-91ab-da28e1d27314', // Umoja
+  ];
+
+  const HOLIDAY_PRODUCT_IDS = new Set([
+    HOLIDAY_BUNDLE_ID,
+    ...HOLIDAY_THEME_IDS,
+  ]);
+
   const MARKETPLACE_THEME_SORT_ORDER: { [key: string]: number } = {
     'eea2ee39-7ff5-4cfc-906b-608d01555afa': 1, // Cyberpunk
     'c42e21b8-e3e2-487b-9307-698063f29dcd': 2, // Miami Vice
@@ -59,6 +79,16 @@
     'c58ed56e-3891-44c6-b195-b9d1c8bbe980': 10, // Synthwave
     '147ed2fa-7a53-45f1-8721-60e2705dcda2': 11, // Empire
     '0f291c62-c811-436d-96cc-cf92a8f240e5': 12, // Matrix
+
+    // Fall/Winter Holiday Collection
+    'd9730def-c114-405d-9395-9dd1345de763': 0,
+    '1372a7b8-9445-437d-8852-1f4bcb7366c9': 13,
+    'a5b473b5-5c42-4073-aa8f-f17c762f37db': 14,
+    '43af0984-2268-4ab6-93e3-7e5299d63657': 15,
+    '8ceef83c-50aa-44af-bc4f-8769e681d0e7': 16,
+    '92627593-4806-40fd-a664-37bf93912e95': 17,
+    'b42950a2-c2ce-4a75-9fcf-110335c464af': 18,
+    'f13e3c3d-6b78-48c0-91ab-da28e1d27314': 19,
   };
 
   function getMarketplaceSortOrder(item: any): number {
@@ -106,6 +136,7 @@
     const [itemTypeFilter, setItemTypeFilter] = useState('THEME');
     const [ showPurchased, setShowPurchased ] = useState(true);
     const [ showUnavailable, setShowUnavailable ] = useState(true);
+    const [showHolidayBundleContents, setShowHolidayBundleContents] = useState(false);
     const [ itemsInCart, addItemToCart ] = useState([] as string[]);
     const [ alertTitle, setAlertTitle ] = useState('');
     const [ alertText, setAlertText ] = useState('');
@@ -137,6 +168,12 @@
     const basketSubTotal = !isLoadingStoreItems && storeItems ? storeItems?.data.filter(item => itemsInCart.includes(item.id)).reduce((acc: number, item: any) => acc + item.coinPrice, 0) : 0
     const hasEnoughCoins = myAccount?.data?.ledger?.coinBalance && myAccount?.data?.ledger?.coinBalance >= basketSubTotal;
     const { subscriptionKey } = useMarketplaceAccess();
+
+    const ownsHolidayBundle = Boolean(
+      storeItems?.data?.some(
+        (item) => item.id === HOLIDAY_BUNDLE_ID && item.isPurchased
+      )
+    );
 
     async function handleCheckoutWithCoins() {
       const itemsToCheckout = [...itemsInCart];
@@ -305,6 +342,19 @@
                 />
               </div>
 
+              {ownsHolidayBundle && (
+                <div className="flex items-center justify-between gap-4">
+                  <Label htmlFor="showHolidayBundleContents">
+                    Show bundle themes
+                  </Label>
+                  <Switch
+                    id="showHolidayBundleContents"
+                    checked={showHolidayBundleContents}
+                    onCheckedChange={setShowHolidayBundleContents}
+                  />
+                </div>
+              )}
+
               <Separator />
             </div>
           </SheetContent>
@@ -322,11 +372,30 @@
 
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4">
               {[...(storeItems?.data || [])]
-                .sort((a, b) => getMarketplaceSortOrder(a) - getMarketplaceSortOrder(b))
+                .filter((item) => {
+                  // When the complete holiday collection is owned,
+                  // hide its seven individual products by default.
+                  // Players can reveal them using the filter toggle.
+                  if (
+                    ownsHolidayBundle &&
+                    !showHolidayBundleContents &&
+                    HOLIDAY_THEME_IDS.includes(item.id)
+                  ) {
+                    return false;
+                  }
+
+                  return true;
+                })
+                .sort(
+                  (a, b) =>
+                    getMarketplaceSortOrder(a) - getMarketplaceSortOrder(b)
+                )
                 .map((item) => {
-                  const isCashPrice = false;
+                  const isHolidayProduct = HOLIDAY_PRODUCT_IDS.has(item.id);
+                  const isCashPrice = isHolidayProduct;
 
                   const isWordPack = item.type === "WORD_PACK";
+
                   const isLockedBySubscription =
                     isWordPack && !item.isPurchased && subscriptionKey === "FREE";
 
@@ -339,8 +408,10 @@
                       name={item.name}
                       type={item.type}
                       description={item.description}
-                      price={price}
+                      price={String(price)}
                       isCashPrice={isCashPrice}
+                      stripeOnly={isHolidayProduct}
+                      isComingSoon={isHolidayProduct && item.discontinued}
                       isPurchased={item.isPurchased}
                       isUnlockedBySubscription={item.isUnlockedBySubscription}
                       subItems={[]}

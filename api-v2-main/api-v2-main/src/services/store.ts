@@ -2,6 +2,7 @@ import * as changeKeys from 'change-case/keys';
 
 import { db } from '../models';
 import { CATALOG } from './marketplaceV2/catalog';
+import { HOLIDAY_THEME_BUNDLE } from '../config/holidayThemeBundle';
 import ledgerService from './ledger';
 import { enqueue, sendMessage } from '../utils/gameLoop';
 import { createMessage } from '../utils/gameLoop.js';
@@ -46,23 +47,77 @@ async function getPurchases(playerId: string) {
 }
 
 async function getPurchasedItems(playerId: string) {
-  const purchasedItemSources = new Map<string, 'PURCHASED' | 'SUBSCRIPTION'>();
+  const purchasedItemSources = new Map<
+    string,
+    'PURCHASED' | 'SUBSCRIPTION'
+  >();
+
+  // Preserve legacy purchase ownership.
   const legacyItems = await getPurchases(playerId);
 
   const legacyItemIds = legacyItems
     .filter((item) => item.items?.id)
     .map((item) => item.items.id);
 
-  legacyItemIds.forEach((id) => purchasedItemSources.set(id, 'PURCHASED'));
+  legacyItemIds.forEach((id) => {
+    purchasedItemSources.set(id, 'PURCHASED');
+  });
 
   try {
     const entitlements = await getPlayerEntitlements(playerId);
+    const now = Date.now();
 
+    // Map theme entitlement keys to marketplace product IDs.
+    // This covers existing themes and the seven holiday themes.
+    const themeCatalogIdsByEntitlementKey = new Map(
+      CATALOG
+        .filter((item) => item.entitlementKey.startsWith('THEME:'))
+        .map((item) => [item.entitlementKey, item.catalogItemId])
+    );
+
+    // Recognize active, permanent ADMIN-granted theme ownership.
+    entitlements
+      .filter((entitlement: any) => {
+        if (
+          entitlement.status !== 'ACTIVE' ||
+          entitlement.source_type !== 'ADMIN' ||
+          !entitlement.entitlement_key?.startsWith('THEME:') ||
+          entitlement.revoked_at
+        ) {
+          return false;
+        }
+
+        const startsAt = entitlement.starts_at
+          ? new Date(entitlement.starts_at).getTime()
+          : null;
+
+        const expiresAt = entitlement.expires_at
+          ? new Date(entitlement.expires_at).getTime()
+          : null;
+
+        return (
+          (startsAt === null || startsAt <= now) &&
+          (expiresAt === null || expiresAt > now)
+        );
+      })
+      .forEach((entitlement: any) => {
+        const catalogItemId = themeCatalogIdsByEntitlementKey.get(
+          entitlement.entitlement_key
+        );
+
+        if (catalogItemId) {
+          purchasedItemSources.set(catalogItemId, 'PURCHASED');
+        }
+      });
+
+    // Preserve existing ORDER_ITEM and SUBSCRIPTION behavior.
     entitlements
       .filter(
         (entitlement: any) =>
           entitlement.status === 'ACTIVE' &&
-          ['ORDER_ITEM', 'SUBSCRIPTION'].includes(entitlement.source_type) &&
+          ['ORDER_ITEM', 'SUBSCRIPTION'].includes(
+            entitlement.source_type
+          ) &&
           entitlement.metadata?.catalogItemId
       )
       .forEach((entitlement: any) => {
@@ -73,12 +128,38 @@ async function getPurchasedItems(playerId: string) {
           return;
         }
 
+        // Subscription access must never override permanent ownership.
         if (!purchasedItemSources.has(catalogItemId)) {
           purchasedItemSources.set(catalogItemId, 'SUBSCRIPTION');
         }
       });
   } catch (error) {
-    console.error('Error fetching Marketplace V2 entitlements for store items', error);
+    console.error(
+      'Error fetching Marketplace V2 entitlements for store items',
+      error
+    );
+  }
+
+  // 2026 Fall/Winter Holiday Collection
+  //
+  // A player who permanently owns all seven individual themes
+  // also owns the complete collection for marketplace purposes.
+  //
+  // This is a derived ownership state. It does not create an
+  // order, payment, or additional entitlement record.
+  //
+  // Subscription-only access does NOT count as permanent ownership.
+
+  const ownsAllHolidayThemes = HOLIDAY_THEME_BUNDLE.themes.every(
+    (theme) =>
+      purchasedItemSources.get(theme.catalogItemId) === 'PURCHASED'
+  );
+
+  if (ownsAllHolidayThemes) {
+    purchasedItemSources.set(
+      HOLIDAY_THEME_BUNDLE.catalogItemId,
+      'PURCHASED'
+    );
   }
 
   return purchasedItemSources;
@@ -140,11 +221,20 @@ async function getStoreItems(playerId: string, filters) {
         if (filters.gameFilter !== 'ALL' && item.game !== filters.gameFilter)
           return false;
 
+        const isHolidayThemeBundle =
+          item.id === 'd9730def-c114-405d-9395-9dd1345de763';
+
+        const includeHolidayBundleWithThemes =
+          filters.itemTypeFilter === 'THEME' &&
+          isHolidayThemeBundle;
+
         if (
           filters.itemTypeFilter !== 'ALL' &&
-          item.type !== filters.itemTypeFilter
-        )
+          item.type !== filters.itemTypeFilter &&
+          !includeHolidayBundleWithThemes
+        ) {
           return false;
+        }
 
         if (filters.showPurchased === 'false' && item.isPurchased) return false;
         if (filters.showUnavailable === 'false' && item.discontinued)
@@ -192,23 +282,27 @@ async function getStoreItems(playerId: string, filters) {
     | {
         id: string;
         coinPrice: number;
+        purchasableWithCoins: boolean;
+        discontinued: boolean;
       }
     | undefined
   > {
     const { data, error } = await db
       .from('_items')
-      .select('id, coin_price')
+      .select('id, coin_price, purchasable_with_coins, discontinued')
       .eq('id', itemId)
       .maybeSingle();
 
-    if (error) {
-      console.error(error);
+    if (error || !data) {
+      if (error) console.error(error);
       return;
     }
 
-    return changeKeys.camelCase(data, 10) as {
-      id: string;
-      coinPrice: number;
+    return {
+      id: data.id,
+      coinPrice: Number(data.coin_price),
+      purchasableWithCoins: data.purchasable_with_coins === true,
+      discontinued: data.discontinued === true,
     };
   }
 
@@ -246,6 +340,24 @@ async function getStoreItems(playerId: string, filters) {
     for (const id of itemIds) {
       const storeItemPrice = await getItemPrice(id);
       if (!storeItemPrice) return { error: 'Item not found' };
+
+      if (
+        !storeItemPrice.purchasableWithCoins ||
+        storeItemPrice.discontinued
+      ) {
+        return {
+          error: 'This item is not available for purchase with coins',
+        };
+      }
+
+      if (
+        !Number.isFinite(storeItemPrice.coinPrice) ||
+        storeItemPrice.coinPrice <= 0
+      ) {
+        return {
+          error: 'Invalid coin price for this item',
+        };
+      }
 
       const { coinBalance: playerBalance } =
         await ledgerService.getBalance(playerId);

@@ -1,7 +1,8 @@
 export type MarketplaceItemType =
   | 'WORD_PACK'
   | 'THEME'
-  | 'AVATAR';
+  | 'AVATAR'
+  | 'BUNDLE';
 
 export type EntitlementType =
   | 'WORD_PACK'

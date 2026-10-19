@@ -6,7 +6,10 @@ import {
 } from '../../config/stripeProducts';
 import { SUBSCRIPTIONS } from '../../config/subscriptions';
 import { SUBSCRIPTION_ENTITLEMENTS } from '../../config/subscriptionEntitlements';
+import { getPlayerEntitlements } from './entitlements';
 import { CATALOG } from './catalog';
+import { randomUUID } from 'node:crypto';
+import { HOLIDAY_THEME_BUNDLE } from '../../config/holidayThemeBundle';
 
 export interface CreateCheckoutSessionRequest {
   playerId: string;
@@ -31,6 +34,101 @@ export interface CreateItemCheckoutSessionRequest {
   itemId: string;
 }
 
+async function processHolidayThemeBundlePurchase(
+  playerId: string,
+  itemId: string,
+) {
+  if (itemId !== HOLIDAY_THEME_BUNDLE.catalogItemId) {
+    return { error: 'Invalid holiday bundle item' };
+  }
+
+  const bundleEntitlements = [
+    {
+      entitlementKey: HOLIDAY_THEME_BUNDLE.entitlementKey,
+      entitlementType: 'FEATURE',
+      catalogItemId: HOLIDAY_THEME_BUNDLE.catalogItemId,
+    },
+    ...HOLIDAY_THEME_BUNDLE.themes.map((theme) => ({
+      entitlementKey: theme.entitlementKey,
+      entitlementType: 'THEME',
+      catalogItemId: theme.catalogItemId,
+    })),
+  ];
+
+  for (const entitlement of bundleEntitlements) {
+    const { data: existing, error: lookupError } = await db
+      .from('_player_entitlements')
+      .select('id')
+      .eq('player_id', playerId)
+      .eq('entitlement_key', entitlement.entitlementKey)
+      .eq('source_type', 'ORDER_ITEM')
+      .eq('status', 'ACTIVE')
+      .is('expires_at', null)
+      .maybeSingle();
+
+    if (lookupError) {
+      console.error('Failed to check holiday bundle entitlement', lookupError);
+
+      return {
+        error: 'Failed to verify holiday bundle ownership',
+      };
+    }
+
+    if (existing) continue;
+
+    const { error: insertError } = await db
+      .from('_player_entitlements')
+      .insert({
+        player_id: playerId,
+        entitlement_key: entitlement.entitlementKey,
+        entitlement_type: entitlement.entitlementType,
+        source_type: 'ORDER_ITEM',
+        status: 'ACTIVE',
+        expires_at: null,
+        metadata: {
+          catalogItemId: entitlement.catalogItemId,
+          bundleCatalogItemId: HOLIDAY_THEME_BUNDLE.catalogItemId,
+          purchaseMethod: 'STRIPE',
+          bundleSku: HOLIDAY_THEME_BUNDLE.sku,
+        },
+      });
+
+    if (insertError) {
+      if (insertError.code === '23505') {
+        // Another webhook attempt may have granted this entitlement.
+        // Confirm ownership before continuing.
+        const { data: duplicate, error: duplicateLookupError } = await db
+          .from('_player_entitlements')
+          .select('id')
+          .eq('player_id', playerId)
+          .eq('entitlement_key', entitlement.entitlementKey)
+          .eq('source_type', 'ORDER_ITEM')
+          .eq('status', 'ACTIVE')
+          .is('expires_at', null)
+          .maybeSingle();
+
+        if (!duplicateLookupError && duplicate) continue;
+      }
+
+      console.error('Failed to grant holiday bundle entitlement', insertError);
+
+      return {
+        error: 'Failed to grant all holiday bundle entitlements',
+      };
+    }
+  }
+
+  return {
+    success: true,
+    playerId,
+    itemId,
+    bundleSku: HOLIDAY_THEME_BUNDLE.sku,
+    entitlementsGranted: bundleEntitlements.map(
+      (entitlement) => entitlement.entitlementKey,
+    ),
+  };
+}
+
 async function processStripePurchase({
   playerId,
   itemId,
@@ -38,28 +136,35 @@ async function processStripePurchase({
   playerId: string;
   itemId: string;
 }) {
+  if (itemId === HOLIDAY_THEME_BUNDLE.catalogItemId) {
+    return processHolidayThemeBundlePurchase(playerId, itemId);
+  }
+
   const catalogItem = CATALOG.find((item) => item.catalogItemId === itemId);
 
   if (!catalogItem) {
     return { error: 'Invalid catalog item for Stripe purchase' };
   }
 
-  const { data: existingEntitlement } = await db
-    .from('_player_entitlements')
-    .select('id')
-    .eq('player_id', playerId)
-    .eq('entitlement_key', catalogItem.entitlementKey)
-    .eq('status', 'ACTIVE')
-    .is('expires_at', null)
-    .maybeSingle();
+  const { data: existingEntitlement, error: ownershipError } =
+    await db
+      .from('_player_entitlements')
+      .select('id')
+      .eq('player_id', playerId)
+      .eq('entitlement_key', catalogItem.entitlementKey)
+      .eq('source_type', 'ORDER_ITEM')
+      .eq('status', 'ACTIVE')
+      .is('expires_at', null)
+      .maybeSingle();
 
-  if (existingEntitlement) {
+  if (ownershipError) {
+    console.error(
+      'Failed to check permanent purchase ownership',
+      ownershipError,
+    );
+
     return {
-      success: true,
-      alreadyOwned: true,
-      playerId,
-      itemId,
-      entitlementKey: catalogItem.entitlementKey,
+      error: 'Failed to verify permanent purchase ownership',
     };
   }
 
@@ -76,8 +181,35 @@ async function processStripePurchase({
   });
 
   if (error) {
+    // A concurrent Stripe event may have already granted ownership.
+    // Confirm that before treating the purchase as failed.
+    if (error.code === '23505') {
+      const { data: existingPurchase, error: lookupError } = await db
+        .from('_player_entitlements')
+        .select('id')
+        .eq('player_id', playerId)
+        .eq('entitlement_key', catalogItem.entitlementKey)
+        .eq('source_type', 'ORDER_ITEM')
+        .eq('status', 'ACTIVE')
+        .is('expires_at', null)
+        .maybeSingle();
+
+      if (!lookupError && existingPurchase) {
+        return {
+          success: true,
+          alreadyOwned: true,
+          playerId,
+          itemId,
+          entitlementKey: catalogItem.entitlementKey,
+        };
+      }
+    }
+
     console.error('Failed to grant Stripe purchase entitlement', error);
-    return { error: 'Failed to grant Stripe purchase entitlement' };
+
+    return {
+      error: 'Failed to grant Stripe purchase entitlement',
+    };
   }
 
   return {
@@ -170,6 +302,119 @@ export async function createItemCheckoutSession(
     return { error: 'Invalid catalog item' };
   }
 
+  // Holiday collection: enforce Stripe-only availability
+  // and staging restrictions without changing existing items.
+  const isHolidayProduct =
+    itemId === HOLIDAY_THEME_BUNDLE.catalogItemId ||
+    HOLIDAY_THEME_BUNDLE.themes.some(
+      (theme) => theme.catalogItemId === itemId,
+    );
+
+  if (isHolidayProduct) {
+    // Verify that the holiday product has been activated
+    // and is eligible for Stripe-only purchasing.
+    const { data: holidayItem, error: holidayItemError } = await db
+      .from('_items')
+      .select(
+        'id, discontinued, purchasable_with_money, purchasable_with_coins',
+      )
+      .eq('id', itemId)
+      .maybeSingle();
+
+    if (holidayItemError || !holidayItem) {
+      console.error(
+        'Failed to verify holiday product availability',
+        holidayItemError,
+      );
+
+      return { error: 'Holiday product is unavailable' };
+    }
+
+    if (
+      holidayItem.discontinued ||
+      holidayItem.purchasable_with_money !== true ||
+      holidayItem.purchasable_with_coins !== false ||
+      catalogItem.isStripePurchasable !== true
+    ) {
+      return {
+        error: 'This holiday product is not currently available for purchase',
+      };
+    }
+
+    // Retrieve active entitlements, including admin grants,
+    // individual purchases, and previous bundle purchases.
+    // Fail closed if ownership cannot be verified.
+    let entitlements;
+
+    try {
+      entitlements = await getPlayerEntitlements(playerId);
+    } catch (error) {
+      console.error(
+        'Failed to verify holiday product ownership',
+        error,
+      );
+
+      return {
+        error: 'Unable to verify product ownership. Please try again.',
+      };
+    }
+
+    // Only permanent ownership counts.
+    // Subscription-based or expiring access must not be
+    // treated as a permanent purchase.
+    const permanentEntitlementKeys = new Set<string>(
+      entitlements
+        .filter(
+          (entitlement: any) =>
+            entitlement.status === 'ACTIVE' &&
+            ['ADMIN', 'ORDER_ITEM'].includes(
+              entitlement.source_type,
+            ) &&
+            entitlement.expires_at == null &&
+            !entitlement.revoked_at
+        )
+        .map(
+          (entitlement: any) =>
+            entitlement.entitlement_key as string
+        )
+    );
+
+    const ownsCompleteCollection =
+      permanentEntitlementKeys.has(
+        HOLIDAY_THEME_BUNDLE.entitlementKey
+      ) ||
+      HOLIDAY_THEME_BUNDLE.themes.every((theme) =>
+        permanentEntitlementKeys.has(theme.entitlementKey)
+      );
+
+    const isHolidayBundle =
+      itemId === HOLIDAY_THEME_BUNDLE.catalogItemId;
+
+    if (isHolidayBundle && ownsCompleteCollection) {
+      return {
+        error: 'You already own the complete holiday theme collection',
+      };
+    }
+
+    if (!isHolidayBundle) {
+      const selectedTheme = HOLIDAY_THEME_BUNDLE.themes.find(
+        (theme) => theme.catalogItemId === itemId
+      );
+
+      if (
+        selectedTheme &&
+        (
+          permanentEntitlementKeys.has(selectedTheme.entitlementKey) ||
+          ownsCompleteCollection
+        )
+      ) {
+        return {
+          error: 'You already permanently own this holiday theme',
+        };
+      }
+    }
+  }
+
   const stripeSecretKey = process.env.STRIPE_SK;
   if (!stripeSecretKey) {
     return { error: 'Missing Stripe secret key' };
@@ -195,9 +440,11 @@ export async function createItemCheckoutSession(
   const stripe = new Stripe(stripeSecretKey);
 
   const marketplaceReturnPath =
+    itemId === HOLIDAY_THEME_BUNDLE.catalogItemId ||
     catalogItem.itemType === 'THEME'
       ? '/marketplace/themes'
-      : catalogItem.itemType === 'WORDLE_WORD_PACK' || catalogItem.itemType === 'WORD_PACK'
+      : catalogItem.itemType === 'WORDLE_WORD_PACK' ||
+          catalogItem.itemType === 'WORD_PACK'
         ? '/marketplace/word-packs'
         : '/marketplace/all-items';
 
@@ -771,6 +1018,44 @@ export async function createBillingPortalSession(
   }
 }
 
+type StripeWebhookProcessingStatus = 'PROCESSED' | 'FAILED';
+
+async function updateStripeWebhookStatus(
+  eventId: string,
+  processingToken: string,
+  status: StripeWebhookProcessingStatus,
+  errorMessage: string | null = null,
+): Promise<boolean> {
+  const now = new Date().toISOString();
+
+  const { data, error } = await db
+    .from('_stripe_webhook_events')
+    .update({
+      processing_status: status,
+      error: errorMessage,
+      processed_at: now,
+      updated_at: now,
+    })
+    .eq('stripe_event_id', eventId)
+    .eq('processing_token', processingToken)
+    .eq('processing_status', 'PROCESSING')
+    .select('id')
+    .maybeSingle();
+
+  if (error || !data) {
+    console.error('Failed to update Stripe webhook status', {
+      eventId,
+      processingToken,
+      status,
+      error,
+    });
+
+    return false;
+  }
+
+  return true;
+}
+
 export async function handleStripeWebhook(
   request: HandleStripeWebhookRequest,
 ) {
@@ -779,13 +1064,14 @@ export async function handleStripeWebhook(
 
   if (!stripeSecretKey) return { error: 'Missing Stripe secret key' };
   if (!webhookSecret) return { error: 'Missing Stripe webhook secret' };
+
   if (!request.signature || Array.isArray(request.signature)) {
     return { error: 'Missing Stripe signature' };
   }
 
   const stripe = new Stripe(stripeSecretKey);
 
-  let event;
+  let event: Stripe.Event;
 
   try {
     event = await stripe.webhooks.constructEventAsync(
@@ -795,266 +1081,275 @@ export async function handleStripeWebhook(
     );
   } catch (error: any) {
     console.error('Stripe webhook signature verification failed', error);
-    return { error: error?.message || 'Invalid Stripe webhook signature' };
+    return { error: 'Invalid Stripe webhook signature' };
   }
 
   console.log('Stripe webhook received:', event.type);
 
-  const { data: existingEvent } = await db
-    .from('_stripe_webhook_events')
-    .select('id')
-    .eq('stripe_event_id', event.id)
-    .maybeSingle();
+  const processingToken = randomUUID();
 
-  if (existingEvent) {
-    return {
-      received: true,
-      duplicate: true,
-      eventType: event.type,
-    };
+  // Claim the event atomically.
+  const { data: claimed, error: claimError } = await db.rpc(
+    'claim_stripe_webhook_event',
+    {
+      p_stripe_event_id: event.id,
+      p_event_type: event.type,
+      p_processing_token: processingToken,
+    },
+  );
+
+  if (claimError) {
+    console.error('Failed to claim Stripe webhook event', claimError);
+    return { error: 'Failed to claim Stripe webhook event' };
   }
 
-  const { error: eventInsertError } = await db
-    .from('_stripe_webhook_events')
-    .insert({
-      stripe_event_id: event.id,
-      event_type: event.type,
-      processing_status: 'PROCESSING',
-    });
-
-  if (eventInsertError) {
-    console.error('Failed to record Stripe webhook event', eventInsertError);
-
-    return {
-      error: 'Failed to record Stripe webhook event',
-      eventType: event.type,
-    };
-  }
-
-  if (
-    event.type !== 'checkout.session.completed' &&
-    event.type !== 'customer.subscription.updated' &&
-    event.type !== 'customer.subscription.deleted'
-  ) {
-    await db
+  if (claimed !== true) {
+    const { data: existingEvent, error: lookupError } = await db
       .from('_stripe_webhook_events')
-      .update({
-        processing_status: 'PROCESSED',
-        error: 'Ignored event type',
-        processed_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      })
-      .eq('stripe_event_id', event.id);
+      .select('processing_status')
+      .eq('stripe_event_id', event.id)
+      .maybeSingle();
 
-    return {
-      received: true,
-      ignored: true,
-      eventType: event.type,
-    };
-  }
+    if (lookupError || !existingEvent) {
+      return { error: 'Unable to verify Stripe webhook status' };
+    }
 
-  if (
-    event.type === 'customer.subscription.updated' ||
-    event.type === 'customer.subscription.deleted'
-  ) {
-    const subscription = event.data.object as Stripe.Subscription;
-
-    const result = await syncStripeSubscription(subscription);
-
-    await db
-      .from('_stripe_webhook_events')
-      .update({
-        processing_status: 'error' in result ? 'FAILED' : 'PROCESSED',
-        error: 'error' in result ? result.error : null,
-        processed_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      })
-      .eq('stripe_event_id', event.id);
-
-    return result;
-  }
-  
-  const session = event.data.object as Stripe.Checkout.Session;
-
-  if (session.mode === 'payment') {
-    if (session.payment_status !== 'paid') {
-      await db
-        .from('_stripe_webhook_events')
-        .update({
-          processing_status: 'PROCESSED',
-          error: 'Payment not paid',
-          processed_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        })
-        .eq('stripe_event_id', event.id);
-
+    if (existingEvent.processing_status === 'PROCESSED') {
       return {
         received: true,
-        ignored: true,
+        duplicate: true,
         eventType: event.type,
       };
     }
 
-    const playerId = session.metadata?.playerId;
-    const itemId = session.metadata?.itemId;
-    const purchaseType = session.metadata?.purchaseType;
+    return {
+      error: 'Stripe webhook event is still processing',
+    };
+  }
 
-    if (!playerId || !itemId || purchaseType !== 'ITEM') {
-      await db
-        .from('_stripe_webhook_events')
-        .update({
-          processing_status: 'FAILED',
-          error: 'Missing required item purchase metadata from Stripe session',
-          processed_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        })
-        .eq('stripe_event_id', event.id);
+  // Every successful claim must be finalized.
+  // Only the current processing token may finalize an event.
+  async function finalize(result: any, reason: string | null = null) {
+    const failed = Boolean(result && 'error' in result);
+    const errorMessage = failed
+      ? String(result.error)
+      : reason;
 
-      return { error: 'Missing required item purchase metadata from Stripe session' };
+    const updated = await updateStripeWebhookStatus(
+      event.id,
+      processingToken,
+      failed ? 'FAILED' : 'PROCESSED',
+      errorMessage,
+    );
+
+    if (!updated) {
+      return {
+        error: 'Failed to finalize Stripe webhook event',
+      };
     }
-
-    const result = await processStripePurchase({ playerId, itemId });
-
-    await db
-      .from('_stripe_webhook_events')
-      .update({
-        processing_status: 'error' in result ? 'FAILED' : 'PROCESSED',
-        error: 'error' in result ? result.error : null,
-        processed_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      })
-      .eq('stripe_event_id', event.id);
 
     return result;
   }
 
-  if (session.mode !== 'subscription') {
-    await db
-      .from('_stripe_webhook_events')
-      .update({
-        processing_status: 'PROCESSED',
-        error: 'Not subscription mode',
-        processed_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      })
-      .eq('stripe_event_id', event.id);
-
-    return {
-      received: true,
-      ignored: true,
-      eventType: event.type,
-    };
-  }
-
-  if (session.payment_status !== 'paid') {
-    await db
-      .from('_stripe_webhook_events')
-      .update({
-        processing_status: 'PROCESSED',
-        error: 'Payment not paid',
-        processed_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      })
-      .eq('stripe_event_id', event.id);
-
-    return {
-      received: true,
-      ignored: true,
-      eventType: event.type,
-    };
-  }
-
-  const playerId = session.metadata?.playerId;
-  const subscriptionKey = session.metadata?.subscriptionKey;
-  const providerCustomerId =
-    typeof session.customer === 'string' ? session.customer : session.customer?.id;
-  const providerSubscriptionId =
-    typeof session.subscription === 'string'
-      ? session.subscription
-      : session.subscription?.id;
-
-  if (!playerId || !subscriptionKey || !providerCustomerId || !providerSubscriptionId) {
-    return { error: 'Missing required subscription metadata from Stripe session' };
-  }
-
-  const stripeSubscription = await stripe.subscriptions.retrieve(
-    providerSubscriptionId,
-  );
-
-  const {
-    currentPeriodStart,
-    currentPeriodEnd,
-  } = getStripeSubscriptionPeriod(stripeSubscription);
-
-  console.log('Retrieved Stripe subscription period fields', {
-    providerSubscriptionId,
-    currentPeriodStart: stripeSubscription.current_period_start,
-    currentPeriodEnd: stripeSubscription.current_period_end,
-    cancelAtPeriodEnd: stripeSubscription.cancel_at_period_end,
-    canceledAt: stripeSubscription.canceled_at,
-  });
-
-  const { data, error } = await db
-    .from('_player_subscriptions')
-    .upsert(
-      {
-        player_id: playerId,
-        subscription_key: subscriptionKey,
-        provider: 'STRIPE',
-        provider_customer_id: providerCustomerId,
-        provider_subscription_id: providerSubscriptionId,
-        status: 'ACTIVE',
-        current_period_start: currentPeriodStart,
-        current_period_end: currentPeriodEnd,
-        cancel_at_period_end: stripeSubscription.cancel_at_period_end,
-        cancelled_at: stripeTimestampToIso(stripeSubscription.canceled_at),
-        metadata: {
-          checkoutSessionId: session.id,
-          amountTotal: session.amount_total,
-          currency: session.currency,
+  try {
+    // Ignore unrelated Stripe events.
+    if (
+      event.type !== 'checkout.session.completed' &&
+      event.type !== 'customer.subscription.updated' &&
+      event.type !== 'customer.subscription.deleted'
+    ) {
+      return await finalize(
+        {
+          received: true,
+          ignored: true,
+          eventType: event.type,
         },
-        updated_at: new Date().toISOString(),
-      },
-      { onConflict: 'provider,provider_subscription_id' },
-    )
-    .select('*')
-    .maybeSingle();
+        'Ignored event type',
+      );
+    }
 
-  if (error) {
-    console.error('Failed to save player subscription', error);
-    return { error: 'Failed to save player subscription' };
+    // Existing subscription lifecycle processing.
+    if (
+      event.type === 'customer.subscription.updated' ||
+      event.type === 'customer.subscription.deleted'
+    ) {
+      const subscription = event.data.object as Stripe.Subscription;
+      const result = await syncStripeSubscription(subscription);
+
+      return await finalize(result);
+    }
+
+    const session = event.data.object as Stripe.Checkout.Session;
+
+    // One-time item purchases, including future bundles.
+    if (session.mode === 'payment') {
+      if (session.payment_status !== 'paid') {
+        return await finalize(
+          {
+            received: true,
+            ignored: true,
+            eventType: event.type,
+          },
+          'Payment not paid',
+        );
+      }
+
+      const playerId = session.metadata?.playerId;
+      const itemId = session.metadata?.itemId;
+      const purchaseType = session.metadata?.purchaseType;
+
+      if (!playerId || !itemId || purchaseType !== 'ITEM') {
+        return await finalize({
+          error: 'Missing required item purchase metadata from Stripe session',
+        });
+      }
+
+      const result = await processStripePurchase({
+        playerId,
+        itemId,
+      });
+
+      return await finalize(result);
+    }
+
+    // Ignore unsupported checkout modes.
+    if (session.mode !== 'subscription') {
+      return await finalize(
+        {
+          received: true,
+          ignored: true,
+          eventType: event.type,
+        },
+        'Not subscription mode',
+      );
+    }
+
+    if (session.payment_status !== 'paid') {
+      return await finalize(
+        {
+          received: true,
+          ignored: true,
+          eventType: event.type,
+        },
+        'Payment not paid',
+      );
+    }
+
+    // Existing Plus / Creator checkout processing.
+    const playerId = session.metadata?.playerId;
+    const subscriptionKey = session.metadata?.subscriptionKey;
+
+    const providerCustomerId =
+      typeof session.customer === 'string'
+        ? session.customer
+        : session.customer?.id;
+
+    const providerSubscriptionId =
+      typeof session.subscription === 'string'
+        ? session.subscription
+        : session.subscription?.id;
+
+    if (
+      !playerId ||
+      !subscriptionKey ||
+      !providerCustomerId ||
+      !providerSubscriptionId
+    ) {
+      return await finalize({
+        error: 'Missing required subscription metadata from Stripe session',
+      });
+    }
+
+    const stripeSubscription = await stripe.subscriptions.retrieve(
+      providerSubscriptionId,
+    );
+
+    const {
+      currentPeriodStart,
+      currentPeriodEnd,
+    } = getStripeSubscriptionPeriod(stripeSubscription);
+
+    console.log('Retrieved Stripe subscription period fields', {
+      providerSubscriptionId,
+      currentPeriodStart,
+      currentPeriodEnd,
+      cancelAtPeriodEnd: stripeSubscription.cancel_at_period_end,
+      canceledAt: stripeSubscription.canceled_at,
+    });
+
+    const { data, error } = await db
+      .from('_player_subscriptions')
+      .upsert(
+        {
+          player_id: playerId,
+          subscription_key: subscriptionKey,
+          provider: 'STRIPE',
+          provider_customer_id: providerCustomerId,
+          provider_subscription_id: providerSubscriptionId,
+          status: 'ACTIVE',
+          current_period_start: currentPeriodStart,
+          current_period_end: currentPeriodEnd,
+          cancel_at_period_end: stripeSubscription.cancel_at_period_end,
+          cancelled_at: stripeTimestampToIso(
+            stripeSubscription.canceled_at,
+          ),
+          metadata: {
+            checkoutSessionId: session.id,
+            amountTotal: session.amount_total,
+            currency: session.currency,
+          },
+          updated_at: new Date().toISOString(),
+        },
+        {
+          onConflict: 'provider,provider_subscription_id',
+        },
+      )
+      .select('*')
+      .maybeSingle();
+
+    if (error || !data) {
+      console.error('Failed to save player subscription', error);
+
+      return await finalize({
+        error: 'Failed to save player subscription',
+      });
+    }
+
+    const entitlementSyncResult =
+      await syncSubscriptionEntitlements(data);
+
+    if ('error' in entitlementSyncResult) {
+      return await finalize(entitlementSyncResult);
+    }
+
+    return await finalize({
+      received: true,
+      eventType: event.type,
+      subscription: data,
+    });
+  } catch (error: any) {
+    console.error('Unexpected Stripe webhook processing error', {
+      eventId: event.id,
+      eventType: event.type,
+      error,
+    });
+
+    const errorMessage =
+      error?.message || 'Unexpected Stripe webhook processing error';
+
+    try {
+      return await finalize({ error: errorMessage });
+    } catch (finalizeError) {
+      console.error(
+        'Failed to finalize crashed Stripe webhook',
+        finalizeError,
+      );
+
+      return {
+        error: 'Stripe webhook processing and finalization failed',
+      };
+    }
   }
-
-  const entitlementSyncResult = await syncSubscriptionEntitlements(data);
-
-  if ('error' in entitlementSyncResult) {
-    await db
-      .from('_stripe_webhook_events')
-      .update({
-        processing_status: 'FAILED',
-        error: entitlementSyncResult.error,
-        processed_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      })
-      .eq('stripe_event_id', event.id);
-
-    return entitlementSyncResult;
-  }
-
-  await db
-    .from('_stripe_webhook_events')
-    .update({
-      processing_status: 'PROCESSED',
-      processed_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    })
-    .eq('stripe_event_id', event.id);
-
-  return {
-    received: true,
-    eventType: event.type,
-    subscription: data,
-  };
 }
 
 export async function fulfillOrder() {

@@ -6,6 +6,8 @@ export default function Product({
   itemId,
   subItems = [],
   isPopular = false,
+  stripeOnly = false,
+  isComingSoon = false,
   isPurchased = false,
   isUnlockedBySubscription = false,
   isLocked = false,
@@ -24,6 +26,8 @@ export default function Product({
   itemId: string
   subItems: string[]
   isPopular?: boolean
+  stripeOnly?: boolean
+  isComingSoon?: boolean
   isPurchased?: boolean
   isUnlockedBySubscription?: boolean
   isLocked?: boolean
@@ -98,6 +102,10 @@ export default function Product({
         <Button disabled className="mt-12 w-full">
           Purchased
         </Button>
+      ) : isComingSoon ? (
+        <Button disabled className="mt-12 w-full">
+          Coming Soon
+        </Button>
       ) : isUnlockedBySubscription ? (
         <Button disabled className="mt-12 w-full">
           Included with Your Subscription
@@ -108,30 +116,34 @@ export default function Product({
         </Button>
       ) : (
         <div className="mt-12 flex flex-col gap-2">
-          {!isInCart ? (
-            <Button
-              size={isPopular ? 'lg' : 'default'}
-              className="w-full"
-              onClick={(e) => {
-                e.preventDefault();
-                addItemToCard(itemId);
-              }}
-            >
-              Buy with coins
-            </Button>
-          ) : (
-            <Button
-              size={isPopular ? 'lg' : 'default'}
-              className="w-full"
-              onClick={(e) => {
-                e.preventDefault();
-                removeItemFromCard(itemId);
-              }}
-            >
-              Remove from cart
-            </Button>
+          {/* Coin purchases remain available for existing products */}
+          {!stripeOnly && (
+            !isInCart ? (
+              <Button
+                size={isPopular ? 'lg' : 'default'}
+                className="w-full"
+                onClick={(e) => {
+                  e.preventDefault();
+                  addItemToCard(itemId);
+                }}
+              >
+                Buy with coins
+              </Button>
+            ) : (
+              <Button
+                size={isPopular ? 'lg' : 'default'}
+                className="w-full"
+                onClick={(e) => {
+                  e.preventDefault();
+                  removeItemFromCard(itemId);
+                }}
+              >
+                Remove from cart
+              </Button>
+            )
           )}
 
+          {/* Stripe purchases for eligible products */}
           {hasStripePrice && buyWithStripe && (
             <Button
               variant="neutral"
