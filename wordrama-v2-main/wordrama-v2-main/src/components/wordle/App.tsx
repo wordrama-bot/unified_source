@@ -550,14 +550,21 @@ const activeSolution = isCustom
         pendingReconciledStateRef.current;
 
       if (reconciledState) {
-        const {
-          isLoading,
-          ...remoteState
-        } = reconciledState;
+        try {
+          const {
+            isLoading,
+            ...remoteState
+          } = reconciledState;
 
-        await updateRemoteState(remoteState).unwrap();
+          await updateRemoteState(remoteState).unwrap();
 
-        pendingReconciledStateRef.current = null;
+          pendingReconciledStateRef.current = null;
+        } catch (error) {
+          console.warn(
+            '[wordle] unable to save reconciled game state; continuing result sync',
+            error,
+          );
+        }
       }
 
       const pendingResults =
