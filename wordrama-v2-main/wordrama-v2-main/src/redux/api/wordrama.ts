@@ -29,6 +29,8 @@ function getStoredSupabaseAccessToken() {
 // Setting up the API Slice
 export const wordramaApiV3 = createApi({
   reducerPath: "wordramaApi",
+  refetchOnFocus: true,
+  refetchOnReconnect: true,
   baseQuery: fetchBaseQuery({
     baseUrl: API_BASE_URL,
     credentials: "include",
@@ -96,6 +98,7 @@ export const wordramaApiV3 = createApi({
         headers: { "Content-Type": "application/json" },
         credentials: "include",
       }),
+      providesTags: ["WordleStreak"],
     }),
 
     getLast30Wordles: builder.query<
@@ -720,9 +723,12 @@ export const wordramaApiV3 = createApi({
       }),
       invalidatesTags: [
         "Player",
+        "PublicProfile",
         "Stats",
         "Leaderboard",
         "Wordle",
+        "WordleStreak",
+        "WordleLast30",
         "WordleDailyStats",
         "WordleWeeklyStats",
         "WordleMonthlyStats",

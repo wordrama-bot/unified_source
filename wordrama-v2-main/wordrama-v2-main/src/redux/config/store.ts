@@ -1,5 +1,6 @@
 import { configureStore, ThunkDispatch } from "@reduxjs/toolkit";
 import { TypedUseSelectorHook, useDispatch, useSelector } from "react-redux";
+import { setupListeners } from "@reduxjs/toolkit/query";
 
 import { AnyAction } from "redux";
 
@@ -35,3 +36,5 @@ export const store = configureStore({
     return middleware;
   },
 });
+
+setupListeners(store.dispatch);
