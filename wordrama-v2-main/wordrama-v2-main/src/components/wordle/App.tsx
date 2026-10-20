@@ -1804,7 +1804,7 @@ const activeSolution = isCustom
               <div className="flex justify-center mb-4">
                 <GameThemeLogo
                   theme={appearanceTheme}
-                  className="h-16 w-auto object-contain"
+                  className="h-20 w-auto max-w-full object-contain"
                 />
               </div>
               <div className="flex flex-col justify-center pb-6 short:pb-2">

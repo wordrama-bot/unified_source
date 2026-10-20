@@ -189,6 +189,10 @@ export const appearanceThemes: AppearanceTheme[] = [
       availability: 'free',
     },
 
+    branding: {
+      logoSrc: '/images/theme-logos/midnight.png',
+    },
+
     app: {
       background: 'bg-[#020617]',
       panel: 'bg-[#020617] text-white border border-[#1e293b]',
@@ -256,6 +260,10 @@ export const appearanceThemes: AppearanceTheme[] = [
       id: THEME_IDS.ROSE_GOLD,
       name: 'Rose Gold',
       availability: 'free',
+    },
+
+    branding: {
+      logoSrc: '/images/theme-logos/rose-gold.png',
     },
 
     app: {
@@ -330,6 +338,10 @@ export const appearanceThemes: AppearanceTheme[] = [
       entitlementKey: 'THEME:CYBERPUNK',
     },
 
+    branding: {
+      logoSrc: '/images/theme-logos/cyberpunk.png',
+    },
+
     app: {
       background: 'bg-[#090414]',
       panel:
@@ -402,6 +414,10 @@ export const appearanceThemes: AppearanceTheme[] = [
       entitlementKey: 'THEME:MIAMI_VICE',
     },
 
+    branding: {
+      logoSrc: '/images/theme-logos/miami-vice.png',
+    },
+
     app: {
       background: 'bg-[#1b0f33]',
       panel: 'bg-[#2a1552] text-pink-100 border border-cyan-300',
@@ -433,7 +449,6 @@ export const appearanceThemes: AppearanceTheme[] = [
       keyText: 'text-white',
       absentKey: 'bg-[#241133] border border-cyan-400',
     },
-
 
     modal: {
       container: 'bg-bg dark:bg-darkBg text-text dark:text-darkText',
@@ -469,6 +484,10 @@ export const appearanceThemes: AppearanceTheme[] = [
       name: 'Galaxy',
       availability: 'premium',
       entitlementKey: 'THEME:GALAXY',
+    },
+
+    branding: {
+      logoSrc: '/images/theme-logos/galaxy.png',
     },
 
     app: {
@@ -539,6 +558,10 @@ export const appearanceThemes: AppearanceTheme[] = [
       entitlementKey: 'THEME:ICE',
     },
 
+    branding: {
+      logoSrc: '/images/theme-logos/ice.png',
+    },
+
     app: {
       background: 'bg-sky-50',
       panel: 'bg-cyan-50 text-cyan-900 border border-cyan-300',
@@ -605,6 +628,10 @@ export const appearanceThemes: AppearanceTheme[] = [
       name: 'Lava',
       availability: 'premium',
       entitlementKey: 'THEME:LAVA',
+    },
+
+    branding: {
+      logoSrc: '/images/theme-logos/lava.png',
     },
 
     app: {
@@ -679,6 +706,10 @@ export const appearanceThemes: AppearanceTheme[] = [
       entitlementKey: 'THEME:FOREST',
     },
 
+    branding: {
+      logoSrc: '/images/theme-logos/forest.png',
+    },
+
     app: {
       background: 'bg-[#072b14]',
       panel: 'bg-[#12361d] text-green-100 border border-lime-700',
@@ -751,6 +782,10 @@ export const appearanceThemes: AppearanceTheme[] = [
       entitlementKey: 'THEME:CABIN',
     },
 
+    branding: {
+      logoSrc: '/images/theme-logos/cabin.png',
+    },
+
     app: {
       background: 'bg-[#15100a]',
       panel: 'bg-[#2a1b10] text-amber-100 border border-amber-800',
@@ -821,6 +856,10 @@ export const appearanceThemes: AppearanceTheme[] = [
       name: 'Pirate',
       availability: 'premium',
       entitlementKey: 'THEME:PIRATE',
+    },
+
+    branding: {
+      logoSrc: '/images/theme-logos/pirate.png',
     },
 
     app: {
@@ -900,6 +939,10 @@ export const appearanceThemes: AppearanceTheme[] = [
       entitlementKey: 'THEME:ARCADE',
     },
 
+    branding: {
+      logoSrc: '/images/theme-logos/arcade.png',
+    },
+
     app: {
       background:
         'bg-[radial-gradient(circle_at_center,#10183a_0%,#050713_55%,#02030a_100%)]',
@@ -975,6 +1018,10 @@ export const appearanceThemes: AppearanceTheme[] = [
       name: 'Synthwave',
       availability: 'premium',
       entitlementKey: 'THEME:SYNTHWAVE',
+    },
+
+    branding: {
+      logoSrc: '/images/theme-logos/synthwave.png',
     },
 
     app: {
@@ -1053,6 +1100,10 @@ export const appearanceThemes: AppearanceTheme[] = [
       entitlementKey: 'THEME:EMPIRE',
     },
 
+    branding: {
+      logoSrc: '/images/theme-logos/empire.png',
+    },
+
     app: {
       background: 'bg-neutral-950',
       panel: 'bg-[#080808] text-white border border-red-700',
@@ -1117,6 +1168,10 @@ export const appearanceThemes: AppearanceTheme[] = [
       name: 'Matrix',
       availability: 'premium',
       entitlementKey: 'THEME:MATRIX',
+    },
+
+    branding: {
+      logoSrc: '/images/theme-logos/matrix.png',
     },
 
     app: {
@@ -1346,6 +1401,10 @@ export const appearanceThemes: AppearanceTheme[] = [
       entitlementKey: 'THEME:HARVEST_HEARTH',
     },
 
+    branding: {
+      logoSrc: '/images/theme-logos/harvest-hearth.png',
+    },
+
     app: {
       background: 'bg-[#24191E]',
       panel:
@@ -1420,6 +1479,10 @@ export const appearanceThemes: AppearanceTheme[] = [
       name: 'Evergreen Noel',
       availability: 'premium',
       entitlementKey: 'THEME:EVERGREEN_NOEL',
+    },
+
+    branding: {
+      logoSrc: '/images/theme-logos/evergreen-noel.png',
     },
 
     app: {
@@ -1500,6 +1563,10 @@ export const appearanceThemes: AppearanceTheme[] = [
       entitlementKey: 'THEME:WINTER_WONDERLAND',
     },
 
+    branding: {
+      logoSrc: '/images/theme-logos/winter-wonderland.png',
+    },
+
     app: {
       background: 'bg-[#0D1520]',
       panel:
@@ -1578,6 +1645,10 @@ export const appearanceThemes: AppearanceTheme[] = [
       entitlementKey: 'THEME:FESTIVAL_OF_LIGHTS',
     },
 
+    branding: {
+      logoSrc: '/images/theme-logos/festival-of-lights.png',
+    },
+
     app: {
       background: 'bg-[#090F29]',
       panel:
@@ -1654,6 +1725,10 @@ export const appearanceThemes: AppearanceTheme[] = [
       name: 'Umoja',
       availability: 'premium',
       entitlementKey: 'THEME:UMOJA',
+    },
+
+    branding: {
+      logoSrc: '/images/theme-logos/umoja.png',
     },
 
     app: {
