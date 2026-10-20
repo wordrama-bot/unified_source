@@ -25,7 +25,7 @@ export const InfoModal = ({ isOpen, handleClose }: Props) => {
       titleClassName={appearanceTheme.modal.title}
       iconClassName={appearanceTheme.modal.icon}
     >
-      <p className="text-sm text-gray-500 dark:text-gray-300">
+      <p className={`text-sm opacity-80 ${appearanceTheme.app.text}`}>
         Guess the word in 6 tries. After each guess, the color of the tiles will
         change to show how close your guess was to the word.
       </p>
@@ -42,7 +42,7 @@ export const InfoModal = ({ isOpen, handleClose }: Props) => {
         <Cell value="R" isCompleted={true} />
         <Cell value="Y" isCompleted={true} />
       </div>
-      <p className="text-sm text-gray-500 dark:text-gray-300">
+      <p className={`text-sm opacity-80 ${appearanceTheme.app.text}`}>
         The letter W is in the word and in the correct spot.
       </p>
 
@@ -58,7 +58,7 @@ export const InfoModal = ({ isOpen, handleClose }: Props) => {
         <Cell value="O" isCompleted={true} />
         <Cell value="T" isCompleted={true} />
       </div>
-      <p className="text-sm text-gray-500 dark:text-gray-300">
+      <p className={`text-sm opacity-80 ${appearanceTheme.app.text}`}>
         The letter L is in the word but in the wrong spot.
       </p>
 
@@ -69,7 +69,7 @@ export const InfoModal = ({ isOpen, handleClose }: Props) => {
         <Cell isRevealing={true} isCompleted={true} value="U" status="absent" />
         <Cell value="E" isCompleted={true} />
       </div>
-      <p className="text-sm text-gray-500 dark:text-gray-300">
+      <p className={`text-sm opacity-80 ${appearanceTheme.app.text}`}>
         The letter U is not in the word in any spot.
       </p>
     </BaseModal>
