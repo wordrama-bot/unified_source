@@ -15,6 +15,10 @@ export type ThemeMetadata = {
 export type AppearanceTheme = {
   meta: ThemeMetadata;
 
+  branding?: {
+    logoSrc?: string;
+  };
+
   app: {
     background: string;
     panel: string;
@@ -186,11 +190,11 @@ export const appearanceThemes: AppearanceTheme[] = [
     },
 
     app: {
-      background: 'bg-slate-950',
-      panel: 'bg-slate-950 text-white border border-slate-800',
+      background: 'bg-[#020617]',
+      panel: 'bg-[#020617] text-white border border-[#1e293b]',
       text: 'text-white',
       gameSurface:
-        'bg-slate-950 text-white border border-sky-800 shadow-2xl shadow-sky-950/50',
+        'bg-[#020617] text-white border border-[#075985] shadow-2xl shadow-sky-950/50',
       actionButton:
         'bg-slate-950 hover:bg-slate-800 active:bg-slate-700 text-white border border-white/60 shadow-lg shadow-black/60',
     },
@@ -255,11 +259,11 @@ export const appearanceThemes: AppearanceTheme[] = [
     },
 
     app: {
-      background: 'bg-rose-200',
-      panel: 'bg-rose-50 text-rose-950 border border-rose-300',
+      background: 'bg-[#fecdd3]',
+      panel: 'bg-[#fff1f2] text-rose-950 border border-[#fda4af]',
       text: 'text-rose-950',
       gameSurface:
-        'bg-rose-100 text-rose-950 border border-rose-300 shadow-2xl',
+        'bg-[#ffe4e6] text-rose-950 border border-[#fda4af] shadow-2xl',
       actionButton:
         'bg-rose-200 hover:bg-rose-300 text-rose-950 border border-rose-300 shadow-lg',
     },
@@ -292,7 +296,7 @@ export const appearanceThemes: AppearanceTheme[] = [
 
     modal: {
       container: 'bg-white border border-rose-300 text-gray-900',
-      title: 'text-white',
+      title: 'text-rose-950',
       icon: 'stroke-rose-400',
     },
 
@@ -1182,6 +1186,10 @@ export const appearanceThemes: AppearanceTheme[] = [
       entitlementKey: 'THEME:HAUNTED_HOLLOW',
     },
 
+    branding: {
+      logoSrc: '/images/theme-logos/haunted-hollow.png',
+    },
+
     app: {
       background: 'bg-[#100D16]',
       panel:
@@ -1257,6 +1265,10 @@ export const appearanceThemes: AppearanceTheme[] = [
       name: 'Pumpkin Fright',
       availability: 'premium',
       entitlementKey: 'THEME:PUMPKIN_FRIGHT',
+    },
+
+    branding: {
+      logoSrc: '/images/theme-logos/pumpkin-fright.png',
     },
 
     app: {

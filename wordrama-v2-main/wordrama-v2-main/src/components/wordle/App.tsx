@@ -142,6 +142,7 @@ import { useTheme } from 'next-themes'
 import { useAuth } from '@/providers/auth-provider';
 import { showChristmas } from '@/lib/config';
 import { WinCelebration } from './components/celebrations/WinCelebration';
+import { GameThemeLogo } from './components/GameThemeLogo';
 
 function guessesArePrefix(
   prefix: string[],
@@ -277,6 +278,54 @@ function App(){
   );
 
   const gameSurfaceThemeClasses = appearanceTheme.app.gameSurface
+  const gamePanelBackgroundColor = (() => {
+    const backgroundClass = appearanceTheme.app.gameSurface
+      .split(/\s+/)
+      .find((className) => /^bg-\[#[0-9a-fA-F]{3,8}\]$/.test(className));
+
+    return backgroundClass
+      ? backgroundClass.slice(4, -1)
+      : undefined;
+  })();
+  const gamePageBackgroundColor = (() => {
+    const backgroundClass = appearanceTheme.app.background
+      .split(/\s+/)
+      .find((className) => /^bg-\[#[0-9a-fA-F]{3,8}\]$/.test(className));
+
+    return backgroundClass
+      ? backgroundClass.slice(4, -1)
+      : undefined;
+  })();
+  const gameSurfaceBorderColor = (() => {
+    const borderClass = appearanceTheme.app.gameSurface
+      .split(/\s+/)
+      .find((className) =>
+        /^border-\[#[0-9a-fA-F]{3,8}\]$/.test(className)
+      );
+
+    if (borderClass) {
+      return borderClass.slice(8, -1);
+    }
+
+    const namedColors: Record<string, string> = {
+      'border-red-500': '#ef4444',
+      'border-orange-500': '#f97316',
+      'border-yellow-500': '#eab308',
+      'border-purple-500': '#a855f7',
+      'border-blue-500': '#3b82f6',
+      'border-cyan-500': '#06b6d4',
+      'border-green-500': '#22c55e',
+      'border-pink-500': '#ec4899',
+    };
+
+    const namedBorder = appearanceTheme.app.gameSurface
+      .split(/\s+/)
+      .find((className) => namedColors[className]);
+
+    return namedBorder
+      ? namedColors[namedBorder]
+      : undefined;
+  })();
   const gameActionButtonThemeClasses = appearanceTheme.app.actionButton
   const pageBackgroundThemeClasses =
     appearanceTheme.app.background
@@ -1409,9 +1458,14 @@ const activeSolution = isCustom
           </Button>
 
           <Sheet open={isSettingsModalOpen} onOpenChange={open => setIsSettingsModalOpen(open)}>
-            <SheetContent className='bg-bg'>
+            <SheetContent
+              className={appearanceTheme.app.panel}
+              style={{ backgroundColor: gamePageBackgroundColor }}
+            >
               <SheetHeader>
-                <SheetTitle>Game Settings</SheetTitle>
+                <SheetTitle className={appearanceTheme.modal.title}>
+                  Game Settings
+                </SheetTitle>
                 <SheetDescription>
                   Customise your game
                 </SheetDescription>
@@ -1422,10 +1476,15 @@ const activeSolution = isCustom
                     <>
                       <Label htmlFor="gameMode">Game Mode</Label>
                       <Select defaultValue={gameMode} onValueChange={(value) => enterGameMode(value)}>
-                        <SelectTrigger id="gameMode">
+                        <SelectTrigger
+                          id="gameMode"
+                          style={{ backgroundColor: gamePanelBackgroundColor }}
+                        >
                           <SelectValue placeholder="Select a game mode" />
                         </SelectTrigger>
-                        <SelectContent>
+                        <SelectContent
+                          style={{ backgroundColor: gamePanelBackgroundColor }}
+                        >
                           <SelectGroup>
                             <SelectLabel>Game Mode</SelectLabel>
                             <SelectItem key="gm_daily" value="DAILY">
@@ -1446,10 +1505,16 @@ const activeSolution = isCustom
                     <>
                       <Label htmlFor="wordPack">Word Pack</Label>
                       <Select defaultValue={wordPack} onValueChange={(value) => useWordPack(value)}>
-                        <SelectTrigger id="wordPack">
+                        <SelectTrigger
+                          id="wordPack"
+                          style={{ backgroundColor: gamePanelBackgroundColor }}
+                        >
                           <SelectValue placeholder="Select a word pack" />
                         </SelectTrigger>
-                        <SelectContent className="max-h-[60vh] overflow-y-auto">
+                        <SelectContent
+                          className="max-h-[60vh] overflow-y-auto"
+                          style={{ backgroundColor: gamePanelBackgroundColor }}
+                        >
                           <SelectGroup>
                             <SelectLabel>Word Pack</SelectLabel>
                             {!isLoadingWordPacks &&
@@ -1490,11 +1555,16 @@ const activeSolution = isCustom
                       });
                     }}
                   >
-                    <SelectTrigger id="appearanceTheme">
+                    <SelectTrigger
+                      id="appearanceTheme"
+                      style={{ backgroundColor: gamePanelBackgroundColor }}
+                    >
                       <SelectValue placeholder="Select a theme" />
                     </SelectTrigger>
 
-                    <SelectContent>
+                    <SelectContent
+                      style={{ backgroundColor: gamePanelBackgroundColor }}
+                    >
                       <SelectGroup>
                         <SelectLabel>Themes</SelectLabel>
 
@@ -1529,11 +1599,16 @@ const activeSolution = isCustom
                       });
                     }}
                   >
-                    <SelectTrigger id="keyboardStyle">
+                    <SelectTrigger
+                      id="keyboardStyle"
+                      style={{ backgroundColor: gamePanelBackgroundColor }}
+                    >
                       <SelectValue placeholder="Select a keyboard style" />
                     </SelectTrigger>
 
-                    <SelectContent>
+                    <SelectContent
+                      style={{ backgroundColor: gamePanelBackgroundColor }}
+                    >
                       <SelectGroup>
                         <SelectLabel>Keyboard Style</SelectLabel>
 
@@ -1670,9 +1745,15 @@ const activeSolution = isCustom
                 <HistoryIcon className='w-6 h-6'/>
               </Button>
             </SheetTrigger>
-            <SheetContent className='bg-bg' side="left">
+            <SheetContent
+              side="left"
+              className={appearanceTheme.app.panel}
+              style={{ backgroundColor: gamePageBackgroundColor }}
+            >
               <SheetHeader>
-                <SheetTitle>Game History</SheetTitle>
+                <SheetTitle className={appearanceTheme.modal.title}>
+                  Game History
+                </SheetTitle>
                 <SheetDescription>
                   {
                     !isErrorLast30Games && isLoadingLast30Games && 'Loading...'
@@ -1721,14 +1802,11 @@ const activeSolution = isCustom
               `}
             >
               <div className="flex justify-center mb-4">
-                <img
-                  draggable="false"
-                  src="/images/wordrama-logo.png"
-                  alt="Wordrama Logo"
+                <GameThemeLogo
+                  theme={appearanceTheme}
                   className="h-16 w-auto object-contain"
                 />
               </div>
-
               <div className="flex flex-col justify-center pb-6 short:pb-2">
                 <Grid
                   solution={isCustom ? gameState.custom.solution : gameState.modes[gameState.gameMode][gameState.wordPack].solution}
@@ -1800,13 +1878,22 @@ const activeSolution = isCustom
             )}
             { streamerMode || isCustom ? (
               <AlertDialog open={isStatsModalOpen}>
-                <AlertDialogContent className="max-w-lg">
+                <AlertDialogContent
+                  className={[
+                    'max-w-lg',
+                    appearanceTheme.app.gameSurface,
+                    appearanceTheme.app.text,
+                  ].join(' ')}
+                  style={{
+                    backgroundColor: gamePageBackgroundColor,
+                    borderColor: gameSurfaceBorderColor,
+                  }}
+                >
                   <AlertDialogHeader>
                     <div className="flex justify-center pb-2">
-                      <img
+                      <GameThemeLogo
+                        theme={appearanceTheme}
                         className="h-16 w-auto"
-                        src="/images/wordrama-logo.png"
-                        alt="Wordrama Logo"
                       />
                     </div>
                     <AlertDialogTitle className='text-center'>
@@ -1819,12 +1906,14 @@ const activeSolution = isCustom
                             : 'Statistics'}
                     </AlertDialogTitle>
                     {!isCustom && (
-                      <p className="text-sm text-gray-500 dark:text-gray-400 text-center">
+                      <p className={`text-sm text-center opacity-75 ${appearanceTheme.app.text}`}>
                         Viewing current mode stats
                       </p>
                     )}
                   </AlertDialogHeader>
-                  <AlertDialogDescription>
+                  <AlertDialogDescription
+                    className={appearanceTheme.app.text}
+                  >
                     { isGameWon && (
                       <div className="text-center text-2xl">
                         You won!
@@ -1839,31 +1928,95 @@ const activeSolution = isCustom
                   {!isCustom && (
                     <div className="py-4">
                       <dl className="grid grid-cols-3 gap-4">
-                        <div className="aspect-square w-full max-w-[120px] mx-auto overflow-hidden rounded-lg bg-bg dark:bg-gray-800 shadow flex flex-col items-center justify-center p-2">
-                          <dd className="text-2xl sm:text-3xl font-semibold tracking-tight text-gray-900 dark:text-white">{gamesPlayed || 0}</dd>
-                          <dt className="mt-1 text-[9px] sm:text-xs font-medium text-gray-500 dark:text-gray-200 text-center">🕹️ Games Played</dt>
+                        <div
+                          className="aspect-square w-full max-w-[120px] mx-auto overflow-hidden rounded-lg shadow flex flex-col items-center justify-center p-2"
+                          style={{ backgroundColor: gamePanelBackgroundColor }}
+                        >
+                          <dd
+                            className={`text-2xl sm:text-3xl font-semibold tracking-tight ${appearanceTheme.app.text}`}
+                          >
+                            {gamesPlayed || 0}
+                          </dd>
+                          <dt
+                            className={`mt-1 text-[9px] sm:text-xs font-medium text-center opacity-80 ${appearanceTheme.app.text}`}
+                          >
+                            🕹️ Games Played
+                          </dt>
                         </div>
-                        <div className="aspect-square w-full max-w-[120px] mx-auto overflow-hidden rounded-lg bg-bg dark:bg-gray-800 shadow flex flex-col items-center justify-center p-2">
-                          <dd className="text-2xl sm:text-3xl font-semibold tracking-tight text-gray-900 dark:text-white">{gamesWon || 0}</dd>
-                          <dt className="mt-1 text-[9px] sm:text-xs font-medium text-gray-500 dark:text-gray-200 text-center">🏆 Games Won</dt>
+
+                        <div
+                          className="aspect-square w-full max-w-[120px] mx-auto overflow-hidden rounded-lg shadow flex flex-col items-center justify-center p-2"
+                          style={{ backgroundColor: gamePanelBackgroundColor }}
+                        >
+                          <dd
+                            className={`text-2xl sm:text-3xl font-semibold tracking-tight ${appearanceTheme.app.text}`}
+                          >
+                            {gamesWon || 0}
+                          </dd>
+                          <dt
+                            className={`mt-1 text-[9px] sm:text-xs font-medium text-center opacity-80 ${appearanceTheme.app.text}`}
+                          >
+                            🏆 Games Won
+                          </dt>
                         </div>
-                        <div className="aspect-square w-full max-w-[120px] mx-auto overflow-hidden rounded-lg bg-bg dark:bg-gray-800 shadow flex flex-col items-center justify-center p-2">
-                          <dd className="text-2xl sm:text-3xl font-semibold tracking-tight text-gray-900 dark:text-white">{currentStreak || 0}</dd>
-                          <dt className="mt-1 text-[9px] sm:text-xs font-medium text-gray-500 dark:text-gray-200 text-center">🔥 Current Streak</dt>
+
+                        <div
+                          className="aspect-square w-full max-w-[120px] mx-auto overflow-hidden rounded-lg shadow flex flex-col items-center justify-center p-2"
+                          style={{ backgroundColor: gamePanelBackgroundColor }}
+                        >
+                          <dd
+                            className={`text-2xl sm:text-3xl font-semibold tracking-tight ${appearanceTheme.app.text}`}
+                          >
+                            {currentStreak || 0}
+                          </dd>
+                          <dt
+                            className={`mt-1 text-[9px] sm:text-xs font-medium text-center opacity-80 ${appearanceTheme.app.text}`}
+                          >
+                            🔥 Current Streak
+                          </dt>
                         </div>
-                        <div className="aspect-square w-full max-w-[120px] mx-auto overflow-hidden rounded-lg bg-bg dark:bg-gray-800 shadow flex flex-col items-center justify-center p-2">
-                          <dd className="text-2xl sm:text-3xl font-semibold tracking-tight text-gray-900 dark:text-white">{bestStreak || 0}</dd>
-                          <dt className="mt-1 text-[9px] sm:text-xs font-medium text-gray-500 dark:text-gray-200 text-center">💎 Best Streak</dt>
+
+                        <div
+                          className="aspect-square w-full max-w-[120px] mx-auto overflow-hidden rounded-lg shadow flex flex-col items-center justify-center p-2"
+                          style={{ backgroundColor: gamePanelBackgroundColor }}
+                        >
+                          <dd
+                            className={`text-2xl sm:text-3xl font-semibold tracking-tight ${appearanceTheme.app.text}`}
+                          >
+                            {bestStreak || 0}
+                          </dd>
+                          <dt
+                            className={`mt-1 text-[9px] sm:text-xs font-medium text-center opacity-80 ${appearanceTheme.app.text}`}
+                          >
+                            💎 Best Streak
+                          </dt>
                         </div>
-                        <div className="aspect-square w-full max-w-[120px] mx-auto overflow-hidden rounded-lg bg-bg dark:bg-gray-800 shadow flex flex-col items-center justify-center p-2">
-                          <dd className="text-2xl sm:text-3xl font-semibold tracking-tight text-gray-900 dark:text-white">{Math.floor((gamesWon / gamesPlayed) * 100) || 0}%</dd>
-                          <dt className="mt-1 text-[9px] sm:text-xs font-medium text-gray-500 dark:text-gray-200 text-center">📈 % of Wins</dt>
+
+                        <div
+                          className="aspect-square w-full max-w-[120px] mx-auto overflow-hidden rounded-lg shadow flex flex-col items-center justify-center p-2"
+                          style={{ backgroundColor: gamePanelBackgroundColor }}
+                        >
+                          <dd
+                            className={`text-2xl sm:text-3xl font-semibold tracking-tight ${appearanceTheme.app.text}`}
+                          >
+                            {Math.floor((gamesWon / gamesPlayed) * 100) || 0}%
+                          </dd>
+                          <dt
+                            className={`mt-1 text-[9px] sm:text-xs font-medium text-center opacity-80 ${appearanceTheme.app.text}`}
+                          >
+                            📈 % of Wins
+                          </dt>
                         </div>
                       </dl>
                     </div>
                   )}
                   <AlertDialogFooter className='grid grid-cols-3 gap-5 max-w-full'>
-                    {!isCustom && (<AlertDialogAction onClick={() => setIsStatsModalOpen(false)}>Close</AlertDialogAction>)}
+                    {!isCustom && (<AlertDialogAction
+                                      className={appearanceTheme.app.actionButton}
+                                      onClick={() => setIsStatsModalOpen(false)}
+                                    >
+                                      Close
+                                    </AlertDialogAction>)}
                     {isCustom && (
                       <Link href='/games/wordrama/custom'>
                         <AlertDialogAction
@@ -1903,25 +2056,43 @@ const activeSolution = isCustom
                 open={isStatsModalOpen && !isCustom}
                 onOpenChange={setIsStatsModalOpen}
               >
-                <DrawerContent className={streamerMode ? 'h-4/5 bg-bg' : 'bg-bg'}>
+                <DrawerContent
+                  className={[
+                    streamerMode ? 'h-4/5' : '',
+                    appearanceTheme.app.gameSurface,
+                    appearanceTheme.app.text,
+                  ].join(' ')}
+                  style={{
+                    backgroundColor: gamePageBackgroundColor,
+                    borderColor: gameSurfaceBorderColor,
+                  }}
+                >
                   <div className="mx-auto w-full max-w-screen-lg">
                     <DrawerHeader className="relative">
                       <button
                         type="button"
                         aria-label="Close stats"
                         onClick={() => setIsStatsModalOpen(false)}
-                        className="absolute right-4 top-4 rounded px-3 py-1 text-2xl font-bold text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                        className={[
+                          'absolute right-4 top-4 rounded px-3 py-1 text-2xl font-bold',
+                          'transition-opacity hover:opacity-70',
+                          appearanceTheme.modal.icon,
+                        ].join(' ')}
                       >
                         ×
                       </button>
                        <div className="flex justify-center pb-2">
-                        <img
+                        <GameThemeLogo
+                          theme={appearanceTheme}
                           className="h-16 w-auto"
-                          src="/images/wordrama-logo.png"
-                          alt="Wordrama Logo"
                         />
                       </div>
-                      <DrawerTitle className="text-center text-4xl pr-10">
+                      <DrawerTitle
+                        className={[
+                          'text-center text-4xl pr-10',
+                          appearanceTheme.modal.title,
+                        ].join(' ')}
+                      >
                         {gameMode === 'DAILY'
                           ? 'Daily Stats'
                           : gameMode === 'INFINITE'
@@ -1929,7 +2100,12 @@ const activeSolution = isCustom
                           : 'Statistics'}
                       </DrawerTitle>
                       {gameMode !== 'CUSTOM' && (
-                        <p className="text-sm text-gray-500 dark:text-gray-400 text-center mb-2">
+                        <p
+                          className={[
+                            'text-sm text-center mb-2 opacity-75',
+                            appearanceTheme.app.text,
+                          ].join(' ')}
+                        >
                           Viewing current mode stats
                         </p>
                       )}
@@ -1952,27 +2128,43 @@ const activeSolution = isCustom
                     </DrawerDescription>
                     {!isCustom && (
                       <div id="fullWidthTabContent" className={`p-4 border-gray-200 dark:border-gray-600 ${streamerMode ? 'ml-64 w-1/2' : ''}`}>
-                        <div className="p-4 bg-bg rounded-lg md:p-8 dark:bg-gray-800" id="stats" role="tabpanel" aria-labelledby="stats-tab">
-                            <dl className={`grid grid-cols-2 p-4 mx-auto text-gray-900 sm:grid-cols-3 ${streamerMode ? 'md:grid-cols-2 gap-8 max-w-md' : 'xl:grid-cols-5 gap-8 max-w-screen-xl'} dark:text-white sm:p-8`}>
+                        <div
+                          className={[
+                            'p-4 rounded-lg md:p-8',
+                            appearanceTheme.app.panel,
+                          ].join(' ')}
+                          id="stats"
+                          role="tabpanel"
+                          aria-labelledby="stats-tab"
+                        >
+                            <dl
+                              className={[
+                                'grid grid-cols-2 p-4 mx-auto sm:grid-cols-3 sm:p-8',
+                                streamerMode
+                                  ? 'md:grid-cols-2 gap-8 max-w-md'
+                                  : 'xl:grid-cols-5 gap-8 max-w-screen-xl',
+                                appearanceTheme.app.text,
+                              ].join(' ')}
+                            >
                                 <div className="flex flex-col items-center justify-center">
                               <dt className="mb-2 text-3xl font-extrabold">{ gamesPlayed || 0}</dt>
-                                    <dd className="text-gray-500 dark:text-gray-400">🕹️ Games Played</dd>
+                                    <dd className={appearanceTheme.app.text}>🕹️ Games Played</dd>
                                 </div>
                                 <div className="flex flex-col items-center justify-center">
                                     <dt className="mb-2 text-3xl font-extrabold">{ gamesWon || 0}</dt>
-                                    <dd className="text-gray-500 dark:text-gray-400">🏆 Games Won</dd>
+                                    <dd className={appearanceTheme.app.text}>🏆 Games Won</dd>
                                 </div>
                                 <div className="flex flex-col items-center justify-center">
                                     <dt className="mb-2 text-3xl font-extrabold">{currentStreak || 0}</dt>
-                                    <dd className="text-gray-500 dark:text-gray-400">🔥 Current Streak</dd>
+                                    <dd className={appearanceTheme.app.text}>🔥 Current Streak</dd>
                                 </div>
                                 <div className="flex flex-col items-center justify-center">
                                     <dt className="mb-2 text-3xl font-extrabold">{bestStreak || 0}</dt>
-                                    <dd className="text-gray-500 dark:text-gray-400">💎 Best Streak</dd>
+                                    <dd className={appearanceTheme.app.text}>💎 Best Streak</dd>
                                 </div>
                                 <div className="flex flex-col items-center justify-center">
                                     <dt className="mb-2 text-3xl font-extrabold">{ Math.floor((gamesWon / gamesPlayed) * 100) || 0}%</dt>
-                                    <dd className="text-gray-500 dark:text-gray-400">📈 % of Wins</dd>
+                                    <dd className={appearanceTheme.app.text}>📈 % of Wins</dd>
                                 </div>
                             </dl>
                         </div>
