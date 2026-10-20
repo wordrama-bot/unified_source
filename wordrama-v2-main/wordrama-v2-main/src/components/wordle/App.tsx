@@ -491,6 +491,9 @@ function App(){
   const resultSyncInProgressRef = useRef(false);
   const resultSyncQueueRef =
     useRef<Promise<number>>(Promise.resolve(0));
+  const resultSyncRetryTimerRef =
+    useRef<ReturnType<typeof setTimeout> | null>(null);
+  const resultSyncRetryDelayRef = useRef(5_000);
   const resultFinalizationInProgressRef = useRef(false);
   const pendingReconciledStateRef = useRef<any | null>(null);
   const shouldPersistGameStateRef = useRef(false);
@@ -587,9 +590,26 @@ const activeSolution = isCustom
         };
 
         try {
-          const response = await submitWordleResult(
-            resultPayload,
-          ).unwrap();
+          const submission = submitWordleResult(resultPayload);
+
+          const timeoutId = window.setTimeout(() => {
+            console.warn(
+              '[wordle] result sync request timed out; aborting attempt',
+              {
+                resultId: pendingResult.resultId,
+              },
+            );
+
+            submission.abort();
+          }, 20_000);
+
+          let response;
+
+          try {
+            response = await submission.unwrap();
+          } finally {
+            window.clearTimeout(timeoutId);
+          }
 
           if (
             response?.data?.resultId !== pendingResult.resultId
@@ -651,10 +671,84 @@ const activeSolution = isCustom
     return queuedSync;
   }, [runPendingWordleResultSync]);
 
+  const clearPendingWordleResultRetry = useCallback(() => {
+    if (resultSyncRetryTimerRef.current !== null) {
+      window.clearTimeout(resultSyncRetryTimerRef.current);
+      resultSyncRetryTimerRef.current = null;
+    }
+
+    resultSyncRetryDelayRef.current = 5_000;
+  }, []);
+
+  const schedulePendingWordleResultRetry = useCallback(() => {
+    if (typeof window === 'undefined') return;
+    if (!user?.id) return;
+    if (resultSyncRetryTimerRef.current !== null) return;
+
+    const scheduleRetry = (delayMs: number) => {
+      if (resultSyncRetryTimerRef.current !== null) return;
+
+      resultSyncRetryTimerRef.current = window.setTimeout(
+        async () => {
+          resultSyncRetryTimerRef.current = null;
+
+          if (!navigator.onLine) {
+            const nextDelay = Math.min(delayMs * 2, 60_000);
+            resultSyncRetryDelayRef.current = nextDelay;
+            scheduleRetry(nextDelay);
+            return;
+          }
+
+          try {
+            await syncPendingWordleResults();
+
+            const remainingResults =
+              await getPendingWordleResults(user.id);
+
+            if (remainingResults.length === 0) {
+              resultSyncRetryDelayRef.current = 5_000;
+              return;
+            }
+          } catch (error) {
+            console.warn(
+              '[wordle] unable to inspect result outbox during retry',
+              error,
+            );
+          }
+
+          const nextDelay = Math.min(delayMs * 2, 60_000);
+          resultSyncRetryDelayRef.current = nextDelay;
+          scheduleRetry(nextDelay);
+        },
+        delayMs,
+      );
+    };
+
+    scheduleRetry(resultSyncRetryDelayRef.current);
+  }, [syncPendingWordleResults, user?.id]);
+
   const syncPendingWordleResultsAndRefresh =
     useCallback(async (forceRefresh = false) => {
       const syncedCount =
         await syncPendingWordleResults();
+
+      if (user?.id) {
+        try {
+          const remainingResults =
+            await getPendingWordleResults(user.id);
+
+          if (remainingResults.length > 0) {
+            schedulePendingWordleResultRetry();
+          } else {
+            clearPendingWordleResultRetry();
+          }
+        } catch (error) {
+          console.warn(
+            '[wordle] unable to inspect pending results after sync',
+            error,
+          );
+        }
+      }
 
       // A successful result submission already invalidates and refreshes
       // the mounted Wordle result-dependent queries.
@@ -672,12 +766,24 @@ const activeSolution = isCustom
       refetchProfile();
     }, [
       gameMode,
+      user?.id,
       syncPendingWordleResults,
+      schedulePendingWordleResultRetry,
+      clearPendingWordleResultRetry,
       refetchStats,
       refetchLast30,
       refetchStreak,
       refetchProfile,
     ]);
+
+  useEffect(() => {
+    return () => {
+      if (resultSyncRetryTimerRef.current !== null) {
+        window.clearTimeout(resultSyncRetryTimerRef.current);
+        resultSyncRetryTimerRef.current = null;
+      }
+    };
+  }, []);
 
   useEffect(() => {
     if (!user?.id) return;
