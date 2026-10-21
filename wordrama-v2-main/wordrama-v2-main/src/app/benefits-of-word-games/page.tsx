@@ -5,7 +5,7 @@ import GoogleAd from "@/components/GoogleAd";
 
 export default function BenefitsOfWordGamesPage() {
   return (
-    <main className="min-h-screen bg-darkBg text-white">
+    <main className="min-h-screen bg-bg text-text dark:bg-darkBg dark:text-white">
       <PublicNav
         links={[
           { href: "/free-play", text: "Quick Play" },
@@ -18,7 +18,7 @@ export default function BenefitsOfWordGamesPage() {
       />
 
       <section className="container mx-auto max-w-4xl px-6 py-16">
-        <p className="text-sm uppercase tracking-wide text-gray-400">
+        <p className="text-sm uppercase tracking-wide text-gray-600 dark:text-gray-400">
           Word Game Learning Guide
         </p>
 
@@ -26,11 +26,11 @@ export default function BenefitsOfWordGamesPage() {
           The Educational Benefits of Word Games
         </h1>
 
-        <p className="mt-2 text-sm text-gray-400">
+        <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
           Last updated: May 14, 2026
         </p>
 
-        <p className="mt-6 text-lg text-gray-300">
+        <p className="mt-6 text-lg text-gray-700 dark:text-gray-300">
           Word games are more than quick entertainment. They encourage pattern
           recognition, vocabulary growth, spelling practice, memory recall, and
           careful reasoning. Games like Wordrama give players a daily opportunity
@@ -42,7 +42,7 @@ export default function BenefitsOfWordGamesPage() {
             <h2 className="text-2xl font-semibold">
               Word games build vocabulary through repeated exposure
             </h2>
-            <p className="mt-3 text-gray-300">
+            <p className="mt-3 text-gray-700 dark:text-gray-300">
               Each puzzle gives players a chance to encounter familiar words in
               new ways and discover less common letter patterns. Over time,
               repeated play can help strengthen word recognition and make
@@ -54,7 +54,7 @@ export default function BenefitsOfWordGamesPage() {
             <h2 className="text-2xl font-semibold">
               Puzzle solving strengthens deductive reasoning
             </h2>
-            <p className="mt-3 text-gray-300">
+            <p className="mt-3 text-gray-700 dark:text-gray-300">
               Wordrama-style puzzles require players to interpret feedback,
               eliminate impossible answers, and adjust their guesses based on
               new information. This makes each round a small exercise in logic,
@@ -66,7 +66,7 @@ export default function BenefitsOfWordGamesPage() {
             <h2 className="text-2xl font-semibold">
               Daily play encourages consistency and focus
             </h2>
-            <p className="mt-3 text-gray-300">
+            <p className="mt-3 text-gray-700 dark:text-gray-300">
               A short daily puzzle can create a simple habit of focused thinking.
               Players practice slowing down, comparing possibilities, and making
               intentional choices rather than guessing randomly.
@@ -77,7 +77,7 @@ export default function BenefitsOfWordGamesPage() {
             <h2 className="text-2xl font-semibold">
               Longer word lengths create deeper challenges
             </h2>
-            <p className="mt-3 text-gray-300">
+            <p className="mt-3 text-gray-700 dark:text-gray-300">
               Wordrama supports a wide range of word lengths, which lets players
               move beyond standard five-letter puzzles. Longer puzzles can
               challenge players to recognize prefixes, suffixes, repeated
@@ -89,7 +89,7 @@ export default function BenefitsOfWordGamesPage() {
             <h2 className="text-2xl font-semibold">
               Word games can be social and motivating
             </h2>
-            <p className="mt-3 text-gray-300">
+            <p className="mt-3 text-gray-700 dark:text-gray-300">
               Leaderboards, streaks, friends, and community features can make
               practice more engaging. Friendly competition gives players another
               reason to return, improve, and compare strategies.
@@ -97,12 +97,12 @@ export default function BenefitsOfWordGamesPage() {
           </div>
         </section>
 
-        <section className="mt-14 rounded-2xl border border-white/10 bg-white/5 p-6">
+        <section className="mt-14 rounded-2xl border border-gray-300 bg-bg p-6 dark:border-white/10 dark:bg-white/5">
           <h2 className="text-2xl font-semibold">
             Keep Learning with Wordrama
           </h2>
 
-          <p className="mt-3 text-gray-300">
+          <p className="mt-3 leading-7 text-gray-600 dark:text-gray-300">
             Explore more guides to improve your puzzle strategy and learn how
             Wordrama works.
           </p>
@@ -110,37 +110,30 @@ export default function BenefitsOfWordGamesPage() {
           <div className="mt-6 flex flex-wrap gap-4">
             <Link
               href="/how-to-play"
-              className="rounded-lg border border-white/20 px-4 py-2 font-semibold text-white"
+              className="rounded-lg border border-gray-400 dark:border-white/20 px-4 py-2 font-semibold text-text dark:text-white"
             >
               How to Play
             </Link>
 
             <Link
               href="/wordle-strategy"
-              className="rounded-lg border border-white/20 px-4 py-2 font-semibold text-white"
+              className="rounded-lg border border-gray-400 dark:border-white/20 px-4 py-2 font-semibold text-text dark:text-white"
             >
               Strategy Guide
             </Link>
 
             <Link
               href="/best-starting-words"
-              className="rounded-lg border border-white/20 px-4 py-2 font-semibold text-white"
+              className="rounded-lg border border-gray-400 dark:border-white/20 px-4 py-2 font-semibold text-text dark:text-white"
             >
               Best Starting Words
             </Link>
 
             <Link
               href="/wordle-tips"
-              className="rounded-lg border border-white/20 px-4 py-2 font-semibold text-white"
+              className="rounded-lg border border-gray-400 dark:border-white/20 px-4 py-2 font-semibold text-text dark:text-white"
             >
               Wordle Tips
-            </Link>
-
-            <Link
-              href="/benefits-of-word-games"
-              className="rounded-lg bg-white px-4 py-2 font-semibold text-darkBg"
-            >
-              Benefits of Word Games
             </Link>
           </div>
 

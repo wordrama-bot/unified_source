@@ -54,7 +54,7 @@ export default function AchievementsPage() {
         ]}
       />
 
-      <main className="min-h-screen w-full bg-darkBg text-white">
+      <main className="min-h-screen w-full bg-bg text-text dark:bg-darkBg dark:text-white">
         <header className="dark:bg-darkBg inset-0 flex min-h-[20dvh] w-full flex-col items-center justify-center bg-bg bg-[linear-gradient(to_right,#80808033_1px,transparent_1px),linear-gradient(to_bottom,#80808033_1px,transparent_1px)] bg-[size:70px_70px]">
           <div className="mx-auto w-container max-w-full px-5 text-center">
             <h1 className="px-5 text-center text-3xl font-heading md:text-4xl lg:text-5xl">
@@ -80,7 +80,7 @@ export default function AchievementsPage() {
         </header>
 
         <section className="mx-auto max-w-5xl px-5 py-12">
-          <div className="rounded-lg border border-darkBorder bg-darkBg/80 p-6 shadow-dark">
+          <div className="rounded-lg border border-border bg-bg dark:border-darkBorder dark:bg-darkBg/80 p-6 shadow-dark">
             <h2 className="text-2xl font-bold">
               What are Wordrama achievements?
             </h2>
@@ -95,28 +95,28 @@ export default function AchievementsPage() {
           </div>
 
           <div className="mt-8 grid gap-6 md:grid-cols-2">
-            <div className="rounded-lg border border-darkBorder bg-darkBg/80 p-6 shadow-dark">
+            <div className="rounded-lg border border-border bg-bg dark:border-darkBorder dark:bg-darkBg/80 p-6 shadow-dark">
               <h2 className="text-xl font-semibold">Earn XP</h2>
               <p className="mt-3">
                 Some achievements award XP, which helps represent your player progression. XP rewards can come from account milestones, gameplay accomplishments, streaks, and other progress-based actions.
               </p>
             </div>
 
-            <div className="rounded-lg border border-darkBorder bg-darkBg/80 p-6 shadow-dark">
+            <div className="rounded-lg border border-border bg-bg dark:border-darkBorder dark:bg-darkBg/80 p-6 shadow-dark">
               <h2 className="text-xl font-semibold">Collect coins</h2>
               <p className="mt-3">
                 Some achievements award coins, Wordrama&apos;s in-game currency. Coins can be used in the Marketplace to unlock eligible cosmetics, themes, word packs, and other rewards as new content becomes available.
               </p>
             </div>
 
-            <div className="rounded-lg border border-darkBorder bg-darkBg/80 p-6 shadow-dark">
+            <div className="rounded-lg border border-border bg-bg dark:border-darkBorder dark:bg-darkBg/80 p-6 shadow-dark">
               <h2 className="text-xl font-semibold">Track real progress</h2>
               <p className="mt-3">
                 Wordrama achievements are connected to gameplay and account activity, including wins, losses, solve counts, streaks, leaderboard rankings, friend connections, and profile milestones.
               </p>
             </div>
 
-            <div className="rounded-lg border border-darkBorder bg-darkBg/80 p-6 shadow-dark">
+            <div className="rounded-lg border border-border bg-bg dark:border-darkBorder dark:bg-darkBg/80 p-6 shadow-dark">
               <h2 className="text-xl font-semibold">Build your player identity</h2>
               <p className="mt-3">
                 Achievements work alongside stats, streaks, marketplace rewards, friends, teams, and public player profiles to make Wordrama more personal and social.
@@ -124,7 +124,7 @@ export default function AchievementsPage() {
             </div>
           </div>
 
-          <section className="mt-8 rounded-lg border border-darkBorder bg-darkBg/80 p-6 shadow-dark">
+          <section className="mt-8 rounded-lg border border-border bg-bg dark:border-darkBorder dark:bg-darkBg/80 p-6 shadow-dark">
             <h2 className="text-2xl font-bold">Types of achievements</h2>
 
             <div className="mt-6 grid gap-6 md:grid-cols-2">
@@ -152,7 +152,7 @@ export default function AchievementsPage() {
             />
           </div>
 
-          <section className="mt-10 rounded-lg border border-darkBorder bg-darkBg/80 p-6 text-center shadow-dark">
+          <section className="mt-10 rounded-lg border border-border bg-bg dark:border-darkBorder dark:bg-darkBg/80 p-6 text-center shadow-dark">
             <h2 className="text-2xl font-bold">
               Ready to unlock achievements?
             </h2>

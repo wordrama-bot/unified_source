@@ -117,7 +117,7 @@ import { useAuth } from '@/providers/auth-provider';
 function App(){
   const { user } = useAuth();
   //const appInsights = getAppInsights();
-  const { theme, setTheme } = useTheme();
+  const { resolvedTheme, setTheme } = useTheme();
   const { showError: showErrorAlert, showSuccess: showSuccessAlert } = useAlert();
   // Redux State
   const dispatch = useDispatch();
@@ -620,19 +620,23 @@ function App(){
                   Streamer Mode
                 </Label>
                 <Switch
-		  checked={gameUiState.streamerModeEnabled ?? false}
-		  onCheckedChange={checked =>
-		    dispatch(setWordleGameUiState({ streamerModeEnabled: checked }))
-		  }
-		/>
+                  checked={gameUiState.streamerModeEnabled ?? false}
+                  onCheckedChange={checked =>
+                    dispatch(setWordleGameUiState({ streamerModeEnabled: checked }))
+                  }
+                />
                 <Label htmlFor="theme" className="text-left">
                   Dark Mode
                 </Label>
-                <Switch checked={theme === 'dark'} onCheckedChange={checked => setTheme(theme === 'dark' ? 'light' : 'dark')}  />
-		<Label htmlFor="colorblindMode" className="text-left">
-		  Colorblind Mode
-		</Label>
-		<Switch checked={gameUiState.colorblindMode || false} onCheckedChange={checked => handleColorblindModeEnabled(checked)} />
+                <Switch checked={resolvedTheme === 'dark'}
+                  onCheckedChange={(checked) =>
+                    setTheme(checked ? 'dark' : 'light')
+                  }
+                />
+                <Label htmlFor="colorblindMode" className="text-left">
+                  Colorblind Mode
+                </Label>
+                <Switch checked={gameUiState.colorblindMode || false} onCheckedChange={checked => handleColorblindModeEnabled(checked)} />
               </div>
             </div>
           </SheetContent>

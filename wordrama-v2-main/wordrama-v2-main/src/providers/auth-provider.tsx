@@ -30,8 +30,15 @@ function AuthProvider({ children }: any) {
     Cookies.remove('sb-qflfxxbnhwaxkxsygjqu-auth-token.1');
     Cookies.remove('sb-qflfxxbnhwaxkxsygjqu-auth-token');
     Cookies.remove('sb-qflfxxbnhwaxkxsygjqu-auth-token-code-verifier');
+    // Preserve the player's appearance preference across logout.
+    const savedTheme = localStorage.getItem('theme');
+
     localStorage.clear();
     sessionStorage.clear();
+
+    if (savedTheme === 'light' || savedTheme === 'dark' || savedTheme === 'system') {
+      localStorage.setItem('theme', savedTheme);
+    }
     setSession(null);
     setUser(null);
     setAuth(false);

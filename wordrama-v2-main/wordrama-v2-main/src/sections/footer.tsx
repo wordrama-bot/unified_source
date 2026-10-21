@@ -5,7 +5,7 @@ import Link from "next/link";
 
 export default function Footer() {
   return (
-    <footer className="z-30 bg-bg px-5 py-8 text-center font-base dark:bg-darkBg m500:text-sm">
+    <footer className="z-30 bg-bg px-5 py-8 text-center font-base text-text dark:bg-darkBg dark:text-darkText m500:text-sm">
       <p>© 2023-{new Date().getFullYear()} Wordrama. All rights reserved.</p>
 
       <div className="mt-6 grid gap-6 md:grid-cols-3">
