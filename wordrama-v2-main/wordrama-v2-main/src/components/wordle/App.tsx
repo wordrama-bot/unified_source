@@ -144,6 +144,15 @@ import { showChristmas } from '@/lib/config';
 import { WinCelebration } from './components/celebrations/WinCelebration';
 import { GameThemeLogo } from './components/GameThemeLogo';
 
+const CLIENT_BUILD =
+  process.env.NEXT_PUBLIC_WORDRAMA_BUILD ?? 'local';
+
+const VERSION_CHECK_INTERVAL_MS =
+  24 * 60 * 60 * 1000;
+
+const VERSION_CHECK_POLL_MS =
+  60 * 60 * 1000;
+
 function guessesArePrefix(
   prefix: string[],
   complete: string[],
@@ -578,8 +587,99 @@ const activeSolution = isCustom
   const [isRevealing, setIsRevealing] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
   const [currentGuess, setCurrentGuess] = useState('');
+  const [isRefreshRequired, setIsRefreshRequired] =
+    useState(false);
   const [isGameStateHydrated, setIsGameStateHydrated] =
     useState(false);
+  const checkForStaleBuild = useCallback(async () => {
+    if (typeof window === 'undefined') return;
+
+    // Don't run version enforcement during local development.
+    if (CLIENT_BUILD === 'local') return;
+
+    const storageKey =
+      `wordrama:last-version-check:${CLIENT_BUILD}`;
+
+    try {
+      const lastCheck = Number(
+        window.localStorage.getItem(storageKey) ?? 0,
+      );
+
+      if (
+        Number.isFinite(lastCheck) &&
+        Date.now() - lastCheck < VERSION_CHECK_INTERVAL_MS
+      ) {
+        return;
+      }
+
+      const response = await fetch(
+        `/api/version?t=${Date.now()}`,
+        {
+          cache: 'no-store',
+        },
+      );
+
+      if (!response.ok) return;
+
+      const data = (await response.json()) as {
+        build?: string;
+      };
+
+      window.localStorage.setItem(
+        storageKey,
+        String(Date.now()),
+      );
+
+      if (
+        data.build &&
+        data.build !== 'unknown' &&
+        data.build !== CLIENT_BUILD
+      ) {
+        setIsRefreshRequired(true);
+      }
+    } catch (error) {
+      console.warn(
+        '[wordrama] unable to check client version',
+        error,
+      );
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (CLIENT_BUILD === 'local') return;
+
+    const checkVersion = () => {
+      void checkForStaleBuild();
+    };
+
+    checkVersion();
+
+    const intervalId = window.setInterval(
+      checkVersion,
+      VERSION_CHECK_POLL_MS,
+    );
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        checkVersion();
+      }
+    };
+
+    document.addEventListener(
+      'visibilitychange',
+      handleVisibilityChange,
+    );
+
+    return () => {
+      window.clearInterval(intervalId);
+
+      document.removeEventListener(
+        'visibilitychange',
+        handleVisibilityChange,
+      );
+    };
+  }, [checkForStaleBuild]);
 
   useEffect(() => {
     if (!isGameWon && !isGameLost) {
@@ -1438,6 +1538,15 @@ const activeSolution = isCustom
     }
   }, [isGameWon, isGameLost, gameUiState.speedRunModeEnabled]);
 
+  const shouldDeferRefresh =
+    !isGameWon &&
+    !isGameLost &&
+    (
+      guesses.length > 0 ||
+      currentGuess.length > 0 ||
+      isRevealing
+    );
+
   if (gameLoading) return <Loader />;
   return (
     <Div100vh
@@ -2187,6 +2296,33 @@ const activeSolution = isCustom
           </div>
         </div>
       </TooltipProvider>
+      <AlertDialog
+        open={
+          isRefreshRequired &&
+          !shouldDeferRefresh
+        }
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              Wordrama has been updated
+            </AlertDialogTitle>
+
+            <AlertDialogDescription>
+              A new version of Wordrama is ready.
+              Refresh to continue playing.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+
+          <AlertDialogFooter>
+            <AlertDialogAction
+              onClick={() => window.location.reload()}
+            >
+              Refresh Wordrama
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Div100vh>
   )
 }
