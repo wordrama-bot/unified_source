@@ -19,11 +19,11 @@ export default function HowToPlayPage() {
         ]}
       />
 
-      <div className="container mx-auto p-4">
+      <div className="mx-auto w-full max-w-5xl px-5 py-12">
 
         <h1 className="text-4xl font-bold mb-6">How to Play Wordrama</h1>
 
-        <p className="mt-2 text-sm text-gray-400">
+        <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
           Last updated: May 14, 2026
         </p>
 
@@ -62,64 +62,55 @@ export default function HowToPlayPage() {
           you can solve.
         </p>
 
+        <section className="mx-auto mt-14 w-full max-w-5xl rounded-2xl border border-gray-300 p-6 dark:border-white/10 dark:bg-white/5">
+          <h2 className="text-2xl font-semibold">
+            Continue Learning
+          </h2>
+
+          <p className="mt-3 leading-7 text-gray-600 dark:text-gray-300">
+            Build your Wordrama skills with more strategy guides and helpful word puzzle resources.
+          </p>
+
+          <div className="mt-6 flex flex-wrap gap-4">
+            <Link
+              href="/wordle-strategy"
+              className="rounded-lg border border-gray-400 px-4 py-2 font-semibold text-text dark:border-white/20 dark:text-white"
+            >
+              Strategy Guide
+            </Link>
+
+            <Link
+              href="/best-starting-words"
+              className="rounded-lg border border-gray-400 px-4 py-2 font-semibold text-text dark:border-white/20 dark:text-white"
+            >
+              Best Starting Words
+            </Link>
+
+            <Link
+              href="/benefits-of-word-games"
+              className="rounded-lg border border-gray-400 px-4 py-2 font-semibold text-text dark:border-white/20 dark:text-white"
+            >
+              Benefits of Word Games
+            </Link>
+
+            <Link
+              href="/wordle-tips"
+              className="rounded-lg border border-gray-400 px-4 py-2 font-semibold text-text dark:border-white/20 dark:text-white"
+            >
+              Wordle Tips
+            </Link>
+          </div>
+
+          <div className="mt-10">
+              <GoogleAd
+                client="ca-pub-8970369628667981"
+                slot="8219203779"
+                minHeight={280}
+              />
+          </div>
+
+        </section>
       </div>
-
-      <section className="mt-14 rounded-2xl border border-white/10 bg-white/5 p-6">
-        <h2 className="text-2xl font-semibold">
-          Continue Learning
-        </h2>
-
-        <p className="mt-3 text-gray-300">
-          Build your Wordrama skills with more strategy guides and helpful word puzzle resources.
-        </p>
-
-        <div className="mt-6 flex flex-wrap gap-4">
-          <Link
-            href="/how-to-play"
-            className="rounded-lg bg-white px-4 py-2 font-semibold text-darkBg"
-          >
-            How to Play
-          </Link>
-          
-          <Link
-            href="/wordle-strategy"
-            className="rounded-lg border border-white/20 px-4 py-2 font-semibold text-white"
-          >
-            Strategy Guide
-          </Link>
-
-          <Link
-            href="/best-starting-words"
-            className="rounded-lg border border-white/20 px-4 py-2 font-semibold text-white"
-          >
-            Best Starting Words
-          </Link>
-
-          <Link
-            href="/benefits-of-word-games"
-            className="rounded-lg border border-white/20 px-4 py-2 font-semibold text-white"
-          >
-            Benefits of Word Games
-          </Link>
-
-          <Link
-            href="/wordle-tips"
-            className="rounded-lg border border-white/20 px-4 py-2 font-semibold text-white"
-          >
-            Wordle Tips
-          </Link>
-        </div>
-
-        <div className="mt-10">
-            <GoogleAd
-              client="ca-pub-8970369628667981"
-              slot="8219203779"
-              minHeight={280}
-            />
-        </div>
-
-      </section>
-
       <Footer />
     </div>
   );

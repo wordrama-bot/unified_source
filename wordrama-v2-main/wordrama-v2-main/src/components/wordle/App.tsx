@@ -515,13 +515,6 @@ function App(){
     dispatch,
   ]);
 
-  // Keep next-themes from getting stuck in "system"
-  useEffect(() => {
-    if (theme === 'system') {
-      setTheme(resolvedTheme === 'dark' ? 'dark' : 'light');
-    }
-  }, [theme, resolvedTheme, setTheme]);
-
   const { data: wordleWordPack, isLoading: isLoadingWordPack, refetch: refetchWordPack  } = useGetWordleWordPackQuery(gameState.wordPack);
   const { data: wordOfTheDay, isLoading: isLoadingWoTD } = useGetWordleWoTDQuery(wordPack);
   const { data: streakData, isLoading: isLoadingStreakData, isError: isErrorStreakData, refetch: refetchStreak } = useGetWordleStreakQuery({ gameMode, wordPack });

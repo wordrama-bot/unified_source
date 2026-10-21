@@ -7,6 +7,7 @@ import { useState } from 'react';
 import { supabase } from '@/utils/supabase/client';
 import { useAuth } from '@/providers/auth-provider';
 import { redirect } from 'next/navigation';
+import { useTheme } from 'next-themes';
 
 const classes = {
   'rgb(202, 37, 37)': styles['container-redshadow'],
@@ -38,7 +39,8 @@ function AuthComponent() {
   const { user } = useAuth();
   const [brandColor, setBrandColor] = useState(colors[2])
   const [borderRadius, setBorderRadius] = useState(radii[1])
-  const [theme, setTheme] = useState('dark')
+  const { resolvedTheme } = useTheme();
+  const authTheme = resolvedTheme === 'dark' ? 'dark' : 'default';
   const [socialLayout, setSocialLayout] = useState(socialAlignments[1])
   const [view, setView] = useState(views[0])
 
@@ -50,9 +52,9 @@ function AuthComponent() {
       {/* grid-cols-12 */}
       <div className="sm:py-18 gap container relative mx-auto grid  px-6 py-16 md:gap-16 md:py-24 lg:gap-16 lg:px-16 lg:py-24 xl:px-20">
         <div className="relative col-span-12 mb-16 md:col-span-7 md:mb-0 lg:col-span-6">
-          <div className="relative lg:mx-auto lg:max-w-md bg-zinc-900">
+          <div className="relative lg:mx-auto lg:max-w-md bg-white dark:bg-zinc-900">
             <div className={classes[brandColor]}>
-              <div className="border-scale-400 bg-scale-300 relative rounded-xl px-8 py-12 drop-shadow-sm">
+              <div className="relative rounded-xl border border-gray-200 bg-white px-8 py-12 text-gray-900 drop-shadow-sm dark:border-zinc-700 dark:bg-zinc-900 dark:text-white">
                 <div className="mb-6 flex flex-col gap-6">
                   <div className="flex items-center gap-3">
                     <h1 className="text-scale-1200 text-2xl">
@@ -88,7 +90,7 @@ function AuthComponent() {
                   }}
                   providers={['discord']}
                   socialLayout={socialLayout}
-                  theme={theme}
+                  theme={authTheme}
                 />
               </div>
             </div>

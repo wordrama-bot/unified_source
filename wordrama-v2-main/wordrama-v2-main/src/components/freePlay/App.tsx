@@ -107,7 +107,7 @@ import GoogleAd from "../GoogleAd";
 function App(){
   //const appInsights = getAppInsights();
   //appInsights.trackPageView({ name: 'Wordle Free Play' });
-  const { setTheme, theme } = useTheme();
+  const { setTheme, resolvedTheme } = useTheme();
   const { showError: showErrorAlert, showSuccess: showSuccessAlert } = useAlert();
   // Redux State
   const dispatch = useDispatch();
@@ -530,11 +530,16 @@ function App(){
                 <Label htmlFor="lightDark" className="text-left">
                   Dark Mode
                 </Label>
-                <Switch checked={theme === 'dark'} onCheckedChange={() => setTheme(theme === 'light' ? 'dark' : 'light')} />
-		<Label htmlFor="colorblindMode" className="text-left">
-		  Colorblind Mode
-		</Label>
-		<Switch checked={gameUiState.colorblindMode || false} onCheckedChange={checked => handleColorblindModeEnabled(checked)} />
+                <Switch
+                  checked={resolvedTheme === 'dark'}
+                  onCheckedChange={(checked) =>
+                    setTheme(checked ? 'dark' : 'light')
+                  }
+                />
+                <Label htmlFor="colorblindMode" className="text-left">
+                  Colorblind Mode
+                </Label>
+                <Switch checked={gameUiState.colorblindMode || false} onCheckedChange={checked => handleColorblindModeEnabled(checked)} />
               </div>
             </div>
           </SheetContent>
