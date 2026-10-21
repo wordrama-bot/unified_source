@@ -10,6 +10,7 @@ export const addGameResult = z.object({
   shareCode: z.string().optional(),
   resultId: z.string().uuid().optional(),
   clientCompletedAt: z.string().datetime().optional(),
+  clientBuild: z.string().max(100).optional(),
 });
 export type AddGameResult = z.infer<typeof addGameResult>;
 

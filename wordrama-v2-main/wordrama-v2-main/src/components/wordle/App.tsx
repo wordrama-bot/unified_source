@@ -625,6 +625,9 @@ const activeSolution = isCustom
         const resultPayload = {
           resultId: pendingResult.resultId,
           clientCompletedAt: pendingResult.clientCompletedAt,
+          ...(pendingResult.clientBuild
+            ? { clientBuild: pendingResult.clientBuild }
+            : {}),
           solution: pendingResult.solution,
           guesses: pendingResult.guesses,
           gameWasHardMode: pendingResult.gameWasHardMode,
@@ -1050,6 +1053,8 @@ const activeSolution = isCustom
       resultId,
       playerId: user.id,
       clientCompletedAt,
+      clientBuild:
+        process.env.NEXT_PUBLIC_WORDRAMA_BUILD ?? 'local',
       solution,
       guesses: completedGuesses,
       gameWasHardMode: false,
