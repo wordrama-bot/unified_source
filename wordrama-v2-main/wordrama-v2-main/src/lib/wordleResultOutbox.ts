@@ -7,6 +7,7 @@ export type PendingWordleResult = {
   resultId: string;
   playerId: string;
   clientCompletedAt: string;
+  clientBuild?: string;
   solution: string;
   guesses: string[];
   gameWasHardMode: boolean;
