@@ -1178,7 +1178,7 @@ export const appearanceThemes: AppearanceTheme[] = [
       background: 'bg-black',
       panel: 'bg-black text-green-300 border border-green-700',
       text: 'text-green-300',
-      gameSurface: 'bg-black text-green-300 border border-green-500 shadow-2xl shadow-green-900/50',
+      gameSurface: 'bg-[#000000] text-green-300 border border-green-500 shadow-2xl shadow-green-900/50',
       actionButton: 'bg-green-900 hover:bg-green-950 active:bg-green-900 text-green-300 border border-green-500 shadow-lg shadow-green-950/70',
     },
 
