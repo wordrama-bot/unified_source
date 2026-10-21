@@ -278,6 +278,10 @@ function App(){
   );
 
   const gameSurfaceThemeClasses = appearanceTheme.app.gameSurface
+  const dropdownTextThemeClasses = appearanceTheme.app.panel
+    .split(/\s+/)
+    .filter((className) => className.startsWith('text-'))
+    .join(' ');
   const gamePanelBackgroundColor = (() => {
     const backgroundClass = appearanceTheme.app.gameSurface
       .split(/\s+/)
@@ -1476,6 +1480,7 @@ const activeSolution = isCustom
                           <SelectValue placeholder="Select a game mode" />
                         </SelectTrigger>
                         <SelectContent
+                          className={dropdownTextThemeClasses}
                           style={{ backgroundColor: gamePanelBackgroundColor }}
                         >
                           <SelectGroup>
@@ -1505,7 +1510,7 @@ const activeSolution = isCustom
                           <SelectValue placeholder="Select a word pack" />
                         </SelectTrigger>
                         <SelectContent
-                          className="max-h-[60vh] overflow-y-auto"
+                          className={`max-h-[60vh] overflow-y-auto ${dropdownTextThemeClasses}`}
                           style={{ backgroundColor: gamePanelBackgroundColor }}
                         >
                           <SelectGroup>
@@ -1556,6 +1561,7 @@ const activeSolution = isCustom
                     </SelectTrigger>
 
                     <SelectContent
+                      className={dropdownTextThemeClasses}
                       style={{ backgroundColor: gamePanelBackgroundColor }}
                     >
                       <SelectGroup>
@@ -1600,6 +1606,7 @@ const activeSolution = isCustom
                     </SelectTrigger>
 
                     <SelectContent
+                      className={dropdownTextThemeClasses}
                       style={{ backgroundColor: gamePanelBackgroundColor }}
                     >
                       <SelectGroup>
