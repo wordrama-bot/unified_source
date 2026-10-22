@@ -18,6 +18,7 @@ export type WordleGameUiState = {
     confettiEnabled?: boolean,
     speedRunModeEnabled?: boolean,
     streamerModeEnabled?: boolean,
+    showCurrentStreak?: boolean,
     gameSoundEnabled?: boolean,
     colorblindMode?: boolean
 };

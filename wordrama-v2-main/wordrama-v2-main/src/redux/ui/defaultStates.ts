@@ -20,6 +20,7 @@ export const wordleGameUiDefaultState: WordleGameUiState = {
   confettiEnabled: true,
   speedRunModeEnabled: false,
   streamerModeEnabled: false,
+  showCurrentStreak: false,
   gameSoundEnabled: true,
   colorblindMode: false
 };

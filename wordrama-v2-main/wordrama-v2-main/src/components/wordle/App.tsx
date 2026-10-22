@@ -1095,6 +1095,28 @@ const activeSolution = isCustom
     });
   }
 
+  function handleShowCurrentStreak(checked: boolean) {
+    dispatch(
+      setWordleGameUiState({
+        showCurrentStreak: checked,
+      })
+    );
+
+    const {
+      appearanceThemeId,
+      keyboardStyleId,
+      ...persistedWordleUi
+    } = gameUiState;
+
+    updateRemoteUiState({
+      ...(uiSavedState?.data || {}),
+      wordleGame: {
+        ...persistedWordleUi,
+        showCurrentStreak: checked,
+      },
+    });
+  }
+
   function newInfiniteGame(){
     if (isLoadingWordPack) return;
     if (!wordleWordPack?.data?.wordList?.length) return;
@@ -1805,6 +1827,20 @@ const activeSolution = isCustom
 
                   <div className="flex items-center justify-between gap-4">
                     <SettingsToggleLabel
+                      htmlFor="showCurrentStreak"
+                      label={<>Show Current<br />Streak</>}
+                      tooltip="Display your current solve streak above the game board for the selected mode and word length"
+                    />
+
+                    <Switch
+                      id="showCurrentStreak"
+                      checked={gameUiState.showCurrentStreak ?? false}
+                      onCheckedChange={handleShowCurrentStreak}
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between gap-4">
+                    <SettingsToggleLabel
                       htmlFor="theme"
                       label={<>Dark<br />Mode</>}
                       tooltip="Switch between light and dark appearance"
@@ -1915,11 +1951,26 @@ const activeSolution = isCustom
                 ${gameSurfaceThemeClasses}
               `}
             >
-              <div className="flex justify-center mb-4">
+              <div className="relative mb-4 flex justify-center">
                 <GameThemeLogo
                   theme={appearanceTheme}
                   className="w-64 sm:w-72 h-auto max-w-full object-contain"
                 />
+
+                {gameUiState.showCurrentStreak && !isCustom && (
+                  <div
+                    className={`absolute top-full -translate-y-1 flex items-center justify-center gap-1 text-xs font-semibold leading-none ${appearanceTheme.app.text}`}
+                    aria-live="polite"
+                  >
+                    <span aria-hidden="true">🔥</span>
+                    <span>
+                      Current Streak:{' '}
+                      {isLoadingStreakData || isErrorStreakData
+                        ? '—'
+                        : currentStreak ?? 0}
+                    </span>
+                  </div>
+                )}
               </div>
               <div className="flex flex-col justify-center pb-6 short:pb-2">
                 <Grid
