@@ -1,7 +1,14 @@
+import 'express-async-errors';
+
 import * as cookieParser from 'cookie-parser';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import express, { Express } from 'express';
+import express, {
+  Express,
+  NextFunction,
+  Request,
+  Response,
+} from 'express';
 // import { pinoHttp as pino } from 'pino-http';
 import helmet from 'helmet';
 import swaggerUi from 'swagger-ui-express';
@@ -71,6 +78,34 @@ app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerFile));
 app.get('/health', (req, res) => res.json({ status: 'ok' }));
 app.use('/api/v3', v3PublicRouter);
 app.use('/api/v3', v3Router);
+
+// Final request error handler.
+// express-async-errors forwards rejected async route promises here.
+app.use(
+  (
+    error: unknown,
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) => {
+    console.error('[express] unhandled request error', {
+      method: req.method,
+      path: req.originalUrl,
+      error,
+    });
+
+    if (res.headersSent) {
+      return next(error);
+    }
+
+    return res.status(500).json({
+      status: 500,
+      count: 0,
+      data: {},
+      message: 'Internal server error.',
+    });
+  },
+);
 
 // Initialise
 const host = '0.0.0.0';
