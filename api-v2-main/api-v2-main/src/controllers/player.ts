@@ -12,6 +12,7 @@ import {
   badRequest,
   notFoundResponse,
   successfulResponse,
+  unauthorizedResponse,
 } from '../utils/responses';
 
 import { getPlayerEntitlements } from '../services/marketplaceV2/entitlements';
@@ -76,14 +77,50 @@ async function addPlayer(req: ApiRequest, res: Response) {
   if (playerExists && playerExists?.id === req.userId)
     return badRequest(req, res, 'Player already exists');
 
-  //@ts-ignore
-  const player = await playerService.addPlayer(req.userId, {
-    ...validated.data,
-    role: 'PLAYER',
-  });
-  if (player?.id != req.userId) return notFoundResponse(req, res);
+  try {
+    //@ts-ignore
+    const player = await playerService.addPlayer(req.userId, {
+      ...validated.data,
+      role: 'PLAYER',
+    });
 
-  return successfulResponse(req, res, player, 'Player Added', 1);
+    if (player?.id != req.userId) {
+      return notFoundResponse(req, res);
+    }
+
+    return successfulResponse(req, res, player, 'Player Added', 1);
+  } catch (error) {
+    console.error('[addPlayer] unable to create player', {
+      userId: req.userId,
+      error,
+    });
+
+    if (
+      error instanceof Error &&
+      error.message === 'Unable to verify account.'
+    ) {
+      return unauthorizedResponse(req, res);
+    }
+
+    if (
+      error instanceof Error &&
+      error.message === 'Account access restricted.'
+    ) {
+      return res.status(403).json({
+        status: 403,
+        count: 0,
+        data: {},
+        message: 'Account access restricted.',
+      });
+    }
+
+    return res.status(500).json({
+      status: 500,
+      count: 0,
+      data: {},
+      message: 'Unable to create player.',
+    });
+  }
 }
 
 async function updatePlayer(req: ApiRequest, res: Response) {
