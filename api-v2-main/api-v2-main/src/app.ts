@@ -14,6 +14,7 @@ import { router as billingWebhookRouter } from './routes/v3/billingWebhook';
 dotenv.config();
 
 const app: Express = express();
+app.set('trust proxy', 1);
 const port = process.env.PORT || 3000;
 
 // Middleware
