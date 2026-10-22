@@ -136,6 +136,7 @@ function App(){
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false)
   const [isStatsModalOpen, setIsStatsModalOpen] = useState(false)
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false)
+  const [openSettingsSelect, setOpenSettingsSelect] = useState<string | null>(null)
   const [isRevealing, setIsRevealing] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
   const [currentGuess, setCurrentGuess] = useState('');
@@ -455,7 +456,15 @@ function App(){
         }}>
           <SettingsIcon className='w-6 h-6' />
         </Button>
-        <Sheet open={isSettingsModalOpen} onOpenChange={open => setIsSettingsModalOpen(open)}>
+        <Sheet
+          open={isSettingsModalOpen}
+          onOpenChange={(open) => {
+            if (!open) {
+              setOpenSettingsSelect(null);
+            }
+            setIsSettingsModalOpen(open);
+          }}
+        >
           <SheetContent className='bg-bg'>
             <SheetHeader>
               <SheetTitle>Game Settings</SheetTitle>
@@ -466,7 +475,16 @@ function App(){
             <div className="grid gap-4 py-4">
               <div className="grid grid-cols-4 items-center gap-4">
                 { gameMode !== 'CUSTOM' && (
-                  <Select defaultValue={gameMode} onValueChange={value => enterGameMode(value)}>
+                  <Select
+                    defaultValue={gameMode}
+                    onValueChange={value => enterGameMode(value)}
+                    open={openSettingsSelect === 'gameMode'}
+                    onOpenChange={(open) =>
+                      setOpenSettingsSelect((current) =>
+                        open ? 'gameMode' : current === 'gameMode' ? null : current
+                      )
+                    }
+                  >
                     <SelectTrigger className=" col-span-4">
                       <SelectValue placeholder="Select a Game Mode" />
                     </SelectTrigger>
@@ -492,7 +510,16 @@ function App(){
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
                 { gameMode !== 'CUSTOM' && (
-                  <Select defaultValue={wordPack} onValueChange={value => useWordPack(value)}>
+                  <Select
+                    defaultValue={wordPack}
+                    onValueChange={value => useWordPack(value)}
+                    open={openSettingsSelect === 'wordPack'}
+                    onOpenChange={(open) =>
+                      setOpenSettingsSelect((current) =>
+                        open ? 'wordPack' : current === 'wordPack' ? null : current
+                      )
+                    }
+                  >
                     <SelectTrigger className=" col-span-4">
                       <SelectValue placeholder="Select a WordPack" />
                     </SelectTrigger>
