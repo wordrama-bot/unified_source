@@ -584,6 +584,7 @@ const activeSolution = isCustom
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false)
   const [isStatsModalOpen, setIsStatsModalOpen] = useState(false)
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false)
+  const [openSettingsSelect, setOpenSettingsSelect] = useState<string | null>(null)
   const [isRevealing, setIsRevealing] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
   const [currentGuess, setCurrentGuess] = useState('');
@@ -1590,7 +1591,15 @@ const activeSolution = isCustom
             <SettingsIcon className='w-6 h-6' />
           </Button>
 
-          <Sheet open={isSettingsModalOpen} onOpenChange={open => setIsSettingsModalOpen(open)}>
+          <Sheet
+            open={isSettingsModalOpen}
+            onOpenChange={(open) => {
+              if (!open) {
+                setOpenSettingsSelect(null);
+              }
+              setIsSettingsModalOpen(open);
+            }}
+          >
             <SheetContent
               className={appearanceTheme.app.panel}
               style={{ backgroundColor: gamePageBackgroundColor }}
@@ -1608,7 +1617,16 @@ const activeSolution = isCustom
                   {gameMode !== 'CUSTOM' && (
                     <>
                       <Label htmlFor="gameMode">Game Mode</Label>
-                      <Select defaultValue={gameMode} onValueChange={(value) => enterGameMode(value)}>
+                      <Select
+                        defaultValue={gameMode}
+                        onValueChange={(value) => enterGameMode(value)}
+                        open={openSettingsSelect === 'gameMode'}
+                        onOpenChange={(open) =>
+                          setOpenSettingsSelect((current) =>
+                            open ? 'gameMode' : current === 'gameMode' ? null : current
+                          )
+                        }
+                      >
                         <SelectTrigger
                           id="gameMode"
                           style={{ backgroundColor: gamePanelBackgroundColor }}
@@ -1638,7 +1656,16 @@ const activeSolution = isCustom
                   {gameMode !== 'CUSTOM' && (
                     <>
                       <Label htmlFor="wordPack">Word Pack</Label>
-                      <Select defaultValue={wordPack} onValueChange={(value) => useWordPack(value)}>
+                      <Select
+                        defaultValue={wordPack}
+                        onValueChange={(value) => useWordPack(value)}
+                        open={openSettingsSelect === 'wordPack'}
+                        onOpenChange={(open) =>
+                          setOpenSettingsSelect((current) =>
+                            open ? 'wordPack' : current === 'wordPack' ? null : current
+                          )
+                        }
+                      >
                         <SelectTrigger
                           id="wordPack"
                           style={{ backgroundColor: gamePanelBackgroundColor }}
@@ -1646,7 +1673,7 @@ const activeSolution = isCustom
                           <SelectValue placeholder="Select a word pack" />
                         </SelectTrigger>
                         <SelectContent
-                          className={`max-h-[60vh] overflow-y-auto ${dropdownTextThemeClasses}`}
+                          className={dropdownTextThemeClasses}
                           style={{ backgroundColor: gamePanelBackgroundColor }}
                         >
                           <SelectGroup>
@@ -1668,6 +1695,12 @@ const activeSolution = isCustom
 
                   <Select
                     value={gameUiState?.appearanceThemeId || 'theme.default'}
+                    open={openSettingsSelect === 'theme'}
+                    onOpenChange={(open) =>
+                      setOpenSettingsSelect((current) =>
+                        open ? 'theme' : current === 'theme' ? null : current
+                      )
+                    }
                     onValueChange={(value) => {
                       const selectedTheme = appearanceThemes.find(
                         (theme) => theme.meta.id === value
@@ -1726,6 +1759,12 @@ const activeSolution = isCustom
 
                   <Select
                     value={gameUiState?.keyboardStyleId || KEYBOARD_STYLE_IDS.FLAT}
+                    open={openSettingsSelect === 'keyboardStyle'}
+                    onOpenChange={(open) =>
+                      setOpenSettingsSelect((current) =>
+                        open ? 'keyboardStyle' : current === 'keyboardStyle' ? null : current
+                      )
+                    }
                     onValueChange={(value) => {
                       dispatch(setWordleGameUiState({ keyboardStyleId: value }));
 
