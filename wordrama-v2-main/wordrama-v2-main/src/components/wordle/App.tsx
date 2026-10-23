@@ -276,7 +276,11 @@ function App(){
   const { user } = useAuth();
   //const appInsights = getAppInsights();
   const { theme, resolvedTheme, setTheme } = useTheme();
-  const { showError: showErrorAlert, showSuccess: showSuccessAlert } = useAlert();
+  const {
+    showError: showErrorAlert,
+    showSuccess: showSuccessAlert,
+    clearAlert,
+  } = useAlert();
   // Redux State
   const dispatch = useDispatch();
   const gameState = getWordleState();
@@ -1203,6 +1207,9 @@ const activeSolution = isCustom
       }
 
       if (isInfinite) {
+        // Immediately dismiss the previous game's notification.
+        clearAlert();
+
         setCurrentRowClass('');
         setIsStatsModalOpen(false);
         setShowConfetti(false);

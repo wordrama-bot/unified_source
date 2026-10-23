@@ -3,6 +3,8 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
+  useRef,
   useState,
 } from 'react'
 
@@ -23,6 +25,7 @@ type AlertContextValue = {
   isVisible: boolean
   showSuccess: (message: string, options?: ShowOptions) => void
   showError: (message: string, options?: ShowOptions) => void
+  clearAlert: () => void
 }
 
 export const AlertContext = createContext<AlertContextValue | null>({
@@ -31,7 +34,9 @@ export const AlertContext = createContext<AlertContextValue | null>({
   isVisible: false,
   showSuccess: () => null,
   showError: () => null,
+  clearAlert: () => null,
 })
+
 AlertContext.displayName = 'AlertContext'
 
 export const useAlert = () => useContext(AlertContext) as AlertContextValue
@@ -45,6 +50,27 @@ export const AlertProvider = ({ children }: Props) => {
   const [message, setMessage] = useState<string | null>(null)
   const [isVisible, setIsVisible] = useState(false)
 
+  const showTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const cancelTimers = useCallback(() => {
+    if (showTimerRef.current !== null) {
+      clearTimeout(showTimerRef.current)
+      showTimerRef.current = null
+    }
+
+    if (hideTimerRef.current !== null) {
+      clearTimeout(hideTimerRef.current)
+      hideTimerRef.current = null
+    }
+  }, [])
+
+  const clearAlert = useCallback(() => {
+    cancelTimers()
+    setIsVisible(false)
+    setMessage(null)
+  }, [cancelTimers])
+
   const show = useCallback(
     (showStatus: AlertStatus, newMessage: string, options?: ShowOptions) => {
       const {
@@ -54,14 +80,21 @@ export const AlertProvider = ({ children }: Props) => {
         durationMs = ALERT_TIME_MS,
       } = options || {}
 
-      setTimeout(() => {
+      // Prevent previous alert timers from affecting this alert.
+      cancelTimers()
+
+      showTimerRef.current = setTimeout(() => {
+        showTimerRef.current = null
+
         setStatus(showStatus)
         setMessage(newMessage)
         setIsVisible(true)
 
         if (!persist) {
-          setTimeout(() => {
+          hideTimerRef.current = setTimeout(() => {
+            hideTimerRef.current = null
             setIsVisible(false)
+
             if (onClose) {
               onClose()
             }
@@ -69,7 +102,7 @@ export const AlertProvider = ({ children }: Props) => {
         }
       }, delayMs)
     },
-    [setStatus, setMessage, setIsVisible]
+    [cancelTimers]
   )
 
   const showError = useCallback(
@@ -86,6 +119,12 @@ export const AlertProvider = ({ children }: Props) => {
     [show]
   )
 
+  useEffect(() => {
+    return () => {
+      cancelTimers()
+    }
+  }, [cancelTimers])
+
   return (
     <AlertContext.Provider
       value={{
@@ -94,6 +133,7 @@ export const AlertProvider = ({ children }: Props) => {
         isVisible,
         showError,
         showSuccess,
+        clearAlert,
       }}
     >
       {children}
