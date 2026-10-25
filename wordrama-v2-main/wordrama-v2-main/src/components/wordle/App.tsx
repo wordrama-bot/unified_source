@@ -305,13 +305,28 @@ function App(){
       : undefined;
   })();
   const gamePageBackgroundColor = (() => {
-    const backgroundClass = appearanceTheme.app.background
-      .split(/\s+/)
-      .find((className) => /^bg-\[#[0-9a-fA-F]{3,8}\]$/.test(className));
+    const background = appearanceTheme.app.background;
 
-    return backgroundClass
-      ? backgroundClass.slice(4, -1)
-      : undefined;
+    // Solid hexadecimal theme backgrounds
+    const solidColor = background.match(
+      /bg-\[(#[0-9a-fA-F]{3,8})\]/
+    );
+
+    if (solidColor) {
+      return solidColor[1];
+    }
+
+    // Gradient themes: use the first gradient color
+    // as the solid background for dialogs and drawers.
+    const gradientColor = background.match(
+      /(?:radial|linear)-gradient\([^,]+,(#[0-9a-fA-F]{3,8})_/
+    );
+
+    if (gradientColor) {
+      return gradientColor[1];
+    }
+
+    return undefined;
   })();
   const gameSurfaceBorderColor = (() => {
     const borderClass = appearanceTheme.app.gameSurface

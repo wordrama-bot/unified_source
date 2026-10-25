@@ -267,13 +267,14 @@ export const appearanceThemes: AppearanceTheme[] = [
     },
 
     app: {
-      background: 'bg-[#fecdd3]',
-      panel: 'bg-[#fff1f2] text-rose-950 border border-[#fda4af]',
-      text: 'text-rose-950',
+      background: 'bg-[#9B5C68]',
+      panel:
+        'bg-[#EAD8D4] text-[#4B2932] border border-[#B58D8F]',
+      text: 'text-[#4B2932]',
       gameSurface:
-        'bg-[#ffe4e6] text-rose-950 border border-[#fda4af] shadow-2xl',
+        'bg-[#D4B3B3] text-[#4B2932] border border-[#B58D8F] shadow-2xl',
       actionButton:
-        'bg-rose-200 hover:bg-rose-300 text-rose-950 border border-rose-300 shadow-lg',
+        'bg-[#C6A56B] hover:bg-[#B8955C] text-[#4B2932] border border-[#9F7B45] shadow-lg',
     },
 
     surface: {
@@ -289,23 +290,27 @@ export const appearanceThemes: AppearanceTheme[] = [
     },
 
     board: {
-      emptyCell: 'bg-[#fff7ed] border-[#d6a58f] text-[#5f2d36]',
-      filledCell: 'bg-[#ffe4e6] border-[#b76e79] text-[#5f2d36]',
-      absentCell: 'bg-rose-200 border-rose-300 text-[#5f2d36]',
+      emptyCell:
+        'bg-[#F3E7E0] border-[#C6A56B] text-[#4B2932]',
+      filledCell:
+        'bg-[#D8C2C4] border-[#C6A56B] text-[#4B2932]',
+      absentCell:
+        'bg-[#B7A8AA] border-[#A88C5A] text-[#4B2932]',
     },
 
     keyboard: {
       key:
-        'bg-rose-400 hover:bg-rose-300 active:bg-rose-400 border border-rose-300',
-      keyText: 'text-rose-950',
+        'bg-[#9B5C68] hover:bg-[#8B4F5B] active:bg-[#7C4450] border border-[#C6A56B]',
+      keyText: 'text-[#C6A56B]',
       absentKey:
-        'bg-rose-200 hover:bg-rose-500 active:bg-rose-600 border border-rose-500 text-rose-950',
+        'bg-[#D4B3B3] hover:bg-[#E9DFD8] active:bg-[#E9DFD8] border border-[#D2B57A] !text-[#4B2932]',
     },
 
     modal: {
-      container: 'bg-white border border-rose-300 text-gray-900',
-      title: 'text-rose-950',
-      icon: 'stroke-rose-400',
+      container:
+        'bg-[#EAD8D4] border border-[#B58D8F] text-[#4B2932]',
+      title: 'text-[#4B2932]',
+      icon: 'stroke-[#9B5C68]',
     },
 
     feedback: {
@@ -563,11 +568,14 @@ export const appearanceThemes: AppearanceTheme[] = [
     },
 
     app: {
-      background: 'bg-sky-50',
-      panel: 'bg-cyan-50 text-cyan-900 border border-cyan-300',
-      text: 'text-cyan-900',
-      gameSurface: 'bg-white border-2 border-cyan-300 shadow-2xl shadow-cyan-200/60',
-      actionButton: 'bg-cyan-500 hover:bg-cyan-400 text-white border border-cyan-700 shadow-lg',
+      background: 'bg-[#243F56]',
+      panel:
+        'bg-[#36566B] text-[#E6F2F5] border border-[#8DB7CA]',
+      text: 'text-[#4DDEFF]',
+      gameSurface:
+        'bg-[#42647A] text-[#E6F2F5] border-2 border-[#8DB7CA] shadow-2xl shadow-[#102C3F]/60',
+      actionButton:
+        'bg-[#638BA1] hover:bg-[#79A0B5] text-[#FFFFFF] border border-[#A9C9D6] shadow-lg',
     },
 
     surface: {
@@ -583,28 +591,34 @@ export const appearanceThemes: AppearanceTheme[] = [
     },
 
     board: {
-      emptyCell: 'bg-cyan-50 border-cyan-300 text-cyan-900',
-      filledCell: 'bg-cyan-200 border-sky-400 text-cyan-900',
-      absentCell: 'bg-sky-50 border-cyan-200 text-cyan-900',
+      emptyCell:
+        'bg-[#A9C9D6] border-[#4DDEFF] text-[#4DDEFF]',
+      filledCell:
+        'bg-[#638BA1] border-[#B5D8E5] text-[#4DDEFF]',
+      absentCell:
+        'bg-[#304A5B] border-[#597B8E] text-[#4DDEFF]',
     },
 
     keyboard: {
-      key: 'bg-cyan-200 hover:bg-cyan-300 border border-cyan-400',
-      keyText: 'text-cyan-900',
-      absentKey: 'bg-sky-50 hover:bg-cyan-50 active:bg-cyan-100 border border-cyan-200',
+      key:
+        'bg-[#638BA1] hover:bg-[#79A0B5] active:bg-[#52798E] border border-[#A9C9D6]',
+      keyText: 'text-[#4DDEFF]',
+      absentKey:
+        'bg-[#304A5B] hover:bg-[#304A5B] active:bg-[#304A5B] border border-[#597B8E] !text-[#5088A3]',
     },
 
     modal: {
-      container: 'bg-cyan-50 border border-cyan-300 text-cyan-950 shadow-2xl',
-      title: 'text-cyan-950',
-      icon: 'stroke-cyan-700',
+      container:
+        'bg-[#36566B] border border-[#8DB7CA] text-[#E6F2F5] shadow-2xl shadow-black/50',
+      title: 'text-[#E6F2F5]',
+      icon: 'stroke-[#B5D8E5]',
     },
 
     feedback: {
-      success: 'text-green-500',
-      warning: 'text-yellow-500',
-      error: 'text-red-500',
-      info: 'text-blue-500',
+      success: 'text-green-400',
+      warning: 'text-amber-400',
+      error: 'text-red-400',
+      info: 'text-sky-300',
     },
 
     overlay: {
@@ -612,12 +626,12 @@ export const appearanceThemes: AppearanceTheme[] = [
     },
 
     border: {
-      default: 'border-cyan-200',
-      strong: 'border-cyan-400',
+      default: 'border-[#597B8E]',
+      strong: 'border-[#B5D8E5]',
     },
 
     effects: {
-      glow: 'shadow-[0_0_18px_rgba(34,211,238,0.28)]',
+      glow: 'shadow-[0_0_18px_rgba(141,183,202,0.25)]',
       borderGlow: '',
     },
   },
@@ -711,13 +725,14 @@ export const appearanceThemes: AppearanceTheme[] = [
     },
 
     app: {
-      background: 'bg-[#072b14]',
-      panel: 'bg-[#12361d] text-green-100 border border-lime-700',
-      text: 'text-green-100',
+      background: 'bg-[#172B22]',
+      panel:
+        'bg-[#243A2C] text-[#F0E6D2] border border-[#866449]',
+      text: 'text-[#F0E6D2]',
       gameSurface:
-        'bg-[#1a5a2c] border-2 border-lime-600 shadow-2xl shadow-green-950/70',
+        'bg-[#294737] text-[#F0E6D2] border-2 border-[#866449] shadow-2xl shadow-black/50',
       actionButton:
-        'bg-lime-700 hover:bg-lime-600 text-white border border-lime-900 shadow-lg',
+        'bg-[#674A35] hover:bg-[#78563C] text-[#F0E6D2] border border-[#977756] shadow-lg',
     },
 
     surface: {
@@ -733,28 +748,32 @@ export const appearanceThemes: AppearanceTheme[] = [
     },
 
     board: {
-      emptyCell: 'bg-[#236b35] border-lime-500 text-green-100',
-      filledCell: 'bg-[#2d7d46] border-lime-400 text-white',
-      absentCell: 'bg-[#12361d] border-green-950 text-green-100',
+      emptyCell:
+        'bg-[#345442] border-[#866449] text-[#F0E6D2]',
+      filledCell:
+        'bg-[#49654D] border-[#977756] text-[#F0E6D2]',
+      absentCell:
+        'bg-[#32483B] border-[#56634D] text-[#F0E6D2]',
     },
 
     keyboard: {
-      key: 'bg-[#2d7d46] hover:bg-[#379854] border border-lime-500',
-      keyText: 'text-green-100',
+      key:
+        'bg-[#674A35] hover:bg-[#78563C] active:bg-[#543B2B] border border-[#977756]',
+      keyText: 'text-[#F0E6D2]',
       absentKey:
-        'bg-[#12361d] hover:bg-[#184724] active:bg-[#236b35] border border-green-950',
+        'bg-[#34483C] hover:bg-[#34483C] active:bg-[#34483C] border border-[#455648] !text-[#B7BDAA]',
     },
 
     modal: {
       container:
-        'bg-[#12361d] border border-lime-600 text-green-100 shadow-2xl shadow-black/60',
-      title: 'text-green-100',
-      icon: 'stroke-lime-300',
+        'bg-[#243A2C] border border-[#866449] text-[#F0E6D2] shadow-2xl shadow-black/60',
+      title: 'text-[#F0E6D2]',
+      icon: 'stroke-[#B69A72]',
     },
 
     feedback: {
       success: 'text-green-400',
-      warning: 'text-yellow-400',
+      warning: 'text-amber-400',
       error: 'text-red-400',
       info: 'text-sky-400',
     },
@@ -764,12 +783,12 @@ export const appearanceThemes: AppearanceTheme[] = [
     },
 
     border: {
-      default: 'border-green-800',
-      strong: 'border-lime-600',
+      default: 'border-[#56634D]',
+      strong: 'border-[#977756]',
     },
 
     effects: {
-      glow: 'shadow-[0_0_14px_rgba(132,204,22,.20)]',
+      glow: 'shadow-[0_0_14px_rgba(116,133,104,0.22)]',
       borderGlow: '',
     },
   },
@@ -887,19 +906,19 @@ export const appearanceThemes: AppearanceTheme[] = [
 
     board: {
       emptyCell:
-        'bg-[#11100d] border-[#8a6a2f] text-[#f8e7b0] shadow-[inset_0_0_8px_rgba(0,0,0,0.55)]',
+        'bg-[#604B32] border-[#A78338] text-[#f8e7b0] shadow-[inset_0_0_8px_rgba(0,0,0,0.45)]',
       filledCell:
-        'bg-[#181713] border-[#c8a84f] text-white shadow-[inset_0_0_10px_rgba(0,0,0,0.65)]',
+        'bg-[#80613D] border-[#c8a84f] text-white shadow-[inset_0_0_10px_rgba(0,0,0,0.45)]',
       absentCell:
         'bg-[#0a0a08] border-[#4f4328] text-[#8f8568] shadow-[inset_0_0_8px_rgba(0,0,0,0.8)]',
     },
 
     keyboard: {
       key:
-        'bg-[#181720] hover:bg-[#232016] active:bg-[#2d281a] border border-[#8a6a2f] ring-1 ring-[#c8a84f]/20',
+        'bg-[#604B32] hover:bg-[#947249] active:bg-[#6D512F] border border-[#A78338] ring-1 ring-[#c8a84f]/20',
       keyText: 'text-[#f8e7b0]',
       absentKey:
-        'bg-[#0a0a08] hover:bg-[#11100d] active:bg-[#181713] border border-[#4f4328] text-[#8f8568] ring-1 ring-[#c8a84f]/20',
+        'bg-[#0a0a08] hover:bg-[#11100d] active:bg-[#181713] border border-[#4f4328] !text-[#8f8568] ring-1 ring-[#c8a84f]/20',
     },
 
     modal: {
@@ -1411,9 +1430,9 @@ export const appearanceThemes: AppearanceTheme[] = [
         'bg-[#43262E] text-[#F0DDBB] border border-[#B78B49]',
       text: 'text-[#F0DDBB]',
       gameSurface:
-        'bg-[#43262E] text-[#F0DDBB] border border-[#B78B49] shadow-[0_0_28px_4px_rgba(183,139,73,0.30)]',
+        'bg-[#58252F] text-[#F0DDBB] border border-[#B78B49] shadow-[0_0_28px_4px_rgba(183,139,73,0.30)]',
       actionButton:
-        'bg-[#854234] hover:bg-[#9B5240] active:bg-[#6D332B] text-[#FFF0DB] border border-[#D0A663] shadow-lg shadow-black/40',
+        'bg-[#AD602F] hover:bg-[#9B5240] active:bg-[#6D332B] text-[#FFF0DB] border border-[#D0A663] shadow-lg shadow-black/40',
     },
 
     surface: {
@@ -1439,7 +1458,7 @@ export const appearanceThemes: AppearanceTheme[] = [
 
     keyboard: {
       key:
-        'bg-[#854234] hover:bg-[#9B5240] active:bg-[#6D332B] border border-[#B78B49]',
+        'bg-[#AD602F] hover:bg-[#BF7139] active:bg-[#965127] border border-[#B78B49]',
       keyText: 'text-[#FFF0DB]',
       absentKey:
         'bg-[#271D22] border border-[#51363B] text-[#8C7375]',
@@ -1568,14 +1587,14 @@ export const appearanceThemes: AppearanceTheme[] = [
     },
 
     app: {
-      background: 'bg-[#0D1520]',
+      background: 'bg-[#151B3B]',
       panel:
-        'bg-[#182434] text-[#DFEAF0] border border-[#728DA1]',
-      text: 'text-[#DFEAF0]',
+        'bg-[#292F54] text-[#EAF1FF] border border-[#9EADD3]',
+      text: 'text-[#F0E8DE]',
       gameSurface:
-        'bg-[#182434] text-[#DFEAF0] border border-[#94ADBE] shadow-[0_0_28px_4px_rgba(148,173,190,0.30)]',
+        'bg-[#716DAD] text-[#EAF1FF] border-2 border-[#E8E1D8] shadow-[0_0_42px_8px_rgba(232,225,216,0.38)]',
       actionButton:
-        'bg-[#435B70] hover:bg-[#526D82] active:bg-[#293B4D] text-[#DFEAF0] border border-[#94ADBE] shadow-[0_0_12px_rgba(148,173,190,0.22)]',
+        'bg-[#716DAD] hover:bg-[#8580C5] active:bg-[#5C5896] text-[#FFFFFF] border border-[#B4C8E2] shadow-[0_0_12px_rgba(180,200,226,0.25)]',
     },
 
     surface: {
@@ -1592,33 +1611,33 @@ export const appearanceThemes: AppearanceTheme[] = [
 
     board: {
       emptyCell:
-        'bg-[#101C29] border-[#94ADBE] text-[#DFEAF0]',
+        'bg-[#292F54] border-[#E8E1D8] text-[#EAF1FF]',
       filledCell:
-        'bg-[#435B70] border-[#BDD0DC] text-[#F1F6F9]',
+        'bg-[#716DAD] border-[#D4DDF2] text-[#FFFFFF]',
       absentCell:
-        'bg-[#111A24] border-[#2A3A49] text-[#708496]',
+        'bg-[#222640] border-[#454B70] text-[#9199B8]',
     },
 
     keyboard: {
       key:
-        'bg-[#435B70] hover:bg-[#526D82] active:bg-[#344A5D] border border-[#728DA1]',
-      keyText: 'text-[#DFEAF0]',
+        'bg-[#E8E1D8] hover:bg-[#8580C5] active:bg-[#5C5896] border border-[#B4C8E2]',
+      keyText: 'text-[#222640]',
       absentKey:
-        'bg-[#111A24] border border-[#2A3A49] text-[#708496]',
+        'bg-[#222640] hover:bg-[#222640] active:bg-[#222640] border border-[#454B70] !text-[#858CAC]',
     },
 
     modal: {
       container:
-        'bg-[#182434] border border-[#94ADBE] text-[#DFEAF0] shadow-2xl shadow-black/75',
-      title: 'text-[#DFEAF0]',
-      icon: 'stroke-[#BDD0DC]',
+        'bg-[#292F54] border border-[#B4C8E2] text-[#EAF1FF] shadow-2xl shadow-black/70',
+      title: 'text-[#EAF1FF]',
+      icon: 'stroke-[#D4DDF2]',
     },
 
     feedback: {
       success: 'text-[#A6D5BB]',
-      warning: 'text-[#E8C780]',
+      warning: 'text-[#F2DA9B]',
       error: 'text-[#E9A5AA]',
-      info: 'text-[#BDD0DC]',
+      info: 'text-[#B4C8E2]',
     },
 
     overlay: {
@@ -1626,15 +1645,15 @@ export const appearanceThemes: AppearanceTheme[] = [
     },
 
     border: {
-      default: 'border-[#728DA1]',
-      strong: 'border-[#BDD0DC]',
+      default: 'border-[#787FAF]',
+      strong: 'border-[#D4DDF2]',
     },
 
     effects: {
       glow:
-        'shadow-[0_0_22px_rgba(148,173,190,0.26)]',
+        'shadow-[0_0_30px_4px_rgba(232,225,216,0.35)]',
       borderGlow:
-        'shadow-[0_0_12px_rgba(189,208,220,0.24)]',
+        'shadow-[0_0_18px_3px_rgba(232,225,216,0.40)]',
     },
   },
   {
