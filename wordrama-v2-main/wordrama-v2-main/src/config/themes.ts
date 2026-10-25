@@ -964,7 +964,7 @@ export const appearanceThemes: AppearanceTheme[] = [
 
     app: {
       background:
-        'bg-[radial-gradient(circle_at_center,#10183a_0%,#050713_55%,#02030a_100%)]',
+        'bg-[#02030A] bg-[radial-gradient(circle_at_center,#10183a_0%,#050713_55%,#02030a_100%)]',
       panel: 'bg-[#070a18] text-lime-200 border border-blue-500',
       text: 'text-lime-200',
       gameSurface:
@@ -1045,7 +1045,7 @@ export const appearanceThemes: AppearanceTheme[] = [
 
     app: {
       background:
-        'bg-[radial-gradient(circle_at_center,#2b0b45_0%,#140320_50%,#07010d_100%)]',
+        'bg-[#07010D] bg-[radial-gradient(circle_at_center,#2b0b45_0%,#140320_50%,#07010d_100%)]',
       panel: 'bg-[#1b0b33] text-cyan-100 border border-pink-400',
       text: 'text-cyan-100',
       gameSurface:
@@ -1124,7 +1124,7 @@ export const appearanceThemes: AppearanceTheme[] = [
     },
 
     app: {
-      background: 'bg-neutral-950',
+      background: 'bg-[#0A0A0A]',
       panel: 'bg-[#080808] text-white border border-red-700',
       text: 'text-white',
       gameSurface: 'bg-[#070707] text-white border border-red-700 shadow-2xl shadow-red-950/70',
@@ -1194,7 +1194,7 @@ export const appearanceThemes: AppearanceTheme[] = [
     },
 
     app: {
-      background: 'bg-black',
+      background: 'bg-[#000000]',
       panel: 'bg-black text-green-300 border border-green-700',
       text: 'text-green-300',
       gameSurface: 'bg-[#000000] text-green-300 border border-green-500 shadow-2xl shadow-green-900/50',

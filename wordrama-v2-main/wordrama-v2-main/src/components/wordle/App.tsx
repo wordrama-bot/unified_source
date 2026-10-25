@@ -291,6 +291,10 @@ function App(){
   );
 
   const gameSurfaceThemeClasses = appearanceTheme.app.gameSurface
+  const gamePanelTextColor =
+    appearanceTheme.app.panel.match(
+      /(?:^|\s)text-\[(#[0-9a-fA-F]{3,8})\]/
+    )?.[1];
   const dropdownTextThemeClasses = appearanceTheme.app.panel
     .split(/\s+/)
     .filter((className) => className.startsWith('text-'))
@@ -307,7 +311,7 @@ function App(){
   const gamePageBackgroundColor = (() => {
     const background = appearanceTheme.app.background;
 
-    // Solid hexadecimal theme backgrounds
+    // Prefer explicitly defined solid background colors.
     const solidColor = background.match(
       /bg-\[(#[0-9a-fA-F]{3,8})\]/
     );
@@ -316,17 +320,12 @@ function App(){
       return solidColor[1];
     }
 
-    // Gradient themes: use the first gradient color
-    // as the solid background for dialogs and drawers.
+    // Fall back to the first color of a gradient.
     const gradientColor = background.match(
       /(?:radial|linear)-gradient\([^,]+,(#[0-9a-fA-F]{3,8})_/
     );
 
-    if (gradientColor) {
-      return gradientColor[1];
-    }
-
-    return undefined;
+    return gradientColor?.[1];
   })();
   const gameSurfaceBorderColor = (() => {
     const borderClass = appearanceTheme.app.gameSurface
@@ -1657,7 +1656,10 @@ const activeSolution = isCustom
                         </SelectTrigger>
                         <SelectContent
                           className={dropdownTextThemeClasses}
-                          style={{ backgroundColor: gamePanelBackgroundColor }}
+                          style={{
+                            backgroundColor: gamePanelBackgroundColor,
+                            color: gamePanelTextColor,
+                          }}
                         >
                           <SelectGroup>
                             <SelectLabel>Game Mode</SelectLabel>
@@ -1696,7 +1698,10 @@ const activeSolution = isCustom
                         </SelectTrigger>
                         <SelectContent
                           className={dropdownTextThemeClasses}
-                          style={{ backgroundColor: gamePanelBackgroundColor }}
+                          style={{
+                            backgroundColor: gamePanelBackgroundColor,
+                            color: gamePanelTextColor,
+                          }}
                         >
                           <SelectGroup>
                             <SelectLabel>Word Pack</SelectLabel>
@@ -1753,7 +1758,10 @@ const activeSolution = isCustom
 
                     <SelectContent
                       className={dropdownTextThemeClasses}
-                      style={{ backgroundColor: gamePanelBackgroundColor }}
+                      style={{
+                        backgroundColor: gamePanelBackgroundColor,
+                        color: gamePanelTextColor,
+                      }}
                     >
                       <SelectGroup>
                         <SelectLabel>Themes</SelectLabel>
@@ -1804,7 +1812,10 @@ const activeSolution = isCustom
 
                     <SelectContent
                       className={dropdownTextThemeClasses}
-                      style={{ backgroundColor: gamePanelBackgroundColor }}
+                      style={{
+                        backgroundColor: gamePanelBackgroundColor,
+                        color: gamePanelTextColor,
+                      }}
                     >
                       <SelectGroup>
                         <SelectLabel>Keyboard Style</SelectLabel>
