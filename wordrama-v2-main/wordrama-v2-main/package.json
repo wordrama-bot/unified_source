@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "next dev",
-    "build:sitemap": "node_modules/.bin/next-sitemap --config next-sitemap.config.cjs",
-    "build": "next build",
+    "build:sitemap": "next-sitemap --config next-sitemap.config.cjs",
+    "build": "next build && npm run build:sitemap",
     "start": "next start",
     "lint": "next lint"
   },

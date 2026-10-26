@@ -6,7 +6,8 @@ module.exports = {
   priority: 0.7,
   sitemapSize: 5000,
   generateRobotsTxt: true,
-  exclude: [],
+  autoLastmod: false,
+  exclude: ['/*'],
   alternateRefs: [
     //{
     //  href: 'https://es.example.com',
@@ -34,6 +35,7 @@ module.exports = {
     await config.transform(config, '/cookies'),
     await config.transform(config, '/disclaimer'),
     await config.transform(config, '/free-play'),
+    await config.transform(config, '/games/wordrama'),
     await config.transform(config, '/how-to-play'),
     await config.transform(config, '/marketplace'),
     await config.transform(config, '/marketplace/word-packs'),
