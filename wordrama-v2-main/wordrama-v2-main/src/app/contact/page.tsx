@@ -13,7 +13,7 @@ export default function ContactPage() {
           { href: "/achievements", text: "Achievements" },
           { href: "/teams", text: "Teams" },
           { href: "/about", text: "About" },
-          { href: "/signup", text: "Sign Up / In" },
+          { href: "/login", text: "Sign Up / In" },
         ]}
       />
 

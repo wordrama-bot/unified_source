@@ -142,7 +142,7 @@ export default function CreatorsPage() {
         ] : [
             { href: "/about", text: "About" },
             { href: "/free-play", text: "Quick Play" },
-            { href: "/signup", text: "Sign Up / In" },
+            { href: "/login", text: "Sign Up / In" },
           ]
         }
       />

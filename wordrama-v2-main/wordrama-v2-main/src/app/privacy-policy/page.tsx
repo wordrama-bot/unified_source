@@ -30,7 +30,7 @@ export default function PrivacyPolicy() {
           { href: "/achievements", text: "Achievements" },
           { href: "/teams", text: "Teams" },
           { href: "/about", text: "About" },
-          { href: "/signup", text: "Sign Up / In" },
+          { href: "/login", text: "Sign Up / In" },
         ]}
       />
       <div className="container mx-auto p-4">

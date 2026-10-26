@@ -153,7 +153,7 @@ export default function TeamLeaderboardPage() {
             { href: "/achievements", text: "Achievements" },
             { href: "/teams", text: "Teams" },
             { href: "/about", text: "About" },
-            { href: "/signup", text: "Sign Up / In" },
+            { href: "/login", text: "Sign Up / In" },
           ]}
         />
 
@@ -193,7 +193,7 @@ export default function TeamLeaderboardPage() {
               </p>
 
               <div className="mt-6 flex flex-wrap justify-center gap-4">
-                <Link href="/signup">
+                <Link href="/login">
                   <Button size="lg">Create a Free Account</Button>
                 </Link>
                 <Link href="/free-play">

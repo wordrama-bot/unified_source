@@ -678,7 +678,7 @@ function App(){
                   <AlertDialogFooter>
                     <AlertDialogAction onClick={() =>{
                       //appInsights.trackEvent({ name: 'wordelFreePlayCTASignUpClicked', properties: { wordPack, gameMode, isGameWon, isGameLost, counter} });
-                      window.location.href = '/signup'
+                      window.location.href = '/login'
                     }}>
                       Sign Up
                     </AlertDialogAction>
