@@ -569,6 +569,10 @@ function App(){
                 <Switch checked={gameUiState.colorblindMode || false} onCheckedChange={checked => handleColorblindModeEnabled(checked)} />
               </div>
             </div>
+            <Separator />
+            <div className="grid gap-4 py-4">
+              <p>Unlock even more features and customizations by <a href="/login"><u>registering for a free account</u></a> using Discord or your email!</p>
+            </div>
           </SheetContent>
         </Sheet>
         <div className="mx-auto flex w-full grow flex-col px-1 pt-20 pb-8 sm:px-6 md:max-w-7xl lg:px-8 short:pb-2 short:pt-2">
@@ -598,11 +602,11 @@ function App(){
           
           <section className="mx-auto mt-10 mb-16 max-w-4xl rounded-lg border border-border bg-bg/80 p-6 text-text shadow-light dark:border-darkBorder dark:bg-darkBg/80 dark:text-darkText">
             <h1 className="text-center text-3xl font-bold">
-              How to Play Wordrama: Free Play Mode
+              How to Play Wordrama: Quick Play Mode
             </h1>
 
             <p className="mt-4 text-center">
-              Wordrama Free Play lets you practice word guessing puzzles without signing up. Choose a word pack, enter guesses using the on-screen keyboard or your physical keyboard, and use the color feedback after each guess to narrow down the answer.
+              Wordrama Quick Play lets you practice word guessing puzzles without signing up for a free account. Choose a word pack (5-11 letters long), enter guesses using the on-screen keyboard or your physical keyboard, and use the color feedback after each guess to narrow down the answer.
             </p>
 
             <div className="mt-8 grid gap-6 md:grid-cols-2">
@@ -614,7 +618,7 @@ function App(){
               </div>
 
               <div>
-                <h2 className="text-xl font-semibold">Free Play strategy tips</h2>
+                <h2 className="text-xl font-semibold">Quick Play strategy tips</h2>
                 <p className="mt-2">
                   Start with a balanced word that includes common vowels and consonants. After your first guess, focus on testing new letters while preserving confirmed green letters. If a letter turns yellow, try moving it to a new position instead of repeating the same pattern.
                 </p>
@@ -623,14 +627,14 @@ function App(){
               <div>
                 <h2 className="text-xl font-semibold">Daily vs. Infinite mode</h2>
                 <p className="mt-2">
-                  Daily mode gives you a unique puzzle for the day, while Infinite mode lets you keep practicing with new words. Free Play is a great way to warm up, test strategies, and improve before competing on leaderboards.
+                  Daily mode gives you a unique puzzle for the day, while Infinite mode lets you keep practicing with new words. Quick Play is a great way to warm up, test strategies, and improve before competing on leaderboards.
                 </p>
               </div>
 
               <div>
                 <h2 className="text-xl font-semibold">Why play Wordrama?</h2>
                 <p className="mt-2">
-                  Wordrama expands the classic word puzzle experience with multiple word lengths, account stats, streak tracking, leaderboards, friends, teams, and custom word packs. It is designed for quick casual games as well as longer-term skill building.
+                  Wordrama expands the classic word puzzle experience with multiple word lengths, colorful themes, account stats, streak tracking, leaderboards, friends, and even teams. It is designed for quick casual games as well as longer-term skill building. The best part is that it's free to sign-up and get started!
                 </p>
               </div>
             </div>
