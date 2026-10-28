@@ -125,7 +125,8 @@ import {
   setGameState,
   setWordLength,
   setWordPack,
-  setInitialState
+  setInitialState,
+  resetCustomGame
 } from '../../redux/wordle/actions';
 import {
   setWordleGameUiState,
@@ -1574,13 +1575,18 @@ const activeSolution = isCustom
     setShowConfetti(isGameWon);
 
     if (isGameWon || isGameLost) {
-      if (gameUiState.speedRunModeEnabled === true) {
-        setIsStatsModalOpen(false);
-      } else {
+      if (isCustom || !gameUiState.speedRunModeEnabled) {
         setIsStatsModalOpen(true);
+      } else {
+        setIsStatsModalOpen(false);
       }
     }
-  }, [isGameWon, isGameLost, gameUiState.speedRunModeEnabled]);
+  }, [
+    isGameWon,
+    isGameLost,
+    isCustom,
+    gameUiState.speedRunModeEnabled,
+  ]);
 
   const shouldDeferRefresh =
     !isGameWon &&
@@ -2097,17 +2103,33 @@ const activeSolution = isCustom
             </div>
             {isCustom && (
               <Button
+                className={`fixed top-20 right-52 ${gameActionButtonThemeClasses}`}
+                onClick={() => {
+                  setIsStatsModalOpen(false);
+                  setShowConfetti(false);
+                  setCurrentGuess('');
+                  setCurrentRowClass('');
+                  dispatch(resetCustomGame());
+                }}
+              >
+                Regular Play
+              </Button>
+            )}
+            {isCustom && !isGameWon && !isGameLost && (
+              <Button
                 className={`fixed top-20 right-24 ${gameActionButtonThemeClasses}`}
                 onClick={() => {
-                  updateGameState({
-                    ...currentGame,
-                    guesses: [
-                      ...guesses
-                    ],
-                    isGameLost: true,
-                    resultSave: false
-                  })
-                  setIsStatsModalOpen(true)
+                  if (!isGameWon && !isGameLost) {
+                    updateGameState({
+                      ...currentGame,
+                      guesses: [...guesses],
+                      isGameWon: false,
+                      isGameLost: true,
+                      resultSave: false,
+                    });
+                  }
+
+                  setIsStatsModalOpen(true);
                 }}
               >
                 Give Up?
@@ -2257,7 +2279,7 @@ const activeSolution = isCustom
                     {isCustom && (
                       <Link href='/games/wordrama/custom'>
                         <AlertDialogAction
-                          className='w-32'
+                          className={`w-32 ${appearanceTheme.app.actionButton}`}
                         >
                           Create custom
                         </AlertDialogAction>
@@ -2266,7 +2288,7 @@ const activeSolution = isCustom
                     {isCustom && (
                       <Link href='/games/wordrama/join'>
                         <AlertDialogAction
-                          className='w-32'
+                          className={`w-32 ${appearanceTheme.app.actionButton}`}
                         >
                           Play another
                         </AlertDialogAction>
@@ -2275,11 +2297,11 @@ const activeSolution = isCustom
 
                     {isCustom && (
                       <AlertDialogAction
-                        className='w-32'
+                        className={`w-32 ${appearanceTheme.app.actionButton}`}
                         onClick={() => {
-                          enterGameMode('INFINITE');
-                          useWordPack('FIVE_LETTER');
-                          window.location.reload();
+                          setIsStatsModalOpen(false);
+                          setShowConfetti(false);
+                          dispatch(resetCustomGame());
                         }}
                       >
                         Play Infinite
