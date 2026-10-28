@@ -9,6 +9,7 @@ export const addGameResult = z.object({
   wordPack: z.string(),
   shareCode: z.string().optional(),
   resultId: z.string().uuid().optional(),
+  gameInstanceId: z.string().uuid().optional(),
   clientCompletedAt: z.string().datetime().optional(),
   clientBuild: z.string().max(100).optional(),
 });

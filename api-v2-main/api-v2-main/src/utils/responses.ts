@@ -73,3 +73,20 @@ export function successfulResponse(
     })
     .end();
 }
+
+export function conflictResponse(
+  req: ApiRequest,
+  res: Response,
+  message: string,
+  data?: any,
+) {
+  return res
+    .status(409)
+    .json({
+      ...baseResponse,
+      data: data ?? {},
+      message,
+      status: 409,
+    })
+    .end();
+}

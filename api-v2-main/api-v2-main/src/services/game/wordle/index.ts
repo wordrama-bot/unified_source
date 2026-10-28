@@ -1,7 +1,7 @@
 import * as changeKeys from 'change-case/keys';
 import moment from 'moment';
 import { db } from '../../../models';
-import { AddGameResult, CreateCustom } from '../../schema/game/wordle';
+import { AddGameResult, CreateCustom } from '../../../schema/game/wordle';
 import { enqueue, createMessage } from '../../../utils/gameLoop';
 
 //import playerService from '../../player';
@@ -48,6 +48,7 @@ async function getCustomByShareCode(shareCode: string) {
 type RecentWordleResult = {
   id: string;
   player?: string;
+  game_instance_id?: string | null;
   solution?: string;
   guesses: string[];
   game_was_won: boolean | null;
@@ -85,6 +86,8 @@ function isMatchingWordleResult(
 ) {
   return (
     result.player === userId &&
+    (!body.gameInstanceId ||
+      result.game_instance_id === body.gameInstanceId) &&
     result.solution === body.solution &&
     result.game_was_won === gameWasWon &&
     result.game_was_hard_mode === body.gameWasHardMode &&
@@ -109,7 +112,7 @@ async function submitWordleResult(userId: string, body: AddGameResult) {
     const { data: existingResult, error: existingResultError } = await db
       .from('_wordle_game_result')
       .select(
-        'id, player, solution, guesses, game_was_won, game_was_hard_mode, guess_count, type, word_pack, share_code, client_completed_at',
+        'id, player, game_instance_id, solution, guesses, game_was_won, game_was_hard_mode, guess_count, type, word_pack, share_code, client_completed_at'
       )
       .eq('id', body.resultId)
       .maybeSingle();
@@ -186,6 +189,7 @@ async function submitWordleResult(userId: string, body: AddGameResult) {
 
   const {
     resultId,
+    gameInstanceId,
     clientCompletedAt,
     ...gameResult
   } = body;
@@ -196,6 +200,7 @@ async function submitWordleResult(userId: string, body: AddGameResult) {
       changeKeys.snakeCase({
         ...gameResult,
         ...(resultId ? { id: resultId } : {}),
+        ...(gameInstanceId ? { gameInstanceId } : {}),
         ...(clientCompletedAt
           ? { clientCompletedAt }
           : {}),
@@ -213,11 +218,63 @@ async function submitWordleResult(userId: string, body: AddGameResult) {
     .maybeSingle();
 
   if (error) {
+    if (error.code === '23505' && gameInstanceId) {
+      const { data: existingInstance, error: lookupError } = await db
+        .from('_wordle_game_result')
+        .select(
+          'id, player, game_instance_id, type, word_pack, solution, share_code'
+        )
+        .eq('player', userId)
+        .eq('game_instance_id', gameInstanceId)
+        .maybeSingle();
+
+      if (lookupError) {
+        console.error(
+          '[wordle] failed to inspect duplicate game instance',
+          lookupError,
+        );
+        return {};
+      }
+
+      if (
+        existingInstance &&
+        (
+          existingInstance.type !== body.type ||
+          existingInstance.word_pack !== body.wordPack ||
+          existingInstance.solution !== body.solution ||
+          (existingInstance.share_code ?? '') !== (body.shareCode ?? '')
+        )
+      ) {
+        console.warn(
+          '[wordle] game instance reused for a different game',
+          { userId, gameInstanceId },
+        );
+        return {};
+      }
+
+      if (existingInstance && existingInstance.id !== resultId) {
+        console.warn(
+          '[wordle] duplicate game instance rejected',
+          {
+            userId,
+            gameInstanceId,
+            existingResultId: existingInstance.id,
+            attemptedResultId: resultId,
+          },
+        );
+
+        return {
+          resultId: resultId ?? existingInstance.id,
+          duplicateInstance: true,
+          existingResultId: existingInstance.id,
+        };
+      }
+    }
     if (resultId && error.code === '23505') {
       const { data: existingResult, error: existingResultError } = await db
         .from('_wordle_game_result')
         .select(
-          'id, player, solution, guesses, game_was_won, game_was_hard_mode, guess_count, type, word_pack, share_code, client_completed_at',
+          'id, player, game_instance_id, solution, guesses, game_was_won, game_was_hard_mode, guess_count, type, word_pack, share_code, client_completed_at'
         )
         .eq('id', resultId)
         .maybeSingle();
@@ -254,6 +311,13 @@ async function submitWordleResult(userId: string, body: AddGameResult) {
     return {};
   }
 
+  if (!data?.id) {
+    console.error(
+      '[wordle] result insert returned no result ID',
+    );
+    return {};
+  }
+
   if (body.type !== 'CUSTOM') {
     await gameUtils.handleRewardWordle(
       userId,
@@ -262,7 +326,7 @@ async function submitWordleResult(userId: string, body: AddGameResult) {
     );
   }
 
-  if (body.type === 'CUSTOM') {
+  if (body.type === 'CUSTOM' && body.shareCode) {
     await gameUtils.handleIncrementCustomTimesPlayed(body.shareCode);
   }
 

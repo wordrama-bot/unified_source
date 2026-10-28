@@ -105,8 +105,12 @@ import {
 
 import {
   getPendingWordleResults,
+  getWordleCompletions,
   queueWordleResult,
   removeWordleResult,
+  getWordleLocalCheckpoint,
+  saveWordleLocalCheckpoint,
+  acknowledgeWordleLocalCheckpoint,
   type PendingWordleResult,
 } from '@/lib/wordleResultOutbox';
 
@@ -191,14 +195,39 @@ function reconcileSavedStateWithPendingResults(
   // Find the first queued completion that proves the
   // server's currently-active game was completed locally.
   const anchorIndex = pendingResults.findIndex(
-    (result) =>
-      result.type === activeMode &&
-      result.wordPack === activeWordPack &&
-      result.solution === activeGame.solution &&
-      guessesArePrefix(
-        activeGuesses,
-        result.guesses,
-      ),
+    (result) => {
+      if (
+        result.type !== activeMode ||
+        result.wordPack !== activeWordPack
+      ) {
+        return false;
+      }
+
+      // Both sides have game-instance IDs: require identity.
+      // Two different games may have the same solution.
+      // If either record has an instance ID, require both IDs
+      // to exist and match. Never fall back to word matching
+      // across identified and unidentified games.
+      if (
+        activeGame.gameInstanceId ||
+        result.gameInstanceId
+      ) {
+        return (
+          Boolean(activeGame.gameInstanceId) &&
+          activeGame.gameInstanceId === result.gameInstanceId
+        );
+      }
+
+      // Backward compatibility for older saved games and
+      // offline results created before instance IDs existed.
+      return (
+        result.solution === activeGame.solution &&
+        guessesArePrefix(
+          activeGuesses,
+          result.guesses,
+        )
+      );
+    },
   );
 
   if (anchorIndex < 0) {
@@ -232,6 +261,9 @@ function reconcileSavedStateWithPendingResults(
 
   const reconciledGame = {
     ...activeGame,
+    ...(latestResult.gameInstanceId
+      ? { gameInstanceId: latestResult.gameInstanceId }
+      : {}),
     solution: latestResult.solution,
     guesses: latestResult.guesses,
     isGameInProgress: false,
@@ -271,6 +303,160 @@ function reconcileSavedStateWithPendingResults(
       },
     },
   };
+}
+
+function isWordleStateRevisionConflict(error: unknown): boolean {
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    'status' in error &&
+    error.status === 409
+  );
+}
+
+function getWordleConflictRevision(
+  error: unknown,
+): number | null {
+  if (!isWordleStateRevisionConflict(error)) {
+    return null;
+  }
+
+  const responseData = (error as {
+    data?: {
+      data?: {
+        currentRevision?: unknown;
+      };
+    };
+  }).data;
+
+  const revision = responseData?.data?.currentRevision;
+
+  return (
+    typeof revision === 'number' &&
+    Number.isSafeInteger(revision) &&
+    revision >= 0
+  )
+    ? revision
+    : null;
+}
+
+function getWordleConflictGameState(
+  error: unknown,
+): any | null {
+  if (!isWordleStateRevisionConflict(error)) {
+    return null;
+  }
+
+  const responseData = (error as {
+    data?: {
+      data?: {
+        currentGameState?: unknown;
+      };
+    };
+  }).data;
+
+  const gameState = responseData?.data?.currentGameState;
+
+  return (
+    gameState &&
+    typeof gameState === 'object' &&
+    !Array.isArray(gameState)
+  )
+    ? gameState
+    : null;
+}
+
+function compareWordleGameProgress(
+  localGame: any,
+  serverGame: any,
+): 'local-ahead' | 'server-ahead' | 'same' | 'different' {
+  if (
+    !localGame?.gameInstanceId ||
+    !serverGame?.gameInstanceId ||
+    localGame.gameInstanceId !== serverGame.gameInstanceId ||
+    localGame.solution !== serverGame.solution
+  ) {
+    return 'different';
+  }
+
+  const localGuesses = localGame.guesses ?? [];
+  const serverGuesses = serverGame.guesses ?? [];
+
+  const localCompleted =
+    localGame.isGameWon === true ||
+    localGame.isGameLost === true;
+
+  const serverCompleted =
+    serverGame.isGameWon === true ||
+    serverGame.isGameLost === true;
+
+  // A completed game must not be treated as behind
+  // an unfinished version of the same game.
+  if (
+    localCompleted !== serverCompleted
+  ) {
+    if (
+      localCompleted &&
+      guessesArePrefix(serverGuesses, localGuesses)
+    ) {
+      return 'local-ahead';
+    }
+
+    if (
+      serverCompleted &&
+      guessesArePrefix(localGuesses, serverGuesses)
+    ) {
+      return 'server-ahead';
+    }
+
+    return 'different';
+  }
+
+  if (
+    localGuesses.length === serverGuesses.length &&
+    localGuesses.every(
+      (guess: string, index: number) =>
+        guess === serverGuesses[index],
+    )
+  ) {
+    return 'same';
+  }
+
+  if (guessesArePrefix(serverGuesses, localGuesses)) {
+    return 'local-ahead';
+  }
+
+  if (guessesArePrefix(localGuesses, serverGuesses)) {
+    return 'server-ahead';
+  }
+
+  return 'different';
+}
+
+/** Only the active board may differ; every other saved mode/pack must
+ * match the server. This makes a single optimistic retry safe for a
+ * same-instance, prefix-extending checkpoint.
+ */
+function canMergeWordleActiveBoard(localState: any, serverState: any): boolean {
+  if (!localState || !serverState) return false;
+  if (localState.gameMode !== serverState.gameMode ||
+      localState.wordPack !== serverState.wordPack) return false;
+  const mode = localState.gameMode;
+  const pack = localState.wordPack;
+  const localGame = mode === 'CUSTOM'
+    ? localState.custom : localState.modes?.[mode]?.[pack];
+  const serverGame = mode === 'CUSTOM'
+    ? serverState.custom : serverState.modes?.[mode]?.[pack];
+  if (serverGame?.isGameWon || serverGame?.isGameLost) return false;
+  if (compareWordleGameProgress(localGame, serverGame) !== 'local-ahead') return false;
+  const withoutActiveBoard = (state: any) => {
+    const copy = JSON.parse(JSON.stringify(state));
+    if (mode === 'CUSTOM') delete copy.custom;
+    else if (copy.modes?.[mode]) delete copy.modes[mode][pack];
+    return copy;
+  };
+  return JSON.stringify(withoutActiveBoard(localState)) ===
+    JSON.stringify(withoutActiveBoard(serverState));
 }
 
 function App(){
@@ -571,6 +757,9 @@ function App(){
   const resultFinalizationInProgressRef = useRef(false);
   const pendingReconciledStateRef = useRef<any | null>(null);
   const shouldPersistGameStateRef = useRef(false);
+  const localCheckpointRevisionRef = useRef(0);
+  const pendingCheckpointRevisionRef = useRef(0);
+  const serverStateRevisionRef = useRef(0);
   const hiddenAtRef = useRef<number | null>(null);
   const gameStateSaveQueueRef = useRef<Promise<void>>(Promise.resolve());
 
@@ -721,21 +910,83 @@ const activeSolution = isCustom
         pendingReconciledStateRef.current;
 
       if (reconciledState) {
-        try {
-          const {
-            isLoading,
-            ...remoteState
-          } = reconciledState;
+        // Queue recovery behind existing checkpoints and prevent
+        // later checkpoints from overtaking this request.
+        const recoverySave = gameStateSaveQueueRef.current.then(
+          async () => {
+            // Skip recovery data superseded by newer progress.
+            if (
+              pendingReconciledStateRef.current !== reconciledState
+            ) {
+              return;
+            }
 
-          await updateRemoteState(remoteState).unwrap();
+            const {
+              isLoading,
+              ...remoteState
+            } = reconciledState;
 
-          pendingReconciledStateRef.current = null;
-        } catch (error) {
-          console.warn(
-            '[wordle] unable to save reconciled game state; continuing result sync',
-            error,
-          );
-        }
+            try {
+              const response = await updateRemoteState({
+                gameState: remoteState,
+                expectedRevision: serverStateRevisionRef.current,
+              }).unwrap();
+
+              const confirmedRevision =
+                response?.metadata?.stateRevision;
+
+              if (
+                !Number.isSafeInteger(confirmedRevision) ||
+                confirmedRevision <= serverStateRevisionRef.current
+              ) {
+                throw new Error(
+                  'Wordle recovery save omitted a valid server revision',
+                );
+              }
+
+              serverStateRevisionRef.current = confirmedRevision;
+
+              // Hydrated unsynchronized checkpoint: acknowledge its own
+              // durable revision after the server confirms this state.
+              if (pendingCheckpointRevisionRef.current > 0) {
+                try {
+                  await acknowledgeWordleLocalCheckpoint(
+                    user.id,
+                    pendingCheckpointRevisionRef.current,
+                  );
+                } catch (ackError) {
+                  console.warn('[wordle] unable to acknowledge recovered checkpoint', ackError);
+                }
+              }
+
+              if (
+                pendingReconciledStateRef.current === reconciledState
+              ) {
+                pendingReconciledStateRef.current = null;
+                pendingCheckpointRevisionRef.current = 0;
+              }
+            } catch (error) {
+              if (isWordleStateRevisionConflict(error)) {
+                console.warn(
+                  '[wordle] recovery checkpoint conflict; retaining unsynchronized state',
+                  {
+                    currentServerRevision:
+                      getWordleConflictRevision(error),
+                  },
+                );
+              }
+
+              console.warn(
+                '[wordle] unable to save reconciled game state; continuing result sync',
+                error,
+              );
+            }
+          },
+        );
+
+        gameStateSaveQueueRef.current = recoverySave;
+
+        await recoverySave;
       }
 
       const pendingResults =
@@ -744,6 +995,9 @@ const activeSolution = isCustom
       for (const pendingResult of pendingResults) {
         const resultPayload = {
           resultId: pendingResult.resultId,
+          ...(pendingResult.gameInstanceId
+            ? { gameInstanceId: pendingResult.gameInstanceId }
+            : {}),
           clientCompletedAt: pendingResult.clientCompletedAt,
           ...(pendingResult.clientBuild
             ? { clientBuild: pendingResult.clientBuild }
@@ -796,6 +1050,14 @@ const activeSolution = isCustom
             break;
           }
 
+          // A confirmed duplicate instance is a terminal rejection, not a
+          // newly recorded result. Keep the completion journal for recovery.
+          if (response?.data?.duplicateInstance) {
+            console.warn('[wordle] replay of an already-recorded game rejected', {
+              resultId: pendingResult.resultId,
+              existingResultId: response.data.existingResultId,
+            });
+          }
           await removeWordleResult(pendingResult.resultId);
           syncedCount += 1;
         } catch (error) {
@@ -1147,9 +1409,11 @@ const activeSolution = isCustom
     setCurrentGuess('');
 
     const newSolution: string = getRandomWord(wordleWordPack.data.wordList);
-    //appInsights.trackEvent({ name: 'newInfiniteGame', properties: { wordPack, solution: newSolution, player: user.id } });
+    const gameInstanceId = crypto.randomUUID();
+
     updateGameState(
       {
+        gameInstanceId,
         solution: newSolution,
         guesses: [],
         isGameWon: false,
@@ -1193,6 +1457,9 @@ const activeSolution = isCustom
 
     await queueWordleResult({
       resultId,
+      ...(currentGame.gameInstanceId
+        ? { gameInstanceId: currentGame.gameInstanceId }
+        : {}),
       playerId: user.id,
       clientCompletedAt,
       clientBuild:
@@ -1427,27 +1694,198 @@ const activeSolution = isCustom
       ...newRemoteState
     } = gameState;
 
+    const revision = ++localCheckpointRevisionRef.current;
+
     gameStateSaveQueueRef.current =
-      gameStateSaveQueueRef.current.then(
-        async () => {
+      gameStateSaveQueueRef.current.then(async () => {
+        if (!user?.id) return;
+
+        try {
+          await saveWordleLocalCheckpoint({
+            playerId: user.id,
+            revision,
+            savedAt: new Date().toISOString(),
+            gameState: newRemoteState,
+            pendingRemoteSync: true,
+          });
+        } catch (error) {
+          console.error(
+            '[wordle] failed to save local checkpoint',
+            error,
+          );
+        }
+
+        try {
+          const response = await updateRemoteState({
+            gameState: newRemoteState,
+            expectedRevision: serverStateRevisionRef.current,
+          }).unwrap();
+
+          const confirmedRevision =
+            response?.metadata?.stateRevision;
+
+          if (
+            !Number.isSafeInteger(confirmedRevision) ||
+            confirmedRevision <= serverStateRevisionRef.current
+          ) {
+            throw new Error(
+              'Wordle checkpoint response omitted a valid new server revision',
+            );
+          }
+
+          serverStateRevisionRef.current = confirmedRevision;
+
           try {
-            await updateRemoteState(newRemoteState).unwrap();
-
-            // A newer successful checkpoint supersedes any older failed one.
-            pendingReconciledStateRef.current = null;
+            await acknowledgeWordleLocalCheckpoint(
+              user.id,
+              revision,
+            );
           } catch (error) {
-            // Keep only the latest unsaved session checkpoint.
-            // Result delivery is independent and may continue.
-            pendingReconciledStateRef.current = newRemoteState;
-
-            console.error(
-              '[wordle] failed to save game-state checkpoint; queued for recovery',
+            console.warn(
+              '[wordle] unable to acknowledge local checkpoint',
               error,
             );
           }
-        },
-      );
-  }, [gameState, gameLoading, updateRemoteState]);
+
+          // Only clear the exact checkpoint confirmed by the server.
+          // Preserve unrelated hydration recovery and newer progress.
+          if (
+            pendingCheckpointRevisionRef.current === revision &&
+            pendingReconciledStateRef.current === newRemoteState
+          ) {
+            pendingReconciledStateRef.current = null;
+            pendingCheckpointRevisionRef.current = 0;
+          }
+        } catch (error) {
+          if (isWordleStateRevisionConflict(error)) {
+            const currentServerRevision =
+              getWordleConflictRevision(error);
+
+            const currentServerState =
+              getWordleConflictGameState(error);
+
+            const activeMode = newRemoteState.gameMode;
+            const activeWordPack = newRemoteState.wordPack;
+
+            const localGame =
+              activeMode === 'CUSTOM'
+                ? newRemoteState.custom
+                : newRemoteState.modes?.[activeMode]?.[activeWordPack];
+
+            const serverGame =
+              activeMode === 'CUSTOM'
+                ? currentServerState?.custom
+                : currentServerState?.modes?.[activeMode]?.[activeWordPack];
+
+            const progressComparison =
+              compareWordleGameProgress(localGame, serverGame);
+
+            // A matching active game alone does not prove the entire
+            // saved-state snapshot is identical. Other modes and word
+            // packs may contain unsynchronized progress.
+            const entireStateMatches =
+              currentServerState !== null &&
+              JSON.stringify(currentServerState) ===
+                JSON.stringify(newRemoteState);
+
+            if (
+              progressComparison === 'same' &&
+              entireStateMatches &&
+              currentServerRevision !== null
+            ) {
+              // The server already has this exact game state.
+              // The local checkpoint can be acknowledged safely.
+              serverStateRevisionRef.current =
+                currentServerRevision;
+
+              try {
+                await acknowledgeWordleLocalCheckpoint(
+                  user.id,
+                  revision,
+                );
+              } catch (acknowledgementError) {
+                console.warn(
+                  '[wordle] unable to acknowledge matching checkpoint',
+                  acknowledgementError,
+                );
+              }
+
+              if (
+                pendingCheckpointRevisionRef.current === revision &&
+                pendingReconciledStateRef.current === newRemoteState
+              ) {
+                pendingReconciledStateRef.current = null;
+                pendingCheckpointRevisionRef.current = 0;
+              }
+
+              return;
+            }
+
+            // Retry once only if the server has the same game instance
+            // and the *only* difference is further local guesses. All
+            // other modes/packs must match to prevent lost updates.
+            if (
+              currentServerRevision !== null &&
+              canMergeWordleActiveBoard(newRemoteState, currentServerState)
+            ) {
+              try {
+                const retry = await updateRemoteState({
+                  gameState: newRemoteState,
+                  expectedRevision: currentServerRevision,
+                }).unwrap();
+                const retryRevision = retry?.metadata?.stateRevision;
+                if (!Number.isSafeInteger(retryRevision) ||
+                    retryRevision <= currentServerRevision) {
+                  throw new Error('Invalid revision in checkpoint retry');
+                }
+                serverStateRevisionRef.current = retryRevision;
+                await acknowledgeWordleLocalCheckpoint(user.id, revision);
+                if (pendingCheckpointRevisionRef.current === revision &&
+                    pendingReconciledStateRef.current === newRemoteState) {
+                  pendingReconciledStateRef.current = null;
+                  pendingCheckpointRevisionRef.current = 0;
+                }
+                return;
+              } catch (retryError) {
+                console.warn('[wordle] safe checkpoint retry failed; retaining local progress', retryError);
+              }
+            }
+
+            console.warn(
+              '[wordle] server checkpoint conflict; preserving local game progress',
+              {
+                localRevision: revision,
+                expectedServerRevision: serverStateRevisionRef.current,
+                currentServerRevision,
+                progressComparison,
+                localGameInstanceId: localGame?.gameInstanceId,
+                serverGameInstanceId: serverGame?.gameInstanceId,
+              },
+            );
+          }
+
+          // Preserve the newest failed checkpoint in memory.
+          if (
+            revision >= pendingCheckpointRevisionRef.current
+          ) {
+            pendingReconciledStateRef.current =
+              newRemoteState;
+            pendingCheckpointRevisionRef.current =
+              revision;
+          }
+
+          console.error(
+            '[wordle] failed to save game-state checkpoint',
+            error,
+          );
+        }
+      });
+  }, [
+    gameState,
+    gameLoading,
+    updateRemoteState,
+    user?.id,
+  ]);
 
   useEffect(() => {
     if (gameLoading) return;
@@ -1468,16 +1906,85 @@ const activeSolution = isCustom
 
     const hydrateGameState = async () => {
       let initialState = savedState?.data;
+      let restoredPendingLocalCheckpoint = false;
+
+      const fetchedServerRevision =
+        savedState?.metadata?.stateRevision;
+
+      serverStateRevisionRef.current =
+        Number.isSafeInteger(fetchedServerRevision) &&
+        fetchedServerRevision >= 0
+          ? fetchedServerRevision
+          : 0;
+
+      try {
+        const localCheckpoint =
+          await getWordleLocalCheckpoint(user.id);
+
+        if (localCheckpoint) {
+          localCheckpointRevisionRef.current =
+            localCheckpoint.revision;
+
+          if (
+            localCheckpoint.pendingRemoteSync === true &&
+            localCheckpoint.gameState
+          ) {
+            initialState = localCheckpoint.gameState;
+            restoredPendingLocalCheckpoint = true;
+            pendingReconciledStateRef.current = localCheckpoint.gameState;
+            pendingCheckpointRevisionRef.current = localCheckpoint.revision;
+
+            console.info(
+              '[wordle] restoring unsynchronized local checkpoint',
+              {
+                revision: localCheckpoint.revision,
+                savedAt: localCheckpoint.savedAt,
+              },
+            );
+          }
+        }
+      } catch (error) {
+        console.warn(
+          '[wordle] unable to read local checkpoint',
+          error,
+        );
+      }
 
       try {
         const pendingResults =
           await getPendingWordleResults(user.id);
 
-        const reconciledState =
-          reconcileSavedStateWithPendingResults(
-            initialState,
-            pendingResults,
+        // Journal entries remain after successful result sync.
+        // If journal reading fails, preserve the existing
+        // pending-result recovery behavior.
+        let completedResults: PendingWordleResult[] = [];
+
+        try {
+          completedResults = await getWordleCompletions(user.id);
+        } catch (error) {
+          console.warn(
+            '[wordle] unable to read completion journal; using pending results',
+            error,
           );
+        }
+
+        // Merge by result UUID so a completion that's still
+        // pending is not counted twice.
+        const recoveryResults = Array.from(
+          new Map(
+            [...completedResults, ...pendingResults].map(
+              (result) => [result.resultId, result],
+            ),
+          ).values(),
+        ).sort((a, b) =>
+          a.queuedAt.localeCompare(b.queuedAt),
+        );
+
+        const reconciledState = restoredPendingLocalCheckpoint
+          ? initialState // An unsynced newer local board outranks old completions.
+          : reconcileSavedStateWithPendingResults(
+              initialState, recoveryResults,
+            );
 
         if (reconciledState !== initialState) {
           pendingReconciledStateRef.current =
@@ -1544,11 +2051,13 @@ const activeSolution = isCustom
   useEffect(() => {
     if (gameLoading) return;
     if (gameMode !== 'INFINITE') return;
-    if (guesses.length >= 1 && guesses.length < 6) return;
+    if (solution) return; // Completed games stay visible until Next Game.
     if (!wordleWordPack?.data?.wordList?.length) return;
 
     const newSolution: string = getRandomWord(wordleWordPack.data.wordList);
+
     updateGameState({
+      gameInstanceId: crypto.randomUUID(),
       solution: newSolution,
       guesses: [],
       isGameWon: false,
@@ -1556,7 +2065,7 @@ const activeSolution = isCustom
       isGameInProgress: false,
       resultSave: false
     });
-  }, [gameLoading, gameMode, wordPack, wordleWordPack])
+  }, [gameLoading, gameMode, wordPack, wordleWordPack, solution])
 
   // Check if all dependencies are ready and set the game to ready
   useEffect(() => {
