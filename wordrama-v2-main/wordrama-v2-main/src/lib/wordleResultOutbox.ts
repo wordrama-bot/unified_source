@@ -176,11 +176,21 @@ export async function removeWordleResult(
   try {
     await new Promise<void>((resolve, reject) => {
       const transaction = db.transaction(
-        STORE_NAME,
+        [STORE_NAME, COMPLETION_STORE_NAME],
         'readwrite',
       );
 
-      transaction.objectStore(STORE_NAME).delete(resultId);
+      const store = transaction.objectStore(STORE_NAME);
+      const request = store.get(resultId);
+      request.onsuccess = () => {
+        // Older outboxes may predate the journal. Preserve their completion
+        // atomically before deleting so early delivery cannot erase recovery.
+        if (request.result) {
+          transaction.objectStore(COMPLETION_STORE_NAME).put(request.result);
+        }
+        store.delete(resultId);
+      };
+      request.onerror = () => transaction.abort();
 
       transaction.oncomplete = () => resolve();
 

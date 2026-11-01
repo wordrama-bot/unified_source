@@ -896,15 +896,11 @@ const activeSolution = isCustom
     }
   }, [solution, isGameWon, isGameLost]);
 
-  const runPendingWordleResultSync = useCallback(async () => {
-    if (!user?.id) return 0;
-    if (!isGameStateHydrated) return 0;
-    if (resultSyncInProgressRef.current) return 0;
-
-    resultSyncInProgressRef.current = true;
-
-    let syncedCount = 0;
-
+  const checkpointRecoveryInProgressRef = useRef(false);
+  const recoverPendingWordleCheckpoint = useCallback(async () => {
+    if (!user?.id || !isGameStateHydrated) return;
+    if (checkpointRecoveryInProgressRef.current) return;
+    checkpointRecoveryInProgressRef.current = true;
     try {
       const reconciledState =
         pendingReconciledStateRef.current;
@@ -988,7 +984,20 @@ const activeSolution = isCustom
 
         await recoverySave;
       }
+    } finally {
+      checkpointRecoveryInProgressRef.current = false;
+    }
+  }, [isGameStateHydrated, updateRemoteState, user?.id]);
 
+  const runPendingWordleResultSync = useCallback(async () => {
+    if (!user?.id) return 0;
+    if (resultSyncInProgressRef.current) return 0;
+
+    resultSyncInProgressRef.current = true;
+
+    let syncedCount = 0;
+
+    try {
       const pendingResults =
         await getPendingWordleResults(user.id);
 
@@ -1084,14 +1093,14 @@ const activeSolution = isCustom
     }
 
     return syncedCount;
-  }, [
-    isGameStateHydrated,
-    submitWordleResult,
-    updateRemoteState,
-    user?.id,
-  ]);
+  }, [submitWordleResult, user?.id]);
 
   const syncPendingWordleResults = useCallback(() => {
+    // Completion journal entries survive result acknowledgement, so board
+    // recovery can run independently even before hydration finishes.
+    void recoverPendingWordleCheckpoint().catch((error) => {
+      console.warn('[wordle] checkpoint recovery paused', error);
+    });
     const queuedSync = resultSyncQueueRef.current.then(
       () => runPendingWordleResultSync(),
       () => runPendingWordleResultSync(),
@@ -1100,7 +1109,7 @@ const activeSolution = isCustom
     resultSyncQueueRef.current = queuedSync;
 
     return queuedSync;
-  }, [runPendingWordleResultSync]);
+  }, [recoverPendingWordleCheckpoint, runPendingWordleResultSync]);
 
   const clearPendingWordleResultRetry = useCallback(() => {
     if (resultSyncRetryTimerRef.current !== null) {
@@ -1259,6 +1268,13 @@ const activeSolution = isCustom
       void syncAndRefresh(wasAwayLongEnough);
     };
 
+    // Retry even when neither connectivity nor visibility changes fire.
+    const watchdog = window.setInterval(() => {
+      if (document.visibilityState === 'visible') {
+        void syncAndRefresh();
+      }
+    }, 30_000);
+
     window.addEventListener('online', handleOnline);
     document.addEventListener(
       'visibilitychange',
@@ -1266,6 +1282,7 @@ const activeSolution = isCustom
     );
 
     return () => {
+      window.clearInterval(watchdog);
       window.removeEventListener('online', handleOnline);
       document.removeEventListener(
         'visibilitychange',

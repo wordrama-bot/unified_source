@@ -1,0 +1,12 @@
+{
+  "name": "wordrama-sync-regressions",
+  "private": true,
+  "scripts": {
+    "test": "bun test . ../../api-v2-main/api-v2-main/src/services/game/wordle/result-idempotency.test.ts"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "0.5.14",
+    "fake-indexeddb": "6.2.5",
+    "typescript": "5.9.3"
+  }
+}

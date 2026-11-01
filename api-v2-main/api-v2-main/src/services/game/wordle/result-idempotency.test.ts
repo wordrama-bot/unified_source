@@ -16,6 +16,9 @@ let resetCount = 0;
 let customCount = 0;
 let messageCount = 0;
 let failReward = false;
+let failPrestige = false;
+let loseRpcResponse = false;
+let invalidRpcAck = false;
 
 function matches(row: Row, filters: Array<[string, string, any]>) {
   return filters.every(([method, key, value]) => {
@@ -65,19 +68,33 @@ function query(table: string) {
 }
 
 // Important: use the same relative module specifiers as the service under test.
-mock.module('../../../models', () => ({ db: { from: (table: string) => query(table) } }));
-mock.module('./streak', () => ({
-  default: {
-    async incrementWordleStreak() { incrementCount++; return {}; },
-    async resetWordleStreak() { resetCount++; return {}; },
+mock.module('../../../models', () => ({ db: {
+  from: (table: string) => query(table),
+  async rpc(name: string, args: Row) {
+    expect(name).toBe('finalize_wordle_result');
+    const row = rows.find(r => r.id === args.p_result_id && r.player === args.p_player);
+    if (!row) return { data: null, error: new Error('Missing result') };
+    if (failReward) return { data: null, error: new Error('Simulated transaction failure') };
+    if (invalidRpcAck) return { data: {}, error: null };
+    if (row.effects_completed === false) {
+      if (row.type === 'CUSTOM') customCount++;
+      else rewardCount++;
+      if (row.game_was_won) incrementCount++;
+      else resetCount++;
+      row.effects_completed = true;
+    }
+    if (loseRpcResponse) {
+      loseRpcResponse = false;
+      return { data: null, error: new Error('Committed but response lost') };
+    }
+    return { data: { completed: true, prestige: 0 }, error: null };
   },
+} }));
+mock.module('../../prestigeFrames', () => ({
+  async awardPrestigeFrames() { if (failPrestige) throw new Error('Frame grant unavailable'); },
 }));
 mock.module('../../../utils/game', () => ({
-  default: {
-    async handleRewardWordle() { rewardCount++; if (failReward) throw new Error('Simulated reward failure'); },
-    async handleIncrementCustomTimesPlayed() { customCount++; },
-    generateWordleShareCode() { return 'MOCKED'; },
-  },
+  default: { generateWordleShareCode() { return 'MOCKED'; } },
 }));
 mock.module('../../../utils/gameLoop', () => ({
   createMessage(type: string, body: any) { return { body: { type, ...body } }; },
@@ -101,6 +118,9 @@ beforeEach(() => {
   failNextInsert = false;
   failNextLookup = false;
   failReward = false;
+  failPrestige = false;
+  loseRpcResponse = false;
+  invalidRpcAck = false;
   rewardCount = 0;
   incrementCount = 0;
   resetCount = 0;
@@ -198,15 +218,64 @@ describe('Wordle result service — isolated idempotency', () => {
     expect([rewardCount, incrementCount, messageCount]).toEqual([1, 1, 1]);
   });
 
-  test('known limitation: reward failure after insert is not repaired by replay', async () => {
+  test('failed finalization is not acknowledged and retry repairs the saved result', async () => {
     const body = makeBody();
     failReward = true;
-    await expect(wordleService.submitWordleResult(player, body)).rejects.toThrow('Simulated reward failure');
+    expect((await wordleService.submitWordleResult(player, body)).resultId).toBeUndefined();
     expect(rows).toHaveLength(1);
-    expect(incrementCount).toBe(0);
+    expect(rows[0].effects_completed).toBe(false);
+    expect([rewardCount, incrementCount]).toEqual([0, 0]);
     failReward = false;
     const retry = await wordleService.submitWordleResult(player, body);
+    expect(retry.resultId).toBe(body.resultId);
     expect(retry.duplicate).toBe(true);
-    expect(incrementCount).toBe(0); // DOCUMENTED GAP, not a passing rewards-recovery claim.
+    expect([rewardCount, incrementCount]).toEqual([1, 1]);
+    await wordleService.submitWordleResult(player, body);
+    expect([rewardCount, incrementCount]).toEqual([1, 1]);
+  });
+
+  test('different result ID for pending same instance finishes original effects first', async () => {
+    const body = makeBody();
+    failReward = true;
+    await wordleService.submitWordleResult(player, body);
+    const retryBody = { ...body, resultId: crypto.randomUUID() };
+    expect((await wordleService.submitWordleResult(player, retryBody)).resultId).toBeUndefined();
+    failReward = false;
+    const retry = await wordleService.submitWordleResult(player, retryBody);
+    expect(retry.resultId).toBe(retryBody.resultId);
+    expect(retry.existingResultId).toBe(body.resultId);
+    expect(rows).toHaveLength(1);
+    expect([rewardCount, incrementCount]).toEqual([1, 1]);
+  });
+
+  test('lost RPC acknowledgement does not double-award on replay', async () => {
+    const body = makeBody();
+    loseRpcResponse = true;
+    expect((await wordleService.submitWordleResult(player, body)).resultId).toBeUndefined();
+    expect([rewardCount, incrementCount]).toEqual([1, 1]);
+    expect((await wordleService.submitWordleResult(player, body)).resultId).toBe(body.resultId);
+    expect([rewardCount, incrementCount]).toEqual([1, 1]);
+  });
+
+  test('missing completion acknowledgement retains result for retry', async () => {
+    invalidRpcAck = true;
+    expect((await wordleService.submitWordleResult(player, makeBody())).resultId).toBeUndefined();
+  });
+
+  test('prestige grant failure retries without repeating XP/coins/streak', async () => {
+    const body = makeBody();
+    failPrestige = true;
+    expect((await wordleService.submitWordleResult(player, body)).resultId).toBeUndefined();
+    failPrestige = false;
+    expect((await wordleService.submitWordleResult(player, body)).resultId).toBe(body.resultId);
+    expect([rewardCount, incrementCount]).toEqual([1, 1]);
+  });
+
+  test('loss and custom results also finalize before acknowledgement', async () => {
+    const loss = makeBody({ guesses: ['CRANE'] });
+    expect((await wordleService.submitWordleResult(player, loss)).resultId).toBe(loss.resultId);
+    const custom = makeBody({ type: 'CUSTOM', shareCode: 'ABC' });
+    expect((await wordleService.submitWordleResult(player, custom)).resultId).toBe(custom.resultId);
+    expect([rewardCount, resetCount, customCount, incrementCount]).toEqual([1, 1, 1, 1]);
   });
 });
