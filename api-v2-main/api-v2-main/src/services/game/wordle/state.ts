@@ -1,7 +1,11 @@
 import { db } from '../../../models';
 import gameService from './';
+import { isLegacyWordleState, mergeLegacyWordleState } from './legacy-state';
 
-async function getGameState(userId: string) {
+async function getGameState(
+  userId: string,
+  recoverPending = true,
+): Promise<{ gameState: any; revision: number } | null> {
   const { data, error } = await db
     .from('_wordle_saved_state')
     .select('game_state, state_revision')
@@ -13,10 +17,28 @@ async function getGameState(userId: string) {
     return null;
   }
 
-  return {
+  const snapshot = {
     gameState: data?.game_state ?? {},
     revision: data?.state_revision ?? 0,
   };
+  const state = snapshot.gameState;
+  const game = state.gameMode === 'CUSTOM'
+    ? state.custom : state.modes?.[state.gameMode]?.[state.wordPack];
+  if (recoverPending && game?.resultSave && (game._legacyResultId || game.gameInstanceId) &&
+      (game.isGameWon || game.isGameLost)) {
+    // State-only clients have no outbox. A later read/save retries the durable
+    // pending completion before it can be replaced by another game.
+    const recovered = await updateGameState(userId, {
+      gameState: state, expectedRevision: snapshot.revision,
+    });
+    if (recovered.status === 'saved' || recovered.status === 'conflict') {
+      return { gameState: recovered.gameState, revision: recovered.revision };
+    }
+    // The checkpoint may have advanced before result processing failed.
+    // Return its actual revision without recursively retrying the completion.
+    return getGameState(userId, false);
+  }
+  return snapshot;
 }
 
 type WordleStateSaveResult =
@@ -29,7 +51,23 @@ async function updateGameState(
   userId: string,
   input: any,
 ): Promise<WordleStateSaveResult> {
-  const { gameState, expectedRevision } = input ?? {};
+  // An explicit envelope must be validated as an envelope. Never interpret a
+  // malformed modern request as a legacy snapshot and bypass its revision.
+  const isEnvelope = input && typeof input === 'object' &&
+    ('gameState' in input || 'expectedRevision' in input);
+  const legacy = !isEnvelope;
+  let gameState = input?.gameState;
+  let expectedRevision = input?.expectedRevision;
+
+  if (legacy) {
+    if (!isLegacyWordleState(input)) return { status: 'invalid' };
+    const current = await getGameState(userId);
+    if (!current) return { status: 'error' };
+    const merged = mergeLegacyWordleState(input, current.gameState);
+    if (!merged) return { status: 'conflict', ...current };
+    gameState = merged;
+    expectedRevision = current.revision;
+  }
 
   if (
     !Number.isSafeInteger(expectedRevision) ||
@@ -75,10 +113,15 @@ async function updateGameState(
 
   // Initial write: PostgreSQL atomically verifies the
   // expected server revision before accepting the state.
-  const firstSave = await saveAtRevision(
-    gameState,
-    expectedRevision,
-  );
+  let firstSave = await saveAtRevision(gameState, expectedRevision);
+  // Recompute against the winning snapshot after contention. Never attach a
+  // newer revision to the same stale legacy payload and overwrite it blindly.
+  for (let attempt = 0; legacy && firstSave.status === 'conflict' && attempt < 2; attempt++) {
+    const merged = mergeLegacyWordleState(input, firstSave.gameState);
+    if (!merged) return firstSave;
+    gameState = merged;
+    firstSave = await saveAtRevision(merged, firstSave.revision);
+  }
 
   if (firstSave.status !== 'saved') {
     return firstSave;
@@ -100,7 +143,8 @@ async function updateGameState(
   }
 
   const result = await gameService.submitWordleResult(userId, {
-    shareCode: '',
+    shareCode: gameState.gameMode === 'CUSTOM' ? (currentGame.joinCode ?? '') : '',
+    ...(currentGame._legacyResultId ? { resultId: currentGame._legacyResultId } : {}),
     gameWasHardMode: false,
     guesses: currentGame.guesses,
     solution: currentGame.solution,
@@ -114,7 +158,7 @@ async function updateGameState(
   if (!result?.resultId) {
     // Leave resultSave true on the server so the legacy
     // completion is not silently treated as consumed.
-    return firstSave;
+    return { status: 'error' };
   }
 
   // Construct a new state rather than mutating the request.

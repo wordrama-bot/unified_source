@@ -129,6 +129,14 @@ beforeEach(() => {
 });
 
 describe('Wordle result service — isolated idempotency', () => {
+  test('current production result payload without game instance remains supported', async () => {
+    const body = makeBody({ gameInstanceId: undefined, clientCompletedAt: new Date().toISOString() });
+    expect((await wordleService.submitWordleResult(player, body)).resultId).toBe(body.resultId);
+    expect((await wordleService.submitWordleResult(player, body)).resultId).toBe(body.resultId);
+    expect(rows).toHaveLength(1);
+    expect([rewardCount, incrementCount]).toEqual([1, 1]);
+  });
+
   test('first win: one persisted result, reward, streak, message', async () => {
     const body = makeBody();
     const answer = await wordleService.submitWordleResult(player, body);

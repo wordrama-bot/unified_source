@@ -11,6 +11,7 @@ const migration = new URL('../../supabase/migrations/20261101002803_wordle_resul
 beforeAll(async () => {
   await db.exec(`
     CREATE ROLE anon; CREATE ROLE authenticated; CREATE ROLE service_role;
+    CREATE TABLE _wordle_saved_state(player uuid PRIMARY KEY, game_state json);
     CREATE TABLE _levels(player uuid PRIMARY KEY, xp bigint NOT NULL DEFAULT 0,
       level bigint NOT NULL DEFAULT 1, prestige bigint NOT NULL DEFAULT 0,
       xp_to_next_level bigint NOT NULL DEFAULT 59);
@@ -24,6 +25,7 @@ beforeAll(async () => {
       game_was_won boolean, share_code text);
   `);
   await db.exec(readFileSync(migration, 'utf8'));
+  await db.exec(readFileSync(new URL('../../database-patches/20261026_wordle_saved_state_revision.sql', import.meta.url), 'utf8'));
 }, 30_000);
 afterAll(() => db.close());
 beforeEach(async () => {
@@ -119,4 +121,19 @@ test('XP progression matches existing levels.ts across level/prestige boundaries
       expect([s.xp, s.level, s.prestige, s.xp_to_next_level]).toEqual([xp, level, Math.floor(level/100), threshold]);
     }
   }
+});
+
+// Exercise the compatibility adapter's existing CAS RPC in actual PostgreSQL.
+test('existing state RPC rejects stale revisions for legacy adapter and modern clients', async () => {
+  const call = (rev: number, value: string) => db.query<any>(
+    'select * from public.wordrama_save_wordle_state($1::uuid, $2::json, $3::bigint)',
+    [player, JSON.stringify({ value }), rev]);
+  expect((await call(0, 'legacy')).rows[0].saved).toBe(true);
+  expect((await call(0, 'stale')).rows[0].saved).toBe(false);
+  const modern = (await call(1, 'modern')).rows[0];
+  expect(modern.saved).toBe(true);
+  expect(modern.current_revision).toBe(2);
+  const staleLegacy = (await call(1, 'late-legacy')).rows[0];
+  expect(staleLegacy.saved).toBe(false);
+  expect(staleLegacy.current_game_state.value).toBe('modern');
 });
