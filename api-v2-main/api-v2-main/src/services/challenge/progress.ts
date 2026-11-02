@@ -64,7 +64,7 @@ async function insertChallengeProgress({
 // Trusted award scripts only. HTTP routes cannot invoke this service.
 async function updateChallengeProgress(challengeId: string, playerId: string, status: string, progress: number) {
   if (!['UNLOCKED', 'IN_PROGRESS', 'COMPLETE'].includes(status) ||
-      !Number.isFinite(progress) || progress < 0 || progress > 100 ||
+      !Number.isSafeInteger(progress) || progress < 0 || progress > 100 ||
       (status === 'COMPLETE') !== (progress === 100)) {
     throw new Error('Invalid challenge progress');
   }

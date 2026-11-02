@@ -14,7 +14,7 @@ test('trusted award uses transactional RPC and preserves prestige frame grant', 
   expect(frames).toBe(1);
 });
 test('invalid or inconsistent progress never calls RPC', async () => {
-  for (const [status, value] of [['BAD', 0], ['COMPLETE', 90], ['IN_PROGRESS', 100], ['COMPLETE', Infinity]]) {
+  for (const [status, value] of [['BAD', 0], ['COMPLETE', 90], ['IN_PROGRESS', 100], ['COMPLETE', Infinity], ['IN_PROGRESS', 99.9]]) {
     await expect(progress.updateChallengeProgress('challenge', 'player', String(status), Number(value))).rejects.toThrow();
   }
   expect(calls).toHaveLength(0);

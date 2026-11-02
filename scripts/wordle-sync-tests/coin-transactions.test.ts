@@ -9,12 +9,13 @@ await db.exec(`
   CREATE TABLE _purchased_items (player_id uuid, item_id uuid, bought_with_coins boolean, bought_with_money boolean, unlocked_with_subscription boolean);
   CREATE TABLE _player_entitlements (player_id uuid, entitlement_key text, entitlement_type text CHECK(entitlement_type <> 'FAIL'), source_type text, status text, metadata jsonb, revoked_at timestamptz, starts_at timestamptz DEFAULT now(), expires_at timestamptz);
   CREATE TABLE _challenges (id uuid PRIMARY KEY, is_active boolean, coin_reward bigint, xp_reward bigint, avatar_entitlement_key text);
-  CREATE TABLE _challenge_progress (id uuid DEFAULT gen_random_uuid() PRIMARY KEY, player_id uuid, challenge_id uuid, status text, progress numeric, UNIQUE(player_id, challenge_id));
+  CREATE TABLE _challenge_progress (id uuid DEFAULT gen_random_uuid() PRIMARY KEY, player_id uuid, challenge_id uuid, status text, progress bigint, UNIQUE(player_id, challenge_id));
   CREATE TABLE _levels (player uuid PRIMARY KEY, xp bigint, level bigint, prestige bigint, xp_to_next_level bigint);
   CREATE TABLE _friend_requests (sending_player uuid, receiving_player uuid);
 `);
 await db.exec(await readFile(new URL('../../database-patches/authentication_cleanup_coin_transactions.sql', import.meta.url), 'utf8'));
 await db.exec(await readFile(new URL('../../database-patches/authentication_cleanup_friend_requests.sql', import.meta.url), 'utf8'));
+await db.exec('GRANT ALL ON _challenge_progress TO anon, authenticated');
 await db.exec(await readFile(new URL('../../database-patches/authentication_cleanup_challenge_transactions.sql', import.meta.url), 'utf8'));
 const player = '11111111-1111-4111-8111-111111111111';
 const a = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
@@ -97,7 +98,7 @@ test('trusted challenge completion is atomic and replay awards only once', async
   expect(row.xp).toBe(0); expect(row.level).toBe(2);
 });
 test('challenge progress rejects invalid status, nonfinite values and regression', async () => {
-  for (const [status, progress] of [['COMPLETE', 90], ['UNLOCKED', 100], ['COMPLETE', 'NaN'], ['BAD', 0]]) {
+  for (const [status, progress] of [['COMPLETE', 90], ['UNLOCKED', 100], ['COMPLETE', 'NaN'], ['IN_PROGRESS', 99.9], ['BAD', 0]]) {
     await expect(complete(String(status), progress)).rejects.toThrow('Invalid challenge progress');
   }
   await complete('IN_PROGRESS', 50);
@@ -139,4 +140,22 @@ test('existing permanent entitlement prevents purchase without charging', async 
   await db.query("INSERT INTO _player_entitlements (player_id, entitlement_key, source_type, status) VALUES ($1, 'THEME:A', 'ADMIN', 'ACTIVE')", [player]);
   await expect(buy([a], [{ item_id: a, key: 'THEME:A', type: 'THEME' }])).rejects.toThrow('Item already owned');
   expect(await balance()).toBe(100); expect(await count('_purchased_items')).toBe(0);
+});
+
+test('browser roles cannot write challenge progress directly after candidate hardening', async () => {
+  for (const role of ['anon','authenticated']) {
+    for (const privilege of ['INSERT','UPDATE','DELETE','TRUNCATE','REFERENCES','TRIGGER']) {
+      const result = await db.query<any>("SELECT has_table_privilege($1, '_challenge_progress', $2) AS allowed", [role,privilege]);
+      expect(result.rows[0].allowed).toBe(false);
+    }
+  }
+});
+test('friend candidate preflight refuses existing reciprocal requests without deleting them', async () => {
+  // Remove the new index only inside this disposable local fixture.
+  await db.exec('DROP INDEX friend_requests_unordered_pair_unique');
+  await db.query('INSERT INTO _friend_requests VALUES ($1,$2),($2,$1)', [player,a]);
+  const sql = await readFile(new URL('../../database-patches/authentication_cleanup_friend_requests.sql', import.meta.url), 'utf8');
+  await expect(db.exec(sql)).rejects.toThrow('Resolve existing reciprocal friend requests');
+  await db.exec('ROLLBACK');
+  expect(await count('_friend_requests')).toBe(2);
 });

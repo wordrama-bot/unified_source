@@ -34,49 +34,6 @@ async function handleRewardWordle(
   if (!ledgerResponse) return;
 }
 
-async function handleRewardSpellbee(
-  userId: string,
-  wordsFoundPercentage: number,
-) {
-  let coinReward = 0;
-  let xpReward = 1;
-
-  if (wordsFoundPercentage < 10)
-    return; // Game Lost
-  else if (wordsFoundPercentage < 25) {
-    xpReward = 10;
-    coinReward = 10;
-  } else if (wordsFoundPercentage < 50) {
-    xpReward = 25;
-    coinReward = 50;
-  } else if (wordsFoundPercentage < 75) {
-    xpReward = 75;
-    coinReward = 80;
-  } else if (wordsFoundPercentage < 85) {
-    xpReward = 85;
-    coinReward = 90;
-  } else if (wordsFoundPercentage < 95) {
-    xpReward = 95;
-    coinReward = 100;
-  } else if (wordsFoundPercentage < 100) {
-    xpReward = 100;
-    coinReward = 150;
-  } else if (wordsFoundPercentage === 100) {
-    xpReward = 150;
-    coinReward = 200;
-  }
-
-  const levelResponse = await levelService.changeXp(userId, 'up', xpReward);
-  if (!levelResponse) return;
-
-  const ledgerResponse = await ledgerService.changeBalance(
-    userId,
-    'up',
-    coinReward,
-  );
-  if (!ledgerResponse) return;
-}
-
 async function handleIncrementCustomTimesPlayed(shareCode: string) {
   const { data, error: customError } = await db
     .from('_wordle_customs')
@@ -111,7 +68,6 @@ function generateWordleShareCode() {
 
 export default {
   handleRewardWordle,
-  handleRewardSpellbee,
   generateWordleShareCode,
   handleIncrementCustomTimesPlayed,
 };

@@ -14,7 +14,7 @@ BEGIN
   IF p_player IS NULL OR p_challenge IS NULL OR p_status IS NULL OR p_progress IS NULL
     OR p_status NOT IN ('UNLOCKED','IN_PROGRESS','COMPLETE')
     OR p_progress::text IN ('NaN','Infinity','-Infinity')
-    OR p_progress < 0 OR p_progress > 100
+    OR p_progress < 0 OR p_progress > 100 OR trunc(p_progress) <> p_progress
     OR (p_status = 'COMPLETE') <> (p_progress = 100)
   THEN RAISE EXCEPTION 'Invalid challenge progress'; END IF;
   PERFORM pg_advisory_xact_lock(hashtextextended(p_player::text || ':' || p_challenge::text, 0));
@@ -80,4 +80,8 @@ END;
 $$;
 REVOKE ALL ON FUNCTION public.wordrama_update_challenge_progress(uuid,uuid,text,numeric) FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.wordrama_update_challenge_progress(uuid,uuid,text,numeric) TO service_role;
+
+-- Existing own-row INSERT/UPDATE policies otherwise bypass the API entirely.
+-- Keep SELECT and service_role access intact; no historical progress is changed.
+REVOKE INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER ON public._challenge_progress FROM anon, authenticated;
 COMMIT;
