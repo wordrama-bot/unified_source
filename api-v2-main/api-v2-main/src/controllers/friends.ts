@@ -71,24 +71,16 @@ async function getFriendRequests(req: ApiRequest, res: Response) {
 }
 
 async function newFriendRequest(req: ApiRequest, res: Response) {
-  const friendRequests = await friendsService.getSentFriendRequests(req.userId);
-  const activeRequests = Array.isArray(friendRequests)
-    ? friendRequests.map((request) => request.players.id)
-    : [];
-  if (activeRequests.includes(req.params.friendId))
-    return badRequest(
-      req,
-      res,
-      'You have already sent a request to this player',
-    );
-
+  const validated = newFriendRequestSchema.safeParse(req.params);
+  if (!validated.success) {
+    return res.status(400).json({ status: 400, message: 'Invalid friend ID' });
+  }
   const friendRequest = await friendsService.addFriendRequest(
-    req.userId,
-    req.params.friendId,
+    req.userId, validated.data.friendId,
   );
-  if (req.params.friendId === req.userId)
-    return badRequest(req, res, 'You cannot add yourself as a friend');
-
+  if ('error' in friendRequest) {
+    return res.status(400).json({ status: 400, message: friendRequest.error });
+  }
   return successfulResponse(req, res, friendRequest, 'Friend Request Added', 1);
 }
 

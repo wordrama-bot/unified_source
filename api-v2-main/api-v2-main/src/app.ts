@@ -11,6 +11,7 @@ import express, {
 } from 'express';
 // import { pinoHttp as pino } from 'pino-http';
 import helmet from 'helmet';
+import { corsOrigin, parseAllowedOrigins, protectCookieWrites } from './middleware/requestOrigin.js';
 import swaggerUi from 'swagger-ui-express';
 import swaggerFile from '../swagger.json';
 import v3Router from './routes/v3';
@@ -37,26 +38,9 @@ app.use(cookieParser.default());
 app.use(express.static('public'));
 
 // CORS (supports comma-separated list in CORS_ORIGIN, e.g. "https://wordrama.io,https://www.wordrama.io")
-const allowedOrigins = (process.env.CORS_ORIGIN || '')
-  .split(',')
-  .map((o) => o.trim())
-  .filter(Boolean);
-
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      // Allow non-browser clients (curl, health checks)
-      if (!origin) return callback(null, true);
-
-      if (allowedOrigins.length === 0) return callback(null, true);
-
-      if (allowedOrigins.includes(origin)) return callback(null, true);
-
-      return callback(new Error(`Not allowed by CORS: ${origin}`));
-    },
-    credentials: true,
-  }),
-);
+const allowedOrigins = parseAllowedOrigins(process.env.CORS_ORIGIN);
+app.use(cors({ origin: corsOrigin(allowedOrigins), credentials: true }));
+app.use('/api/v3', protectCookieWrites(allowedOrigins));
 
 // Logging middleware
 /*

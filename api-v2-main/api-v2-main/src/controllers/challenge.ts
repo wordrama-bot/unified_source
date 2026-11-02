@@ -7,7 +7,6 @@ import {
 } from '../utils/responses';
 
 import challengeService from '../services/challenge';
-import challengeProgressService from '../services/challenge/progress';
 
 async function getAllMyChallenges(req: ApiRequest, res: Response) {
   const orderBy = req.query.orderBy || 'IN_PROGRESS';
@@ -33,22 +32,11 @@ async function getAllMyChallenges(req: ApiRequest, res: Response) {
 }
 
 async function updateChallengeProgress(req: ApiRequest, res: Response) {
-  //@ts-ignore
-  const challenges = await challengeProgressService.updateChallengeProgress(
-    req.params.challengeId as string,
-    req.userId as string,
-    req.query.status as string,
-    Number(req.query.progress as string),
-  );
-  if (!challenges) return notFoundResponse(req, res);
-
-  return successfulResponse(
-    req,
-    res,
-    challenges,
-    'Challenge Progress Updated',
-    challenges.length,
-  );
+  // Completion is derived by trusted server award jobs, never browser claims.
+  return res.status(403).json({
+    status: 403, count: 0, data: {},
+    message: 'Challenge progress is managed by the server',
+  });
 }
 
 export default {

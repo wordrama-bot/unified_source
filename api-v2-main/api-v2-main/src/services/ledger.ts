@@ -22,38 +22,16 @@ async function changeBalance(
   direction: string = 'up',
   amount: number,
 ) {
-  const { data: current, error: currentError } = await db
-    .from('_ledger')
-    .select('coin_balance')
-    .eq('player', userId)
-    .maybeSingle();
-
-  if (currentError) {
-    console.error(currentError);
-    return {};
+  if (!Number.isSafeInteger(amount) || amount < 0 || !['up', 'down'].includes(direction)) {
+    throw new Error('Invalid balance change');
   }
-
-  let balance = current.coin_balance;
-  if (direction === 'up') {
-    balance += amount;
-  } else if (direction === 'down') {
-    balance -= amount;
+  const { data, error } = await db.rpc('wordrama_change_coin_balance', {
+    p_player: userId, p_delta: direction === 'up' ? amount : -amount,
+  });
+  if (error || !Number.isFinite(data?.coinBalance)) {
+    throw new Error('Unable to change coin balance');
   }
-
-  const { data, error } = await db
-    .from('_ledger')
-    .update({
-      coin_balance: balance,
-    })
-    .select('coin_balance')
-    .eq('player', userId);
-
-  if (error) {
-    console.error(error);
-    return {};
-  }
-
-  return { ...data };
+  return data;
 }
 
 export default {

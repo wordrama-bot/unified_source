@@ -1,40 +1,12 @@
-import * as changeKeys from 'change-case/keys';
-import { db } from '../../models';
-import { AddGameResult } from '../schema/game/spellbee';
+import type { AddGameResult } from '../../schema/game/spellbee.js';
 
-import playerService from '../player';
-import gameUtils from '../../utils/game';
+export const UNVERIFIED_SPELLBEE =
+  'Spellbee results are unavailable until server-owned puzzle verification is configured';
 
-async function submitSpellbeeResult(userId: string, body: AddGameResult) {
-  const wordsFoundPercentage =
-    body.correct_words.length / body.potential_words.length;
-  const { error } = await db
-    .from('_spellbee_game_result')
-    .insert(
-      changeKeys.snakeCase({
-        player: userId,
-        year: new Date().getFullYear(),
-        month: new Date().getMonth() + 1,
-        day: new Date().getDate(),
-        correctWordCount: body.correct_words.length,
-        potential_word_count: body.potential_words.length,
-        words_found_percentage: wordsFoundPercentage,
-        ...body,
-      }),
-    )
-    .select('id')
-    .maybeSingle();
-
-  if (error) {
-    console.error(error);
-    return {};
-  }
-
-  await gameUtils.handleRewardSpellbee(userId, wordsFoundPercentage);
-
-  return await playerService.getPlayerByUserId(userId);
+async function submitSpellbeeResult(_userId: string, _body: AddGameResult) {
+  // The separately built game supplies both answers and its denominator.
+  // Neither is evidence of a valid puzzle. Do not persist stats or issue rewards.
+  return { error: UNVERIFIED_SPELLBEE };
 }
 
-export default {
-  submitSpellbeeResult,
-};
+export default { submitSpellbeeResult };

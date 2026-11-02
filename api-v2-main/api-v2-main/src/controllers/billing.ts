@@ -69,8 +69,11 @@ async function changePlan(req: ApiRequest, res: Response) {
     return badRequest(req, res, 'Invalid subscription plan');
   }
 
+  const player = await playerService.getPlayerByUserId(req.userId);
+  if (!player?.id) return notFoundResponse(req, res);
+
   const result = await billingService.changeSubscriptionPlan({
-    playerId: req.userId,
+    playerId: player.id,
     subscriptionKey,
   });
 

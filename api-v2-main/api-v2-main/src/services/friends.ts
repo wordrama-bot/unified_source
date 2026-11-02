@@ -1,7 +1,7 @@
 import * as changeKeys from 'change-case/keys';
 import { db } from '../models';
 import { enqueue, createMessage } from '../utils/gameLoop';
-import { AddFriend, UpdateFriend, RemoveFriend } from '../schema/friends';
+import { newFriendRequest } from '../schema/friends.js';
 
 async function getFriends(userId: string) {
   const { data, error } = await db
@@ -138,6 +138,30 @@ async function getFriendRequestById(requestId: string) {
 }
 
 async function addFriendRequest(userId: string, friendId: string) {
+  const validated = newFriendRequest.safeParse({ friendId });
+  if (!validated.success) return { error: 'Invalid friend ID' };
+  friendId = validated.data.friendId;
+  if (userId.toLowerCase() === friendId) {
+    return { error: 'You cannot add yourself as a friend' };
+  }
+  const { data: target, error: targetError } = await db.from('_players')
+    .select('id').eq('id', friendId).maybeSingle();
+  if (targetError) return { error: 'Unable to validate friend' };
+  if (!target) return { error: 'Player not found' };
+
+  // Check both directions; don't send a second invite for a received request.
+  for (const [sender, receiver] of [[userId, friendId], [friendId, userId]]) {
+    const { data: pending, error } = await db.from('_friend_requests')
+      .select('id').eq('sending_player', sender)
+      .eq('receiving_player', receiver).limit(1).maybeSingle();
+    if (error) return { error: 'Unable to validate friend request' };
+    if (pending) return { error: 'A friend request already exists' };
+    const { data: friend, error: friendError } = await db.from('_friends')
+      .select('id').eq('player', sender).eq('friend_id', receiver)
+      .limit(1).maybeSingle();
+    if (friendError) return { error: 'Unable to validate friendship' };
+    if (friend) return { error: 'You are already friends' };
+  }
   const { data, error: friendRequestError } = await db
     .from('_friend_requests')
     .insert(
@@ -149,11 +173,9 @@ async function addFriendRequest(userId: string, friendId: string) {
     .select('id, sending_player, receiving_player, status')
     .maybeSingle();
 
-  console.log(data);
 
-  if (friendRequestError) {
-    console.error(friendRequestError);
-    return {};
+  if (friendRequestError || !data) {
+    return { error: 'Unable to create friend request' };
   }
 
   await enqueue([

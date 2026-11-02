@@ -8,6 +8,7 @@ import {
 } from '../utils/responses';
 
 import storeService from '../services/store';
+import { coinPurchase } from '../schema/store.js';
 
 async function getStoreItems(req: ApiRequest, res: Response) {
   const storeItems = await storeService.getStoreItems(req.userId, req.query);
@@ -36,21 +37,13 @@ async function getPurchases(req: ApiRequest, res: Response) {
 }
 
 async function purchaseItemsWithCoins(req: ApiRequest, res: Response) {
-  if (!req.body?.items) return badRequest(req, res, 'No items provided');
-
-  const purchases = await storeService.purchaseItemsWithCoins(
-    req.userId,
-    req.body.items,
-  );
-  if (!purchases) return notFoundResponse(req, res);
-
-  return successfulResponse(
-    req,
-    res,
-    purchases,
-    'Items purchased',
-    purchases.length,
-  );
+  const valid = coinPurchase.safeParse(req.body);
+  if (!valid.success) return res.status(400).json({ status: 400, message: 'Invalid items' });
+  const purchases = await storeService.purchaseItemsWithCoins(req.userId, valid.data.items);
+  if ('error' in purchases) {
+    return res.status(400).json({ status: 400, message: purchases.error });
+  }
+  return successfulResponse(req, res, purchases.data, 'Items purchased', purchases.data.length);
 }
 
 export default {

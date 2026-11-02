@@ -3,7 +3,7 @@ import * as changeKeys from 'change-case/keys';
 import { db } from '../models';
 import { CATALOG } from './marketplaceV2/catalog';
 import { HOLIDAY_THEME_BUNDLE } from '../config/holidayThemeBundle';
-import ledgerService from './ledger';
+import { coinPurchase } from '../schema/store.js';
 import { enqueue, sendMessage } from '../utils/gameLoop';
 import { createMessage } from '../utils/gameLoop.js';
 
@@ -333,96 +333,40 @@ async function getStoreItems(playerId: string, filters) {
   }
 
   async function purchaseItemWithCoins(playerId: string, itemId: string) {
-    const itemIds = [itemId];
-
-    const results = [];
-
-    for (const id of itemIds) {
-      const storeItemPrice = await getItemPrice(id);
-      if (!storeItemPrice) return { error: 'Item not found' };
-
-      if (
-        !storeItemPrice.purchasableWithCoins ||
-        storeItemPrice.discontinued
-      ) {
-        return {
-          error: 'This item is not available for purchase with coins',
-        };
-      }
-
-      if (
-        !Number.isFinite(storeItemPrice.coinPrice) ||
-        storeItemPrice.coinPrice <= 0
-      ) {
-        return {
-          error: 'Invalid coin price for this item',
-        };
-      }
-
-      const { coinBalance: playerBalance } =
-        await ledgerService.getBalance(playerId);
-
-      if (playerBalance < storeItemPrice.coinPrice)
-        return { error: 'Insufficient funds' };
-
-      const updatedBalance = await ledgerService.changeBalance(
-        playerId,
-        'down',
-        storeItemPrice.coinPrice,
-      );
-
-      if (!updatedBalance)
-        return { error: 'Failed to update balance' };
-
-      await db.from('_purchased_items').insert({
-        player_id: playerId,
-        item_id: id,
-        bought_with_coins: true,
-        bought_with_money: false,
-        unlocked_with_subscription: false,
-      });
-
-      const catalogItem = CATALOG.find((item) => item.catalogItemId === id);
-
-      if (catalogItem) {
-        await db.from('_player_entitlements').insert({
-          player_id: playerId,
-          entitlement_key: catalogItem.entitlementKey,
-          entitlement_type: catalogItem.entitlementType,
-          source_type: 'ORDER_ITEM',
-          status: 'ACTIVE',
-          metadata: {
-            catalogItemId: catalogItem.catalogItemId,
-            purchaseMethod: 'COINS',
-          },
-        });
-      }
-
-      await enqueue([
-        createMessage('PURCHASED_ITEM', {
-          userId: playerId,
-          metadata: {
-            itemId: id,
-          },
-        }),
-      ]);
-
-      results.push({ id });
-    }
-
-    return { data: results };
+    return purchaseItemsWithCoins(playerId, [itemId]);
   }
 
   async function purchaseItemsWithCoins(playerId: string, itemIds: string[]) {
-    const acc = [];
-
-    for (const itemId of itemIds) {
-      const { data, error } = await purchaseItemWithCoins(playerId, itemId);
-      if (error) return { error };
-      acc.push(data);
+    const valid = coinPurchase.safeParse({ items: itemIds });
+    if (!valid.success) return { error: 'Invalid items' };
+    const ids = valid.data.items;
+    const entitlements = ids.flatMap((id) => {
+      const item = CATALOG.find((entry: { catalogItemId: string }) => entry.catalogItemId === id);
+      return item ? [{ item_id: id, key: item.entitlementKey, type: item.entitlementType }] : [];
+    });
+    const { data, error } = await db.rpc('wordrama_purchase_items_with_coins', {
+      p_player: playerId, p_items: ids, p_entitlements: entitlements,
+    });
+    // Missing RPC / failed transaction must never fall back to the old debit.
+    if (error) {
+      console.error('Coin purchase transaction failed', error);
+      const known = ['Insufficient funds', 'Item already owned', 'Item unavailable', 'Invalid coin price'];
+      return { error: known.includes(error.message) ? error.message : 'Unable to complete coin purchase' };
     }
-
-    return acc;
+    if (data?.purchased !== true || !Array.isArray(data.items) ||
+        data.items.length !== ids.length ||
+        !ids.every((id) => data.items.some((item: any) => item.id === id))) {
+      return { error: 'Unable to confirm coin purchase; refresh purchases before retrying' };
+    }
+    // The transaction is authoritative. Queue failure cannot undo a purchase.
+    try {
+      await enqueue(ids.map((id) => createMessage('PURCHASED_ITEM', {
+        userId: playerId, metadata: { itemId: id },
+      })));
+    } catch (error) {
+      console.error('Purchase committed but notification enqueue failed', error);
+    }
+    return { data: data.items };
   }
 
   export default {

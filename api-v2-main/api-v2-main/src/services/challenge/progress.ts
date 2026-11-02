@@ -1,9 +1,6 @@
 import * as changeKeys from 'change-case/keys';
 import { db } from '../../models';
-import challengeService from './';
-import ledgerService from '../ledger';
-import levelService from '../levels';
-import { grantEntitlement } from '../marketplaceV2/entitlements';
+import { awardPrestigeFrames } from '../prestigeFrames.js';
 
 type Progress = {
   progressId?: string;
@@ -64,73 +61,21 @@ async function insertChallengeProgress({
   return changeKeys.camelCase(data, 10);
 }
 
-async function updateChallengeProgress(
-  challengeId: string,
-  playerId: string,
-  status: string,
-  progress: number,
-) {
-  let currentProgress = await getChallengeProgress(playerId, challengeId);
-
-  if (!currentProgress?.id) {
-    await insertChallengeProgress({
-      playerId,
-      challengeId,
-      status: 'UNLOCKED',
-      progress: 0,
-    });
-
-    currentProgress = await getChallengeProgress(playerId, challengeId);
+// Trusted award scripts only. HTTP routes cannot invoke this service.
+async function updateChallengeProgress(challengeId: string, playerId: string, status: string, progress: number) {
+  if (!['UNLOCKED', 'IN_PROGRESS', 'COMPLETE'].includes(status) ||
+      !Number.isFinite(progress) || progress < 0 || progress > 100 ||
+      (status === 'COMPLETE') !== (progress === 100)) {
+    throw new Error('Invalid challenge progress');
   }
-
-  if (
-    currentProgress?.status === 'COMPLETE' ||
-    currentProgress?.progress === 100
-  ) {
-    return currentProgress;
+  const { data, error } = await db.rpc('wordrama_update_challenge_progress', {
+    p_player: playerId, p_challenge: challengeId, p_status: status, p_progress: progress,
+  });
+  if (error || !data?.id) throw new Error('Unable to update challenge progress');
+  if (Number.isSafeInteger(data.prestige)) {
+    try { await awardPrestigeFrames(playerId, data.prestige); }
+    catch (error) { console.error('Challenge prestige frames pending', error); }
   }
-
-  const { data, error } = await db
-    .from('_challenge_progress')
-    .update({
-      status,
-      progress,
-    })
-    .eq('player_id', playerId)
-    .eq('challenge_id', challengeId)
-    .select(`id, status, progress`)
-    .maybeSingle();
-
-  if (error) {
-    console.error(error);
-    return {};
-  }
-
-  if (currentProgress?.progress !== 100 && progress === 100) {
-    const reward = await challengeService.getChallengeReward(challengeId);
-
-    if (reward?.coinReward) {
-      await ledgerService.changeBalance(playerId, 'up', reward.coinReward);
-    }
-
-    if (reward?.xpReward) {
-      await levelService.changeXp(playerId, 'up', reward.xpReward);
-    }
-
-    if (reward?.avatarEntitlementKey) {
-      await grantEntitlement({
-        playerId,
-        entitlementKey: reward.avatarEntitlementKey,
-        entitlementType: 'AVATAR_STYLE',
-        sourceType: 'ACHIEVEMENT',
-        metadata: {
-          challengeId,
-          source: 'challenge_reward',
-        },
-      });
-    }
-  }
-
   return changeKeys.camelCase(data, 10);
 }
 
