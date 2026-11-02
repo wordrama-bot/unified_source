@@ -1,6 +1,5 @@
 import { NextFunction, Response } from 'express';
-import jwt from 'jsonwebtoken';
-import { type User } from '@supabase/supabase-js';
+import jwt, { type JwtPayload } from 'jsonwebtoken';
 import { ApiRequest } from '../types/auth.types';
 
 export const roles: { [key: string]: string } = {
@@ -24,20 +23,48 @@ export function validateToken(
       ) {
         const cookieValue = req.cookies[key];
 
+        if (typeof cookieValue !== 'string') {
+          return res.status(401).json({
+            data: {},
+            count: 0,
+            status: 401,
+            message: 'Invalid authentication cookie',
+          });
+        }
+
         cookie = `${cookie}${cookieValue.replace(/base64-/g, '')}`;
       }
     }
 
     if (cookie) {
-      const decodedValue = Buffer.from(cookie, 'base64').toString();
-      const parsedValue = JSON.parse(decodedValue);
-      authorizationHeader = `${parsedValue.token_type} ${parsedValue.access_token}`;
+      try {
+        const decodedValue = Buffer.from(cookie, 'base64').toString();
+        const parsedValue = JSON.parse(decodedValue);
+
+        if (
+          typeof parsedValue?.token_type !== 'string' ||
+          typeof parsedValue?.access_token !== 'string' ||
+          !parsedValue.token_type.trim() ||
+          !parsedValue.access_token.trim()
+        ) {
+          throw new Error('Invalid authentication cookie');
+        }
+
+        authorizationHeader = `${parsedValue.token_type} ${parsedValue.access_token}`;
+      } catch {
+        return res.status(401).json({
+          data: {},
+          count: 0,
+          status: 401,
+          message: 'Invalid authentication cookie',
+        });
+      }
     }
   }
 
   if (authorizationHeader) {
-    const [type, token] = authorizationHeader.split(' ');
-    if (type.toLowerCase() !== 'bearer' && !token) {
+    const [type, token, extra] = authorizationHeader.trim().split(/\s+/);
+    if (type.toLowerCase() !== 'bearer' || !token || extra) {
       return res.status(401).json({
         data: {},
         count: 0,
@@ -46,30 +73,38 @@ export function validateToken(
       });
     }
     const jwtSecret =
-  (process.env.SUPABASE_JWT_SECRET || process.env.JWT_SECRET) as string;
+      (process.env.SUPABASE_JWT_SECRET || process.env.JWT_SECRET) as string;
 
-if (!jwtSecret) {
-  return res.status(500).json({
-    data: {},
-    count: 0,
-    status: 500,
-    message: "Server auth misconfigured: missing JWT secret",
-  });
-}
+    if (!jwtSecret) {
+      return res.status(500).json({
+        data: {},
+        count: 0,
+        status: 500,
+        message: "Server auth misconfigured: missing JWT secret",
+      });
+    }
 
-let payload: User;
-try {
-  payload = jwt.verify(token, jwtSecret) as User;
-} catch (e) {
-  return res.status(401).json({
-    data: {},
-    count: 0,
-    status: 401,
-    message: "Invalid or unverifiable token",
-  });
-}
+    let payload: JwtPayload;
+    try {
+      payload = jwt.verify(token, jwtSecret) as JwtPayload;
+    } catch (e) {
+      return res.status(401).json({
+        data: {},
+        count: 0,
+        status: 401,
+        message: "Invalid or unverifiable token",
+      });
+    }
 
-    // @ts-ignore
+    if (typeof payload.sub !== 'string' || !payload.sub.trim()) {
+      return res.status(401).json({
+        data: {},
+        count: 0,
+        status: 401,
+        message: 'Invalid token subject',
+      });
+    }
+
     if (payload.exp < Math.floor(Date.now() / 1000)) {
       return res.status(401).json({
         data: {},
@@ -99,7 +134,10 @@ try {
 
 export function validateUserRole(allowedRoles: string[]) {
   return function (req: ApiRequest, res: Response, next: NextFunction) {
-    if (allowedRoles.includes(req.role) || allowedRoles.includes(req.roleId)) {
+    if (
+      (typeof req.role === 'string' && allowedRoles.includes(req.role)) ||
+      (typeof req.roleId === 'string' && allowedRoles.includes(req.roleId))
+    ) {
       return next();
     }
     return res.status(403).json({
