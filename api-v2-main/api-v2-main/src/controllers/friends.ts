@@ -122,9 +122,9 @@ async function cancelFriendRequest(req: ApiRequest, res: Response) {
     requestId,
   );
   if (!cancelled || !cancelled?.requestId)
-    return badRequest(req, res, 'Failed to decline friend request');
+    return badRequest(req, res, 'Failed to cancel friend request');
 
-  return successfulResponse(req, res, cancelled, 'Friend Request Declined', 1);
+  return successfulResponse(req, res, cancelled, 'Friend Request Cancelled', 1);
 }
 
 async function removeFriend(req: ApiRequest, res: Response) {
@@ -133,6 +133,7 @@ async function removeFriend(req: ApiRequest, res: Response) {
 
   const removed = await friendsService.removeFriend(req.userId, friendId);
 
+  if (!removed?.id) return badRequest(req, res, 'Failed to remove friend');
   return successfulResponse(req, res, removed, 'Friend Removed', 1);
 }
 

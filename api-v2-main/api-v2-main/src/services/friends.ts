@@ -137,215 +137,47 @@ async function getFriendRequestById(requestId: string) {
   return changeKeys.camelCase(data, 10);
 }
 
+type FriendActionResult = { id?: string; requestId?: string; status?: string; [key: string]: unknown };
+
+async function friendAction(userId: string, targetId: string, action: string): Promise<FriendActionResult> {
+  const valid = newFriendRequest.safeParse({ friendId: targetId });
+  if (!valid.success) return {};
+  const { data, error } = await db.rpc('wordrama_friend_action', {
+    p_player: userId, p_target: valid.data.friendId, p_action: action,
+  });
+  if (error) {
+    console.error('[friends] transaction failed', error);
+    return {};
+  }
+  // Fail closed if the function is absent or the acknowledgement is malformed.
+  if (!data || (['invite','remove'].includes(action)
+    ? !data.id : data.requestId !== valid.data.friendId || data.status !== ({
+      accept: 'accepted', decline: 'declined', cancel: 'cancelled',
+    } as Record<string, string>)[action])) return {};
+  return changeKeys.camelCase(data, 10) as FriendActionResult;
+}
+
 async function addFriendRequest(userId: string, friendId: string) {
-  const validated = newFriendRequest.safeParse({ friendId });
-  if (!validated.success) return { error: 'Invalid friend ID' };
-  friendId = validated.data.friendId;
-  if (userId.toLowerCase() === friendId) {
-    return { error: 'You cannot add yourself as a friend' };
+  const valid = newFriendRequest.safeParse({ friendId });
+  if (!valid.success || valid.data.friendId === userId.toLowerCase()) {
+    return { error: 'Invalid friend target' };
   }
-  const { data: target, error: targetError } = await db.from('_players')
-    .select('id').eq('id', friendId).maybeSingle();
-  if (targetError) return { error: 'Unable to validate friend' };
-  if (!target) return { error: 'Player not found' };
-
-  // Check both directions; don't send a second invite for a received request.
-  for (const [sender, receiver] of [[userId, friendId], [friendId, userId]]) {
-    const { data: pending, error } = await db.from('_friend_requests')
-      .select('id').eq('sending_player', sender)
-      .eq('receiving_player', receiver).limit(1).maybeSingle();
-    if (error) return { error: 'Unable to validate friend request' };
-    if (pending) return { error: 'A friend request already exists' };
-    const { data: friend, error: friendError } = await db.from('_friends')
-      .select('id').eq('player', sender).eq('friend_id', receiver)
-      .limit(1).maybeSingle();
-    if (friendError) return { error: 'Unable to validate friendship' };
-    if (friend) return { error: 'You are already friends' };
-  }
-  const { data, error: friendRequestError } = await db
-    .from('_friend_requests')
-    .insert(
-      changeKeys.snakeCase({
-        sendingPlayer: userId,
-        receivingPlayer: friendId,
-      }),
-    )
-    .select('id, sending_player, receiving_player, status')
-    .maybeSingle();
-
-
-  if (friendRequestError || !data) {
-    return { error: 'Unable to create friend request' };
-  }
-
-  await enqueue([
-    createMessage('FRIEND_INVITE', {
-      userId,
-    }),
-  ]);
-
-  return changeKeys.camelCase(data);
+  const data = await friendAction(userId, valid.data.friendId, 'invite');
+  if (!data.id) return { error: 'Unable to add friend request' };
+  // A notification outage must not report a committed invitation as failed.
+  try {
+    await enqueue([createMessage('FRIEND_INVITE', { userId })]);
+  } catch (error) { console.error('[friends] invitation notification failed', error); }
+  return data;
 }
 
-async function addFriend(userId: string, friendId: string) {
-  const { data, error } = await db
-    .from('_friends')
-    .insert(
-      changeKeys.snakeCase({
-        player: userId,
-        friendId,
-      }),
-    )
-    .select('id, player, friend_id')
-    .maybeSingle();
-
-  if (error) {
-    console.error(error);
-    return {};
-  }
-
-  return { data: changeKeys.camelCase(data), error };
-}
-
-async function addFriendMapping(playerA: string, playerB: string) {
-  const { error: errorA } = await addFriend(playerA, playerB);
-  if (errorA) {
-    console.error(errorA);
-    return { error: errorA };
-  }
-
-  const { error: errorB } = await addFriend(playerB, playerA);
-  if (errorB) {
-    console.error(errorB);
-    return { error: errorB };
-  }
-
-  return { data: {} };
-}
-
-async function updateFriendRequest(
-  userId: string,
-  requestId: string,
-  status: string,
-) {
-  const { data, error: friendRequestError } = await db
-    .from('_friend_requests')
-    .update(
-      changeKeys.snakeCase({
-        status,
-      }),
-    )
-    .eq('id', requestId)
-    .eq('receiving_player', userId)
-    .select('id, sending_player, receiving_player, status')
-    .maybeSingle();
-
-  if (friendRequestError) {
-    console.error(friendRequestError);
-    return {};
-  }
-
-  return changeKeys.camelCase(data);
-}
-
-async function deleteFriendRequest(userId: string, requestId: string) {
-  const { error: friendRequestError } = await db
-    .from('_friend_requests')
-    .delete()
-    .eq('id', requestId)
-    .eq('receiving_player', userId)
-    .maybeSingle();
-
-  if (friendRequestError) {
-    console.error(friendRequestError);
-    return {};
-  }
-
-  return {
-    requestId,
-  };
-}
-
-async function acceptFriendRequest(userId: string, requestId: string) {
-  const request = await getFriendRequestById(requestId);
-  //@ts-ignore
-  if (request.receivingPlayer !== userId) return {};
-
-  await deleteFriendRequest(userId, requestId);
-  //@ts-ignore
-  const { error } = await addFriendMapping(
-    request.sendingPlayer,
-    request.receivingPlayer,
-  );
-  if (error) {
-    console.error(error);
-    return {};
-  }
-
-  //@ts-ignore
-  return { requestId, status: 'accepted' };
-}
-
-async function declineFriendRequest(userId: string, requestId: string) {
-  //const updated = await updateFriendRequest(userId, requestId, 'declined');
-  const updated = await deleteFriendRequest(userId, requestId);
-  if (!updated) return {};
-
-  return { requestId };
-}
-
-async function cancelFriendRequest(userId: string, requestId: string) {
-  const { data, error } = await db
-    .from('_friend_requests')
-    .delete()
-    .select()
-    .eq('id', requestId)
-    .eq('sending_player', userId);
-
-  if (error) {
-    console.error(error);
-    return {};
-  }
-
-  return { requestId };
-}
-
-async function removeFriend(userId: string, friendId: string) {
-  const { data: dataA, error: errorA } = await db
-    .from('_friends')
-    .delete()
-    .select()
-    .eq('friend_id', friendId)
-    .eq('player', userId)
-    .maybeSingle();
-
-  const { data: dataB, error: errorB } = await db
-    .from('_friends')
-    .delete()
-    .select()
-    .eq('player', friendId)
-    .eq('friend_id', userId)
-    .maybeSingle();
-
-  if (errorA || errorB) {
-    console.error(errorA, errorB);
-    return {};
-  }
-
-  return { ...dataA };
-}
+const acceptFriendRequest = (userId: string, requestId: string) => friendAction(userId, requestId, 'accept');
+const declineFriendRequest = (userId: string, requestId: string) => friendAction(userId, requestId, 'decline');
+const cancelFriendRequest = (userId: string, requestId: string) => friendAction(userId, requestId, 'cancel');
+const removeFriend = (userId: string, friendId: string) => friendAction(userId, friendId, 'remove');
 
 export default {
-  getFriends,
-  getFriendRequests,
-  getSentFriendRequests,
-  getRecievedFriendRequests,
-  getFriendRequestById,
-  addFriendRequest,
-  updateFriendRequest,
-  deleteFriendRequest,
-  acceptFriendRequest,
-  declineFriendRequest,
-  cancelFriendRequest,
-  removeFriend,
+  getFriends, getFriendRequests, getSentFriendRequests, getRecievedFriendRequests,
+  getFriendRequestById, addFriendRequest, acceptFriendRequest,
+  declineFriendRequest, cancelFriendRequest, removeFriend,
 };

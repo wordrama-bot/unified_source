@@ -31,14 +31,10 @@ function requireUserAuthentication(
 
 export const router = express.Router();
 
-/* Get routes */
-router.get(
-  '/migrate/me',
-  validateToken,
-  requireUserAuthentication,
-  limiter,
-  playerController.migratePlayer,
-);
+// Express also dispatches HEAD to GET. Neither method may migrate accounts.
+router.get('/migrate/me', (_req, res) => {
+  res.set('Allow', 'POST').status(405).json({ status: 405, message: 'Use POST' });
+});
 
 /* Post routes */
 router.post(
