@@ -557,7 +557,7 @@ function App(){
     isLoading: isLoadingMyAccount,
     refetch: refetchProfile,
   } = useGetMyAccountQuery();
-  const { data: myEntitlements } = useGetMyEntitlementsQuery();
+  const { data: myEntitlements } = useGetMyEntitlementsQuery(undefined, { refetchOnMountOrArgChange: true });
 
   const activeEntitlements = myEntitlements?.data || [];
 
@@ -685,7 +685,7 @@ function App(){
 
   const gamesPlayed = gamesWon + gamesLost;
 
-  const { data: myWordPacks, isLoading: isLoadingWordPacks } = useGetMyWordPacksQuery();
+  const { data: myWordPacks, isLoading: isLoadingWordPacks } = useGetMyWordPacksQuery(undefined, { refetchOnMountOrArgChange: true });
   const availableWordPacks = Object.keys(wordleDefaultState)?.filter((wordPack) => myWordPacks?.data.includes(wordPack));
 
   const [isUiHydrated, setIsUiHydrated] = useState(false);

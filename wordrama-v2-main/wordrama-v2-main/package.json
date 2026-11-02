@@ -8,7 +8,8 @@
     "build:sitemap": "next-sitemap --config next-sitemap.config.cjs",
     "build": "next build && npm run build:sitemap",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test:purchase-cache": "bun test tests/purchase-cache.test.mjs"
   },
   "dependencies": {
     "@azure/app-configuration": "^1.7.0",

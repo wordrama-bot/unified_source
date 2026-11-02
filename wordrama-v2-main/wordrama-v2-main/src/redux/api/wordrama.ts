@@ -81,6 +81,7 @@ export const wordramaApiV3 = createApi({
     "WordleStreak",
     "StoreItems",
     "Purchases",
+    "Entitlements",
     "Challenges",
     "PublicProfile",
     "Admin",
@@ -203,7 +204,7 @@ export const wordramaApiV3 = createApi({
         credentials: "include",
         body: { items },
       }),
-      invalidatesTags: ["Player", "StoreItems", "Purchases"],
+      invalidatesTags: ["Player", "StoreItems", "Purchases", "Entitlements", "WordPacks", "WordPack"],
     }),
 
     getPurchases: builder.query<any, void>({
@@ -533,7 +534,7 @@ export const wordramaApiV3 = createApi({
         headers: { "Content-Type": "application/json" },
         credentials: "include",
       }),
-      providesTags: ["Player"],
+      providesTags: ["Player", "Entitlements"],
     }),
 
     getMyAvatar: builder.query<any, void>({
