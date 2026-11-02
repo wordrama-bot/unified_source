@@ -8,57 +8,27 @@ export async function getPlayerEntitlements(
     includeInactive?: boolean;
   },
 ) {
-  let query = db
-    .from('_player_entitlements')
-    .select('*')
-    .eq('player_id', playerId)
-    .order('created_at', { ascending: false });
-
-  if (!options?.includeInactive) {
-    query = query.eq('status', 'ACTIVE');
-  }
-
-  const { data, error } = await query;
-
+  // The database creates purchase timestamps, so it must also evaluate access.
+  // One RPC replaces the previous table read; no application clock is passed.
+  const { data, error } = await db.rpc('wordrama_get_player_entitlements', {
+    p_player: playerId,
+    p_include_inactive: options?.includeInactive ?? false,
+  });
   if (error) throw error;
-
-  if (options?.includeInactive) {
-    return data ?? [];
-  }
-
-  const now = new Date().toISOString();
-
-  return (data ?? []).filter(
-    (row: any) =>
-      !row.revoked_at &&
-      row.starts_at <= now &&
-      (!row.expires_at || row.expires_at > now),
-  );
+  return data ?? [];
 }
 
 export async function hasPlayerEntitlement(
   playerId: string,
-  entitlementKey: string
+  entitlementKey: string,
 ) {
-  const now = new Date().toISOString();
-
-  const { data, error } = await db
-    .from('_player_entitlements')
-    .select('id')
-    .eq('player_id', playerId)
-    .eq('entitlement_key', entitlementKey)
-    .eq('status', 'ACTIVE')
-    .is('revoked_at', null)
-    .lte('starts_at', now)
-    .or(`expires_at.is.null,expires_at.gt.${now}`)
-    .limit(1)
-    .maybeSingle();
-
-  if (error) {
-    throw error;
-  }
-
-  return !!data;
+  const { data, error } = await db.rpc('wordrama_get_player_entitlements', {
+    p_player: playerId,
+    p_include_inactive: false,
+    p_entitlement_key: entitlementKey,
+  });
+  if (error) throw error;
+  return (data ?? []).length > 0;
 }
 
 export async function previewAdminGrantEntitlement({
