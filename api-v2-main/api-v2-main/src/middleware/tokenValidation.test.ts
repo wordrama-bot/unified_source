@@ -300,3 +300,56 @@ test('JWT without authenticated role is rejected', () => {
   expect(result.nextCalled).toBe(false);
   expect(result.status).toBe(401);
 });
+
+test('out-of-order Supabase cookie chunks authenticate', () => {
+  const value = Buffer.from(
+    JSON.stringify({
+      token_type: 'bearer',
+      access_token: sign(validPayload),
+    }),
+  ).toString('base64');
+
+  const midpoint = Math.floor(value.length / 2);
+
+  const result = runAuth(undefined, {
+    'sb-test-auth-token.1': value.slice(midpoint),
+    'sb-test-auth-token.0': `base64-${value.slice(0, midpoint)}`,
+  });
+
+  expect(result.nextCalled).toBe(true);
+  expect(result.status).toBe(200);
+});
+
+test('missing Supabase cookie chunk returns 401', () => {
+  const value = Buffer.from(
+    JSON.stringify({
+      token_type: 'bearer',
+      access_token: sign(validPayload),
+    }),
+  ).toString('base64');
+
+  const result = runAuth(undefined, {
+    'sb-test-auth-token.0': `base64-${value.slice(0, 20)}`,
+    'sb-test-auth-token.2': value.slice(20),
+  });
+
+  expect(result.status).toBe(401);
+  expect(result.nextCalled).toBe(false);
+});
+
+test('duplicate Supabase cookie chunk zero returns 401', () => {
+  const value = Buffer.from(
+    JSON.stringify({
+      token_type: 'bearer',
+      access_token: sign(validPayload),
+    }),
+  ).toString('base64');
+
+  const result = runAuth(undefined, {
+    'sb-test-auth-token': `base64-${value}`,
+    'sb-test-auth-token.0': `base64-${value}`,
+  });
+
+  expect(result.status).toBe(401);
+  expect(result.nextCalled).toBe(false);
+});

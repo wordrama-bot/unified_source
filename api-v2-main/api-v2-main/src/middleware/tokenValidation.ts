@@ -16,26 +16,44 @@ export function validateToken(
   let authorizationHeader = req.headers.authorization;
   let cookie = '';
   if (!authorizationHeader) {
-    for (const key in req.cookies) {
-      if (
-        key.startsWith(`sb-${process.env.SUPABASE_PROJECT_ID}-auth-token`) &&
-        !key.includes('-code-')
-      ) {
-        const cookieValue = req.cookies[key];
+    const cookiePrefix = `sb-${process.env.SUPABASE_PROJECT_ID}-auth-token`;
+    const chunks: { index: number; value: string }[] = [];
+    let invalidChunks = false;
 
-        if (typeof cookieValue !== 'string') {
-          return res.status(401).json({
-            data: {},
-            count: 0,
-            status: 401,
-            message: 'Invalid authentication cookie',
-          });
+    for (const key in req.cookies) {
+      if (key === cookiePrefix || key.startsWith(`${cookiePrefix}.`)) {
+        const suffix = key.slice(cookiePrefix.length);
+        const index = suffix === '' ? 0 : /^\.[0-9]+$/.test(suffix)
+          ? Number(suffix.slice(1))
+          : NaN;
+
+        const value = req.cookies[key];
+
+        if (!Number.isSafeInteger(index) || typeof value !== 'string') {
+          invalidChunks = true;
+          break;
         }
 
-        cookie = `${cookie}${cookieValue.replace(/base64-/g, '')}`;
+        chunks.push({ index, value });
       }
     }
 
+    chunks.sort((a, b) => a.index - b.index);
+
+    if (
+      invalidChunks ||
+      chunks.some((chunk, index) => chunk.index !== index)
+    ) {
+      return res.status(401).json({
+        data: {},
+        count: 0,
+        status: 401,
+        message: 'Invalid authentication cookie',
+      });
+    }
+
+    cookie = chunks.map((chunk) => chunk.value).join('');
+    cookie = cookie.replace(/^base64-/, '');
     if (cookie) {
       try {
         const decodedValue = Buffer.from(cookie, 'base64').toString();
