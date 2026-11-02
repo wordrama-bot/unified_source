@@ -1,11 +1,11 @@
 import * as changeKeys from 'change-case/keys';
 import moment from 'moment';
 import { db } from '../../../models';
-import { AddGameResult, CreateCustom } from '../../schema/game/wordle';
+import { AddGameResult, CreateCustom } from '../../../schema/game/wordle';
 import { enqueue, createMessage } from '../../../utils/gameLoop';
 
 //import playerService from '../../player';
-import streakService from './streak';
+import { awardPrestigeFrames } from '../../prestigeFrames';
 import gameUtils from '../../../utils/game';
 
 async function getLast30(
@@ -48,6 +48,7 @@ async function getCustomByShareCode(shareCode: string) {
 type RecentWordleResult = {
   id: string;
   player?: string;
+  game_instance_id?: string | null;
   solution?: string;
   guesses: string[];
   game_was_won: boolean | null;
@@ -85,6 +86,8 @@ function isMatchingWordleResult(
 ) {
   return (
     result.player === userId &&
+    (!body.gameInstanceId ||
+      result.game_instance_id === body.gameInstanceId) &&
     result.solution === body.solution &&
     result.game_was_won === gameWasWon &&
     result.game_was_hard_mode === body.gameWasHardMode &&
@@ -100,7 +103,47 @@ function isMatchingWordleResult(
   );
 }
 
-async function submitWordleResult(userId: string, body: AddGameResult) {
+type WordleResultAcknowledgement = {
+  resultId?: string;
+  duplicate?: boolean;
+  duplicateInstance?: boolean;
+  existingResultId?: string;
+};
+
+// The RPC commits XP, coins, custom count, streak and the completion marker
+// together. On failure, keep the result in the client's durable outbox.
+async function finishWordleResult(
+  userId: string,
+  resultId: string,
+  acknowledgement: Omit<WordleResultAcknowledgement, 'resultId'> = {},
+): Promise<WordleResultAcknowledgement> {
+  const { data, error } = await db.rpc('finalize_wordle_result', {
+    p_player: userId,
+    p_result_id: resultId,
+  });
+  if (error || data?.completed !== true) {
+    console.error('[wordle] result effects pending; retaining outbox entry', {
+      resultId, error,
+    });
+    return {};
+  }
+
+  if (typeof data.prestige === 'number') {
+    try {
+      // Entitlement grants are idempotent and can be retried after a lost ack.
+      await awardPrestigeFrames(userId, data.prestige);
+    } catch (error) {
+      console.error('[wordle] prestige rewards pending', { resultId, error });
+      return {};
+    }
+  }
+
+  return { ...acknowledgement, resultId };
+}
+
+async function submitWordleResult(
+  userId: string, body: AddGameResult,
+): Promise<WordleResultAcknowledgement> {
   const guessCount = body.guesses.length;
   const gameWasWon = body.guesses.includes(body.solution);
   const wordLength = body.solution.length;
@@ -109,7 +152,7 @@ async function submitWordleResult(userId: string, body: AddGameResult) {
     const { data: existingResult, error: existingResultError } = await db
       .from('_wordle_game_result')
       .select(
-        'id, player, solution, guesses, game_was_won, game_was_hard_mode, guess_count, type, word_pack, share_code, client_completed_at',
+        'id, player, game_instance_id, solution, guesses, game_was_won, game_was_hard_mode, guess_count, type, word_pack, share_code, client_completed_at'
       )
       .eq('id', body.resultId)
       .maybeSingle();
@@ -139,10 +182,7 @@ async function submitWordleResult(userId: string, body: AddGameResult) {
         return {};
       }
 
-      return {
-        resultId: existingResult.id,
-        duplicate: true,
-      };
+      return finishWordleResult(userId, existingResult.id, { duplicate: true });
     }
   }
 
@@ -177,15 +217,13 @@ async function submitWordleResult(userId: string, body: AddGameResult) {
     );
 
     if (existingResult) {
-      return {
-        resultId: existingResult.id,
-        duplicate: true,
-      };
+      return finishWordleResult(userId, existingResult.id, { duplicate: true });
     }
   }
 
   const {
     resultId,
+    gameInstanceId,
     clientCompletedAt,
     ...gameResult
   } = body;
@@ -195,7 +233,11 @@ async function submitWordleResult(userId: string, body: AddGameResult) {
     .insert(
       changeKeys.snakeCase({
         ...gameResult,
+        // NULL is reserved for pre-migration/legacy writers. Only this API
+        // explicitly opts new results into transactional effect processing.
+        effectsCompleted: false,
         ...(resultId ? { id: resultId } : {}),
+        ...(gameInstanceId ? { gameInstanceId } : {}),
         ...(clientCompletedAt
           ? { clientCompletedAt }
           : {}),
@@ -213,11 +255,65 @@ async function submitWordleResult(userId: string, body: AddGameResult) {
     .maybeSingle();
 
   if (error) {
+    if (error.code === '23505' && gameInstanceId) {
+      const { data: existingInstance, error: lookupError } = await db
+        .from('_wordle_game_result')
+        .select(
+          'id, player, game_instance_id, type, word_pack, solution, share_code'
+        )
+        .eq('player', userId)
+        .eq('game_instance_id', gameInstanceId)
+        .maybeSingle();
+
+      if (lookupError) {
+        console.error(
+          '[wordle] failed to inspect duplicate game instance',
+          lookupError,
+        );
+        return {};
+      }
+
+      if (
+        existingInstance &&
+        (
+          existingInstance.type !== body.type ||
+          existingInstance.word_pack !== body.wordPack ||
+          existingInstance.solution !== body.solution ||
+          (existingInstance.share_code ?? '') !== (body.shareCode ?? '')
+        )
+      ) {
+        console.warn(
+          '[wordle] game instance reused for a different game',
+          { userId, gameInstanceId },
+        );
+        return {};
+      }
+
+      if (existingInstance && existingInstance.id !== resultId) {
+        console.warn(
+          '[wordle] duplicate game instance rejected',
+          {
+            userId,
+            gameInstanceId,
+            existingResultId: existingInstance.id,
+            attemptedResultId: resultId,
+          },
+        );
+
+        const finalized = await finishWordleResult(userId, existingInstance.id);
+        if (!finalized.resultId) return {};
+        return {
+          resultId: resultId ?? existingInstance.id,
+          duplicateInstance: true,
+          existingResultId: existingInstance.id,
+        };
+      }
+    }
     if (resultId && error.code === '23505') {
       const { data: existingResult, error: existingResultError } = await db
         .from('_wordle_game_result')
         .select(
-          'id, player, solution, guesses, game_was_won, game_was_hard_mode, guess_count, type, word_pack, share_code, client_completed_at',
+          'id, player, game_instance_id, solution, guesses, game_was_won, game_was_hard_mode, guess_count, type, word_pack, share_code, client_completed_at'
         )
         .eq('id', resultId)
         .maybeSingle();
@@ -233,10 +329,7 @@ async function submitWordleResult(userId: string, body: AddGameResult) {
           guessCount,
         )
       ) {
-        return {
-          resultId: existingResult.id,
-          duplicate: true,
-        };
+        return finishWordleResult(userId, existingResult.id, { duplicate: true });
       }
 
       console.warn(
@@ -254,31 +347,15 @@ async function submitWordleResult(userId: string, body: AddGameResult) {
     return {};
   }
 
-  if (body.type !== 'CUSTOM') {
-    await gameUtils.handleRewardWordle(
-      userId,
-      body.gameWasHardMode,
-      guessCount,
+  if (!data?.id) {
+    console.error(
+      '[wordle] result insert returned no result ID',
     );
+    return {};
   }
 
-  if (body.type === 'CUSTOM') {
-    await gameUtils.handleIncrementCustomTimesPlayed(body.shareCode);
-  }
-
-  if (gameWasWon) {
-    await streakService.incrementWordleStreak(
-      userId,
-      body.wordPack,
-      body.type,
-    );
-  } else {
-    await streakService.resetWordleStreak(
-      userId,
-      body.wordPack,
-      body.type,
-    );
-  }
+  const finalized = await finishWordleResult(userId, data.id);
+  if (!finalized.resultId) return {};
 
   try {
     await enqueue([
@@ -299,7 +376,7 @@ async function submitWordleResult(userId: string, body: AddGameResult) {
     );
   }
 
-  return { resultId: data.id };
+  return finalized;
 }
 
 async function createCustom(userId: string, body: CreateCustom) {

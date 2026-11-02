@@ -720,6 +720,7 @@ export const wordramaApiV3 = createApi({
         body,
       }),
       invalidatesTags: [
+        "Player",
         "PublicProfile",
         "WordleStreak",
         "WordleLast30",

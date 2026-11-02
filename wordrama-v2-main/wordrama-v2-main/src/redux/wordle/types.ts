@@ -1,4 +1,5 @@
 export type GameState = {
+  gameInstanceId?: string;
   solution: string;
   guesses: string[];
   isGameInProgress: boolean;
