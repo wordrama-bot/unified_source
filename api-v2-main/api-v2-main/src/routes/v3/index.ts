@@ -12,7 +12,6 @@ import { router as billingRouter } from './billing';
 import { router as adminRouter } from './admin';
 import { router as uiRouter } from './ui';
 import { router as leaderboardRouter } from './leaderboard';
-import { router as streamerRouter } from './streamer';
 import { router as storeRouter } from './store';
 import { router as challengesRouter } from './challenges';
 import { router as noRoleRouter } from './noRole';
@@ -25,17 +24,11 @@ export const router = Router();
 
 const authedPlayer = [
   validateToken,
-  validateUserRole(['PLAYER', 'STREAMER']),
+  validateUserRole(['PLAYER']),
   validatePlayerNotBanned,
   auditAuthenticatedRequest,
 ] as const;
 
-const authedStreamer = [
-  validateToken,
-  validateUserRole(['STREAMER']),
-  validatePlayerNotBanned,
-  auditAuthenticatedRequest,
-] as const;
 
 /* ---------------------------------- */
 /* Public Routes                      */
@@ -58,7 +51,6 @@ router.use('/game', ...authedPlayer, gameRouter);
 
 router.use('/ui', ...authedPlayer, uiRouter);
 
-router.use('/streamer', ...authedStreamer, streamerRouter);
 
 router.use('/store', ...authedPlayer, storeRouter);
 

@@ -1,12 +1,14 @@
-﻿import { afterAll, expect, test } from 'bun:test';
+import { afterAll, expect, test } from 'bun:test';
 import jwt from 'jsonwebtoken';
 import { roles, validateToken, validateUserRole } from './tokenValidation';
 
 const originalSupabaseSecret = process.env.SUPABASE_JWT_SECRET;
 const originalJwtSecret = process.env.JWT_SECRET;
+const originalProjectId = process.env.SUPABASE_PROJECT_ID;
 const secret = 'wordrama-local-auth-test-secret';
 
 process.env.SUPABASE_JWT_SECRET = secret;
+process.env.SUPABASE_PROJECT_ID = 'test';
 
 afterAll(() => {
   if (originalSupabaseSecret === undefined) {
@@ -19,6 +21,12 @@ afterAll(() => {
     delete process.env.JWT_SECRET;
   } else {
     process.env.JWT_SECRET = originalJwtSecret;
+  }
+
+  if (originalProjectId === undefined) {
+    delete process.env.SUPABASE_PROJECT_ID;
+  } else {
+    process.env.SUPABASE_PROJECT_ID = originalProjectId;
   }
 });
 
@@ -89,6 +97,9 @@ function runRole(
 const validPayload = {
   sub: 'test-player-id',
   email: 'test@example.invalid',
+  aud: 'authenticated',
+  role: 'authenticated',
+  exp: Math.floor(Date.now() / 1000) + 3600,
   user_metadata: { role: 'PLAYER' },
 };
 
@@ -209,4 +220,83 @@ test('unauthorized role is forbidden', () => {
 
   expect(result.status).toBe(403);
   expect(result.nextCalled).toBe(false);
+});
+
+test('forged STREAMER metadata does not elevate backend role', () => {
+  const token = sign({
+    ...validPayload,
+    user_metadata: { role: 'STREAMER' },
+  });
+
+  const result = runAuth(`Bearer ${token}`);
+
+  expect(result.nextCalled).toBe(true);
+  expect(result.req.role).toBe('PLAYER');
+  expect(result.req.roleId).toBe(roles.PLAYER);
+
+  const streamerAccess = runRole(
+    result.req.role,
+    result.req.roleId,
+    ['STREAMER'],
+  );
+
+  expect(streamerAccess.nextCalled).toBe(false);
+  expect(streamerAccess.status).toBe(403);
+});
+
+test('forged SERVICE_TOKEN metadata cannot elevate privileges', () => {
+  const token = sign({
+    ...validPayload,
+    user_metadata: { role: 'SERVICE_TOKEN' },
+  });
+
+  const result = runAuth(`Bearer ${token}`);
+
+  expect(result.nextCalled).toBe(true);
+  expect(result.req.role).toBe('PLAYER');
+  expect(result.req.roleId).toBe(roles.PLAYER);
+});
+
+test('incorrect JWT audience is rejected', () => {
+  const token = sign({
+    ...validPayload,
+    aud: 'service',
+  });
+
+  const result = runAuth(`Bearer ${token}`);
+
+  expect(result.nextCalled).toBe(false);
+  expect(result.status).toBe(401);
+});
+
+test('service-level JWT role is rejected', () => {
+  const token = sign({
+    ...validPayload,
+    role: 'service_role',
+  });
+
+  const result = runAuth(`Bearer ${token}`);
+
+  expect(result.nextCalled).toBe(false);
+  expect(result.status).toBe(401);
+});
+
+test('JWT without expiration is rejected', () => {
+  const { exp, ...payloadWithoutExpiration } = validPayload;
+  const token = sign(payloadWithoutExpiration);
+
+  const result = runAuth(`Bearer ${token}`);
+
+  expect(result.nextCalled).toBe(false);
+  expect(result.status).toBe(401);
+});
+
+test('JWT without authenticated role is rejected', () => {
+  const { role, ...payloadWithoutRole } = validPayload;
+  const token = sign(payloadWithoutRole);
+
+  const result = runAuth(`Bearer ${token}`);
+
+  expect(result.nextCalled).toBe(false);
+  expect(result.status).toBe(401);
 });

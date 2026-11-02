@@ -105,20 +105,40 @@ export function validateToken(
       });
     }
 
-    if (payload.exp < Math.floor(Date.now() / 1000)) {
+    if (
+      payload.aud !== 'authenticated' ||
+      payload.role !== 'authenticated'
+    ) {
       return res.status(401).json({
         data: {},
         count: 0,
         status: 401,
-        message: 'Token has expired',
+        message: 'Token is not an authenticated user session',
       });
     }
 
-    // @ts-ignore
-    req.userId = payload?.sub;
-    req.userEmail = payload?.email;
-    req.role = payload?.user_metadata?.role || 'PLAYER';
-    req.roleId = roles[payload?.user_metadata?.role] || roles['PLAYER'];
+    if (
+      typeof payload.exp !== 'number' ||
+      !Number.isFinite(payload.exp) ||
+      payload.exp <= Math.floor(Date.now() / 1000)
+    ) {
+      return res.status(401).json({
+        data: {},
+        count: 0,
+        status: 401,
+        message: 'Token is missing a valid expiration',
+      });
+    }
+
+    req.userId = payload.sub;
+    req.userEmail = typeof payload.email === 'string'
+      ? payload.email
+      : undefined;
+
+    // User metadata is not a trusted authorization source.
+    req.role = 'PLAYER';
+    req.roleId = roles.PLAYER;
+
     return next();
   }
   return res
