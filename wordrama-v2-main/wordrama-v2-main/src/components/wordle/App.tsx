@@ -2128,7 +2128,7 @@ const activeSolution = isCustom
   if (gameLoading) return <Loader />;
   return (
     <Div100vh
-      className={`!h-auto min-h-screen transition-colors ${pageBackgroundThemeClasses} ${pageTextThemeClasses}`}
+      className={`w-full !h-auto min-h-screen transition-colors ${pageBackgroundThemeClasses} ${pageTextThemeClasses}`}
     >
       <TooltipProvider>
         <WinCelebration
