@@ -2156,7 +2156,7 @@ const activeSolution = isCustom
             }}
           >
             <SheetContent
-              className={appearanceTheme.app.panel}
+              className={`${appearanceTheme.app.panel} overflow-y-auto`}
               style={{ backgroundColor: gamePageBackgroundColor }}
             >
               <SheetHeader>
@@ -2372,7 +2372,7 @@ const activeSolution = isCustom
 
                 <Separator />
 
-                <div className="grid grid-cols-2 gap-x-10 gap-y-6 py-2">
+                <div className="grid grid-cols-1 gap-y-6 py-2">
                   <div className="flex items-center justify-between gap-4">
                     <SettingsToggleLabel
                       htmlFor="swapDeleteAndEnter"
@@ -2503,7 +2503,7 @@ const activeSolution = isCustom
             </SheetTrigger>
             <SheetContent
               side="left"
-              className={appearanceTheme.app.panel}
+              className={`${appearanceTheme.app.panel} overflow-y-auto`}
               style={{ backgroundColor: gamePageBackgroundColor }}
             >
               <SheetHeader>
