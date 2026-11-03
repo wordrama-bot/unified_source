@@ -38,7 +38,7 @@ export const Cell = ({
         }`
 
   const classes = classnames(
-    'xxshort:w-11 xxshort:h-11 short:text-2xl short:w-12 short:h-12 w-[56px] h-[56px] border-solid border-2 flex items-center justify-center mx-0.5 text-4xl font-bold rounded',
+    'xxshort:w-11 short:text-2xl short:w-12 w-[56px] min-w-0 aspect-square self-start border-solid border-2 flex items-center justify-center mx-0.5 text-4xl font-bold rounded',
     {
       'dark:text-white': appearanceTheme.meta.id === 'theme.default',
 
