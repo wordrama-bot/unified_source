@@ -733,8 +733,10 @@ function App(){
     dispatch,
   ]);
 
-  const { data: wordleWordPack, isLoading: isLoadingWordPack, refetch: refetchWordPack  } = useGetWordleWordPackQuery(gameState.wordPack);
-  const { data: wordOfTheDay, isLoading: isLoadingWoTD } = useGetWordleWoTDQuery(wordPack);
+  // RTK Query data can belong to the previous argument while a new pack loads.
+  // Only currentData is safe for creating or validating the selected pack board.
+  const { currentData: wordleWordPack, isLoading: isLoadingWordPack, refetch: refetchWordPack  } = useGetWordleWordPackQuery(gameState.wordPack);
+  const { currentData: wordOfTheDay, isLoading: isLoadingWoTD } = useGetWordleWoTDQuery(wordPack);
   const { data: streakData, isLoading: isLoadingStreakData, isError: isErrorStreakData, refetch: refetchStreak } = useGetWordleStreakQuery({ gameMode, wordPack });
   const { currentStreak, bestStreak } =
     (isErrorStreakData ? {
