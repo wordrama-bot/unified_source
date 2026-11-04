@@ -369,7 +369,13 @@ export default function WordleWeeklyLeaderboardPage() {
                         <div className="flex items-center justify-between">
                           <div className="flex items-center space-x-2">
                             <Medal className={`h-6 w-6 ${index === 0 ? "text-yellow-400" : index === 1 ? "text-gray-400" : "text-amber-600"}`} />
-                            <span className="font-semibold hover:underline"><Link href={`/player/${player?.player}`}>{ player.displayName }</Link></span>
+                            <Link href={`/player/${player?.player}`} className="flex min-w-0 items-center gap-2 font-semibold hover:underline">
+                               <PlayerAvatar profileImage={player?.profileImage} displayName={player?.displayName || 'Player'} avatarStyleKey={player?.avatarStyleKey} avatarFrameKey={player?.avatarFrameKey} size={36} />
+                               <span className="truncate">{player?.displayName}</span>
+                             </Link>
+                             {(player?.avatarFrameKey === 'FRAME:PLUS' || player?.avatarFrameKey === 'FRAME:CREATOR') && (
+                               <span className="shrink-0 rounded border px-1.5 py-0.5 text-[10px] font-medium" title="Equipped avatar frame, not a subscription-status indicator">{player.avatarFrameKey === 'FRAME:CREATOR' ? 'CREATOR frame' : 'PLUS frame'}</span>
+                             )}
                           </div>
                           <span className="text-2xl font-bold"></span>
                         </div>
@@ -488,7 +494,13 @@ export default function WordleWeeklyLeaderboardPage() {
                         <TableCell>
                           <HoverCard>
                             <HoverCardTrigger asChild>
-                              <Link className="hover:underline" href={`/player/${entry?.player}`}>{ entry?.displayName }</Link>
+                              <Link className="inline-flex min-w-0 items-center gap-2 hover:underline" href={`/player/${entry?.player}`}>
+                                 <PlayerAvatar profileImage={entry?.profileImage} displayName={entry?.displayName || 'Player'} avatarStyleKey={entry?.avatarStyleKey} avatarFrameKey={entry?.avatarFrameKey} size={32} />
+                                 <span className="truncate">{entry?.displayName}</span>
+                                 {(entry?.avatarFrameKey === 'FRAME:PLUS' || entry?.avatarFrameKey === 'FRAME:CREATOR') && (
+                                   <span className="shrink-0 rounded border px-1.5 py-0.5 text-[10px] font-medium" title="Equipped avatar frame, not a subscription-status indicator">{entry.avatarFrameKey === 'FRAME:CREATOR' ? 'CREATOR frame' : 'PLUS frame'}</span>
+                                 )}
+                               </Link>
                             </HoverCardTrigger>
                             <HoverCardContent className="w-80">
                               <div className="flex justify-between space-x-4">
@@ -538,7 +550,10 @@ export default function WordleWeeklyLeaderboardPage() {
                 ) : myRankIsValid ? (
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
-                      <div className="text-lg font-semibold">#{myRank} · {myPosition?.displayName || 'You'}</div>
+                      <div className="flex items-center gap-2">
+                         <PlayerAvatar profileImage={myPosition?.profileImage} displayName={myPosition?.displayName || 'You'} avatarStyleKey={myPosition?.avatarStyleKey} avatarFrameKey={myPosition?.avatarFrameKey} size={36} />
+                         <div className="text-lg font-semibold">#{myRank} · {myPosition?.displayName || 'You'}</div>
+                       </div>
                       <div className="text-sm text-muted-foreground">{myPlayerIsOnPage ? 'Your row is highlighted above.' : 'Your position is shown here even when you are not on this page.'}</div>
                     </div>
                     <div className="text-sm">{myWins} wins · {myLosses} losses</div>
