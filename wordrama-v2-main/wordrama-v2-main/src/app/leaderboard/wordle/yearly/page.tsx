@@ -424,7 +424,7 @@ export default function WordleYearlyLeaderboardPage() {
                           <SubscriptionBadge subscriptionKey={myPosition?.subscriptionKey} />
                          <div className="text-lg font-semibold">#{myRank} · {myPosition?.displayName || 'You'}</div>
                        </div>
-                      <div className="text-sm text-muted-foreground">{myPlayerIsOnPage ? 'Your row is highlighted above.' : 'Your position is shown here even when you are not on this page.'}</div>
+
                     </div>
                     <div className="text-sm">{myWins} wins · {myLosses} losses</div>
                   </div>
