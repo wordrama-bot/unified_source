@@ -1372,6 +1372,7 @@ const activeSolution = isCustom
 
   function enterGameMode(gameMode: string) {
     setShowConfetti(false);
+    shouldPersistGameStateRef.current = true;
     //appInsights.trackEvent({ name: 'switchedGameMode', properties: { gameMode, player: user.id } });
     return dispatch(setGameMode(gameMode.toUpperCase()))
   }
@@ -1383,6 +1384,7 @@ const activeSolution = isCustom
 
   function useWordPack(wordPack: string) {
     setShowConfetti(false);
+    shouldPersistGameStateRef.current = true;
     //appInsights.trackEvent({ name: 'switchedWordPack', properties: { wordPack, player: user.id } });
     dispatch(setWordPack(wordPack));
     const wordLength = wordleWordPackConfig.solutionLengthByName[wordPack];
@@ -1737,7 +1739,7 @@ const activeSolution = isCustom
     }
   }
 
-  // Persist the game board after each submitted guess.
+  // Persist submitted guesses and explicit mode/pack selections.
   // Typing within the active row remains local-only.
   useEffect(() => {
     if (gameLoading) return;
