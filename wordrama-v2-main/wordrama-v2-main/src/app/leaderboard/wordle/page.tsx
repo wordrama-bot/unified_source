@@ -294,7 +294,7 @@ export default function WordleAllTimeLeaderboardPage() {
 
 
   const { data: allTimeData, isLoading: isLoadingAllTime, error: allTimeError } = useGetAllTimeWordleLeaderboardQuery({ page: Number(searchParams.get('page') || 1), orderBy: sortByKey });
-  const { data: allTimeTop3Data, isLoading: isLoadingTop3AllTime, error: allTimeTop3Error } = useGetAllTimeWordleLeaderboardQuery({ page: 1, orderBy: sortByKey });
+  const { data: allTimeTop3Data, isLoading: isLoadingTop3AllTime, error: allTimeTop3Error } = useGetAllTimeWordleLeaderboardQuery({ page: 1, orderBy: sortRankColumn });
 
   useEffect(() => {
     if (allTimeError) {
@@ -490,6 +490,9 @@ export default function WordleAllTimeLeaderboardPage() {
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
+            {sortBy !== 'rank' && (
+              <p className="mb-3 text-sm text-muted-foreground">Rows are sorted by the selected statistic. Rank reflects official leaderboard standing.</p>
+            )}
             <div className="rounded-md border">
               <Table>
                 <TableHeader>

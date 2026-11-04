@@ -287,7 +287,7 @@ export default function WordleYearlyLeaderboardPage() {
 
 
   const { data: yearlyData, isLoading: isLoadingYearly, error: yearlyError } = useGetYearlyWordleLeaderboardQuery({ page: Number(searchParams.get('page') || 1), orderBy: sortByKey });
-  const { data: yearlyTop3Data, isLoading: isLoadingTop3Yearly, error: yearlyTop3Error } = useGetYearlyWordleLeaderboardQuery({ page: 1, orderBy: sortByKey });
+  const { data: yearlyTop3Data, isLoading: isLoadingTop3Yearly, error: yearlyTop3Error } = useGetYearlyWordleLeaderboardQuery({ page: 1, orderBy: sortRankColumn });
 
   useEffect(() => {
     if (yearlyError) {
@@ -470,6 +470,9 @@ export default function WordleYearlyLeaderboardPage() {
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
+            {sortBy !== 'rank' && (
+              <p className="mb-3 text-sm text-muted-foreground">Rows are sorted by the selected statistic. Rank reflects official leaderboard standing.</p>
+            )}
             <div className="rounded-md border">
               <Table>
                 <TableHeader>

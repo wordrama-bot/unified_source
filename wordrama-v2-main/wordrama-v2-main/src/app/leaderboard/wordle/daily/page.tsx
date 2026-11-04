@@ -286,7 +286,7 @@ export default function WordleDailyLeaderboardPage() {
 
 
   const { data: dailyData, isLoading: isLoadingDaily, error: dailyError } = useGetDailyWordleLeaderboardQuery({ page: Number(searchParams.get('page') || 1), orderBy: sortByKey });
-  const { data: dailyTop3Data, isLoading: isLoadingTop3Daily, error: dailyTop3Error } = useGetDailyWordleLeaderboardQuery({ page: 1, orderBy: sortByKey });
+  const { data: dailyTop3Data, isLoading: isLoadingTop3Daily, error: dailyTop3Error } = useGetDailyWordleLeaderboardQuery({ page: 1, orderBy: sortRankColumn });
 
   useEffect(() => {
     if (dailyError) {
@@ -469,6 +469,9 @@ export default function WordleDailyLeaderboardPage() {
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
+            {sortBy !== 'rank' && (
+              <p className="mb-3 text-sm text-muted-foreground">Rows are sorted by the selected statistic. Rank reflects official leaderboard standing.</p>
+            )}
             <div className="rounded-md border">
               <Table>
                 <TableHeader>

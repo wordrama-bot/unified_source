@@ -286,7 +286,7 @@ export default function WordleMonthlyLeaderboardPage() {
 
 
   const { data: monthlyData, isLoading: isLoadingMonthly, error: monthlyError } = useGetMonthlyWordleLeaderboardQuery({ page: Number(searchParams.get('page') || 1), orderBy: sortByKey });
-  const { data: monthlyTop3Data, isLoading: isLoadingTop3Monthly, error: monthlyTop3Error } = useGetMonthlyWordleLeaderboardQuery({ page: 1, orderBy: sortByKey });
+  const { data: monthlyTop3Data, isLoading: isLoadingTop3Monthly, error: monthlyTop3Error } = useGetMonthlyWordleLeaderboardQuery({ page: 1, orderBy: sortRankColumn });
 
   useEffect(() => {
     if (monthlyError) {
@@ -469,6 +469,9 @@ export default function WordleMonthlyLeaderboardPage() {
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
+            {sortBy !== 'rank' && (
+              <p className="mb-3 text-sm text-muted-foreground">Rows are sorted by the selected statistic. Rank reflects official leaderboard standing.</p>
+            )}
             <div className="rounded-md border">
               <Table>
                 <TableHeader>
