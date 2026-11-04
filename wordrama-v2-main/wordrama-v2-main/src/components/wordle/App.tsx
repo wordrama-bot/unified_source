@@ -173,6 +173,7 @@ function guessesArePrefix(
 function reconcileSavedStateWithPendingResults(
   savedState: any,
   pendingResults: PendingWordleResult[],
+  advanceThroughCompletions = true,
 ) {
   if (!savedState || pendingResults.length === 0) {
     return savedState;
@@ -241,7 +242,7 @@ function reconcileSavedStateWithPendingResults(
 
   for (
     let index = anchorIndex + 1;
-    index < pendingResults.length;
+    advanceThroughCompletions && index < pendingResults.length;
     index += 1
   ) {
     const candidate = pendingResults[index];
@@ -303,6 +304,36 @@ function reconcileSavedStateWithPendingResults(
       },
     },
   };
+}
+
+// Inactive packs can contain stale boards too. Reconcile every saved slot
+// without changing the player's selected mode or word pack.
+function reconcileAllWordleBoards(
+  savedState: any,
+  results: PendingWordleResult[],
+  advanceThroughCompletions = true,
+) {
+  let reconciled = savedState;
+  const slots = Object.entries(savedState.modes ?? {}).flatMap(([mode, packs]) =>
+    Object.keys(packs as object).map(pack => ({ gameMode: mode, wordPack: pack })),
+  );
+  if (savedState.gameMode === 'CUSTOM') {
+    slots.push({ gameMode: 'CUSTOM', wordPack: savedState.wordPack });
+  }
+  for (const slot of slots) {
+    const candidate = { ...reconciled, ...slot };
+    const restored = reconcileSavedStateWithPendingResults(
+      candidate, results, advanceThroughCompletions,
+    );
+    if (restored !== candidate) {
+      reconciled = {
+        ...restored,
+        gameMode: savedState.gameMode,
+        wordPack: savedState.wordPack,
+      };
+    }
+  }
+  return reconciled;
 }
 
 function isWordleStateRevisionConflict(error: unknown): boolean {
@@ -1367,7 +1398,13 @@ const activeSolution = isCustom
       shouldPersistGameStateRef.current = true;
     }
 
-    dispatch(setGameState(updatedState));
+    const target = {
+      gameMode,
+      wordPack,
+      gameInstanceId: currentGame.gameInstanceId,
+      solution: currentGame.solution,
+    };
+    dispatch(setGameState(updatedState, target));
 
     if (updatedState.resultSave) {
       setTimeout(() => {
@@ -1375,7 +1412,7 @@ const activeSolution = isCustom
           dispatch(setGameState({
             ...updatedState,
             resultSave: false
-          }));
+          }, { ...target, gameInstanceId: updatedState.gameInstanceId, solution: updatedState.solution }));
         }
       }, 500)
     }
@@ -1999,11 +2036,13 @@ const activeSolution = isCustom
           a.queuedAt.localeCompare(b.queuedAt),
         );
 
-        const reconciledState = restoredPendingLocalCheckpoint
-          ? initialState // An unsynced newer local board outranks old completions.
-          : reconcileSavedStateWithPendingResults(
-              initialState, recoveryResults,
-            );
+        const reconciledState = reconcileAllWordleBoards(
+          initialState,
+          recoveryResults,
+          // A pending local checkpoint may hold a newer unsent board.
+          // Only its exact completed instance can be marked finished.
+          !restoredPendingLocalCheckpoint,
+        );
 
         if (reconciledState !== initialState) {
           pendingReconciledStateRef.current =

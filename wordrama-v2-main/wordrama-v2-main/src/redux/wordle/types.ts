@@ -8,6 +8,13 @@ export type GameState = {
   resultSave: boolean;
 };
 
+export type WordleBoardTarget = {
+  gameMode: string;
+  wordPack: string;
+  gameInstanceId?: string;
+  solution: string;
+};
+
 export type CustomGameState = {
   joinCode: string;
   hint: string;
@@ -44,6 +51,7 @@ export interface ISetGameStateAction extends IAction {
     wordLength: number,
     wordPack: string,
     updatedState: GameState,
+    target?: WordleBoardTarget,
     hint: string,
     joinCode: string,
     solution: string,

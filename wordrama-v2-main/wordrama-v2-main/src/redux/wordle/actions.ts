@@ -1,4 +1,4 @@
-import { InitialState, type GameState } from './types';
+import { InitialState, type GameState, type WordleBoardTarget } from './types';
 
 export function setInitialState(state: InitialState) {
   return {
@@ -8,12 +8,14 @@ export function setInitialState(state: InitialState) {
 }
 
 export function setGameState(
-  updatedState: GameState
+  updatedState: GameState,
+  target?: WordleBoardTarget,
 ) {
     return {
         type: "SET_GAME_STATE",
         payload: {
-          updatedState
+          updatedState,
+          target,
         }
     };
 }
