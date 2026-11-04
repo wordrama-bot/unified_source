@@ -149,8 +149,26 @@ function participationColumns(safeOrderBy: string): [string, string] {
           prefix === 'games' ? 'games_lost' : `${prefix}_games_lost`];
 }
 
+// Keep the selected pack's rank independent from the statistic used for ordering.
+// The rank whitelist also guards all derived participation columns.
 function sanitizeOrderBy(orderBy: string, fallback: string) {
-  return ALLOWED_ORDER_COLUMNS.has(orderBy) ? orderBy : fallback;
+  const rank = orderBy.split('__sort__')[0];
+  return ALLOWED_ORDER_COLUMNS.has(rank) ? rank : fallback;
+}
+
+function resolveSort(orderBy: string, rank: string) {
+  const [requestedRank, statistic, extra] = orderBy.split('__sort__');
+  if (requestedRank !== rank || extra !== undefined || !statistic) {
+    return { column: rank, ascending: true };
+  }
+  const [won, lost] = participationColumns(rank);
+  const permitted = [won, lost];
+  if (['alltime_rank', 'daily_rank', 'weekly_rank', 'monthly_rank', 'yearly_rank'].includes(rank)) {
+    permitted.push('games_played');
+  }
+  return permitted.includes(statistic)
+    ? { column: statistic, ascending: false }
+    : { column: rank, ascending: true };
 }
 
 async function getProfileImagesByPlayerIds(playerIds: string[]) {
@@ -490,12 +508,14 @@ async function getPlayerLeaderboardAllTime(
   limit: number = 10,
 ) {
   const safeOrderBy = sanitizeOrderBy(orderBy, 'alltime_rank');
+  const sorting = resolveSort(orderBy, safeOrderBy);
 
   const { data, error } = await db
     .from('_mv_wordle_alltime_leaderboard')
     .select('*')
     .not(safeOrderBy, 'is', null)
     .or(participationColumns(safeOrderBy).map((column) => `${column}.gt.0`).join(','))
+    .order(sorting.column, { ascending: sorting.ascending })
     .order(safeOrderBy, { ascending: true })
     .range(offset, offset + limit - 1);
 
@@ -548,6 +568,7 @@ async function getPlayerLeaderboardForTheYear(
   year: number = new Date().getFullYear(),
 ) {
   const safeOrderBy = sanitizeOrderBy(orderBy, 'yearly_rank');
+  const sorting = resolveSort(orderBy, safeOrderBy);
 
   const { data, error } = await db
     .from('_mv_wordle_yearly_leaderboard')
@@ -555,6 +576,7 @@ async function getPlayerLeaderboardForTheYear(
     .eq('year', year)
     .not(safeOrderBy, 'is', null)
     .or(participationColumns(safeOrderBy).map((column) => `${column}.gt.0`).join(','))
+    .order(sorting.column, { ascending: sorting.ascending })
     .order(safeOrderBy, { ascending: true })
     .range(offset, offset + limit - 1);
 
@@ -608,6 +630,7 @@ async function getPlayerLeaderboardForTheMonth(
   year: number = new Date().getFullYear(),
 ) {
   const safeOrderBy = sanitizeOrderBy(orderBy, 'monthly_rank');
+  const sorting = resolveSort(orderBy, safeOrderBy);
 
   const { data, error } = await db
     .from('_mv_wordle_monthly_leaderboard')
@@ -616,6 +639,7 @@ async function getPlayerLeaderboardForTheMonth(
     .eq('year', year)
     .not(safeOrderBy, 'is', null)
     .or(participationColumns(safeOrderBy).map((column) => `${column}.gt.0`).join(','))
+    .order(sorting.column, { ascending: sorting.ascending })
     .order(safeOrderBy, { ascending: true })
     .range(offset, offset + limit - 1);
 
@@ -669,6 +693,7 @@ async function getPlayerLeaderboardForThisWeek(
   year: number = new Date().getFullYear(),
 ) {
   const safeOrderBy = sanitizeOrderBy(orderBy, 'weekly_rank');
+  const sorting = resolveSort(orderBy, safeOrderBy);
 
   const { data, error } = await db
     .from('_mv_wordle_weekly_leaderboard')
@@ -677,6 +702,7 @@ async function getPlayerLeaderboardForThisWeek(
     .eq('year', year)
     .not(safeOrderBy, 'is', null)
     .or(participationColumns(safeOrderBy).map((column) => `${column}.gt.0`).join(','))
+    .order(sorting.column, { ascending: sorting.ascending })
     .order(safeOrderBy, { ascending: true })
     .range(offset, offset + limit - 1);
 
@@ -731,6 +757,7 @@ async function getPlayerLeaderboardForToday(
   year: number = new Date().getFullYear(),
 ) {
   const safeOrderBy = sanitizeOrderBy(orderBy, 'daily_rank');
+  const sorting = resolveSort(orderBy, safeOrderBy);
 
   const { data, error } = await db
     .from('_mv_wordle_daily_leaderboard')
@@ -740,6 +767,7 @@ async function getPlayerLeaderboardForToday(
     .eq('year', year)
     .not(safeOrderBy, 'is', null)
     .or(participationColumns(safeOrderBy).map((column) => `${column}.gt.0`).join(','))
+    .order(sorting.column, { ascending: sorting.ascending })
     .order(safeOrderBy, { ascending: true })
     .range(offset, offset + limit - 1);
 

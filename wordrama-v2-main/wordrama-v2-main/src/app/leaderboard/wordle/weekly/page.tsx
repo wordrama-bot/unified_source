@@ -72,6 +72,13 @@ export default function WordleWeeklyLeaderboardPage() {
   const [wordPack, setWordPack] = useState((searchParams.get('wordPack') || "all").toLowerCase())
   const [sortBy, setSortBy] = useState((searchParams.get('sortBy') || "rank").toLowerCase())//useState<SortKey>("score")
 
+  // Keep controls synchronized with browser Back/Forward navigation.
+  useEffect(() => {
+    setWordPack((searchParams.get('wordPack') || 'all').toLowerCase());
+    setSortBy((searchParams.get('sortBy') || 'rank').toLowerCase());
+  }, [searchParams]);
+
+
   const WORD_PACKS: Record<string, {
     label: string;
     prefix: string;
@@ -245,7 +252,27 @@ export default function WordleWeeklyLeaderboardPage() {
     return selectedPack.rankColumn;
   };
 
-  const sortByKey = getSortBy(sortBy, wordPack);
+  const sortRankColumn = selectedWordPack.rankColumn;
+  const sortStatistic = sortBy === 'games_won'
+    ? (selectedWordPack.columnPrefix ? `${selectedWordPack.columnPrefix}_games_won` : 'games_won')
+    : sortBy === 'games_lost'
+      ? (selectedWordPack.columnPrefix ? `${selectedWordPack.columnPrefix}_games_lost` : 'games_lost')
+      : sortBy === 'games_played' && wordPack === 'all'
+        ? 'games_played'
+        : null;
+  const sortByKey = sortStatistic ? `${sortRankColumn}__sort__${sortStatistic}` : sortRankColumn;
+
+  const leaderboardUrl = (page: number, nextSort = sortBy, nextPack = wordPack) => {
+    const params = new URLSearchParams();
+    params.set('page', String(Math.max(1, page || 1)));
+    if (nextPack !== 'all') params.set('wordPack', nextPack);
+    if (nextSort !== 'rank') params.set('sortBy', nextSort);
+    return `${window.location.pathname}?${params.toString()}`;
+  };
+  const changeSort = (nextSort: string) => {
+    setSortBy(nextSort);
+    router.push(leaderboardUrl(1, nextSort));
+  };
 
   const [leaderboardData, setLeaderboardData] = useState({ data: [] });
   const { user } = useAuth();
@@ -291,11 +318,11 @@ export default function WordleWeeklyLeaderboardPage() {
           <PaginationItem>
             <PaginationPrevious
               className="text-text dark:text-darkText"
-              href={`${window.location.pathname}?page=${weeklyData?.metadata?.previousPage}`}
+              href={leaderboardUrl(weeklyData?.metadata?.previousPage)}
             />
           </PaginationItem>
           <PaginationItem>
-            <PaginationLink className="text-text dark:text-darkText" href={`${window.location.pathname}?page=${weeklyData?.metadata?.currentPage}`}>{ weeklyData?.metadata?.currentPage }</PaginationLink>
+            <PaginationLink className="text-text dark:text-darkText" href={leaderboardUrl(weeklyData?.metadata?.currentPage)}>{ weeklyData?.metadata?.currentPage }</PaginationLink>
           </PaginationItem>
           <PaginationItem className="text-white">
             <PaginationEllipsis className="text-text dark:text-darkText" />
@@ -303,12 +330,12 @@ export default function WordleWeeklyLeaderboardPage() {
           { weeklyData?.metadata?.currentPage < weeklyData?.metadata?.totalPages && (
             <>
               <PaginationItem>
-                <PaginationLink className="text-text dark:text-darkText" href={`${window.location.pathname}?page=${weeklyData?.metadata?.totalPages}`}>{ weeklyData?.metadata?.totalPages }</PaginationLink>
+                <PaginationLink className="text-text dark:text-darkText" href={leaderboardUrl(weeklyData?.metadata?.totalPages)}>{ weeklyData?.metadata?.totalPages }</PaginationLink>
               </PaginationItem>
               <PaginationItem>
                 <PaginationNext
                   className="text-text dark:text-darkText"
-                  href={`${window.location.pathname}?page=${weeklyData?.metadata?.nextPage}`}
+                  href={leaderboardUrl(weeklyData?.metadata?.nextPage)}
                 />
               </PaginationItem>
             </>
@@ -389,6 +416,8 @@ export default function WordleWeeklyLeaderboardPage() {
               </Select>
               <Select value={wordPack} onValueChange={(value) => {
                 setWordPack(value);
+                setSortBy('rank');
+                router.push(leaderboardUrl(1, 'rank', value));
               }}>
                 <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="Select word pack" />
@@ -423,31 +452,15 @@ export default function WordleWeeklyLeaderboardPage() {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="default">
-                    Sort by: {sortBy.includes("games_won") && sortBy !== 'games_won' ? `Games Won in ${sortBy.slice(-1)}` : sortBy.charAt(0).toUpperCase() + sortBy.replace('_', ' ').slice(1)}
+                    Sort by: {{ rank: 'Rank', games_played: 'Games Played', games_won: 'Games Won', games_lost: 'Games Lost' }[sortBy] || 'Rank'}
                     <ChevronDown className="ml-2 h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
-                  <DropdownMenuItem onClick={() => { setSortBy('rank'); }}>
-                    Rank
-                  </DropdownMenuItem>
-                  {/* <DropdownMenuItem onClick={() => { setSortBy('games_won'); }}>
-                    Games Won
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => { setSortBy('games_lost'); }}>
-                    Games Lost
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => { setSortBy('games_played'); }}>
-                    Games Played
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => { setSortBy('best_streak'); }}>
-                    Best Streak
-                  </DropdownMenuItem>
-                  {[1, 2, 3, 4, 5, 6].map((guesses) => (
-                    <DropdownMenuItem key={guesses} onClick={() => { setSortBy(`games_won_in_${guesses}`); }}>
-                      Games Won in {guesses}
-                    </DropdownMenuItem>
-                  ))} */}
+                  <DropdownMenuItem onClick={() => changeSort('rank')}>Rank</DropdownMenuItem>
+                  {wordPack === 'all' && <DropdownMenuItem onClick={() => changeSort('games_played')}>Games Played</DropdownMenuItem>}
+                  <DropdownMenuItem onClick={() => changeSort('games_won')}>Games Won</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => changeSort('games_lost')}>Games Lost</DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
@@ -455,11 +468,11 @@ export default function WordleWeeklyLeaderboardPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-[50px]">Rank</TableHead>
+                    <TableHead className="w-[50px]"><button type="button" className="inline-flex items-center gap-1 hover:underline" onClick={() => changeSort('rank')}>Rank {sortBy === 'rank' ? ('rank' === 'rank' ? '↑' : '↓') : ''}</button></TableHead>
                     <TableHead>Name</TableHead>
-                    <TableHead className="text-right">Games Played</TableHead>
-                    <TableHead className="text-right">Won</TableHead>
-                    <TableHead className="text-right">Lost</TableHead>
+                    <TableHead className="text-right"><button type="button" className="inline-flex items-center gap-1 hover:underline" onClick={() => changeSort('games_played')} disabled={wordPack !== 'all'}>Games Played {sortBy === 'games_played' ? ('games_played' === 'rank' ? '↑' : '↓') : ''}</button></TableHead>
+                    <TableHead className="text-right"><button type="button" className="inline-flex items-center gap-1 hover:underline" onClick={() => changeSort('games_won')}>Won {sortBy === 'games_won' ? ('games_won' === 'rank' ? '↑' : '↓') : ''}</button></TableHead>
+                    <TableHead className="text-right"><button type="button" className="inline-flex items-center gap-1 hover:underline" onClick={() => changeSort('games_lost')}>Lost {sortBy === 'games_lost' ? ('games_lost' === 'rank' ? '↑' : '↓') : ''}</button></TableHead>
                     { sortBy.includes('games_won_in') && (
                       <TableHead className="text-right">Games won in {sortBy.substr(-1)}</TableHead>
                     )}
@@ -470,10 +483,7 @@ export default function WordleWeeklyLeaderboardPage() {
                     leaderboardData.data.map((entry, index) => (
                       <TableRow key={entry?.id} className={user?.id && entry?.player === user.id ? "bg-primary/10 ring-1 ring-inset ring-primary/30" : undefined}>
                         <TableCell className="font-medium">
-                          { sortBy === 'rank' ?
-                            entry[selectedWordPack.rankColumn.replace(/_([a-z])/g, (_, char: string) => char.toUpperCase())] :
-                            entry.position
-                          }
+                          {entry[selectedWordPack.rankColumn.replace(/_([a-z])/g, (_, char: string) => char.toUpperCase())]}
                         </TableCell>
                         <TableCell>
                           <HoverCard>
