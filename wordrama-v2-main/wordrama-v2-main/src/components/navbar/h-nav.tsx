@@ -70,7 +70,7 @@ export default function NavBar({
     >
       <nav
         className={`hidden ${
-          user ? "md:flex" : ""
+          user ? "lg:flex" : ""
         } flex-col gap-6 text-lg font-medium md:flex-row md:items-center md:gap-5 md:text-sm lg:gap-6`}
       >
         <Link
@@ -105,7 +105,7 @@ export default function NavBar({
             <Button
               variant="outline"
               size="icon"
-              className="shrink-0 md:hidden"
+              className="shrink-0 lg:hidden"
               aria-label="Open navigation menu"
             >
               <Menu className={`h-5 w-5 ${headerIconColorClass}`} />
@@ -271,25 +271,30 @@ export default function NavBar({
             </Link>
           </div>
 
-          <div className="ml-4 flex-1 sm:flex-initial">
+          <div className="ml-1 flex-1 sm:ml-4 sm:flex-initial">
             <Link href={`/player/${user?.data?.id}`}>
               <Trophy className={`h-5 w-5 ${headerIconColorClass}`} />
             </Link>
           </div>
 
-          <div className="mr-4 flex-1 sm:flex-initial">
+          <div className="mr-1 flex-1 sm:mr-4 sm:flex-initial">
             <Link href={`/player/${user?.data?.id}`}>
               {user?.data?.levels?.level}
             </Link>
           </div>
 
-          <div className="ml-2">
+          <div className="ml-0 sm:ml-2">
             <Button onClick={handleUpgradeClick}>
-              {upgradeLabel}
+              <span className="sm:hidden">
+                {isCreator ? "Creator ✓" : "Upgrade"}
+              </span>
+              <span className="hidden sm:inline">
+                {upgradeLabel}
+              </span>
             </Button>
           </div>
 
-          <div className="ml-2">
+          <div className="ml-0 sm:ml-2">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="secondary" size="icon" className="rounded-full" aria-label="Open user menu">
