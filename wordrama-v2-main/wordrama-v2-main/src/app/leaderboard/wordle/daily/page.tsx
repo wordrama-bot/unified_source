@@ -4,6 +4,7 @@ import { LeaderboardNav } from "@/components/navbar/wordle-leaderboard";
 import { useRouter } from "next/navigation"
 import Loading from '@/sections/loading';
 import {
+  useGetMyDailyWordleLeaderboardPostitionQuery,
   useGetDailyWordleLeaderboardQuery
 } from "@/redux/api/wordrama";
 import {
@@ -12,6 +13,7 @@ import {
   HoverCardTrigger,
 } from "@/components/ui/hover-card"
 import PlayerAvatar from '@/components/avatar/PlayerAvatar';
+import { useAuth } from '@/providers/auth-provider';
 import {
   Pagination,
   PaginationContent,
@@ -245,6 +247,16 @@ export default function WordleDailyLeaderboardPage() {
   const sortByKey = getSortBy(sortBy, wordPack);
 
   const [leaderboardData, setLeaderboardData] = useState({ data: [] });
+  const { user } = useAuth();
+  const { data: myPositionResponse, isError: myPositionError, isFetching: myPositionLoading } = useGetMyDailyWordleLeaderboardPostitionQuery(undefined, { skip: !user?.id });
+  const myPosition = myPositionResponse?.data;
+  const rankField = selectedWordPack.rankColumn.replace(/_([a-z])/g, (_: string, char: string) => char.toUpperCase());
+  const myWins = Number(prefix ? myPosition?.[`${prefix}GamesWon`] : myPosition?.gamesWon) || 0;
+  const myLosses = Number(prefix ? myPosition?.[`${prefix}GamesLost`] : myPosition?.gamesLost) || 0;
+  const myRank = myWins + myLosses > 0 ? Number(myPosition?.[rankField]) : 0;
+  const myRankIsValid = Number.isFinite(myRank) && myRank > 0;
+  const myPlayerIsOnPage = Boolean(user?.id && leaderboardData.data.some((entry: any) => entry?.player === user.id));
+
 
   const { data: dailyData, isLoading: isLoadingDaily, error: dailyError } = useGetDailyWordleLeaderboardQuery({ page: Number(searchParams.get('page') || 1), orderBy: sortByKey });
   const { data: dailyTop3Data, isLoading: isLoadingTop3Daily, error: dailyTop3Error } = useGetDailyWordleLeaderboardQuery({ page: 1, orderBy: sortByKey });
@@ -455,7 +467,7 @@ export default function WordleDailyLeaderboardPage() {
                 <TableBody>
                   {leaderboardData?.data?.length ? (
                     leaderboardData.data.map((entry, index) => (
-                      <TableRow key={entry?.id}>
+                      <TableRow key={entry?.id} className={user?.id && entry?.player === user.id ? "bg-primary/10 ring-1 ring-inset ring-primary/30" : undefined}>
                         <TableCell className="font-medium">
                           { sortBy === 'rank' ?
                             entry[selectedWordPack.rankColumn.replace(/_([a-z])/g, (_, char: string) => char.toUpperCase())] :
@@ -510,6 +522,24 @@ export default function WordleDailyLeaderboardPage() {
                 </TableBody>
               </Table>
             </div>
+            {user?.id && !myPositionLoading && (
+              <div className="mt-4 rounded-md border border-primary/40 bg-primary/5 p-4" aria-label="Your leaderboard position">
+                <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Your Rank · {selectedWordPack.label}</div>
+                {myPositionError ? (
+                  <p className="text-sm text-muted-foreground">Your position is temporarily unavailable.</p>
+                ) : myRankIsValid ? (
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                      <div className="text-lg font-semibold">#{myRank} · {myPosition?.displayName || 'You'}</div>
+                      <div className="text-sm text-muted-foreground">{myPlayerIsOnPage ? 'Your row is highlighted above.' : 'Your position is shown here even when you are not on this page.'}</div>
+                    </div>
+                    <div className="text-sm">{myWins} wins · {myLosses} losses</div>
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">You are not ranked for this word pack and timeframe.</p>
+                )}
+              </div>
+            )}
           </CardContent>
           <CardFooter>
             <LeaderboardPagination />
