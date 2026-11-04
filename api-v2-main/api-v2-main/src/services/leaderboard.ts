@@ -42,7 +42,6 @@ const ALLOWED_ORDER_COLUMNS = new Set([
   'yearly_rank_9_letter',
   'yearly_rank_10_letter',
   'yearly_rank_11_letter',
-  'yearly_rank_11_letter_extended',
   'yearly_rank_12_letter',
   'yearly_rank_13_letter',
   'yearly_rank_14_letter',
@@ -65,7 +64,6 @@ const ALLOWED_ORDER_COLUMNS = new Set([
   'monthly_rank_9_letter',
   'monthly_rank_10_letter',
   'monthly_rank_11_letter',
-  'monthly_rank_11_letter_extended',
   'monthly_rank_12_letter',
   'monthly_rank_13_letter',
   'monthly_rank_14_letter',
@@ -88,7 +86,6 @@ const ALLOWED_ORDER_COLUMNS = new Set([
   'weekly_rank_9_letter',
   'weekly_rank_10_letter',
   'weekly_rank_11_letter',
-  'weekly_rank_11_letter_extended',
   'weekly_rank_12_letter',
   'weekly_rank_13_letter',
   'weekly_rank_14_letter',
@@ -111,7 +108,6 @@ const ALLOWED_ORDER_COLUMNS = new Set([
   'daily_rank_9_letter',
   'daily_rank_10_letter',
   'daily_rank_11_letter',
-  'daily_rank_11_letter_extended',
   'daily_rank_12_letter',
   'daily_rank_13_letter',
   'daily_rank_14_letter',
@@ -123,8 +119,35 @@ const ALLOWED_ORDER_COLUMNS = new Set([
   'daily_rank_20_letter',
   'daily_rank_21_letter',
   'daily_rank_22_letter',
-  'daily_rank_22_letter',
+  'daily_rank_23_letter',
 ]);
+
+// Rank columns are whitelisted above. Only derive filters from whitelisted ranks.
+const PACK_STAT_PREFIX: Record<string, string> = {
+  'five_letter_crazy': 'five_letter_crazy',
+  '11_letter_extended': 'eleven_letter_extended',
+};
+const NUMBER_WORDS = [
+  '', '', '', '', 'four', 'five', 'six', 'seven', 'eight', 'nine',
+  'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen',
+  'sixteen', 'seventeen', 'eighteen', 'nineteen', 'twenty',
+  'twentyone', 'twentytwo', 'twentythree',
+];
+
+function participationColumns(safeOrderBy: string): [string, string] {
+  const suffix = safeOrderBy.replace(/^(alltime|yearly|monthly|weekly|daily)_rank/, '').replace(/^_/, '');
+  let prefix = 'games';
+  if (suffix) {
+    const match = /^(\d+)_letter$/.exec(suffix);
+    prefix = PACK_STAT_PREFIX[suffix] ??
+      (match && Number(match[1]) >= 4 && Number(match[1]) <= 23
+        ? `${NUMBER_WORDS[Number(match[1])]}_letter`
+        : '');
+    if (!prefix) throw new Error(`Unsupported leaderboard rank: ${safeOrderBy}`);
+  }
+  return [prefix === 'games' ? 'games_won' : `${prefix}_games_won`,
+          prefix === 'games' ? 'games_lost' : `${prefix}_games_lost`];
+}
 
 function sanitizeOrderBy(orderBy: string, fallback: string) {
   return ALLOWED_ORDER_COLUMNS.has(orderBy) ? orderBy : fallback;
@@ -472,6 +495,7 @@ async function getPlayerLeaderboardAllTime(
     .from('_mv_wordle_alltime_leaderboard')
     .select('*')
     .not(safeOrderBy, 'is', null)
+    .or(participationColumns(safeOrderBy).map((column) => `${column}.gt.0`).join(','))
     .order(safeOrderBy, { ascending: true })
     .range(offset, offset + limit - 1);
 
@@ -530,6 +554,7 @@ async function getPlayerLeaderboardForTheYear(
     .select('*')
     .eq('year', year)
     .not(safeOrderBy, 'is', null)
+    .or(participationColumns(safeOrderBy).map((column) => `${column}.gt.0`).join(','))
     .order(safeOrderBy, { ascending: true })
     .range(offset, offset + limit - 1);
 
@@ -590,6 +615,7 @@ async function getPlayerLeaderboardForTheMonth(
     .eq('month', month)
     .eq('year', year)
     .not(safeOrderBy, 'is', null)
+    .or(participationColumns(safeOrderBy).map((column) => `${column}.gt.0`).join(','))
     .order(safeOrderBy, { ascending: true })
     .range(offset, offset + limit - 1);
 
@@ -650,6 +676,7 @@ async function getPlayerLeaderboardForThisWeek(
     .eq('week', week)
     .eq('year', year)
     .not(safeOrderBy, 'is', null)
+    .or(participationColumns(safeOrderBy).map((column) => `${column}.gt.0`).join(','))
     .order(safeOrderBy, { ascending: true })
     .range(offset, offset + limit - 1);
 
@@ -712,6 +739,7 @@ async function getPlayerLeaderboardForToday(
     .eq('month', month)
     .eq('year', year)
     .not(safeOrderBy, 'is', null)
+    .or(participationColumns(safeOrderBy).map((column) => `${column}.gt.0`).join(','))
     .order(safeOrderBy, { ascending: true })
     .range(offset, offset + limit - 1);
 
@@ -765,7 +793,8 @@ async function getPlayerLeaderboardAllTimeLength(
   const { count, error } = await db
     .from('_mv_wordle_alltime_leaderboard')
     .select('player', { count: 'exact', head: true })
-    .not(safeOrderBy, 'is', null);
+    .not(safeOrderBy, 'is', null)
+    .or(participationColumns(safeOrderBy).map((column) => `${column}.gt.0`).join(','));
 
   if (error) {
     console.error(error);
@@ -784,7 +813,8 @@ async function getPlayerLeaderboardYearlyLength(
     .from('_mv_wordle_yearly_leaderboard')
     .select('player', { count: 'exact', head: true })
     .eq('year', new Date().getFullYear())
-    .not(safeOrderBy, 'is', null);
+    .not(safeOrderBy, 'is', null)
+    .or(participationColumns(safeOrderBy).map((column) => `${column}.gt.0`).join(','));
 
   if (error) {
     console.error(error);
@@ -804,7 +834,8 @@ async function getPlayerLeaderboardMonthlyLength(
     .select('player', { count: 'exact', head: true })
     .eq('month', new Date().getMonth() + 1)
     .eq('year', new Date().getFullYear())
-    .not(safeOrderBy, 'is', null);
+    .not(safeOrderBy, 'is', null)
+    .or(participationColumns(safeOrderBy).map((column) => `${column}.gt.0`).join(','));
 
   if (error) {
     console.error(error);
@@ -824,7 +855,8 @@ async function getPlayerLeaderboardWeeklyLength(
     .select('player', { count: 'exact', head: true })
     .eq('week', moment().week())
     .eq('year', new Date().getFullYear())
-    .not(safeOrderBy, 'is', null);
+    .not(safeOrderBy, 'is', null)
+    .or(participationColumns(safeOrderBy).map((column) => `${column}.gt.0`).join(','));
 
   if (error) {
     console.error(error);
@@ -845,7 +877,8 @@ async function getPlayerLeaderboardDailyLength(
     .eq('day', new Date().getDate())
     .eq('month', new Date().getMonth() + 1)
     .eq('year', new Date().getFullYear())
-    .not(safeOrderBy, 'is', null);
+    .not(safeOrderBy, 'is', null)
+    .or(participationColumns(safeOrderBy).map((column) => `${column}.gt.0`).join(','));
 
   if (error) {
     console.error(error);

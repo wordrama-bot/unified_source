@@ -136,12 +136,6 @@ export default function WordleWeeklyLeaderboardPage() {
       columnPrefix: "eleven_letter",
       rankColumn: "weekly_rank_11_letter",
     },
-    "11 letter extended": {
-      label: "11 Letter Extended",
-      prefix: "elevenLetterExtended",
-      columnPrefix: "eleven_letter_extended",
-      rankColumn: "weekly_rank_11_letter_extended",
-    },
     "12 letter": {
       label: "12 Letter",
       prefix: "twelveLetter",
