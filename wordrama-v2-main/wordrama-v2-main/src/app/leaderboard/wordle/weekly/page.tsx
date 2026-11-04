@@ -465,7 +465,7 @@ export default function WordleWeeklyLeaderboardPage() {
                       <TableRow key={entry?.id}>
                         <TableCell className="font-medium">
                           { sortBy === 'rank' ?
-                            (numberPrefix ? entry[`weeklyRank_${numberPrefix}`] : entry.weeklyRank) :
+                            entry[selectedWordPack.rankColumn.replace(/_([a-z])/g, (_, char: string) => char.toUpperCase())] :
                             entry.position
                           }
                         </TableCell>

@@ -483,7 +483,7 @@ export default function WordleAllTimeLeaderboardPage() {
                       <TableRow key={entry?.id}>
                         <TableCell className="font-medium">
                           { sortBy === 'rank' ?
-                            (numberPrefix ? entry[`alltimeRank_${numberPrefix}`] : entry.alltimeRank) :
+                            entry[selectedWordPack.rankColumn.replace(/_([a-z])/g, (_, char: string) => char.toUpperCase())] :
                             entry.position
                           }
                         </TableCell>
