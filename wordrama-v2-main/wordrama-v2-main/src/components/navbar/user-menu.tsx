@@ -18,14 +18,35 @@ import { friendsApi } from '@/redux/api/friends';
 import { systemApi } from '@/redux/api/system';
 import { teamApi } from '@/redux/api/teams';
 
-export default function UserMenu({ username }: {
-  username: string
+export default function UserMenu({
+  username,
+  themeClassName,
+  menuBackgroundColor,
+}: {
+  username: string;
+  themeClassName?: string;
+  menuBackgroundColor?: string;
 }) {
   const { user, logout } = useAuth();
   const dispatch = useDispatch();
+  const themedMenuClassName = themeClassName
+    ? [
+        themeClassName,
+        "[&_[role=menuitem]]:!text-inherit",
+        "[&_[role=menuitem][data-highlighted]]:!bg-transparent",
+        "[&_[role=menuitem][data-highlighted]]:underline",
+        "[&_[role=menuitem][data-state=open]]:!bg-transparent",
+        "[&_[role=menuitem][data-state=open]]:underline",
+      ].join(" ")
+    : undefined;
 
   return (
-    <DropdownMenuContent align="end" className="bg-bg">
+    <DropdownMenuContent
+      align="end"
+      className={themedMenuClassName ?? "bg-bg"}
+      style={{ backgroundColor: menuBackgroundColor }}
+      useDefaultForeground={!themeClassName}
+    >
       <DropdownMenuLabel>
         {username}
       </DropdownMenuLabel>
@@ -55,7 +76,11 @@ export default function UserMenu({ username }: {
           More...
         </DropdownMenuSubTrigger>
         <DropdownMenuPortal>
-          <DropdownMenuSubContent>
+          <DropdownMenuSubContent
+            className={themedMenuClassName}
+            style={{ backgroundColor: menuBackgroundColor }}
+            useDefaultForeground={!themeClassName}
+          >
             <Link href="/about">
               <DropdownMenuItem>
                 About
@@ -67,7 +92,11 @@ export default function UserMenu({ username }: {
                 Guides
               </DropdownMenuSubTrigger>
               <DropdownMenuPortal>
-                <DropdownMenuSubContent>
+                <DropdownMenuSubContent
+                  className={themedMenuClassName}
+                  style={{ backgroundColor: menuBackgroundColor }}
+                  useDefaultForeground={!themeClassName}
+                >
                   <Link href="/how-to-play">
                     <DropdownMenuItem>
                       How to Play
@@ -103,7 +132,11 @@ export default function UserMenu({ username }: {
                 Socials
               </DropdownMenuSubTrigger>
               <DropdownMenuPortal>
-                <DropdownMenuSubContent>
+                <DropdownMenuSubContent
+                  className={themedMenuClassName}
+                  style={{ backgroundColor: menuBackgroundColor }}
+                  useDefaultForeground={!themeClassName}
+                >
                   <a href="https://instagram.com/wordrama.io" target="_blank" rel="noopener noreferrer">
                     <DropdownMenuItem>
                       Instagram
@@ -128,7 +161,11 @@ export default function UserMenu({ username }: {
                 Policies
               </DropdownMenuSubTrigger>
               <DropdownMenuPortal>
-                <DropdownMenuSubContent>
+                <DropdownMenuSubContent
+                  className={themedMenuClassName}
+                  style={{ backgroundColor: menuBackgroundColor }}
+                  useDefaultForeground={!themeClassName}
+                >
                   <Link href="/acceptable-use">
                     <DropdownMenuItem>
                       Acceptable Use
