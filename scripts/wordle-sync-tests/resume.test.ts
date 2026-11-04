@@ -3,10 +3,10 @@ import ts from 'typescript';
 import { readFileSync } from 'node:fs';
 import { checkWordleBoardCompletion } from '../../wordrama-v2-main/wordrama-v2-main/src/lib/wordleBoardCompletion';
 import reduce from '../../wordrama-v2-main/wordrama-v2-main/src/redux/wordle/reducers';
-import { setGameState } from '../../wordrama-v2-main/wordrama-v2-main/src/redux/wordle/actions';
+import { setGameState, setInitialState } from '../../wordrama-v2-main/wordrama-v2-main/src/redux/wordle/actions';
 
 // Execute the production callback with controlled network, time and Redux.
-const source = ts.createSourceFile('App.tsx', readFileSync(new URL(
+const source = ts.createSourceFile('App.tsx', readFileSync(process.env.WORDLE_RESUME_APP_SOURCE || new URL(
   '../../wordrama-v2-main/wordrama-v2-main/src/components/wordle/App.tsx', import.meta.url), 'utf8'),
   ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
 function extract(name: string, env: Record<string, any>) {
@@ -24,6 +24,102 @@ function extract(name: string, env: Record<string, any>) {
   }).outputText;
   return new Function(...Object.keys(env), `${js}; return selected;`)(...Object.values(env));
 }
+
+function sessionHarness() {
+  const finished = (id: string) => ({ ...board(id), guesses: ['STARE', 'STEED'], isGameWon: true });
+  const local = { isLoading: false, gameMode: 'INFINITE', wordPack: 'FIVE_LETTER', wordLength: 5,
+    modes: { INFINITE: { FIVE_LETTER: finished('first'), NINE_LETTER: board('nine') } } };
+  let remote: any = structuredClone(local);
+  remote.wordPack = 'NINE_LETTER'; remote.wordLength = 9;
+  remote.modes.INFINITE.FIVE_LETTER = finished('third');
+  const live = { current: local as any }, active = { current: { playerId: 'actor',
+    gameMode: 'INFINITE', wordPack: 'FIVE_LETTER', board: local.modes.INFINITE.FIVE_LETTER } };
+  const revision = { current: 10 }, pending = { current: null as any }, dirty = { current: false };
+  let pendingDisk = false, requests = 0, release: (() => Promise<void>) | undefined;
+  const env = { user: { id: 'actor' }, isGameStateHydrated: true, navigator: { onLine: true },
+    liveGameStateRef: live, activeBoardRef: active, gameStateSaveQueueRef: { current: Promise.resolve() },
+    shouldPersistGameStateRef: dirty, pendingReconciledStateRef: pending, serverStateRevisionRef: revision,
+    getWordleLocalCheckpoint: async () => ({ pendingRemoteSync: pendingDisk }),
+    refetchSavedState() { requests++; return { abort() {}, unwrap: async () => {
+      if (release) await release(); return { data: remote, metadata: { stateRevision: 30 } };
+    } }; },
+    window: { setTimeout() { return 1; }, clearTimeout() {} },
+    getWordleCompletions: async () => [], reconcileAllWordleBoards: (state: any) => state,
+    mergeCompletedWordleSession: extract('mergeCompletedWordleSession', {}), setInitialState,
+    dispatch(action: any) { live.current = reduce(live.current, action);
+      active.current = { ...active.current, board: live.current.modes.INFINITE.FIVE_LETTER }; },
+  };
+  return { env, live, active, revision, pending, dirty, local,
+    run: extract('refreshCompletedWordleSession', env), get requests() { return requests; },
+    setRemote(state: any) { remote = state; }, get remote() { return remote; },
+    diskPending() { pendingDisk = true; }, delay(fn: () => Promise<void>) { release = fn; } };
+}
+test('finished first tab catches up to later games and revision while preserving selected pack', async () => {
+  const h = sessionHarness(); await h.run();
+  expect(h.live.current.modes.INFINITE.FIVE_LETTER.gameInstanceId).toBe('third');
+  expect(h.live.current.wordPack).toBe('FIVE_LETTER'); expect(h.live.current.wordLength).toBe(5);
+  expect(h.revision.current).toBe(30);
+});
+test('session refresh cannot replace unfinished or unsent local progress', async () => {
+  for (const condition of ['unfinished', 'memory', 'disk', 'dirty']) {
+    const h = sessionHarness();
+    if (condition === 'unfinished') h.local.modes.INFINITE.FIVE_LETTER.isGameWon = false;
+    if (condition === 'memory') h.pending.current = { unsent: true };
+    if (condition === 'disk') h.diskPending();
+    if (condition === 'dirty') h.dirty.current = true;
+    expect(await h.run()).toBeNull(); expect(h.requests).toBe(0); expect(h.revision.current).toBe(10);
+  }
+});
+test('remote checkpoint cannot reopen its already finished exact instance', async () => {
+  const h = sessionHarness(); h.remote.modes.INFINITE.FIVE_LETTER = board('first');
+  await h.run(); expect(h.live.current.modes.INFINITE.FIVE_LETTER.isGameWon).toBe(true);
+});
+test('progress or account changes during catch-up cancel the stale response', async () => {
+  for (const change of ['board', 'account', 'queued-write']) {
+    const h = sessionHarness(); let finish!: () => void;
+    h.delay(() => new Promise(resolve => { finish = resolve; }));
+    const request = h.run(); await new Promise(resolve => setTimeout(resolve, 0));
+    if (change === 'board') h.live.current = { ...h.live.current, wordPack: 'NINE_LETTER' };
+    if (change === 'account') h.active.current = { ...h.active.current, playerId: 'other' };
+    if (change === 'queued-write') h.env.gameStateSaveQueueRef.current = Promise.resolve();
+    finish(); expect(await request).toBeNull(); expect(h.revision.current).toBe(10);
+  }
+});
+test('Play Again uses the latest shared board target and creates a fresh instance', async () => {
+  const h = sessionHarness(); let refreshes = 0;
+  const next = extract('newInfiniteGame', { ...h.env, isLoadingWordPack: false,
+    wordleWordPack: { data: { wordList: ['APPLE'] } },
+    syncPendingWordleResultsAndRefresh: async (force: boolean) => { expect(force).toBe(true); refreshes++; },
+    refreshCompletedWordleSession: h.run, getRandomWord: () => 'APPLE',
+    crypto: { randomUUID: () => 'fresh' }, setGameState,
+    setShowConfetti() {}, setIsStatsModalOpen() {}, setCurrentRowClass() {}, setCurrentGuess() {},
+  });
+  await next(); expect(refreshes).toBe(1);
+  expect(h.live.current.modes.INFINITE.FIVE_LETTER.gameInstanceId).toBe('fresh');
+  expect(h.live.current.modes.INFINITE.FIVE_LETTER.guesses).toEqual([]);
+  expect(h.dirty.current).toBe(true);
+});
+test('Play Again resumes a newer unfinished shared puzzle without replacing guesses', async () => {
+  const h = sessionHarness(); h.remote.modes.INFINITE.FIVE_LETTER = board('next-in-progress');
+  const next = extract('newInfiniteGame', { ...h.env, isLoadingWordPack: false,
+    wordleWordPack: { data: { wordList: ['APPLE'] } },
+    syncPendingWordleResultsAndRefresh: async () => {}, refreshCompletedWordleSession: h.run,
+    setShowConfetti() {}, setIsStatsModalOpen() {}, setCurrentRowClass() {}, setCurrentGuess() {},
+  });
+  await next(); expect(h.live.current.modes.INFINITE.FIVE_LETTER.gameInstanceId).toBe('next-in-progress');
+  expect(h.live.current.modes.INFINITE.FIVE_LETTER.guesses).toEqual(['STARE']);
+  expect(h.dirty.current).toBe(false);
+});
+test('explicit foreground refresh reloads history and stats even after syncing a result', async () => {
+  const calls: string[] = [];
+  const run = extract('syncPendingWordleResultsAndRefresh', { user: { id: 'actor' }, gameMode: 'INFINITE',
+    syncPendingWordleResults: async () => 1, getPendingWordleResults: async () => [],
+    schedulePendingWordleResultRetry() {}, clearPendingWordleResultRetry() {},
+    refetchStats() { calls.push('stats'); }, refetchLast30() { calls.push('history'); },
+    refetchStreak() { calls.push('streak'); }, refetchProfile() { calls.push('profile'); },
+  });
+  await run(true); expect(calls).toEqual(['stats', 'history', 'streak', 'profile']);
+});
 const board = (id = 'old') => ({ gameInstanceId: id, solution: 'STEED', guesses: ['STARE'],
   isGameWon: false, isGameLost: false, isGameInProgress: true, resultSave: false });
 const result = (id = 'old') => ({ gameInstanceId: id, solution: 'STEED', guesses: ['STARE', 'STEED'],

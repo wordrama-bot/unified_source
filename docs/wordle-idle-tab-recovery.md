@@ -33,11 +33,24 @@ boards without instance IDs retain the existing hydration recovery behavior.
 
 ## Validation
 
+Follow-up for multiple games in another tab: foreground and Play Again now
+explicitly refresh history, streak, stats and profile, even if the outbox
+also delivered a result. Returning in under 30 seconds no longer skips this
+refresh. Once the local board is finished and its checkpoint is acknowledged,
+the client reads the latest saved session and revision while keeping the
+selected mode and pack. Play Again uses this refreshed board identity, or
+resumes a newer unfinished board instead of discarding its guesses.
+
+The session refresh declines to replace unsent checkpoints or a state that
+changed during the request, and it never reopens the same completed instance.
+Test the exact sequence of completing three games in tab B, then returning to
+tab A and pressing Play Again before submitting another result in tab A.
+
 Run `bun run test` in `scripts/wordle-sync-tests`. It covers the actual App
 verification and Enter callbacks, late responses, offline play, lookup errors,
 player ownership, and the existing delivery/idempotency/revision regressions.
 
-Validation in the review workspace: 115 sync/idempotency/revision tests passed
+Validation in the review workspace: 122 sync/idempotency/revision tests passed
 and the API bundled successfully (952 modules). A full frontend TypeScript
 check still reports the existing baseline errors; the patch introduced no
 additional diagnostics. A browser replay across two tabs has not yet been

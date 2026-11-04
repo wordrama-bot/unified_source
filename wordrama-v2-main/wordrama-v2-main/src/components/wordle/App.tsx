@@ -492,6 +492,19 @@ function canMergeWordleActiveBoard(localState: any, serverState: any): boolean {
     JSON.stringify(withoutActiveBoard(serverState));
 }
 
+function mergeCompletedWordleSession(local: any, remote: any) {
+  const mode = local.gameMode;
+  const pack = local.wordPack;
+  const before = local.modes[mode][pack];
+  const after = remote.modes[mode][pack];
+  // A checkpoint may lag behind its result. Do not reopen the same finished
+  // instance merely because the checkpoint still contains fewer guesses.
+  const active = before.gameInstanceId && before.gameInstanceId === after.gameInstanceId
+    ? before : after;
+  return { ...remote, gameMode: mode, wordPack: pack, wordLength: local.wordLength,
+    modes: { ...remote.modes, [mode]: { ...remote.modes[mode], [pack]: active } } };
+}
+
 function App(){
   const { user } = useAuth();
   //const appInsights = getAppInsights();
@@ -504,6 +517,8 @@ function App(){
   // Redux State
   const dispatch = useDispatch();
   const gameState = getWordleState();
+  const liveGameStateRef = useRef(gameState);
+  liveGameStateRef.current = gameState;
   const gameUiState = getWordleGameUiState();
 
   const appearanceTheme = getAppearanceTheme(
@@ -728,6 +743,7 @@ function App(){
     data: savedState,
     isLoading: isLoadingSavedState,
     isError: isErrorSavedState,
+    refetch: refetchSavedState,
   } = useGetWordleSavedStateQuery();
   const { data: uiSavedState, isLoading: isLoadingUiSavedState } = useGetUiSavedStateQuery();
   useEffect(() => {
@@ -795,7 +811,6 @@ function App(){
   const localCheckpointRevisionRef = useRef(0);
   const pendingCheckpointRevisionRef = useRef(0);
   const serverStateRevisionRef = useRef(0);
-  const hiddenAtRef = useRef<number | null>(null);
   const gameStateSaveQueueRef = useRef<Promise<void>>(Promise.resolve());
   const [isGameStateHydrated, setIsGameStateHydrated] = useState(false);
   const [getCompletedInstance] = useLazyGetCompletedWordleInstanceQuery();
@@ -1316,7 +1331,7 @@ const activeSolution = isCustom
 
       // A successful result submission already invalidates and refreshes
       // the mounted Wordle result-dependent queries.
-      if (syncedCount > 0) return;
+      if (syncedCount > 0 && !forceRefresh) return;
 
       if (!forceRefresh) return;
 
@@ -1349,6 +1364,52 @@ const activeSolution = isCustom
     };
   }, []);
 
+  // Once the local board is finished, catch up the whole acknowledged
+  // session before creating another board. Never rebase unsent progress.
+  const refreshCompletedWordleSession = useCallback(async () => {
+    if (!user?.id || !isGameStateHydrated || !navigator.onLine) return null;
+    const settledQueue = gameStateSaveQueueRef.current;
+    await settledQueue;
+    if (shouldPersistGameStateRef.current || pendingReconciledStateRef.current) return null;
+    const snapshot = liveGameStateRef.current;
+    const mode = snapshot.gameMode;
+    const pack = snapshot.wordPack;
+    const board = mode === 'CUSTOM' ? snapshot.custom : snapshot.modes?.[mode]?.[pack];
+    if (mode === 'CUSTOM' || !(board?.isGameWon || board?.isGameLost)) return null;
+    try {
+      const local = await getWordleLocalCheckpoint(user.id);
+      if (local?.pendingRemoteSync) return null;
+      const request = refetchSavedState();
+      const timer = window.setTimeout(() => request.abort(), 6_000);
+      let response;
+      try { response = await request.unwrap(); }
+      finally { window.clearTimeout(timer); }
+      if (activeBoardRef.current.playerId !== user.id || gameStateSaveQueueRef.current !== settledQueue ||
+          liveGameStateRef.current !== snapshot || shouldPersistGameStateRef.current ||
+          pendingReconciledStateRef.current) return null;
+      const revision = response?.metadata?.stateRevision;
+      const remote = response?.data;
+      if (!Number.isSafeInteger(revision) || revision < serverStateRevisionRef.current ||
+          !remote?.modes?.[mode]?.[pack]) return null;
+      let merged = mergeCompletedWordleSession(snapshot, remote);
+      merged = reconcileAllWordleBoards(merged, await getWordleCompletions(user.id), false);
+      if (activeBoardRef.current.playerId !== user.id || gameStateSaveQueueRef.current !== settledQueue ||
+          liveGameStateRef.current !== snapshot || shouldPersistGameStateRef.current ||
+          pendingReconciledStateRef.current) return null;
+      serverStateRevisionRef.current = revision;
+      dispatch(setInitialState(merged));
+      return merged;
+    } catch (error) {
+      console.warn('[wordle] unable to refresh completed session; keeping local board', error);
+      return null;
+    }
+  }, [user?.id, isGameStateHydrated, refetchSavedState, dispatch]);
+
+  useEffect(() => {
+    if (isGameWon || isGameLost) void refreshCompletedWordleSession();
+  }, [gameMode, wordPack, (currentGame as GameState).gameInstanceId,
+    isGameWon, isGameLost, refreshCompletedWordleSession]);
+
   useEffect(() => {
     if (!user?.id) return;
 
@@ -1365,6 +1426,7 @@ const activeSolution = isCustom
       await syncPendingWordleResultsAndRefresh(
         forceRefresh,
       );
+      if (forceRefresh) await refreshCompletedWordleSession();
     };
 
     // Recover anything left over from a previous session.
@@ -1376,21 +1438,16 @@ const activeSolution = isCustom
 
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'hidden') {
-        hiddenAtRef.current = Date.now();
         return;
       }
 
       if (document.visibilityState !== 'visible') return;
 
-      const hiddenAt = hiddenAtRef.current;
-      hiddenAtRef.current = null;
-
-      const wasAwayLongEnough =
-        hiddenAt !== null &&
-        Date.now() - hiddenAt >= 30_000;
-
-      void syncAndRefresh(wasAwayLongEnough);
+      // Other tabs may complete several games in well under 30 seconds.
+      void syncAndRefresh(true);
     };
+
+    const handleFocus = () => { void syncAndRefresh(true); };
 
     // Retry even when neither connectivity nor visibility changes fire.
     const watchdog = window.setInterval(() => {
@@ -1400,6 +1457,7 @@ const activeSolution = isCustom
     }, 30_000);
 
     window.addEventListener('online', handleOnline);
+    window.addEventListener('focus', handleFocus);
     document.addEventListener(
       'visibilitychange',
       handleVisibilityChange,
@@ -1408,6 +1466,7 @@ const activeSolution = isCustom
     return () => {
       window.clearInterval(watchdog);
       window.removeEventListener('online', handleOnline);
+      window.removeEventListener('focus', handleFocus);
       document.removeEventListener(
         'visibilitychange',
         handleVisibilityChange,
@@ -1416,6 +1475,7 @@ const activeSolution = isCustom
   }, [
     user?.id,
     syncPendingWordleResultsAndRefresh,
+    refreshCompletedWordleSession,
   ]);
 
   const isDaily = gameMode === 'DAILY';
@@ -1548,19 +1608,29 @@ const activeSolution = isCustom
     });
   }
 
-  function newInfiniteGame(){
+  async function newInfiniteGame(){
     if (isLoadingWordPack) return;
     if (!wordleWordPack?.data?.wordList?.length) return;
-
+    const selected = activeBoardRef.current;
+    void syncPendingWordleResultsAndRefresh(true);
+    const refreshed = await refreshCompletedWordleSession();
+    const latest = activeBoardRef.current;
+    if (latest.playerId !== selected.playerId || latest.gameMode !== selected.gameMode ||
+        latest.wordPack !== selected.wordPack) return;
+    const nextBoard = refreshed?.modes?.[selected.gameMode]?.[selected.wordPack] ?? latest.board;
     setShowConfetti(false);
     setIsStatsModalOpen(false);
     setCurrentRowClass('');
     setCurrentGuess('');
 
+    // A second tab may already have started the next unfinished game.
+    if (refreshed && !(nextBoard.isGameWon || nextBoard.isGameLost)) return;
+
     const newSolution: string = getRandomWord(wordleWordPack.data.wordList);
     const gameInstanceId = crypto.randomUUID();
 
-    updateGameState(
+    shouldPersistGameStateRef.current = true;
+    dispatch(setGameState(
       {
         gameInstanceId,
         solution: newSolution,
@@ -1570,8 +1640,9 @@ const activeSolution = isCustom
         isGameInProgress: false,
         resultSave: false,
       },
-      true,
-    );
+      { gameMode: selected.gameMode, wordPack: selected.wordPack,
+        gameInstanceId: nextBoard.gameInstanceId, solution: nextBoard.solution },
+    ));
   }
 
   // Called when a user presses a key on the virtual or physical keyboard
