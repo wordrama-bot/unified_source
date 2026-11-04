@@ -1,6 +1,7 @@
 "use client"
 //import { getAppInsights } from "@/utils/appInsights";
 import { LeaderboardNav } from "@/components/navbar/wordle-leaderboard";
+import SubscriptionBadge from '../SubscriptionBadge';
 import { useRouter } from "next/navigation"
 import Loading from '@/sections/loading';
 import {
@@ -256,9 +257,13 @@ export default function WordleDailyLeaderboardPage() {
     ? (selectedWordPack.columnPrefix ? `${selectedWordPack.columnPrefix}_games_won` : 'games_won')
     : sortBy === 'games_lost'
       ? (selectedWordPack.columnPrefix ? `${selectedWordPack.columnPrefix}_games_lost` : 'games_lost')
-      : sortBy === 'games_played' && wordPack === 'all'
-        ? 'games_played'
-        : null;
+      : sortBy === 'games_played'
+        ? (selectedWordPack.columnPrefix ? `${selectedWordPack.columnPrefix}_games_played` : 'games_played')
+        : sortBy === 'best_streak'
+          ? (selectedWordPack.columnPrefix ? `${selectedWordPack.columnPrefix}_best_streak` : 'overall_best_streak')
+          : sortBy === 'current_streak' && wordPack !== 'all'
+            ? `${selectedWordPack.columnPrefix}_current_streak`
+            : null;
   const sortByKey = sortStatistic ? `${sortRankColumn}__sort__${sortStatistic}` : sortRankColumn;
 
   const leaderboardUrl = (page: number, nextSort = sortBy, nextPack = wordPack) => {
@@ -357,6 +362,7 @@ export default function WordleDailyLeaderboardPage() {
         <Card className="w-full max-w-6xl mx-auto">
           <CardHeader>
             <CardTitle className="text-2xl font-bold">Leaderboard</CardTitle>
+            <p className="text-sm text-muted-foreground">Please note that leaderboards update at regular intervals to allow for faster loading times and manageable data costs. Daily leaderboards refresh every 10 minutes, weekly every 15 minutes, monthly every 30 minutes, yearly every hour, and all-time every 2 hours.</p>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
@@ -372,9 +378,7 @@ export default function WordleDailyLeaderboardPage() {
                                <PlayerAvatar profileImage={player?.profileImage} displayName={player?.displayName || 'Player'} avatarStyleKey={player?.avatarStyleKey} avatarFrameKey={player?.avatarFrameKey} size={36} />
                                <span className="truncate">{player?.displayName}</span>
                              </Link>
-                             {(player?.avatarFrameKey === 'FRAME:PLUS' || player?.avatarFrameKey === 'FRAME:CREATOR') && (
-                               <span className="shrink-0 rounded border px-1.5 py-0.5 text-[10px] font-medium" title="Equipped avatar frame, not a subscription-status indicator">{player.avatarFrameKey === 'FRAME:CREATOR' ? 'CREATOR frame' : 'PLUS frame'}</span>
-                             )}
+                             <SubscriptionBadge subscriptionKey={player?.subscriptionKey} />
                           </div>
                           <span className="text-2xl font-bold"></span>
                         </div>
@@ -406,6 +410,28 @@ export default function WordleDailyLeaderboardPage() {
                 </Card>
               ))}
             </div>
+            {user?.id && !myPositionLoading && (
+              <div className="mb-6 rounded-md border border-primary/40 bg-primary/5 p-4" aria-label="Your leaderboard position">
+                <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Your Rank · {selectedWordPack.label}</div>
+                {myPositionError ? (
+                  <p className="text-sm text-muted-foreground">Your position is temporarily unavailable.</p>
+                ) : myRankIsValid ? (
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                      <div className="flex items-center gap-2">
+                         <PlayerAvatar profileImage={myPosition?.profileImage} displayName={myPosition?.displayName || 'You'} avatarStyleKey={myPosition?.avatarStyleKey} avatarFrameKey={myPosition?.avatarFrameKey} size={36} />
+                          <SubscriptionBadge subscriptionKey={myPosition?.subscriptionKey} />
+                         <div className="text-lg font-semibold">#{myRank} · {myPosition?.displayName || 'You'}</div>
+                       </div>
+                      <div className="text-sm text-muted-foreground">{myPlayerIsOnPage ? 'Your row is highlighted above.' : 'Your position is shown here even when you are not on this page.'}</div>
+                    </div>
+                    <div className="text-sm">{myWins} wins · {myLosses} losses</div>
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">You are not ranked for this word pack and timeframe.</p>
+                )}
+              </div>
+            )}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 space-y-2 sm:space-y-0 sm:space-x-2">
               <Select onValueChange={handleTimePeriodChange} value={timePeriod}>
                 <SelectTrigger className="w-[180px]">
@@ -457,15 +483,17 @@ export default function WordleDailyLeaderboardPage() {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="default">
-                    Sort by: {{ rank: 'Rank', games_played: 'Games Played', games_won: 'Games Won', games_lost: 'Games Lost' }[sortBy] || 'Rank'}
+                    Sort by: {{ rank: 'Rank', games_played: 'Games Played', games_won: 'Games Won', games_lost: 'Games Lost', current_streak: 'Current Streak', best_streak: 'Best Streak' }[sortBy] || 'Rank'}
                     <ChevronDown className="ml-2 h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
                   <DropdownMenuItem onClick={() => changeSort('rank')}>Rank</DropdownMenuItem>
-                  {wordPack === 'all' && <DropdownMenuItem onClick={() => changeSort('games_played')}>Games Played</DropdownMenuItem>}
+                  <DropdownMenuItem onClick={() => changeSort('games_played')}>Games Played</DropdownMenuItem>
                   <DropdownMenuItem onClick={() => changeSort('games_won')}>Games Won</DropdownMenuItem>
                   <DropdownMenuItem onClick={() => changeSort('games_lost')}>Games Lost</DropdownMenuItem>
+                  {wordPack !== 'all' && <DropdownMenuItem onClick={() => changeSort('current_streak')}>Current Streak</DropdownMenuItem>}
+                  <DropdownMenuItem onClick={() => changeSort('best_streak')}>Best Streak</DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
@@ -478,9 +506,11 @@ export default function WordleDailyLeaderboardPage() {
                   <TableRow>
                     <TableHead className="w-[50px]"><button type="button" className="inline-flex items-center gap-1 hover:underline" onClick={() => changeSort('rank')}>Rank {sortBy === 'rank' ? ('rank' === 'rank' ? '↑' : '↓') : ''}</button></TableHead>
                     <TableHead>Name</TableHead>
-                    <TableHead className="text-right"><button type="button" className="inline-flex items-center gap-1 hover:underline" onClick={() => changeSort('games_played')} disabled={wordPack !== 'all'}>Games Played {sortBy === 'games_played' ? ('games_played' === 'rank' ? '↑' : '↓') : ''}</button></TableHead>
+                    <TableHead className="text-right"><button type="button" className="inline-flex items-center gap-1 hover:underline" onClick={() => changeSort('games_played')}>Games Played {sortBy === 'games_played' ? ('games_played' === 'rank' ? '↑' : '↓') : ''}</button></TableHead>
                     <TableHead className="text-right"><button type="button" className="inline-flex items-center gap-1 hover:underline" onClick={() => changeSort('games_won')}>Won {sortBy === 'games_won' ? ('games_won' === 'rank' ? '↑' : '↓') : ''}</button></TableHead>
                     <TableHead className="text-right"><button type="button" className="inline-flex items-center gap-1 hover:underline" onClick={() => changeSort('games_lost')}>Lost {sortBy === 'games_lost' ? ('games_lost' === 'rank' ? '↑' : '↓') : ''}</button></TableHead>
+                    {wordPack !== 'all' && <TableHead className="text-right"><button type="button" className="hover:underline" onClick={() => changeSort('current_streak')}>Current Streak {sortBy === 'current_streak' ? '↓' : ''}</button></TableHead>}
+                    <TableHead className="text-right"><button type="button" className="hover:underline" onClick={() => changeSort('best_streak')}>Best Streak {sortBy === 'best_streak' ? '↓' : ''}</button></TableHead>
                     { sortBy.includes('games_won_in') && (
                       <TableHead className="text-right">Games won in {sortBy.substr(-1)}</TableHead>
                     )}
@@ -494,14 +524,12 @@ export default function WordleDailyLeaderboardPage() {
                           {entry[selectedWordPack.rankColumn.replace(/_([a-z])/g, (_, char: string) => char.toUpperCase())]}
                         </TableCell>
                         <TableCell>
-                          <HoverCard>
+                          <div className="inline-flex min-w-0 items-center gap-2">
+<HoverCard>
                             <HoverCardTrigger asChild>
                               <Link className="inline-flex min-w-0 items-center gap-2 hover:underline" href={`/player/${entry?.player}`}>
                                  <PlayerAvatar profileImage={entry?.profileImage} displayName={entry?.displayName || 'Player'} avatarStyleKey={entry?.avatarStyleKey} avatarFrameKey={entry?.avatarFrameKey} size={32} />
                                  <span className="truncate">{entry?.displayName}</span>
-                                 {(entry?.avatarFrameKey === 'FRAME:PLUS' || entry?.avatarFrameKey === 'FRAME:CREATOR') && (
-                                   <span className="shrink-0 rounded border px-1.5 py-0.5 text-[10px] font-medium" title="Equipped avatar frame, not a subscription-status indicator">{entry.avatarFrameKey === 'FRAME:CREATOR' ? 'CREATOR frame' : 'PLUS frame'}</span>
-                                 )}
                                </Link>
                             </HoverCardTrigger>
                             <HoverCardContent className="w-80">
@@ -523,6 +551,8 @@ export default function WordleDailyLeaderboardPage() {
                               </div>
                             </HoverCardContent>
                           </HoverCard>
+                            <SubscriptionBadge subscriptionKey={entry?.subscriptionKey} />
+                          </div>
                         </TableCell>
                         <TableCell className="text-right">
                           {prefix
@@ -535,11 +565,13 @@ export default function WordleDailyLeaderboardPage() {
                         <TableCell className="text-right">
                           {prefix ? (entry[`${prefix}GamesLost`] ?? 0) : (entry.gamesLost ?? 0)}
                         </TableCell>
+                        {wordPack !== 'all' && <TableCell className="text-right">{entry[`${prefix}CurrentStreak`] ?? 0}</TableCell>}
+                        <TableCell className="text-right">{prefix ? (entry[`${prefix}BestStreak`] ?? 0) : (entry.overallBestStreak ?? 0)}</TableCell>
                       </TableRow>
                     ))
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={sortBy.includes('games_won_in') ? 6 : 5} className="text-center py-8 text-muted-foreground">
+                      <TableCell colSpan={wordPack !== 'all' ? 7 : 6} className="text-center py-8 text-muted-foreground">
                         No leaderboard data is available for this word pack and timeframe.
                       </TableCell>
                     </TableRow>
@@ -547,27 +579,6 @@ export default function WordleDailyLeaderboardPage() {
                 </TableBody>
               </Table>
             </div>
-            {user?.id && !myPositionLoading && (
-              <div className="mt-4 rounded-md border border-primary/40 bg-primary/5 p-4" aria-label="Your leaderboard position">
-                <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Your Rank · {selectedWordPack.label}</div>
-                {myPositionError ? (
-                  <p className="text-sm text-muted-foreground">Your position is temporarily unavailable.</p>
-                ) : myRankIsValid ? (
-                  <div className="flex flex-wrap items-center justify-between gap-3">
-                    <div>
-                      <div className="flex items-center gap-2">
-                         <PlayerAvatar profileImage={myPosition?.profileImage} displayName={myPosition?.displayName || 'You'} avatarStyleKey={myPosition?.avatarStyleKey} avatarFrameKey={myPosition?.avatarFrameKey} size={36} />
-                         <div className="text-lg font-semibold">#{myRank} · {myPosition?.displayName || 'You'}</div>
-                       </div>
-                      <div className="text-sm text-muted-foreground">{myPlayerIsOnPage ? 'Your row is highlighted above.' : 'Your position is shown here even when you are not on this page.'}</div>
-                    </div>
-                    <div className="text-sm">{myWins} wins · {myLosses} losses</div>
-                  </div>
-                ) : (
-                  <p className="text-sm text-muted-foreground">You are not ranked for this word pack and timeframe.</p>
-                )}
-              </div>
-            )}
           </CardContent>
           <CardFooter>
             <LeaderboardPagination />
