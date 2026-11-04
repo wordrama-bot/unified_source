@@ -1,6 +1,8 @@
 'use client'
 import { cn } from '@/lib/utils';
-import { redirect } from "next/navigation";
+import { redirect, usePathname } from "next/navigation";
+import { getWordleGameUiState } from "@/redux/ui/helpers";
+import { getAppearanceTheme } from "@/config/themes";
 import { useAuth } from '@/providers/auth-provider';
 import NavBar from "@/components/navbar/h-nav";
 import Loader from "@/sections/loading";
@@ -14,6 +16,20 @@ export default function Layout({
 }: Readonly<{ children: React.ReactNode, className: string }>) {
   const { user } = useAuth();
   const { data: myAccount, isLoading, error } = useGetMyAccountQuery();
+
+  const pathname = usePathname();
+  const gameUiState = getWordleGameUiState();
+  const appearanceTheme = getAppearanceTheme(gameUiState?.appearanceThemeId);
+
+  const gameChromeClassName =
+    pathname === "/games/wordrama" && appearanceTheme.meta.id !== "theme.default"
+      ? [
+          ...appearanceTheme.app.panel.split(/\s+/).filter(
+            (className) => !/(^|:)!?text-/.test(className)
+          ),
+          appearanceTheme.app.text,
+        ].join(" ")
+      : undefined;
 
   if (!user) return (
     <div className={cn("flex min-h-screen w-full flex-col border:border dark:border-darkBorder bg-bg dark:bg-darkBg text-text dark:text-darkText", className)}>
@@ -51,6 +67,8 @@ export default function Layout({
   return (
     <div className={cn("flex min-h-screen w-full flex-col border:border dark:border-darkBorder bg-bg dark:bg-darkBg text-text dark:text-darkText", className)}>
       <NavBar
+        themeClassName={gameChromeClassName}
+        gameAppearanceTheme={gameChromeClassName ? appearanceTheme : undefined}
         links={[
           { href: "/games", text: "Games" },
           { href: "/leaderboard", text: "Leaderboard" },
@@ -62,7 +80,7 @@ export default function Layout({
       <main className="w-full flex-1">
         {children}
       </main>
-      <Footer />
+      <Footer themeClassName={gameChromeClassName} />
     </div>
   );
 }
