@@ -84,31 +84,35 @@ function wordleReducer(state: InitialState = initialState, { type, payload }: IS
         }
       }
       break;
-    case "SET_GAME_STATE":
-      if (state.gameMode === 'CUSTOM') {
+    case "SET_GAME_STATE": {
+      // Async completions belong to the board that started the write, even
+      // if the player selected another pack while IndexedDB was committing.
+      const target = payload.target;
+      const mode = target?.gameMode ?? state.gameMode;
+      const pack = target?.wordPack ?? state.wordPack;
+      const board = mode === 'CUSTOM' ? state.custom : state.modes[mode]?.[pack];
+      if (target && (!board || (
+        target.gameInstanceId || ('gameInstanceId' in board && board.gameInstanceId)
+          ? target.gameInstanceId !== (board as GameState).gameInstanceId
+          : target.solution !== board.solution
+      ))) break;
+
+      if (mode === 'CUSTOM') {
+        state = { ...state, custom: { ...state.custom, ...payload.updatedState } };
+      } else {
         state = {
           ...state,
-          custom: {
-            ...state.custom,
-            ...payload.updatedState
-          }
-        }
-        break;
-      }
-      state = {
-        ...state,
-        modes: {
-          ...state.modes,
-          [state.gameMode]: {
-            ...state.modes[state.gameMode],
-            [state.wordPack]: {
-              ...state.modes[state.gameMode][state.wordPack],
-              ...payload.updatedState
-            }
-          }
-        }
+          modes: {
+            ...state.modes,
+            [mode]: {
+              ...state.modes[mode],
+              [pack]: { ...board, ...payload.updatedState },
+            },
+          },
+        };
       }
       break;
+    }
     case "SETUP_CUSTOM_GAME":
       state = {
         ...state,
