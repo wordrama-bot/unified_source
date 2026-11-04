@@ -1,4 +1,5 @@
 import { Response } from 'express';
+import { z } from 'zod';
 import { ApiRequest } from '../../../types';
 import {
   addGameResult as addGameResultSchema,
@@ -9,10 +10,26 @@ import {
   badRequest,
   notFoundResponse,
   successfulResponse,
+  unauthorizedResponse,
 } from '../../../utils/responses';
 
 import gameService from '../../../services/game/wordle';
 import { checkIfValidWordPack } from './words';
+
+async function getCompletedInstance(req: ApiRequest, res: Response) {
+  if (!req.userId) return unauthorizedResponse(req, res);
+  const parsed = z.string().uuid().safeParse(req.params.gameInstanceId);
+  if (!parsed.success) return res.status(400).json({ message: 'Invalid game instance ID', status: 400 });
+  try {
+    const result = await gameService.getCompletedInstance(req.userId, parsed.data);
+    // Never cache a negative answer: another tab may complete this game next.
+    res.set('Cache-Control', 'no-store');
+    return successfulResponse(req, res, result, '[Wordle] Instance Checked', result ? 1 : 0);
+  } catch (error) {
+    console.error('[wordle] unable to check completed instance', error);
+    return res.status(503).json({ message: 'Unable to verify Wordle game', status: 503 });
+  }
+}
 
 async function getCustom(req: ApiRequest, res: Response) {
   const shareCode = req.params.shareCode;
@@ -107,6 +124,7 @@ async function createCustom(req: ApiRequest, res: Response) {
 }
 
 export default {
+  getCompletedInstance,
   getCustom,
   getLast30,
   submitWordleResult,

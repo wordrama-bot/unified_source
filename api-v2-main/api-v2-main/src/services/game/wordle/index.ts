@@ -8,6 +8,19 @@ import { enqueue, createMessage } from '../../../utils/gameLoop';
 import { awardPrestigeFrames } from '../../prestigeFrames';
 import gameUtils from '../../../utils/game';
 
+// A saved checkpoint can lag behind a completed result, including results
+// submitted from another tab or device. Check identity rather than the word.
+async function getCompletedInstance(userId: string, gameInstanceId: string) {
+  const { data, error } = await db
+    .from('_wordle_game_result')
+    .select('id, game_instance_id, solution, guesses, type, word_pack')
+    .eq('player', userId)
+    .eq('game_instance_id', gameInstanceId)
+    .maybeSingle();
+  if (error) throw error;
+  return data ? changeKeys.camelCase(data, 10) : null;
+}
+
 async function getLast30(
   userId: string,
   gameMode: string,
@@ -401,6 +414,7 @@ async function createCustom(userId: string, body: CreateCustom) {
 }
 
 export default {
+  getCompletedInstance,
   getCustomByShareCode,
   submitWordleResult,
   createCustom,

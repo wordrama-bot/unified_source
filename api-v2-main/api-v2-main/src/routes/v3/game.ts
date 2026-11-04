@@ -13,6 +13,7 @@ router.get(
   wordleController.getLast30,
 );
 router.get('/wordle/game-state', wordleStateController.getGameState);
+router.get('/wordle/completed-instance/:gameInstanceId', wordleController.getCompletedInstance);
 router.get('/wordle/custom/:shareCode', wordleController.getCustom);
 router.get('/wordle/wordpack/:wordPack', wordleWordsController.getWordPack);
 router.get('/wordle/wordpacks', wordleWordsController.getMyWordPacks);

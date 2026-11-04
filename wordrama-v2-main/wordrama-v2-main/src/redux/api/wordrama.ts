@@ -100,6 +100,16 @@ export const wordramaApiV3 = createApi({
       providesTags: ["WordleStreak"],
     }),
 
+    getCompletedWordleInstance: builder.query<any, string>({
+      query: (gameInstanceId) => ({
+        url: `/api/v3/game/wordle/completed-instance/${encodeURIComponent(gameInstanceId)}`,
+        method: "GET",
+        cache: "no-store",
+        credentials: "include",
+      }),
+      keepUnusedDataFor: 0,
+    }),
+
     getLast30Wordles: builder.query<
       any,
       { gameMode: string; wordPack: string }
@@ -938,6 +948,7 @@ export const wordramaApiV3 = createApi({
 
 // Exporting the auto-generated hook for the endpoint
 export const {
+  useLazyGetCompletedWordleInstanceQuery,
   useGetLast30WordlesQuery,
   useGetWordleStreakQuery,
   useGetMyWordPacksQuery,

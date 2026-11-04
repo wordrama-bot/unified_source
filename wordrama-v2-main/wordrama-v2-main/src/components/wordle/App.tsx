@@ -88,6 +88,7 @@ import {
 import { useAlert } from './context/AlertContext'
 import {
   useGetLast30WordlesQuery,
+  useLazyGetCompletedWordleInstanceQuery,
   useGetWordleWoTDQuery,
   useGetWordleWordPackQuery,
   useGetWordleSavedStateQuery,
@@ -103,6 +104,7 @@ import {
   useSubmitWordleResultMutation,
 } from '../../redux/api/wordrama';
 
+import { checkWordleBoardCompletion } from '../../lib/wordleBoardCompletion';
 import {
   getPendingWordleResults,
   getWordleCompletions,
@@ -795,6 +797,95 @@ function App(){
   const serverStateRevisionRef = useRef(0);
   const hiddenAtRef = useRef<number | null>(null);
   const gameStateSaveQueueRef = useRef<Promise<void>>(Promise.resolve());
+  const [isGameStateHydrated, setIsGameStateHydrated] = useState(false);
+  const [getCompletedInstance] = useLazyGetCompletedWordleInstanceQuery();
+  const activeBoardRef = useRef({ playerId: user?.id, gameMode, wordPack, board: currentGame as GameState });
+  activeBoardRef.current = { playerId: user?.id, gameMode, wordPack, board: currentGame as GameState };
+  const boardCheckEpochRef = useRef(0);
+  const lastBoardCheckRef = useRef<{ key: string; at: number } | null>(null);
+  const pendingBoardCheckRef = useRef<{ key: string; promise: Promise<'ready' | 'completed' | 'retry'> } | null>(null);
+  const guessSubmissionInProgressRef = useRef(false);
+
+  // Refresh statistics alone cannot retire a stale board. Verify the exact
+  // instance before resuming it; scoped reducer updates reject late responses.
+  const verifyActiveWordleBoard = useCallback(async (): Promise<'ready' | 'completed' | 'retry'> => {
+    const active = activeBoardRef.current;
+    const board = active.board;
+    if (!active.playerId || !board.gameInstanceId || !board.solution ||
+        board.isGameWon || board.isGameLost) return 'ready';
+    const epoch = boardCheckEpochRef.current;
+    const key = `${active.playerId}:${active.gameMode}:${active.wordPack}:${board.gameInstanceId}:${epoch}`;
+    const last = lastBoardCheckRef.current;
+    if (last?.key === key && Date.now() - last.at < 30_000) return 'ready';
+    if (pendingBoardCheckRef.current?.key === key) return pendingBoardCheckRef.current.promise;
+
+    const check = (async (): Promise<'ready' | 'completed' | 'retry'> => {
+      try {
+        const completed = await checkWordleBoardCompletion(
+          board, active.gameMode, active.wordPack,
+          () => getWordleCompletions(active.playerId!),
+          async (id) => {
+            if (!navigator.onLine) return null; // Keep offline play available.
+            const request = getCompletedInstance(id, false);
+            const timeout = window.setTimeout(() => request.abort(), 6_000);
+            try {
+              const response = await request.unwrap();
+              if (!response || !('data' in response)) throw new Error('Missing completion response');
+              return response.data;
+            } finally { window.clearTimeout(timeout); }
+          },
+        );
+        const latest = activeBoardRef.current;
+        if (latest.playerId !== active.playerId || latest.gameMode !== active.gameMode ||
+            latest.wordPack !== active.wordPack || latest.board.gameInstanceId !== board.gameInstanceId ||
+            boardCheckEpochRef.current !== epoch) return 'retry';
+        if (completed) {
+          dispatch(setGameState({
+            ...board,
+            guesses: completed.guesses,
+            isGameWon: completed.guesses.includes(completed.solution),
+            isGameLost: !completed.guesses.includes(completed.solution),
+            isGameInProgress: false,
+            resultSave: false,
+          }, { gameMode: active.gameMode, wordPack: active.wordPack,
+            gameInstanceId: board.gameInstanceId, solution: board.solution }));
+          setCurrentGuess('');
+          return 'completed';
+        }
+        // An offline check must not suppress the first check after reconnect.
+        if (navigator.onLine) lastBoardCheckRef.current = { key, at: Date.now() };
+        return 'ready';
+      } catch (error) {
+        console.warn('[wordle] resume verification failed; retry before accepting a guess', error);
+        return 'retry';
+      }
+    })();
+    pendingBoardCheckRef.current = { key, promise: check };
+    try { return await check; }
+    finally {
+      if (pendingBoardCheckRef.current?.promise === check) pendingBoardCheckRef.current = null;
+    }
+  }, [dispatch, getCompletedInstance]);
+
+  useEffect(() => {
+    if (!isGameStateHydrated) return;
+    void verifyActiveWordleBoard();
+    const resume = () => {
+      if (document.visibilityState !== 'visible') return;
+      boardCheckEpochRef.current += 1;
+      void verifyActiveWordleBoard();
+    };
+    window.addEventListener('focus', resume);
+    window.addEventListener('pageshow', resume);
+    window.addEventListener('online', resume);
+    document.addEventListener('visibilitychange', resume);
+    return () => {
+      window.removeEventListener('focus', resume);
+      window.removeEventListener('pageshow', resume);
+      window.removeEventListener('online', resume);
+      document.removeEventListener('visibilitychange', resume);
+    };
+  }, [isGameStateHydrated, user?.id, gameMode, wordPack, (currentGame as GameState).gameInstanceId, verifyActiveWordleBoard]);
 
   const [playWinSound] = useSound('/sounds/win.mp3', {
   volume: 0.05,
@@ -829,9 +920,9 @@ const activeSolution = isCustom
   const [isRevealing, setIsRevealing] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
   const [currentGuess, setCurrentGuess] = useState('');
+  const currentGuessRef = useRef(currentGuess);
+  currentGuessRef.current = currentGuess;
   const [isRefreshRequired, setIsRefreshRequired] =
-    useState(false);
-  const [isGameStateHydrated, setIsGameStateHydrated] =
     useState(false);
   const checkForStaleBuild = useCallback(async () => {
     if (typeof window === 'undefined') return;
@@ -1537,6 +1628,27 @@ const activeSolution = isCustom
 
   // Called when a user presses enter on the virtual or physical keyboard
   async function onEnter() {
+    if (guessSubmissionInProgressRef.current) return;
+    guessSubmissionInProgressRef.current = true;
+    const active = activeBoardRef.current;
+    const guess = currentGuessRef.current;
+    try {
+      const verification = await verifyActiveWordleBoard();
+      if (verification === 'completed') {
+        return showErrorAlert('This puzzle was already completed. Start a new game to keep playing.');
+      }
+      if (verification !== 'ready') {
+        return showErrorAlert('Unable to check this puzzle. Please try again.');
+      }
+      const latest = activeBoardRef.current;
+      if (latest.playerId !== active.playerId || latest.gameMode !== active.gameMode ||
+          latest.wordPack !== active.wordPack || latest.board !== active.board ||
+          currentGuessRef.current !== guess) return;
+      return await submitGuess();
+    } finally { guessSubmissionInProgressRef.current = false; }
+  }
+
+  async function submitGuess() {
     if (isGameWon || isGameLost) {
       if (isCustom) return;
       if (isDaily) {

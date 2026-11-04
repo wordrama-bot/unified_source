@@ -129,6 +129,19 @@ beforeEach(() => {
 });
 
 describe('Wordle result service — isolated idempotency', () => {
+  test('completion lookup is scoped to the authenticated player and exact instance', async () => {
+    const body = makeBody();
+    await wordleService.submitWordleResult(player, body);
+    expect(await wordleService.getCompletedInstance(player, body.gameInstanceId)).toMatchObject({
+      gameInstanceId: body.gameInstanceId, guesses: body.guesses, solution: body.solution,
+    });
+    expect(await wordleService.getCompletedInstance(otherPlayer, body.gameInstanceId)).toBeNull();
+    expect(await wordleService.getCompletedInstance(player, crypto.randomUUID())).toBeNull();
+  });
+  test('completion lookup fails explicitly on database errors', async () => {
+    failNextLookup = true;
+    await expect(wordleService.getCompletedInstance(player, crypto.randomUUID())).rejects.toBeDefined();
+  });
   test('current production result payload without game instance remains supported', async () => {
     const body = makeBody({ gameInstanceId: undefined, clientCompletedAt: new Date().toISOString() });
     expect((await wordleService.submitWordleResult(player, body)).resultId).toBe(body.resultId);
