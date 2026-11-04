@@ -30,6 +30,16 @@ async function getLeaderboardPositionAllTime(req: ApiRequest, res: Response) {
   const leaderboard =
     await leaderboardService.getPlayerLeaderboardPositionAllTime(userId);
 
+  if (leaderboard === null) {
+    return successfulResponse(
+      req,
+      res,
+      {},
+      'No leaderboard position for this period',
+      0,
+    );
+  }
+
   if (
     !leaderboard ||
     typeof leaderboard !== 'object' ||
@@ -57,6 +67,16 @@ async function getLeaderboardPositionThisYear(req: ApiRequest, res: Response) {
 
   const leaderboard =
     await leaderboardService.getPlayerLeaderboardPositionThisYear(userId, year);
+
+  if (leaderboard === null) {
+    return successfulResponse(
+      req,
+      res,
+      {},
+      'No leaderboard position for this period',
+      0,
+    );
+  }
 
   if (
     !leaderboard ||
@@ -90,6 +110,16 @@ async function getLeaderboardPositionThisMonth(req: ApiRequest, res: Response) {
       year,
     );
 
+  if (leaderboard === null) {
+    return successfulResponse(
+      req,
+      res,
+      {},
+      'No leaderboard position for this period',
+      0,
+    );
+  }
+
   if (
     !leaderboard ||
     typeof leaderboard !== 'object' ||
@@ -121,6 +151,16 @@ async function getLeaderboardPositionThisWeek(req: ApiRequest, res: Response) {
       week,
       year,
     );
+
+  if (leaderboard === null) {
+    return successfulResponse(
+      req,
+      res,
+      {},
+      'No leaderboard position for this period',
+      0,
+    );
+  }
 
   if (
     !leaderboard ||
@@ -154,6 +194,16 @@ async function getLeaderboardPositionToday(req: ApiRequest, res: Response) {
       month,
       year,
     );
+
+  if (leaderboard === null) {
+    return successfulResponse(
+      req,
+      res,
+      {},
+      'No leaderboard position for this period',
+      0,
+    );
+  }
 
   if (
     !leaderboard ||

@@ -42,7 +42,6 @@ const ALLOWED_ORDER_COLUMNS = new Set([
   'yearly_rank_9_letter',
   'yearly_rank_10_letter',
   'yearly_rank_11_letter',
-  'yearly_rank_11_letter_extended',
   'yearly_rank_12_letter',
   'yearly_rank_13_letter',
   'yearly_rank_14_letter',
@@ -65,7 +64,6 @@ const ALLOWED_ORDER_COLUMNS = new Set([
   'monthly_rank_9_letter',
   'monthly_rank_10_letter',
   'monthly_rank_11_letter',
-  'monthly_rank_11_letter_extended',
   'monthly_rank_12_letter',
   'monthly_rank_13_letter',
   'monthly_rank_14_letter',
@@ -88,7 +86,6 @@ const ALLOWED_ORDER_COLUMNS = new Set([
   'weekly_rank_9_letter',
   'weekly_rank_10_letter',
   'weekly_rank_11_letter',
-  'weekly_rank_11_letter_extended',
   'weekly_rank_12_letter',
   'weekly_rank_13_letter',
   'weekly_rank_14_letter',
@@ -111,7 +108,6 @@ const ALLOWED_ORDER_COLUMNS = new Set([
   'daily_rank_9_letter',
   'daily_rank_10_letter',
   'daily_rank_11_letter',
-  'daily_rank_11_letter_extended',
   'daily_rank_12_letter',
   'daily_rank_13_letter',
   'daily_rank_14_letter',
@@ -123,11 +119,101 @@ const ALLOWED_ORDER_COLUMNS = new Set([
   'daily_rank_20_letter',
   'daily_rank_21_letter',
   'daily_rank_22_letter',
-  'daily_rank_22_letter',
+  'daily_rank_23_letter',
 ]);
 
+// Rank columns are whitelisted above. Only derive filters from whitelisted ranks.
+const PACK_STAT_PREFIX: Record<string, string> = {
+  'five_letter_crazy': 'five_letter_crazy',
+  '11_letter_extended': 'eleven_letter_extended',
+};
+const NUMBER_WORDS = [
+  '', '', '', '', 'four', 'five', 'six', 'seven', 'eight', 'nine',
+  'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen',
+  'sixteen', 'seventeen', 'eighteen', 'nineteen', 'twenty',
+  'twentyone', 'twentytwo', 'twentythree',
+];
+
+function participationColumns(safeOrderBy: string): [string, string] {
+  const suffix = safeOrderBy.replace(/^(alltime|yearly|monthly|weekly|daily)_rank/, '').replace(/^_/, '');
+  let prefix = 'games';
+  if (suffix) {
+    const match = /^(\d+)_letter$/.exec(suffix);
+    prefix = PACK_STAT_PREFIX[suffix] ??
+      (match && Number(match[1]) >= 4 && Number(match[1]) <= 23
+        ? `${NUMBER_WORDS[Number(match[1])]}_letter`
+        : '');
+    if (!prefix) throw new Error(`Unsupported leaderboard rank: ${safeOrderBy}`);
+  }
+  return [prefix === 'games' ? 'games_won' : `${prefix}_games_won`,
+          prefix === 'games' ? 'games_lost' : `${prefix}_games_lost`];
+}
+
+// Keep the selected pack's rank independent from the statistic used for ordering.
+// The rank whitelist also guards all derived participation columns.
 function sanitizeOrderBy(orderBy: string, fallback: string) {
-  return ALLOWED_ORDER_COLUMNS.has(orderBy) ? orderBy : fallback;
+  const rank = orderBy.split('__sort__')[0];
+  return ALLOWED_ORDER_COLUMNS.has(rank) ? rank : fallback;
+}
+
+function resolveSort(orderBy: string, rank: string) {
+  const [requestedRank, statistic, extra] = orderBy.split('__sort__');
+  if (requestedRank !== rank || extra !== undefined || !statistic) {
+    return { column: rank, ascending: true };
+  }
+  const [won, lost] = participationColumns(rank);
+  const permitted = [won, lost];
+  if (['alltime_rank', 'daily_rank', 'weekly_rank', 'monthly_rank', 'yearly_rank'].includes(rank)) {
+    permitted.push('games_played');
+  }
+  return permitted.includes(statistic)
+    ? { column: statistic, ascending: false }
+    : { column: rank, ascending: true };
+}
+
+// Lifetime streaks live in the regular All-Time view, not the period MVs.
+function streakColumn(orderBy: string, rank: string): string | null {
+  const [requestedRank, statistic, extra] = orderBy.split('__sort__');
+  if (requestedRank !== rank || extra !== undefined || !statistic) return null;
+  const [won] = participationColumns(rank);
+  const prefix = won === 'games_won' ? '' : won.slice(0, -'_games_won'.length);
+  if (!prefix) return statistic === 'overall_best_streak' ? statistic : null;
+  return statistic === `${prefix}_current_streak` ||
+    statistic === `${prefix}_best_streak` ||
+    statistic === `${prefix}_games_played`
+    ? statistic : null;
+}
+
+async function fetchStreakSortedPage(
+  period: string, rank: string, statistic: string,
+  offset: number, limit: number,
+  dates: { year?: number; month?: number; week?: number; day?: number } = {},
+) {
+  const { data, error } = await db.rpc('wordrama_leaderboard_streak_page', {
+    p_period: period, p_rank: rank, p_streak: statistic.endsWith('_games_played') ? 'games_played' : statistic.endsWith('_current_streak') ? 'current_streak' : 'best_streak',
+    p_offset: offset, p_limit: limit,
+    p_year: dates.year ?? null, p_month: dates.month ?? null,
+    p_week: dates.week ?? null, p_day: dates.day ?? null,
+  });
+  if (error) throw new Error(`Streak leaderboard query failed: ${error.message}`);
+  return data ?? [];
+}
+
+async function enrichLifetimeStreaks(rows: any[]) {
+  const ids = [...new Set(rows.map(row => row.player).filter(Boolean))];
+  if (!ids.length) return rows;
+  const { data, error } = await db.from('_mv_wordle_alltime_leaderboard')
+    .select('*').in('player', ids);
+  if (error) throw new Error(`Lifetime streak lookup failed: ${error.message}`);
+  const byPlayer = new Map((data ?? []).map((row: any) => [row.player, row]));
+  return rows.map(row => {
+    const lifetime = byPlayer.get(row.player) as any;
+    if (!lifetime) return row;
+    const streakFields = Object.fromEntries(Object.entries(lifetime).filter(([key]) =>
+      key === 'overall_best_streak' || /_(current|best)_streak$/.test(key)
+    ));
+    return { ...row, ...streakFields };
+  });
 }
 
 async function getProfileImagesByPlayerIds(playerIds: string[]) {
@@ -159,6 +245,49 @@ async function getProfileImagesByPlayerIds(playerIds: string[]) {
   return profileImageByPlayerId;
 }
 
+type LeaderboardSubscriptionTier = 'PLUS' | 'CREATOR' | null;
+const subscriptionTierCache = new Map<string, { tier: LeaderboardSubscriptionTier; expires: number }>();
+const SUBSCRIPTION_CACHE_MS = 60_000;
+const SUBSCRIPTION_CACHE_MAX = 1500;
+
+async function getSubscriptionKeysByPlayerIds(playerIds: string[]) {
+  const result = new Map<string, LeaderboardSubscriptionTier>();
+  const nowMs = Date.now();
+  const missing: string[] = [];
+  for (const id of new Set(playerIds.filter(Boolean))) {
+    const cached = subscriptionTierCache.get(id);
+    if (cached && cached.expires > nowMs) result.set(id, cached.tier);
+    else missing.push(id);
+  }
+  if (missing.length) {
+    const { data, error } = await db
+      .from('_player_subscriptions')
+      .select('player_id, subscription_key')
+      .in('player_id', missing)
+      .in('subscription_key', ['PLUS', 'CREATOR'])
+      .in('status', ['TRIALING', 'ACTIVE', 'PAST_DUE'])
+      .gt('current_period_end', new Date().toISOString());
+    if (error) {
+      console.error('[leaderboard] subscription tier lookup failed:', error);
+      // Fail closed, but do not cache a transient failure.
+      for (const id of missing) result.set(id, null);
+    } else {
+      for (const id of missing) result.set(id, null);
+      for (const row of data ?? []) {
+        const tier: LeaderboardSubscriptionTier = row.subscription_key === 'CREATOR' ? 'CREATOR' : 'PLUS';
+        if (tier === 'CREATOR' || result.get(row.player_id) !== 'CREATOR') result.set(row.player_id, tier);
+      }
+      for (const id of missing) subscriptionTierCache.set(id, { tier: result.get(id) ?? null, expires: nowMs + SUBSCRIPTION_CACHE_MS });
+      while (subscriptionTierCache.size > SUBSCRIPTION_CACHE_MAX) {
+        const first = subscriptionTierCache.keys().next().value;
+        if (first === undefined) break;
+        subscriptionTierCache.delete(first);
+      }
+    }
+  }
+  return result;
+}
+
 async function getPlayerLeaderboardPositionAllTime(userId: string) {
   const { data, error } = await db
     .from('_mv_wordle_alltime_leaderboard')
@@ -181,9 +310,18 @@ async function getPlayerLeaderboardPositionAllTime(userId: string) {
     data.player ? [data.player] : [],
   );
 
+
+  const playerIds = data.player ? [data.player] : [];
+  const { avatarStyleByPlayerId, avatarFrameByPlayerId } =
+    await getAvatarCosmeticsByPlayerIds(playerIds);
+  const subscriptionKeyByPlayerId = await getSubscriptionKeysByPlayerIds(playerIds);
+
   return {
     ...camel,
     profileImage: profileImageByPlayerId.get(data.player) ?? null,
+    avatarStyleKey: avatarStyleByPlayerId.get(data.player) ?? null,
+    avatarFrameKey: avatarFrameByPlayerId.get(data.player) ?? null,
+    subscriptionKey: subscriptionKeyByPlayerId.get(data.player) ?? null,
   };
 }
 
@@ -213,9 +351,18 @@ async function getPlayerLeaderboardPositionThisYear(
     data.player ? [data.player] : [],
   );
 
+
+  const playerIds = data.player ? [data.player] : [];
+  const { avatarStyleByPlayerId, avatarFrameByPlayerId } =
+    await getAvatarCosmeticsByPlayerIds(playerIds);
+  const subscriptionKeyByPlayerId = await getSubscriptionKeysByPlayerIds(playerIds);
+
   return {
     ...camel,
     profileImage: profileImageByPlayerId.get(data.player) ?? null,
+    avatarStyleKey: avatarStyleByPlayerId.get(data.player) ?? null,
+    avatarFrameKey: avatarFrameByPlayerId.get(data.player) ?? null,
+    subscriptionKey: subscriptionKeyByPlayerId.get(data.player) ?? null,
   };
 }
 
@@ -247,9 +394,18 @@ async function getPlayerLeaderboardPositionThisMonth(
     data.player ? [data.player] : [],
   );
 
+
+  const playerIds = data.player ? [data.player] : [];
+  const { avatarStyleByPlayerId, avatarFrameByPlayerId } =
+    await getAvatarCosmeticsByPlayerIds(playerIds);
+  const subscriptionKeyByPlayerId = await getSubscriptionKeysByPlayerIds(playerIds);
+
   return {
     ...camel,
     profileImage: profileImageByPlayerId.get(data.player) ?? null,
+    avatarStyleKey: avatarStyleByPlayerId.get(data.player) ?? null,
+    avatarFrameKey: avatarFrameByPlayerId.get(data.player) ?? null,
+    subscriptionKey: subscriptionKeyByPlayerId.get(data.player) ?? null,
   };
 }
 
@@ -281,9 +437,18 @@ async function getPlayerLeaderboardPositionThisWeek(
     data.player ? [data.player] : [],
   );
 
+
+  const playerIds = data.player ? [data.player] : [];
+  const { avatarStyleByPlayerId, avatarFrameByPlayerId } =
+    await getAvatarCosmeticsByPlayerIds(playerIds);
+  const subscriptionKeyByPlayerId = await getSubscriptionKeysByPlayerIds(playerIds);
+
   return {
     ...camel,
     profileImage: profileImageByPlayerId.get(data.player) ?? null,
+    avatarStyleKey: avatarStyleByPlayerId.get(data.player) ?? null,
+    avatarFrameKey: avatarFrameByPlayerId.get(data.player) ?? null,
+    subscriptionKey: subscriptionKeyByPlayerId.get(data.player) ?? null,
   };
 }
 
@@ -317,9 +482,18 @@ async function getPlayerLeaderboardPositionToday(
     data.player ? [data.player] : [],
   );
 
+
+  const playerIds = data.player ? [data.player] : [];
+  const { avatarStyleByPlayerId, avatarFrameByPlayerId } =
+    await getAvatarCosmeticsByPlayerIds(playerIds);
+  const subscriptionKeyByPlayerId = await getSubscriptionKeysByPlayerIds(playerIds);
+
   return {
     ...camel,
     profileImage: profileImageByPlayerId.get(data.player) ?? null,
+    avatarStyleKey: avatarStyleByPlayerId.get(data.player) ?? null,
+    avatarFrameKey: avatarFrameByPlayerId.get(data.player) ?? null,
+    subscriptionKey: subscriptionKeyByPlayerId.get(data.player) ?? null,
   };
 }
 
@@ -397,24 +571,11 @@ async function getAvatarCosmeticsByPlayerIds(playerIds: string[]) {
       )
       .map((row) => row.player_id);
 
+    const subscriptionKeys = await getSubscriptionKeysByPlayerIds(subscriptionPlayers);
     const validSubscriptions = new Set<string>();
-
-    if (subscriptionPlayers.length > 0) {
-      const { data: subscriptions, error: subscriptionError } = await db
-        .from('_player_subscriptions')
-        .select('player_id, subscription_key')
-        .in('player_id', subscriptionPlayers)
-        .in('subscription_key', ['PLUS', 'CREATOR'])
-        .in('status', ['TRIALING', 'ACTIVE', 'PAST_DUE'])
-        .gt('current_period_end', now);
-
-      if (subscriptionError) throw subscriptionError;
-
-      for (const subscription of subscriptions ?? []) {
-        validSubscriptions.add(
-          `${subscription.player_id}:${subscription.subscription_key}`,
-        );
-      }
+    for (const id of subscriptionPlayers) {
+      const tier = subscriptionKeys.get(id);
+      if (tier) validSubscriptions.add(`${id}:${tier}`);
     }
 
     for (const row of equippedFrames) {
@@ -467,20 +628,29 @@ async function getPlayerLeaderboardAllTime(
   limit: number = 10,
 ) {
   const safeOrderBy = sanitizeOrderBy(orderBy, 'alltime_rank');
+  const sorting = resolveSort(orderBy, safeOrderBy);
+  const streak = streakColumn(orderBy, safeOrderBy);
 
-  const { data, error } = await db
-    .from('_mv_wordle_alltime_leaderboard')
-    .select('*')
-    .not(safeOrderBy, 'is', null)
-    .order(safeOrderBy, { ascending: true })
-    .range(offset, offset + limit - 1);
+  let rows: any[] = [];
+  if (streak) {
+    rows = await enrichLifetimeStreaks(await fetchStreakSortedPage('alltime', safeOrderBy, streak, offset, limit, {}));
+  } else {
+    const { data, error } = await db
+      .from('_mv_wordle_alltime_leaderboard')
+      .select('*')
+      .not(safeOrderBy, 'is', null)
+      .or(participationColumns(safeOrderBy).map((column) => `${column}.gt.0`).join(','))
+      .order(sorting.column, { ascending: sorting.ascending })
+      .order(safeOrderBy, { ascending: true })
+      .range(offset, offset + limit - 1);
 
-  if (error) {
-    console.error(error);
-    return {};
+    if (error) {
+      console.error(error);
+      return {};
+    }
+
+    rows = await enrichLifetimeStreaks(data ?? []);
   }
-
-  const rows = data ?? [];
 
   const playerIds = rows
     .map((row: any) => row.player)
@@ -495,6 +665,7 @@ async function getPlayerLeaderboardAllTime(
     avatarStyleByPlayerId,
     avatarFrameByPlayerId,
   } = await getAvatarCosmeticsByPlayerIds(playerIds);
+  const subscriptionKeyByPlayerId = await getSubscriptionKeysByPlayerIds(playerIds);
 
   return rows.map((row: any) => {
     const camel = changeKeys.camelCase(row, 10) as any;
@@ -504,6 +675,7 @@ async function getPlayerLeaderboardAllTime(
       profileImage: profileImageByPlayerId.get(row.player) ?? null,
       avatarStyleKey: avatarStyleByPlayerId.get(row.player) ?? null,
       avatarFrameKey: avatarFrameByPlayerId.get(row.player) ?? null,
+      subscriptionKey: subscriptionKeyByPlayerId.get(row.player) ?? null,
       bestStreak: camel.overallBestStreak ?? 0,
       players: {
         levels: {
@@ -524,21 +696,30 @@ async function getPlayerLeaderboardForTheYear(
   year: number = new Date().getFullYear(),
 ) {
   const safeOrderBy = sanitizeOrderBy(orderBy, 'yearly_rank');
+  const sorting = resolveSort(orderBy, safeOrderBy);
+  const streak = streakColumn(orderBy, safeOrderBy);
 
-  const { data, error } = await db
-    .from('_mv_wordle_yearly_leaderboard')
-    .select('*')
-    .eq('year', year)
-    .not(safeOrderBy, 'is', null)
-    .order(safeOrderBy, { ascending: true })
-    .range(offset, offset + limit - 1);
+  let rows: any[] = [];
+  if (streak) {
+    rows = await enrichLifetimeStreaks(await fetchStreakSortedPage('yearly', safeOrderBy, streak, offset, limit, { year }));
+  } else {
+    const { data, error } = await db
+      .from('_mv_wordle_yearly_leaderboard')
+      .select('*')
+      .eq('year', year)
+      .not(safeOrderBy, 'is', null)
+      .or(participationColumns(safeOrderBy).map((column) => `${column}.gt.0`).join(','))
+      .order(sorting.column, { ascending: sorting.ascending })
+      .order(safeOrderBy, { ascending: true })
+      .range(offset, offset + limit - 1);
 
-  if (error) {
-    console.error(error);
-    return {};
+    if (error) {
+      console.error(error);
+      return {};
+    }
+
+    rows = await enrichLifetimeStreaks(data ?? []);
   }
-
-  const rows = data ?? [];
 
   const playerIds = rows
     .map((row: any) => row.player)
@@ -553,6 +734,7 @@ async function getPlayerLeaderboardForTheYear(
     avatarStyleByPlayerId,
     avatarFrameByPlayerId,
   } = await getAvatarCosmeticsByPlayerIds(playerIds);
+  const subscriptionKeyByPlayerId = await getSubscriptionKeysByPlayerIds(playerIds);
 
   return rows.map((row: any) => {
     const camel = changeKeys.camelCase(row, 10) as any;
@@ -562,6 +744,7 @@ async function getPlayerLeaderboardForTheYear(
       profileImage: profileImageByPlayerId.get(row.player) ?? null,
       avatarStyleKey: avatarStyleByPlayerId.get(row.player) ?? null,
       avatarFrameKey: avatarFrameByPlayerId.get(row.player) ?? null,
+      subscriptionKey: subscriptionKeyByPlayerId.get(row.player) ?? null,
       bestStreak: camel.overallBestStreak ?? 0,
       players: {
         levels: {
@@ -583,22 +766,31 @@ async function getPlayerLeaderboardForTheMonth(
   year: number = new Date().getFullYear(),
 ) {
   const safeOrderBy = sanitizeOrderBy(orderBy, 'monthly_rank');
+  const sorting = resolveSort(orderBy, safeOrderBy);
+  const streak = streakColumn(orderBy, safeOrderBy);
 
-  const { data, error } = await db
-    .from('_mv_wordle_monthly_leaderboard')
-    .select('*')
-    .eq('month', month)
-    .eq('year', year)
-    .not(safeOrderBy, 'is', null)
-    .order(safeOrderBy, { ascending: true })
-    .range(offset, offset + limit - 1);
+  let rows: any[] = [];
+  if (streak) {
+    rows = await enrichLifetimeStreaks(await fetchStreakSortedPage('monthly', safeOrderBy, streak, offset, limit, { year, month }));
+  } else {
+    const { data, error } = await db
+      .from('_mv_wordle_monthly_leaderboard')
+      .select('*')
+      .eq('month', month)
+      .eq('year', year)
+      .not(safeOrderBy, 'is', null)
+      .or(participationColumns(safeOrderBy).map((column) => `${column}.gt.0`).join(','))
+      .order(sorting.column, { ascending: sorting.ascending })
+      .order(safeOrderBy, { ascending: true })
+      .range(offset, offset + limit - 1);
 
-  if (error) {
-    console.error(error);
-    return {};
+    if (error) {
+      console.error(error);
+      return {};
+    }
+
+    rows = await enrichLifetimeStreaks(data ?? []);
   }
-
-  const rows = data ?? [];
 
   const playerIds = rows
     .map((row: any) => row.player)
@@ -613,6 +805,7 @@ async function getPlayerLeaderboardForTheMonth(
     avatarStyleByPlayerId,
     avatarFrameByPlayerId,
   } = await getAvatarCosmeticsByPlayerIds(playerIds);
+  const subscriptionKeyByPlayerId = await getSubscriptionKeysByPlayerIds(playerIds);
 
   return rows.map((row: any) => {
     const camel = changeKeys.camelCase(row, 10) as any;
@@ -622,6 +815,7 @@ async function getPlayerLeaderboardForTheMonth(
       profileImage: profileImageByPlayerId.get(row.player) ?? null,
       avatarStyleKey: avatarStyleByPlayerId.get(row.player) ?? null,
       avatarFrameKey: avatarFrameByPlayerId.get(row.player) ?? null,
+      subscriptionKey: subscriptionKeyByPlayerId.get(row.player) ?? null,
       bestStreak: camel.overallBestStreak ?? 0,
       players: {
         levels: {
@@ -643,22 +837,31 @@ async function getPlayerLeaderboardForThisWeek(
   year: number = new Date().getFullYear(),
 ) {
   const safeOrderBy = sanitizeOrderBy(orderBy, 'weekly_rank');
+  const sorting = resolveSort(orderBy, safeOrderBy);
+  const streak = streakColumn(orderBy, safeOrderBy);
 
-  const { data, error } = await db
-    .from('_mv_wordle_weekly_leaderboard')
-    .select('*')
-    .eq('week', week)
-    .eq('year', year)
-    .not(safeOrderBy, 'is', null)
-    .order(safeOrderBy, { ascending: true })
-    .range(offset, offset + limit - 1);
+  let rows: any[] = [];
+  if (streak) {
+    rows = await enrichLifetimeStreaks(await fetchStreakSortedPage('weekly', safeOrderBy, streak, offset, limit, { year, week }));
+  } else {
+    const { data, error } = await db
+      .from('_mv_wordle_weekly_leaderboard')
+      .select('*')
+      .eq('week', week)
+      .eq('year', year)
+      .not(safeOrderBy, 'is', null)
+      .or(participationColumns(safeOrderBy).map((column) => `${column}.gt.0`).join(','))
+      .order(sorting.column, { ascending: sorting.ascending })
+      .order(safeOrderBy, { ascending: true })
+      .range(offset, offset + limit - 1);
 
-  if (error) {
-    console.error(error);
-    return {};
+    if (error) {
+      console.error(error);
+      return {};
+    }
+
+    rows = await enrichLifetimeStreaks(data ?? []);
   }
-
-  const rows = data ?? [];
 
   const playerIds = rows
     .map((row: any) => row.player)
@@ -673,6 +876,7 @@ async function getPlayerLeaderboardForThisWeek(
     avatarStyleByPlayerId,
     avatarFrameByPlayerId,
   } = await getAvatarCosmeticsByPlayerIds(playerIds);
+  const subscriptionKeyByPlayerId = await getSubscriptionKeysByPlayerIds(playerIds);
 
   return rows.map((row: any) => {
     const camel = changeKeys.camelCase(row, 10) as any;
@@ -682,6 +886,7 @@ async function getPlayerLeaderboardForThisWeek(
       profileImage: profileImageByPlayerId.get(row.player) ?? null,
       avatarStyleKey: avatarStyleByPlayerId.get(row.player) ?? null,
       avatarFrameKey: avatarFrameByPlayerId.get(row.player) ?? null,
+      subscriptionKey: subscriptionKeyByPlayerId.get(row.player) ?? null,
       bestStreak: camel.overallBestStreak ?? 0,
       players: {
         levels: {
@@ -704,23 +909,32 @@ async function getPlayerLeaderboardForToday(
   year: number = new Date().getFullYear(),
 ) {
   const safeOrderBy = sanitizeOrderBy(orderBy, 'daily_rank');
+  const sorting = resolveSort(orderBy, safeOrderBy);
+  const streak = streakColumn(orderBy, safeOrderBy);
 
-  const { data, error } = await db
-    .from('_mv_wordle_daily_leaderboard')
-    .select('*')
-    .eq('day', day)
-    .eq('month', month)
-    .eq('year', year)
-    .not(safeOrderBy, 'is', null)
-    .order(safeOrderBy, { ascending: true })
-    .range(offset, offset + limit - 1);
+  let rows: any[] = [];
+  if (streak) {
+    rows = await enrichLifetimeStreaks(await fetchStreakSortedPage('daily', safeOrderBy, streak, offset, limit, { year, month, day }));
+  } else {
+    const { data, error } = await db
+      .from('_mv_wordle_daily_leaderboard')
+      .select('*')
+      .eq('day', day)
+      .eq('month', month)
+      .eq('year', year)
+      .not(safeOrderBy, 'is', null)
+      .or(participationColumns(safeOrderBy).map((column) => `${column}.gt.0`).join(','))
+      .order(sorting.column, { ascending: sorting.ascending })
+      .order(safeOrderBy, { ascending: true })
+      .range(offset, offset + limit - 1);
 
-  if (error) {
-    console.error(error);
-    return {};
+    if (error) {
+      console.error(error);
+      return {};
+    }
+
+    rows = await enrichLifetimeStreaks(data ?? []);
   }
-
-  const rows = data ?? [];
 
   const playerIds = rows
     .map((row: any) => row.player)
@@ -735,6 +949,7 @@ async function getPlayerLeaderboardForToday(
     avatarStyleByPlayerId,
     avatarFrameByPlayerId,
   } = await getAvatarCosmeticsByPlayerIds(playerIds);
+  const subscriptionKeyByPlayerId = await getSubscriptionKeysByPlayerIds(playerIds);
 
   return rows.map((row: any) => {
     const camel = changeKeys.camelCase(row, 10) as any;
@@ -744,6 +959,7 @@ async function getPlayerLeaderboardForToday(
       profileImage: profileImageByPlayerId.get(row.player) ?? null,
       avatarStyleKey: avatarStyleByPlayerId.get(row.player) ?? null,
       avatarFrameKey: avatarFrameByPlayerId.get(row.player) ?? null,
+      subscriptionKey: subscriptionKeyByPlayerId.get(row.player) ?? null,
       bestStreak: camel.overallBestStreak ?? 0,
       players: {
         levels: {
@@ -765,7 +981,8 @@ async function getPlayerLeaderboardAllTimeLength(
   const { count, error } = await db
     .from('_mv_wordle_alltime_leaderboard')
     .select('player', { count: 'exact', head: true })
-    .not(safeOrderBy, 'is', null);
+    .not(safeOrderBy, 'is', null)
+    .or(participationColumns(safeOrderBy).map((column) => `${column}.gt.0`).join(','));
 
   if (error) {
     console.error(error);
@@ -784,7 +1001,8 @@ async function getPlayerLeaderboardYearlyLength(
     .from('_mv_wordle_yearly_leaderboard')
     .select('player', { count: 'exact', head: true })
     .eq('year', new Date().getFullYear())
-    .not(safeOrderBy, 'is', null);
+    .not(safeOrderBy, 'is', null)
+    .or(participationColumns(safeOrderBy).map((column) => `${column}.gt.0`).join(','));
 
   if (error) {
     console.error(error);
@@ -804,7 +1022,8 @@ async function getPlayerLeaderboardMonthlyLength(
     .select('player', { count: 'exact', head: true })
     .eq('month', new Date().getMonth() + 1)
     .eq('year', new Date().getFullYear())
-    .not(safeOrderBy, 'is', null);
+    .not(safeOrderBy, 'is', null)
+    .or(participationColumns(safeOrderBy).map((column) => `${column}.gt.0`).join(','));
 
   if (error) {
     console.error(error);
@@ -824,7 +1043,8 @@ async function getPlayerLeaderboardWeeklyLength(
     .select('player', { count: 'exact', head: true })
     .eq('week', moment().week())
     .eq('year', new Date().getFullYear())
-    .not(safeOrderBy, 'is', null);
+    .not(safeOrderBy, 'is', null)
+    .or(participationColumns(safeOrderBy).map((column) => `${column}.gt.0`).join(','));
 
   if (error) {
     console.error(error);
@@ -845,7 +1065,8 @@ async function getPlayerLeaderboardDailyLength(
     .eq('day', new Date().getDate())
     .eq('month', new Date().getMonth() + 1)
     .eq('year', new Date().getFullYear())
-    .not(safeOrderBy, 'is', null);
+    .not(safeOrderBy, 'is', null)
+    .or(participationColumns(safeOrderBy).map((column) => `${column}.gt.0`).join(','));
 
   if (error) {
     console.error(error);
