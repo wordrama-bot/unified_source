@@ -20,7 +20,13 @@ export function WinCelebration({
 }: WinCelebrationProps) {
   if (!enabled || !visible) return null;
 
-  if (christmasEnabled) {
+  const snowThemeIds: readonly string[] = [
+    THEME_IDS.ICE,
+    THEME_IDS.EVERGREEN_NOEL,
+    THEME_IDS.WINTER_WONDERLAND,
+  ];
+
+  if (christmasEnabled || (themeId != null && snowThemeIds.includes(themeId))) {
     return <Snowflake />;
   }
 
