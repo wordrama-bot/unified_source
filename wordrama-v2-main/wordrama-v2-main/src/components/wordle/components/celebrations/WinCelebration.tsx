@@ -4,6 +4,7 @@ import Confetti from 'react-confetti';
 import Snowflake from '@/components/Snowflake';
 import { THEME_IDS } from '@/config/themes';
 import { MatrixCodeRain } from './MatrixCodeRain';
+import { LightsaberRain } from './LightsaberRain';
 
 type WinCelebrationProps = {
   enabled: boolean;
@@ -32,6 +33,10 @@ export function WinCelebration({
 
   if (themeId === THEME_IDS.MATRIX) {
     return <MatrixCodeRain />;
+  }
+
+  if (themeId === THEME_IDS.EMPIRE) {
+    return <LightsaberRain />;
   }
 
   return <Confetti className="w-full" />;
