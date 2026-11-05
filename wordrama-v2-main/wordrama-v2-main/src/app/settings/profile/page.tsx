@@ -289,19 +289,7 @@ export default function ProfilePage() {
               reject(new ProfileImageError('decode', 'Invalid image dimensions'));
               return;
             }
-            const scale = Math.min(
-              1,
-              MAX_PROFILE_IMAGE_DIMENSION / image.width,
-              MAX_PROFILE_IMAGE_DIMENSION / image.height,
-            );
-
-            const width = Math.max(1, Math.round(image.width * scale));
-            const height = Math.max(1, Math.round(image.height * scale));
-
             const canvas = document.createElement('canvas');
-            canvas.width = width;
-            canvas.height = height;
-
             const context = canvas.getContext('2d');
 
             if (!context) {
@@ -309,21 +297,62 @@ export default function ProfilePage() {
               return;
             }
 
-            context.drawImage(image, 0, 0, width, height);
+            let encodedAnImage = false;
 
-            const dataUri = canvas.toDataURL('image/webp', 0.82);
+            const encodeWithinLimit = (type: string, quality: number) => {
+              try {
+                const dataUri = canvas.toDataURL(type, quality);
+                // Some browsers return PNG when the requested encoder is unavailable.
+                if (!/^data:image\/(webp|png|jpeg);base64,/.test(dataUri)) return null;
+                encodedAnImage = true;
+                return dataUri.length <= MAX_PROFILE_IMAGE_DATA_URI_LENGTH
+                  ? dataUri
+                  : null;
+              } catch {
+                // Another format or a smaller canvas may still succeed.
+                return null;
+              }
+            };
 
-            if (!/^data:image\/(webp|png|jpeg);base64,/.test(dataUri)) {
-              reject(new ProfileImageError('process', 'Could not encode image'));
-              return;
+            for (const maxDimension of [MAX_PROFILE_IMAGE_DIMENSION, 384, 256, 192, 128]) {
+              const scale = Math.min(
+                1,
+                maxDimension / image.naturalWidth,
+                maxDimension / image.naturalHeight,
+              );
+              const width = Math.max(1, Math.round(image.naturalWidth * scale));
+              const height = Math.max(1, Math.round(image.naturalHeight * scale));
+              canvas.width = width;
+              canvas.height = height;
+              context.drawImage(image, 0, 0, width, height);
+
+              // Prefer the existing WebP format, including transparency when supported.
+              const webp = encodeWithinLimit('image/webp', 0.82);
+              if (webp) {
+                resolve(webp);
+                return;
+              }
+
+              // JPEG provides a compact fallback on browsers without WebP encoding.
+              // Flatten transparency onto white to avoid a black background.
+              context.fillStyle = '#ffffff';
+              context.fillRect(0, 0, width, height);
+              context.drawImage(image, 0, 0, width, height);
+              for (const quality of [0.82, 0.65, 0.45]) {
+                const jpeg = encodeWithinLimit('image/jpeg', quality);
+                if (jpeg) {
+                  resolve(jpeg);
+                  return;
+                }
+              }
             }
 
-            if (dataUri.length > MAX_PROFILE_IMAGE_DATA_URI_LENGTH) {
-              reject(new ProfileImageError('size', 'Processed image is still too large'));
-              return;
-            }
-
-            resolve(dataUri);
+            reject(new ProfileImageError(
+              encodedAnImage ? 'size' : 'process',
+              encodedAnImage
+                ? 'Processed image is still too large'
+                : 'Could not encode image',
+            ));
           } catch {
             reject(new ProfileImageError('process', 'Image processing failed'));
           }
