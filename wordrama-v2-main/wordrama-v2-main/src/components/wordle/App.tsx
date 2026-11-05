@@ -673,6 +673,8 @@ function App(){
   const currentGame = isCustom ? gameState.custom : gameState.modes[gameState.gameMode][gameState.wordPack];
 
   const solution = isCustom ? gameState.custom.solution : gameState.modes[gameState.gameMode][gameState.wordPack].solution;
+  const isBoardLengthValid = !!solution && (isCustom ||
+    solution.length === wordleWordPackConfig.solutionLengthByName[wordPack]);
   const guesses = isCustom ? gameState.custom.guesses : gameState.modes[gameState.gameMode][gameState.wordPack].guesses;
   const isGameWon = isCustom ? gameState.custom.isGameWon : gameState.modes[gameState.gameMode][gameState.wordPack].isGameWon;
   const isGameLost = isCustom ? gameState.custom.isGameLost : gameState.modes[gameState.gameMode][gameState.wordPack].isGameLost;
@@ -1533,7 +1535,7 @@ const activeSolution = isCustom
     return dispatch(setWordLength(wordLength));
   }
 
-  function useWordPack(wordPack: string) {
+  function handleWordPackChange(wordPack: string) {
     setShowConfetti(false);
     shouldPersistGameStateRef.current = true;
     //appInsights.trackEvent({ name: 'switchedWordPack', properties: { wordPack, player: user.id } });
@@ -1626,7 +1628,11 @@ const activeSolution = isCustom
     // A second tab may already have started the next unfinished game.
     if (refreshed && !(nextBoard.isGameWon || nextBoard.isGameLost)) return;
 
-    const newSolution: string = getRandomWord(wordleWordPack.data.wordList);
+    const validWords = wordleWordPack.data.wordList.filter(
+      (word: string) => word.length === wordleWordPackConfig.solutionLengthByName[selected.wordPack],
+    );
+    if (!validWords.length) return;
+    const newSolution: string = getRandomWord(validWords);
     const gameInstanceId = crypto.randomUUID();
 
     shouldPersistGameStateRef.current = true;
@@ -1647,6 +1653,7 @@ const activeSolution = isCustom
 
   // Called when a user presses a key on the virtual or physical keyboard
   function onChar(value: string) {
+    if (gameLoading || !isBoardLengthValid) return;
     const key = localeAwareUpperCase(value)
 
     if (!/^[A-Z]$/.test(key)) return
@@ -1699,6 +1706,7 @@ const activeSolution = isCustom
 
   // Called when a user presses enter on the virtual or physical keyboard
   async function onEnter() {
+    if (gameLoading || !isBoardLengthValid) return;
     if (guessSubmissionInProgressRef.current) return;
     guessSubmissionInProgressRef.current = true;
     const active = activeBoardRef.current;
@@ -1720,6 +1728,7 @@ const activeSolution = isCustom
   }
 
   async function submitGuess() {
+    if (gameLoading || !isBoardLengthValid) return;
     if (isGameWon || isGameLost) {
       if (isCustom) return;
       if (isDaily) {
@@ -2271,6 +2280,7 @@ const activeSolution = isCustom
     if (gameLoading) return;
     if (gameMode !== 'DAILY') return;
     if (!wordOfTheDay?.data?.todaysWord) return;
+    if (wordOfTheDay.data.todaysWord.length !== wordleWordPackConfig.solutionLengthByName[wordPack]) return;
     if (solution === wordOfTheDay.data.todaysWord) return;
 
     const newSolution: string = wordOfTheDay.data.todaysWord;
@@ -2294,10 +2304,27 @@ const activeSolution = isCustom
   useEffect(() => {
     if (gameLoading) return;
     if (gameMode !== 'INFINITE') return;
-    if (solution) return; // Completed games stay visible until Next Game.
+    const expectedLength = wordleWordPackConfig.solutionLengthByName[wordPack];
+    // Older clients could save the previous pack's answer under this pack.
+    // Mismatched unfinished boards cannot be played with this pack's dictionary.
+    // Replace them without submitting a result; completed games stay visible.
+    const repairInvalidBoard = !!solution && solution.length !== expectedLength &&
+      !isGameWon && !isGameLost;
+    if (solution && !repairInvalidBoard) return;
     if (!wordleWordPack?.data?.wordList?.length) return;
 
-    const newSolution: string = getRandomWord(wordleWordPack.data.wordList);
+    const validWords = wordleWordPack.data.wordList.filter(
+      (word: string) => word.length === expectedLength,
+    );
+    if (!validWords.length) return;
+    const newSolution: string = getRandomWord(validWords);
+
+    if (repairInvalidBoard) {
+      setShowConfetti(false);
+      setIsStatsModalOpen(false);
+      setCurrentRowClass('');
+      setCurrentGuess('');
+    }
 
     updateGameState({
       gameInstanceId: crypto.randomUUID(),
@@ -2307,8 +2334,9 @@ const activeSolution = isCustom
       isGameLost: false,
       isGameInProgress: false,
       resultSave: false
-    });
-  }, [gameLoading, gameMode, wordPack, wordleWordPack, solution])
+    }, repairInvalidBoard);
+  }, [gameLoading, gameMode, wordPack, wordleWordPack, solution,
+    guesses.length, isGameWon, isGameLost])
 
   // Check if all dependencies are ready and set the game to ready
   useEffect(() => {
@@ -2440,7 +2468,7 @@ const activeSolution = isCustom
                       <Label htmlFor="wordPack">Word Pack</Label>
                       <Select
                         defaultValue={wordPack}
-                        onValueChange={(value) => useWordPack(value)}
+                        onValueChange={(value) => handleWordPackChange(value)}
                         open={openSettingsSelect === 'wordPack'}
                         onOpenChange={(open) =>
                           setOpenSettingsSelect((current) =>
@@ -2752,7 +2780,7 @@ const activeSolution = isCustom
                     <Loading width={50} height={50} />
                   )}
                   { !isErrorLast30Games && !isLoadingLast30Games && last30Games?.count > 0 && last30Games?.data?.map((game, idx) => (
-                    <div className="col-span-1">
+                    <div key={idx} className="col-span-1">
                       <div className="text-md">{ idx + 1}: {game.solution}</div>
                       <div className="text-sm text-gray-400">{ game.gameWasWon ? 'Game Won' : 'Game Lost'}</div>
                     </div>

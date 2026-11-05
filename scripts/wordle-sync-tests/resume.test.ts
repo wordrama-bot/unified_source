@@ -88,6 +88,7 @@ test('progress or account changes during catch-up cancel the stale response', as
 test('Play Again uses the latest shared board target and creates a fresh instance', async () => {
   const h = sessionHarness(); let refreshes = 0;
   const next = extract('newInfiniteGame', { ...h.env, isLoadingWordPack: false,
+    wordleWordPackConfig: { solutionLengthByName: { FIVE_LETTER: 5 } },
     wordleWordPack: { data: { wordList: ['APPLE'] } },
     syncPendingWordleResultsAndRefresh: async (force: boolean) => { expect(force).toBe(true); refreshes++; },
     refreshCompletedWordleSession: h.run, getRandomWord: () => 'APPLE',
@@ -102,6 +103,7 @@ test('Play Again uses the latest shared board target and creates a fresh instanc
 test('Play Again resumes a newer unfinished shared puzzle without replacing guesses', async () => {
   const h = sessionHarness(); h.remote.modes.INFINITE.FIVE_LETTER = board('next-in-progress');
   const next = extract('newInfiniteGame', { ...h.env, isLoadingWordPack: false,
+    wordleWordPackConfig: { solutionLengthByName: { FIVE_LETTER: 5 } },
     wordleWordPack: { data: { wordList: ['APPLE'] } },
     syncPendingWordleResultsAndRefresh: async () => {}, refreshCompletedWordleSession: h.run,
     setShowConfetti() {}, setIsStatsModalOpen() {}, setCurrentRowClass() {}, setCurrentGuess() {},
@@ -215,7 +217,7 @@ test('concurrent resume and Enter share one verification request', async () => {
 test('Enter never submits a guess when verification retires the board', async () => {
   const h = harness(); let submitted = 0;
   const alerts: string[] = [];
-  const enter = extract('onEnter', { activeBoardRef: h.active,
+  const enter = extract('onEnter', { gameLoading: false, isBoardLengthValid: true, activeBoardRef: h.active,
     currentGuessRef: { current: 'STEED' },
     guessSubmissionInProgressRef: { current: false }, verifyActiveWordleBoard: h.run,
     submitGuess() { submitted++; }, showErrorAlert(message: string) { alerts.push(message); } });
@@ -225,7 +227,7 @@ test('editing a guess during verification cannot submit the old text', async () 
   const h = harness(); let finish!: (status: string) => void;
   let submitted = 0;
   const guess = { current: 'STARE' };
-  const enter = extract('onEnter', { activeBoardRef: h.active, currentGuessRef: guess,
+  const enter = extract('onEnter', { gameLoading: false, isBoardLengthValid: true, activeBoardRef: h.active, currentGuessRef: guess,
     guessSubmissionInProgressRef: { current: false },
     verifyActiveWordleBoard: () => new Promise(resolve => { finish = resolve; }),
     submitGuess() { submitted++; }, showErrorAlert() {} });
