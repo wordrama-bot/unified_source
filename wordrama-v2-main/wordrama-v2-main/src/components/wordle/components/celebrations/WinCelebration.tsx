@@ -5,6 +5,7 @@ import Snowflake from '@/components/Snowflake';
 import { THEME_IDS } from '@/config/themes';
 import { MatrixCodeRain } from './MatrixCodeRain';
 import { LightsaberRain } from './LightsaberRain';
+import { AutumnLeaves } from './AutumnLeaves';
 
 type WinCelebrationProps = {
   enabled: boolean;
@@ -37,6 +38,10 @@ export function WinCelebration({
 
   if (themeId === THEME_IDS.EMPIRE) {
     return <LightsaberRain />;
+  }
+
+  if (themeId === THEME_IDS.HARVEST_HEARTH) {
+    return <AutumnLeaves />;
   }
 
   return <Confetti className="w-full" />;
