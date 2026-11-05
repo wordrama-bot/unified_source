@@ -137,3 +137,21 @@ test('existing state RPC rejects stale revisions for legacy adapter and modern c
   expect(staleLegacy.saved).toBe(false);
   expect(staleLegacy.current_game_state.value).toBe('modern');
 });
+
+test('eight offline rounds replay in order with correct streaks despite lost acknowledgements', async () => {
+  await db.exec('DELETE FROM _wordle_game_result');
+  const outcomes = [true, true, false, true, false, true, true, true];
+  let current = 0, best = 0;
+  for (const won of outcomes) {
+    const id = crypto.randomUUID();
+    await db.query(`INSERT INTO _wordle_game_result(id, player, type, word_pack, guess_count, game_was_won, effects_completed)
+      VALUES ($1::uuid, $2::uuid, 'INFINITE', 'FIVE_LETTER', 2, $3, false)`, [id, player, won]);
+    await finalize(id);
+    await finalize(id); // Lost response: replay the exact result, not a new game.
+    current = won ? current + 1 : 0; best = Math.max(best, current);
+    const row = (await db.query<any>('SELECT current_streak, best_streak FROM _wordle_streak WHERE player = $1::uuid', [player])).rows[0];
+    expect(row).toEqual({ current_streak: current, best_streak: best });
+  }
+  const count = (await db.query<any>('SELECT count(*)::int AS n FROM _wordle_game_result WHERE effects_completed = true')).rows[0].n;
+  expect(count).toBe(8); expect(current).toBe(3); expect(best).toBe(3);
+});

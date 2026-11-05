@@ -50,7 +50,7 @@ function harness() {
     isWordleStateRevisionConflict: () => false,
   };
   return {
-    select: (pack: string) => extract('useWordPack', common)(pack),
+    select: (pack: string) => extract('handleWordPackChange', common)(pack),
     mode: (mode: string) => extract('enterGameMode', common)(mode),
     save: async (gameLoading = false) => {
       extract('persist', { ...common, gameLoading, gameState: state })();

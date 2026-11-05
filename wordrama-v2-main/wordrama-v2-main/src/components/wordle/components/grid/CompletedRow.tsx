@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { getGuessStatuses } from '../../lib/statuses'
 import { unicodeSplit } from '../../lib/words'
 import { Cell } from './Cell'
@@ -8,7 +9,7 @@ type Props = {
   isRevealing?: boolean
 }
 
-export const CompletedRow = ({ solution, guess, isRevealing }: Props) => {
+export const CompletedRow = memo(function CompletedRow({ solution, guess, isRevealing }: Props) {
   const statuses = getGuessStatuses(solution, guess)
   const splitGuess = unicodeSplit(guess)
 
@@ -26,4 +27,4 @@ export const CompletedRow = ({ solution, guess, isRevealing }: Props) => {
       ))}
     </div>
   )
-}
+})

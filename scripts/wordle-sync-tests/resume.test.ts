@@ -93,7 +93,7 @@ test('Play Again uses the latest shared board target and creates a fresh instanc
     syncPendingWordleResultsAndRefresh: async (force: boolean) => { expect(force).toBe(true); refreshes++; },
     refreshCompletedWordleSession: h.run, getRandomWord: () => 'APPLE',
     crypto: { randomUUID: () => 'fresh' }, setGameState,
-    setShowConfetti() {}, setIsStatsModalOpen() {}, setCurrentRowClass() {}, setCurrentGuess() {},
+    finishReveal() {}, setShowConfetti() {}, setIsStatsModalOpen() {}, setCurrentRowClass() {}, setCurrentGuess() {},
   });
   await next(); expect(refreshes).toBe(1);
   expect(h.live.current.modes.INFINITE.FIVE_LETTER.gameInstanceId).toBe('fresh');
@@ -102,11 +102,12 @@ test('Play Again uses the latest shared board target and creates a fresh instanc
 });
 test('Play Again resumes a newer unfinished shared puzzle without replacing guesses', async () => {
   const h = sessionHarness(); h.remote.modes.INFINITE.FIVE_LETTER = board('next-in-progress');
+  await h.run(); // Background catch-up has already restored the shared board.
   const next = extract('newInfiniteGame', { ...h.env, isLoadingWordPack: false,
     wordleWordPackConfig: { solutionLengthByName: { FIVE_LETTER: 5 } },
     wordleWordPack: { data: { wordList: ['APPLE'] } },
     syncPendingWordleResultsAndRefresh: async () => {}, refreshCompletedWordleSession: h.run,
-    setShowConfetti() {}, setIsStatsModalOpen() {}, setCurrentRowClass() {}, setCurrentGuess() {},
+    finishReveal() {}, setShowConfetti() {}, setIsStatsModalOpen() {}, setCurrentRowClass() {}, setCurrentGuess() {},
   });
   await next(); expect(h.live.current.modes.INFINITE.FIVE_LETTER.gameInstanceId).toBe('next-in-progress');
   expect(h.live.current.modes.INFINITE.FIVE_LETTER.guesses).toEqual(['STARE']);
@@ -206,7 +207,7 @@ test('lookup failure or malformed data never certifies an unplayed board', async
   h.setServer(async () => result('wrong-instance'));
   expect(await h.run()).toBe('retry'); expect(h.last.current).toBeNull();
 });
-test('concurrent resume and Enter share one verification request', async () => {
+test('concurrent background checks share one verification request', async () => {
   const h = harness(); let finish!: (value: any) => void;
   h.setServer(() => new Promise(resolve => { finish = resolve; }));
   const first = h.run(), second = h.run();
@@ -214,23 +215,20 @@ test('concurrent resume and Enter share one verification request', async () => {
   expect(h.calls).toBe(1); h.timeout(); expect(h.aborts).toBe(1);
   finish(null); expect(await first).toBe('ready'); expect(await second).toBe('ready');
 });
-test('Enter never submits a guess when verification retires the board', async () => {
-  const h = harness(); let submitted = 0;
-  const alerts: string[] = [];
-  const enter = extract('onEnter', { gameLoading: false, isBoardLengthValid: true, activeBoardRef: h.active,
-    currentGuessRef: { current: 'STEED' },
-    guessSubmissionInProgressRef: { current: false }, verifyActiveWordleBoard: h.run,
-    submitGuess() { submitted++; }, showErrorAlert(message: string) { alerts.push(message); } });
-  await enter(); expect(submitted).toBe(0); expect(alerts[0]).toContain('already completed');
+test('Enter accepts the input snapshot without starting or waiting for server verification', async () => {
+  const h = harness(); const submitted: string[] = [];
+  const enter = extract('onEnter', { gameLoading: false, isBoardLengthValid: true,
+    currentGuessRef: { current: 'STARE' }, guessSubmissionInProgressRef: { current: false },
+    verifyActiveWordleBoard() { throw new Error('Network must not be in the input path'); },
+    submitGuess(guess: string) { submitted.push(guess); } });
+  const pending = enter(); expect(submitted).toEqual(['STARE']); await pending;
 });
-test('editing a guess during verification cannot submit the old text', async () => {
-  const h = harness(); let finish!: (status: string) => void;
-  let submitted = 0;
-  const guess = { current: 'STARE' };
-  const enter = extract('onEnter', { gameLoading: false, isBoardLengthValid: true, activeBoardRef: h.active, currentGuessRef: guess,
-    guessSubmissionInProgressRef: { current: false },
-    verifyActiveWordleBoard: () => new Promise(resolve => { finish = resolve; }),
-    submitGuess() { submitted++; }, showErrorAlert() {} });
-  const pending = enter(); guess.current = 'STEED'; finish('ready');
-  await pending; expect(submitted).toBe(0);
+test('repeated Enter during local result persistence cannot submit twice', async () => {
+  let finish!: () => void; let submitted = 0;
+  const lock = { current: false };
+  const enter = extract('onEnter', { gameLoading: false, isBoardLengthValid: true,
+    currentGuessRef: { current: 'STEED' }, guessSubmissionInProgressRef: lock,
+    submitGuess() { submitted++; return new Promise<void>(resolve => { finish = resolve; }); } });
+  const first = enter(); await enter(); expect(submitted).toBe(1);
+  finish(); await first; expect(lock.current).toBe(false);
 });
