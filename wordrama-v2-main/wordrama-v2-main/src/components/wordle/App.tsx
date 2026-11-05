@@ -2775,7 +2775,7 @@ const activeSolution = isCustom
           </Sheet>
 
           <Sheet>
-            <SheetTrigger>
+            <SheetTrigger asChild>
               <Button variant='default' className={`fixed top-20 left-4 ${gameActionButtonThemeClasses}`}>
                 <HistoryIcon className='w-6 h-6'/>
               </Button>

@@ -83,6 +83,7 @@ export const metadata: Metadata = {
   },
 
   other: {
+    "mobile-web-app-capable": "yes",
     "google-adsense-account": "ca-pub-8970369628667981",
     "msapplication-TileColor": "#ffffff",
   },
