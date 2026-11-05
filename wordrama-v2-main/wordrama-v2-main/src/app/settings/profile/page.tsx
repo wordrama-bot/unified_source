@@ -55,6 +55,41 @@ function getProfileErrorMessage(error: any, fallback: string) {
   return fallback;
 }
 
+type ProfileImageErrorCode =
+  | 'read'
+  | 'decode'
+  | 'process'
+  | 'size';
+
+class ProfileImageError extends Error {
+  constructor(
+    readonly code: ProfileImageErrorCode,
+    message: string,
+  ) {
+    super(message);
+    this.name = 'ProfileImageError';
+  }
+}
+
+const PROFILE_IMAGE_ERRORS = {
+  read: {
+    title: 'Could not open this photo',
+    description: 'Save the photo to your device, then select it again. On iPhone, you can also save it to Files and choose it from there.',
+  },
+  decode: {
+    title: 'Could not read this image',
+    description: 'Your browser could not open this photo. Try exporting it as a JPG or PNG, or choose another photo.',
+  },
+  process: {
+    title: 'Could not prepare this photo',
+    description: 'Your browser could not resize this photo. Try again, or save a smaller JPG or PNG and select it.',
+  },
+  size: {
+    title: 'Photo needs more compression',
+    description: 'This photo is still too large after resizing. Try saving it as a JPG or choosing a simpler image.',
+  },
+};
+
 export default function ProfilePage() {
   const { toast } = useToast();
   const hiddenFileInput = useRef(null);
@@ -249,57 +284,75 @@ export default function ProfilePage() {
         const image = new window.Image();
 
         image.onload = () => {
-          const scale = Math.min(
-            1,
-            MAX_PROFILE_IMAGE_DIMENSION / image.width,
-            MAX_PROFILE_IMAGE_DIMENSION / image.height,
-          );
+          try {
+            if (!image.naturalWidth || !image.naturalHeight) {
+              reject(new ProfileImageError('decode', 'Invalid image dimensions'));
+              return;
+            }
+            const scale = Math.min(
+              1,
+              MAX_PROFILE_IMAGE_DIMENSION / image.width,
+              MAX_PROFILE_IMAGE_DIMENSION / image.height,
+            );
 
-          const width = Math.max(1, Math.round(image.width * scale));
-          const height = Math.max(1, Math.round(image.height * scale));
+            const width = Math.max(1, Math.round(image.width * scale));
+            const height = Math.max(1, Math.round(image.height * scale));
 
-          const canvas = document.createElement('canvas');
-          canvas.width = width;
-          canvas.height = height;
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
 
-          const context = canvas.getContext('2d');
+            const context = canvas.getContext('2d');
 
-          if (!context) {
-            reject(new Error('Could not create image canvas'));
-            return;
+            if (!context) {
+              reject(new ProfileImageError('process', 'Could not create image canvas'));
+              return;
+            }
+
+            context.drawImage(image, 0, 0, width, height);
+
+            const dataUri = canvas.toDataURL('image/webp', 0.82);
+
+            if (!/^data:image\/(webp|png|jpeg);base64,/.test(dataUri)) {
+              reject(new ProfileImageError('process', 'Could not encode image'));
+              return;
+            }
+
+            if (dataUri.length > MAX_PROFILE_IMAGE_DATA_URI_LENGTH) {
+              reject(new ProfileImageError('size', 'Processed image is still too large'));
+              return;
+            }
+
+            resolve(dataUri);
+          } catch {
+            reject(new ProfileImageError('process', 'Image processing failed'));
           }
-
-          context.drawImage(image, 0, 0, width, height);
-
-          const dataUri = canvas.toDataURL('image/webp', 0.82);
-
-          if (dataUri.length > MAX_PROFILE_IMAGE_DATA_URI_LENGTH) {
-            reject(new Error('Processed image is still too large'));
-            return;
-          }
-
-          resolve(dataUri);
         };
 
-        image.onerror = () => reject(new Error('Could not decode image'));
+        image.onerror = () =>
+          reject(new ProfileImageError('decode', 'Could not decode image'));
         image.src = reader.result as string;
       };
 
-      reader.onerror = () => reject(new Error('Could not read image'));
+      reader.onerror = () =>
+        reject(new ProfileImageError('read', 'Could not read image'));
+      reader.onabort = () =>
+        reject(new ProfileImageError('read', 'Image reading was interrupted'));
       reader.readAsDataURL(file);
     });
   }
 
   async function handleFileChange(event) {
+    const input = event.target;
+    const file = input.files?.[0];
+
+    if (!file) return;
+
     try {
-      const file = event.target.files?.[0];
-
-      if (!file) return;
-
       if (file.size > MAX_FILE_SIZE_MB * 1000 * 1000) {
         toast({
           title: 'Image too big',
-          description: `Please use a file under ${MAX_FILE_SIZE_MB}MB`,
+          description: `This file is over ${MAX_FILE_SIZE_MB}MB. Choose a smaller photo or export a smaller copy before uploading.`,
         });
         return;
       }
@@ -307,12 +360,19 @@ export default function ProfilePage() {
       const resizedImage = await resizeProfileImage(file);
       setProfileImage(resizedImage);
     } catch (err) {
-      console.error('[Profile] file upload failed:', err);
+      const code = err instanceof ProfileImageError ? err.code : 'process';
 
-      toast({
-        title: 'Could not process image',
-        description: 'Please choose a valid JPG or PNG file and try again.',
+      // Log only the processing stage and file properties, never image contents.
+      console.error('[Profile] image processing failed:', {
+        stage: code,
+        type: file.type,
+        size: file.size,
       });
+
+      toast(PROFILE_IMAGE_ERRORS[code]);
+    } finally {
+      // Allow another attempt with the same photo after a processing failure.
+      input.value = '';
     }
   }
 
