@@ -17,6 +17,7 @@ let customCount = 0;
 let messageCount = 0;
 let failReward = false;
 let failPrestige = false;
+let hangPrestige = false;
 let loseRpcResponse = false;
 let invalidRpcAck = false;
 
@@ -87,11 +88,11 @@ mock.module('../../../models', () => ({ db: {
       loseRpcResponse = false;
       return { data: null, error: new Error('Committed but response lost') };
     }
-    return { data: { completed: true, prestige: 0 }, error: null };
+    return { data: { completed: true, prestige: 1 }, error: null };
   },
 } }));
 mock.module('../../prestigeFrames', () => ({
-  async awardPrestigeFrames() { if (failPrestige) throw new Error('Frame grant unavailable'); },
+  async awardPrestigeFrames() { if (hangPrestige) return new Promise(() => {}); if (failPrestige) throw new Error('Frame grant unavailable'); },
 }));
 mock.module('../../../utils/game', () => ({
   default: { generateWordleShareCode() { return 'MOCKED'; } },
@@ -119,6 +120,7 @@ beforeEach(() => {
   failNextLookup = false;
   failReward = false;
   failPrestige = false;
+  hangPrestige = false;
   loseRpcResponse = false;
   invalidRpcAck = false;
   rewardCount = 0;
@@ -283,9 +285,28 @@ describe('Wordle result service — isolated idempotency', () => {
     expect((await wordleService.submitWordleResult(player, makeBody())).resultId).toBeUndefined();
   });
 
-  test('prestige grant failure retries without repeating XP/coins/streak', async () => {
-    const body = makeBody();
+  test('prestige grant failure keeps a reward retry without blocking core acknowledgement', async () => {
+    const body = makeBody({ allowDeferredRewards: true });
     failPrestige = true;
+    expect(await wordleService.submitWordleResult(player, body)).toMatchObject({ resultId: body.resultId, effectsCompleted: true, rewardsPending: true });
+    failPrestige = false;
+    expect((await wordleService.submitWordleResult(player, body)).resultId).toBe(body.resultId);
+    expect([rewardCount, incrementCount]).toEqual([1, 1]);
+  });
+
+  test('a hung cosmetic grant returns a durable deferred retry after core effects commit', async () => {
+    hangPrestige = true;
+    const body = makeBody({ allowDeferredRewards: true });
+    expect(await wordleService.submitWordleResult(player, body)).toMatchObject({ resultId: body.resultId, effectsCompleted: true, rewardsPending: true });
+    expect([rewardCount, incrementCount]).toEqual([1, 1]);
+    hangPrestige = false;
+    expect((await wordleService.submitWordleResult(player, body)).resultId).toBe(body.resultId);
+    expect([rewardCount, incrementCount]).toEqual([1, 1]);
+  });
+
+  test('old clients retain prestige failures for retry without understanding new flags', async () => {
+    failPrestige = true;
+    const body = makeBody();
     expect((await wordleService.submitWordleResult(player, body)).resultId).toBeUndefined();
     failPrestige = false;
     expect((await wordleService.submitWordleResult(player, body)).resultId).toBe(body.resultId);

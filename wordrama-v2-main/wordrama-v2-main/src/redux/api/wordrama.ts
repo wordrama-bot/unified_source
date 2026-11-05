@@ -719,6 +719,10 @@ export const wordramaApiV3 = createApi({
         data?: {
           resultId?: string;
           duplicate?: boolean;
+          duplicateInstance?: boolean;
+          existingResultId?: string;
+          effectsCompleted?: boolean;
+          rewardsPending?: boolean;
         };
       },
       any

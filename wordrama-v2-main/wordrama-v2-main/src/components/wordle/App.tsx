@@ -873,7 +873,7 @@ function App(){
         if (navigator.onLine) lastBoardCheckRef.current = { key, at: Date.now() };
         return 'ready';
       } catch (error) {
-        console.warn('[wordle] resume verification failed; retry before accepting a guess', error);
+        console.warn('[wordle] background verification failed; keeping local gameplay available', error);
         return 'retry';
       }
     })();
@@ -935,10 +935,34 @@ const activeSolution = isCustom
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false)
   const [openSettingsSelect, setOpenSettingsSelect] = useState<string | null>(null)
   const [isRevealing, setIsRevealing] = useState(false);
+  const revealTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const finishReveal = useCallback(() => {
+    if (revealTimerRef.current !== null) {
+      clearTimeout(revealTimerRef.current);
+      revealTimerRef.current = null;
+    }
+    setIsRevealing(false);
+  }, []);
+
+  // A previous board's timer must never finish a newer board's reveal.
+  useEffect(() => {
+    finishReveal();
+    return () => {
+      if (revealTimerRef.current !== null) {
+        clearTimeout(revealTimerRef.current);
+        revealTimerRef.current = null;
+      }
+    };
+  }, [gameMode, wordPack, solution, (currentGame as GameState).gameInstanceId, finishReveal]);
   const [showConfetti, setShowConfetti] = useState(false);
-  const [currentGuess, setCurrentGuess] = useState('');
-  const currentGuessRef = useRef(currentGuess);
-  currentGuessRef.current = currentGuess;
+  const [currentGuess, setCurrentGuessState] = useState('');
+  const currentGuessRef = useRef('');
+  // Input events can arrive before React commits the preceding letter.
+  // Keep the input buffer synchronous; render state only paints that buffer.
+  const setCurrentGuess = useCallback((guess: string) => {
+    currentGuessRef.current = guess;
+    setCurrentGuessState(guess);
+  }, []);
   const [isRefreshRequired, setIsRefreshRequired] =
     useState(false);
   const checkForStaleBuild = useCallback(async () => {
@@ -1145,6 +1169,7 @@ const activeSolution = isCustom
       for (const pendingResult of pendingResults) {
         const resultPayload = {
           resultId: pendingResult.resultId,
+          allowDeferredRewards: true,
           ...(pendingResult.gameInstanceId
             ? { gameInstanceId: pendingResult.gameInstanceId }
             : {}),
@@ -1207,6 +1232,14 @@ const activeSolution = isCustom
               resultId: pendingResult.resultId,
               existingResultId: response.data.existingResultId,
             });
+          }
+          if (response?.data?.rewardsPending === true) {
+            if (response.data.effectsCompleted !== true) {
+              throw new Error('Reward retry did not confirm committed game effects');
+            }
+            // Keep the durable reward retry, but do not block later streaks.
+            syncedCount += 1;
+            continue;
           }
           await removeWordleResult(pendingResult.resultId);
           syncedCount += 1;
@@ -1615,18 +1648,19 @@ const activeSolution = isCustom
     if (!wordleWordPack?.data?.wordList?.length) return;
     const selected = activeBoardRef.current;
     void syncPendingWordleResultsAndRefresh(true);
-    const refreshed = await refreshCompletedWordleSession();
+    // Catch-up runs after completion and on resume in the background. Never
+    // wait for checkpoint/network recovery to start the player's next round.
     const latest = activeBoardRef.current;
     if (latest.playerId !== selected.playerId || latest.gameMode !== selected.gameMode ||
         latest.wordPack !== selected.wordPack) return;
-    const nextBoard = refreshed?.modes?.[selected.gameMode]?.[selected.wordPack] ?? latest.board;
+    const nextBoard = latest.board;
+    // Background catch-up may already have restored a newer unfinished board.
+    if (!(nextBoard.isGameWon || nextBoard.isGameLost)) return;
+    finishReveal();
     setShowConfetti(false);
     setIsStatsModalOpen(false);
     setCurrentRowClass('');
     setCurrentGuess('');
-
-    // A second tab may already have started the next unfinished game.
-    if (refreshed && !(nextBoard.isGameWon || nextBoard.isGameLost)) return;
 
     const validWords = wordleWordPack.data.wordList.filter(
       (word: string) => word.length === wordleWordPackConfig.solutionLengthByName[selected.wordPack],
@@ -1659,17 +1693,20 @@ const activeSolution = isCustom
     if (!/^[A-Z]$/.test(key)) return
 
     if (
-      unicodeLength(`${currentGuess}${key}`) <= solution.length &&
+      unicodeLength(`${currentGuessRef.current}${key}`) <= solution.length &&
       guesses.length < MAX_CHALLENGES &&
       !isGameWon
     ) {
-      setCurrentGuess(`${currentGuess}${key}`)
+      // Preserve the normal flip sequence until the player starts the next row.
+      // Grid flips and keyboard colors share this same reveal flag.
+      if (revealTimerRef.current !== null) finishReveal();
+      setCurrentGuess(`${currentGuessRef.current}${key}`)
     }
   }
 
   // Called when a user presses backspace on the virtual or physical keyboard
   function onDelete() {
-    setCurrentGuess(new GraphemeSplitter().splitGraphemes(currentGuess).slice(0, -1).join(''))
+    setCurrentGuess(new GraphemeSplitter().splitGraphemes(currentGuessRef.current).slice(0, -1).join(''))
   }
 
   async function queueCompletedWordleGame(
@@ -1709,25 +1746,15 @@ const activeSolution = isCustom
     if (gameLoading || !isBoardLengthValid) return;
     if (guessSubmissionInProgressRef.current) return;
     guessSubmissionInProgressRef.current = true;
-    const active = activeBoardRef.current;
+    // Ordinary input is local. A slow/offline completion lookup must never
+    // hold Enter; confirmed stale boards are retired by background recovery.
     const guess = currentGuessRef.current;
     try {
-      const verification = await verifyActiveWordleBoard();
-      if (verification === 'completed') {
-        return showErrorAlert('This puzzle was already completed. Start a new game to keep playing.');
-      }
-      if (verification !== 'ready') {
-        return showErrorAlert('Unable to check this puzzle. Please try again.');
-      }
-      const latest = activeBoardRef.current;
-      if (latest.playerId !== active.playerId || latest.gameMode !== active.gameMode ||
-          latest.wordPack !== active.wordPack || latest.board !== active.board ||
-          currentGuessRef.current !== guess) return;
-      return await submitGuess();
+      return await submitGuess(guess);
     } finally { guessSubmissionInProgressRef.current = false; }
   }
 
-  async function submitGuess() {
+  async function submitGuess(submittedGuess: string) {
     if (gameLoading || !isBoardLengthValid) return;
     if (isGameWon || isGameLost) {
       if (isCustom) return;
@@ -1764,14 +1791,14 @@ const activeSolution = isCustom
     // }
     if (isStatsModalOpen) return;
 
-    if (unicodeLength(currentGuess) !== solution.length) {
+    if (unicodeLength(submittedGuess) !== solution.length) {
       setCurrentRowClass('jiggle')
       return showErrorAlert(NOT_ENOUGH_LETTERS_MESSAGE, {
         onClose: clearCurrentRowClass,
       })
     }
 
-    if (!isWordInWordList(currentGuess, wordleWordPack?.data?.validGuesses || [], gameMode)) {
+    if (!isWordInWordList(submittedGuess, wordleWordPack?.data?.validGuesses || [], gameMode)) {
       setCurrentRowClass('jiggle')
       return showErrorAlert(WORD_NOT_FOUND_MESSAGE, {
         onClose: clearCurrentRowClass,
@@ -1782,7 +1809,7 @@ const activeSolution = isCustom
     /*if (isHardMode) {
       const firstMissingReveal = findFirstUnusedReveal(
         solution,
-        currentGuess,
+        submittedGuess,
         guesses
       )
       if (firstMissingReveal) {
@@ -1794,16 +1821,16 @@ const activeSolution = isCustom
     }
     */
 
-    setIsRevealing(true)
-    // turn this back off after all
-    // chars have been revealed
-    setTimeout(() => {
-      setIsRevealing(false)
-    }, REVEAL_TIME_MS * solution.length)
+    if (revealTimerRef.current !== null) clearTimeout(revealTimerRef.current);
+    setIsRevealing(true);
+    revealTimerRef.current = setTimeout(() => {
+      revealTimerRef.current = null;
+      setIsRevealing(false);
+    }, REVEAL_TIME_MS * solution.length);
 
-    const winningWord = isWinningWord(solution, currentGuess)
+    const winningWord = isWinningWord(solution, submittedGuess)
     if (
-      unicodeLength(currentGuess) === solution.length &&
+      unicodeLength(submittedGuess) === solution.length &&
       guesses.length <= MAX_CHALLENGES &&
       (!isGameWon && !isGameLost)
     ) {
@@ -1814,7 +1841,7 @@ const activeSolution = isCustom
 
         const completedGuesses = [
           ...guesses,
-          currentGuess,
+          submittedGuess,
         ];
 
         try {
@@ -1827,7 +1854,7 @@ const activeSolution = isCustom
 
           resultFinalizationInProgressRef.current = false;
 
-          setIsRevealing(false);
+          finishReveal();
 
           return showErrorAlert(
             'Your game could not be saved safely. Please try again.',
@@ -1870,7 +1897,7 @@ const activeSolution = isCustom
 
         const completedGuesses = [
           ...guesses,
-          currentGuess,
+          submittedGuess,
         ];
 
         try {
@@ -1883,7 +1910,7 @@ const activeSolution = isCustom
 
           resultFinalizationInProgressRef.current = false;
 
-          setIsRevealing(false);
+          finishReveal();
 
           return showErrorAlert(
             'Your game could not be saved safely. Please try again.',
@@ -1922,7 +1949,7 @@ const activeSolution = isCustom
           ...currentGame,
           guesses: [
             ...guesses,
-            currentGuess,
+            submittedGuess,
           ],
         },
         true,
@@ -2385,7 +2412,7 @@ const activeSolution = isCustom
       <TooltipProvider>
         <WinCelebration
           enabled={gameUiState.confettiEnabled ?? false}
-          visible={showConfetti}
+          visible={showConfetti && isGameWon && !isRevealing}
           themeId={gameUiState.appearanceThemeId}
           christmasEnabled={showChristmas}
         />
@@ -2748,7 +2775,7 @@ const activeSolution = isCustom
           </Sheet>
 
           <Sheet>
-            <SheetTrigger>
+            <SheetTrigger asChild>
               <Button variant='default' className={`fixed top-20 left-4 ${gameActionButtonThemeClasses}`}>
                 <HistoryIcon className='w-6 h-6'/>
               </Button>

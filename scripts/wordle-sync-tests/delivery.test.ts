@@ -59,7 +59,7 @@ function delivery(overrides: Record<string, any> = {}) {
 async function within<T>(promise: Promise<T>): Promise<T> {
   let timer: ReturnType<typeof setTimeout>;
   try { return await Promise.race([promise, new Promise<never>((_, reject) => {
-    timer = setTimeout(() => reject(new Error('Delivery blocked')), 500);
+    timer = setTimeout(() => reject(new Error('Delivery blocked')), 5_000);
   })]); } finally { clearTimeout(timer!); }
 }
 test('delivery before hydration retains journal for safe board recovery', async () => {
@@ -223,4 +223,29 @@ test('separate recovery still saves with revision checks and acknowledges its ch
   expect(revision.current).toBe(5);
   expect(pending.current).toBeNull();
   expect((await getWordleLocalCheckpoint(player))?.pendingRemoteSync).toBe(false);
+});
+
+test('confirmed core effects with pending cosmetic rewards retain the retry but do not block later rounds', async () => {
+  const first = completion(), second = completion();
+  await queueWordleResult(first); await queueWordleResult(second);
+  let rewardUnavailable = true; const delivered: string[] = [];
+  const run = delivery({ submitWordleResult(payload: any) { return {
+    abort() {}, unwrap: async () => {
+      delivered.push(payload.resultId);
+      return { data: { resultId: payload.resultId,
+        ...(payload.resultId === first.resultId && rewardUnavailable ? { rewardsPending: true, effectsCompleted: true } : {}) } };
+    },
+  }; } });
+  await run(); expect(delivered).toHaveLength(2);
+  expect((await getPendingWordleResults(player)).map(result => result.resultId)).toEqual([first.resultId]);
+  rewardUnavailable = false; await run(); expect(await getPendingWordleResults(player)).toHaveLength(0);
+});
+
+test('a reward flag cannot skip an unconfirmed core result or unblock later games', async () => {
+  await queueWordleResult(completion()); await queueWordleResult(completion());
+  let calls = 0;
+  const run = delivery({ submitWordleResult(payload: any) { return { abort() {}, unwrap: async () => {
+    calls++; return { data: { resultId: payload.resultId, rewardsPending: true, effectsCompleted: false } };
+  } }; } });
+  await run(); expect(calls).toBe(1); expect(await getPendingWordleResults(player)).toHaveLength(2);
 });

@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef } from 'react'
 
 import { DELETE_TEXT, ENTER_TEXT } from '../../constants/strings'
 import { getStatuses } from '../../lib/statuses'
@@ -26,42 +26,55 @@ export const Keyboard = ({
   swapEnterAndDelete = false,
   showPlayAgainKey = false,
 }: Props) => {
-  const charStatuses = getStatuses(solution, guesses)
+  const charStatuses = useMemo(() => getStatuses(solution, guesses), [solution, guesses])
+  const handlersRef = useRef({ onChar, onDelete, onEnter })
+  useLayoutEffect(() => {
+    handlersRef.current = { onChar, onDelete, onEnter }
+  }, [onChar, onDelete, onEnter])
 
-  const onClick = (value: string) => {
+  const onClick = useCallback((value: string) => {
     if (value === 'ENTER') {
-      onEnter()
+      handlersRef.current.onEnter()
     } else if (value === 'DELETE') {
-      onDelete()
+      handlersRef.current.onDelete()
     } else {
-      onChar(value)
+      handlersRef.current.onChar(value)
     }
-  }
+  }, [])
 
   useEffect(() => {
     const listener = (e: KeyboardEvent) => {
       if (e.isComposing || e.ctrlKey || e.altKey || e.metaKey) return
+      const target = e.target
+      if (target instanceof HTMLElement &&
+          (target.isContentEditable || target.closest('input, textarea, select, [role="textbox"]'))) return
+      // Let focused controls handle Enter through their own native click.
+      if (e.key === 'Enter' && target instanceof HTMLElement &&
+          target.closest('button, a, [role="button"]')) return
+      if (e.repeat && e.key !== 'Backspace' && e.key !== 'Delete') return
 
       if (e.key === 'Enter') {
-        onEnter()
+        e.preventDefault()
+        handlersRef.current.onEnter()
         return
       }
 
       if (e.key === 'Backspace' || e.key === 'Delete') {
-        onDelete()
+        e.preventDefault()
+        handlersRef.current.onDelete()
         return
       }
 
       const key = localeAwareUpperCase(e.key)
 
       if (/^[A-Z]$/.test(key)) {
-        onChar(key)
+        handlersRef.current.onChar(key)
       }
     }
 
-    window.addEventListener('keyup', listener)
-    return () => window.removeEventListener('keyup', listener)
-  }, [onEnter, onDelete, onChar])
+    window.addEventListener('keydown', listener)
+    return () => window.removeEventListener('keydown', listener)
+  }, [])
 
   return (
     <div>

@@ -121,6 +121,8 @@ type WordleResultAcknowledgement = {
   duplicate?: boolean;
   duplicateInstance?: boolean;
   existingResultId?: string;
+  effectsCompleted?: boolean;
+  rewardsPending?: boolean;
 };
 
 // The RPC commits XP, coins, custom count, streak and the completion marker
@@ -129,6 +131,7 @@ async function finishWordleResult(
   userId: string,
   resultId: string,
   acknowledgement: Omit<WordleResultAcknowledgement, 'resultId'> = {},
+  allowDeferredRewards = false,
 ): Promise<WordleResultAcknowledgement> {
   const { data, error } = await db.rpc('finalize_wordle_result', {
     p_player: userId,
@@ -141,13 +144,25 @@ async function finishWordleResult(
     return {};
   }
 
-  if (typeof data.prestige === 'number') {
+  if (typeof data.prestige === 'number' && data.prestige > 0) {
+    let rewardTimeout: ReturnType<typeof setTimeout> | undefined;
     try {
       // Entitlement grants are idempotent and can be retried after a lost ack.
-      await awardPrestigeFrames(userId, data.prestige);
+      await Promise.race([
+        awardPrestigeFrames(userId, data.prestige),
+        new Promise<never>((_, reject) => {
+          rewardTimeout = setTimeout(() => reject(new Error('Prestige reward retry deferred')), 1_000);
+        }),
+      ]);
     } catch (error) {
       console.error('[wordle] prestige rewards pending', { resultId, error });
-      return {};
+      // Core effects are already committed. Retain this reward retry without
+      // holding every later round's streak behind a cosmetic frame grant.
+      return allowDeferredRewards
+        ? { ...acknowledgement, resultId, effectsCompleted: true, rewardsPending: true }
+        : {}; // Older clients must retain the complete retry as before.
+    } finally {
+      if (rewardTimeout !== undefined) clearTimeout(rewardTimeout);
     }
   }
 
@@ -157,6 +172,8 @@ async function finishWordleResult(
 async function submitWordleResult(
   userId: string, body: AddGameResult,
 ): Promise<WordleResultAcknowledgement> {
+  const finishResult = (id: string, acknowledgement: Omit<WordleResultAcknowledgement, 'resultId'> = {}) =>
+    finishWordleResult(userId, id, acknowledgement, body.allowDeferredRewards === true);
   const guessCount = body.guesses.length;
   const gameWasWon = body.guesses.includes(body.solution);
   const wordLength = body.solution.length;
@@ -195,7 +212,7 @@ async function submitWordleResult(
         return {};
       }
 
-      return finishWordleResult(userId, existingResult.id, { duplicate: true });
+      return finishResult(existingResult.id, { duplicate: true });
     }
   }
 
@@ -230,7 +247,7 @@ async function submitWordleResult(
     );
 
     if (existingResult) {
-      return finishWordleResult(userId, existingResult.id, { duplicate: true });
+      return finishResult(existingResult.id, { duplicate: true });
     }
   }
 
@@ -238,6 +255,7 @@ async function submitWordleResult(
     resultId,
     gameInstanceId,
     clientCompletedAt,
+    allowDeferredRewards,
     ...gameResult
   } = body;
 
@@ -313,9 +331,10 @@ async function submitWordleResult(
           },
         );
 
-        const finalized = await finishWordleResult(userId, existingInstance.id);
+        const finalized = await finishResult(existingInstance.id);
         if (!finalized.resultId) return {};
         return {
+          ...finalized,
           resultId: resultId ?? existingInstance.id,
           duplicateInstance: true,
           existingResultId: existingInstance.id,
@@ -342,7 +361,7 @@ async function submitWordleResult(
           guessCount,
         )
       ) {
-        return finishWordleResult(userId, existingResult.id, { duplicate: true });
+        return finishResult(existingResult.id, { duplicate: true });
       }
 
       console.warn(
@@ -367,7 +386,7 @@ async function submitWordleResult(
     return {};
   }
 
-  const finalized = await finishWordleResult(userId, data.id);
+  const finalized = await finishResult(data.id);
   if (!finalized.resultId) return {};
 
   try {

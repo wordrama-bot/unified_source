@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import classnames from 'classnames'
 import { ReactNode } from 'react'
 
@@ -20,7 +21,7 @@ type Props = {
   solution: string
 }
 
-export const Key = ({
+export const Key = memo(function Key({
   children,
   status,
   width = 54,
@@ -30,7 +31,7 @@ export const Key = ({
   onClick,
   isRevealing,
   solution
-}: Props) => {
+}: Props) {
   const keyDelayMs = REVEAL_TIME_MS * solution.length
   const gameUiState = getWordleGameUiState()
 
@@ -90,7 +91,9 @@ export const Key = ({
   )
 
   const styles = {
-    transitionDelay: isRevealing ? `${keyDelayMs}ms` : 'unset',
+    // Removing a delayed transition must snap to the final color, too.
+    transitionProperty: isRevealing ? undefined : 'none',
+    transitionDelay: isRevealing ? `${keyDelayMs}ms` : '0ms',
     width: `${width}px`,
   }
 
@@ -109,4 +112,4 @@ export const Key = ({
       {children || value}
     </button>
   )
-}
+})
