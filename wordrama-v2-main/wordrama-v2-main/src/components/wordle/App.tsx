@@ -2808,7 +2808,20 @@ const activeSolution = isCustom
                   )}
                   { !isErrorLast30Games && !isLoadingLast30Games && last30Games?.count > 0 && last30Games?.data?.map((game, idx) => (
                     <div key={idx} className="col-span-1">
-                      <div className="text-md">{ idx + 1}: {game.solution}</div>
+                      <div className="text-md">
+                        {idx + 1}:{' '}
+                        <a
+                          href={`https://www.dictionary.com/browse/${encodeURIComponent(
+                            game.solution.toLowerCase()
+                          )}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="underline underline-offset-2"
+                          aria-label={`Look up ${game.solution} (opens in a new tab)`}
+                        >
+                          {game.solution}
+                        </a>
+                      </div>
                       <div className="text-sm text-gray-400">{ game.gameWasWon ? 'Game Won' : 'Game Lost'}</div>
                     </div>
                   ))}
