@@ -3,19 +3,27 @@
 import type { CSSProperties } from 'react';
 
 // Stable, deterministic values avoid hydration mismatches and re-render jitter.
-const LEAVES = Array.from({ length: 18 }, (_, index) => ({
-  id: index,
-  left: `${4 + ((index * 37.7 + 7) % 90)}%`,
-  delay: `${-((index * 1.37) % 8.2)}s`,
-  duration: `${6.8 + ((index * 7) % 25) / 10}s`,
-  size: `${0.75 + ((index * 11) % 9) / 20}`,
-  drift: `${((index * 19) % 100) - 50}px`,
-  sway: `${index % 2 === 0 ? 24 : -24}px`,
-  spin: `${index % 2 === 0 ? 250 : -250}deg`,
-  color: ['#d96b28', '#d9a13a', '#b64b2d', '#a43f37', '#c77b25', '#8f472c'][index % 6],
-  restLeft: `${14 + (index % 3) * 34}%`,
-  restTop: `${24 + Math.floor(index / 3) * 43}%`,
-}));
+const LEAVES = Array.from({ length: 26 }, (_, index) => {
+  const duration = 6.8 + ((index * 7) % 25) / 10;
+  const progress = 0.12 + ((index * 37) % 76) / 100;
+
+  return {
+    id: index,
+    left: `${4 + ((index * 37.7 + 7) % 90)}%`,
+    delay: `${-(duration * progress)}s`,
+    duration: `${duration}s`,
+    size: `${0.75 + ((index * 11) % 9) / 20}`,
+    drift: `${((index * 19) % 100) - 50}px`,
+    sway: `${index % 2 === 0 ? 24 : -24}px`,
+    spin: `${index % 2 === 0 ? 250 : -250}deg`,
+    color: [
+      '#d96b28', '#d9a13a', '#b64b2d',
+      '#a43f37', '#c77b25', '#8f472c',
+    ][index % 6],
+    restLeft: `${14 + (index % 3) * 34}%`,
+    restTop: `${24 + Math.floor(index / 3) * 43}%`,
+  };
+});
 
 export function AutumnLeaves() {
   return (
