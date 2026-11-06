@@ -28,10 +28,6 @@ export function WinCelebration({
     THEME_IDS.WINTER_WONDERLAND,
   ];
 
-  if (christmasEnabled || (themeId != null && snowThemeIds.includes(themeId))) {
-    return <Snowflake />;
-  }
-
   if (themeId === THEME_IDS.MATRIX) {
     return <MatrixCodeRain />;
   }
@@ -42,6 +38,10 @@ export function WinCelebration({
 
   if (themeId === THEME_IDS.HARVEST_HEARTH) {
     return <AutumnLeaves />;
+  }
+
+  if (christmasEnabled || (themeId != null && snowThemeIds.includes(themeId))) {
+    return <Snowflake />;
   }
 
   return <Confetti className="w-full" />;
