@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import {
@@ -25,6 +25,7 @@ export default function AdminPlayerProfilePage() {
   const [showGrantCoins, setShowGrantCoins] = useState(false);
   const [coinAmount, setCoinAmount] = useState(100);
   const [coinReason, setCoinReason] = useState("");
+  const coinGrantRequestId = useRef<string | null>(null);
   const [grantCoins, { isLoading: grantingCoins }] =
     useGrantAdminPlayerCoinsMutation();
   const [banPlayer, { isLoading: banningPlayer }] = useBanAdminPlayerMutation();
@@ -154,15 +155,21 @@ export default function AdminPlayerProfilePage() {
 
     if (!coinAmount || coinAmount <= 0 || !cleanReason) return;
 
+    // Keep the same key when retrying an uncertain request.
+    if (!coinGrantRequestId.current) {
+      coinGrantRequestId.current = crypto.randomUUID();
+    }
     await grantCoins({
       playerId,
       amount: Number(coinAmount),
       reason: cleanReason,
+      requestId: coinGrantRequestId.current,
     }).unwrap();
 
     setShowGrantCoins(false);
     setCoinAmount(100);
     setCoinReason("");
+    coinGrantRequestId.current = null;
   }
 
   async function handleBanPlayer(event: React.FormEvent) {
@@ -796,7 +803,7 @@ export default function AdminPlayerProfilePage() {
                   min={1}
                   step={1}
                   value={coinAmount}
-                  onChange={(event) => setCoinAmount(Number(event.target.value))}
+                  onChange={(event) => { coinGrantRequestId.current = null; setCoinAmount(Number(event.target.value)); }}
                   className="mt-1 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
                 />
               </div>
@@ -805,7 +812,7 @@ export default function AdminPlayerProfilePage() {
                 <label className="text-sm font-medium">Reason</label>
                 <textarea
                   value={coinReason}
-                  onChange={(event) => setCoinReason(event.target.value)}
+                  onChange={(event) => { coinGrantRequestId.current = null; setCoinReason(event.target.value); }}
                   placeholder="Required audit reason..."
                   className="mt-1 min-h-[90px] w-full rounded-md border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
                 />
