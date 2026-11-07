@@ -85,7 +85,7 @@ router.get(
 
 router.get(
   '/players/:playerId/live-game',
-  requireAdminPermission('players:read'),
+  requireAdminPermission('players:live-monitor'),
   adminController.playerLiveGame,
 );
 
