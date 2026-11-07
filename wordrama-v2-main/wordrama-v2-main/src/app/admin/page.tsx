@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import AdminAnalytics from "@/components/admin/AdminAnalytics";
 import {
   useGetAdminMeQuery,
   useGetAdminOverviewQuery,
@@ -130,6 +131,8 @@ export default function AdminDashboardPage() {
           value={overviewLoading ? "..." : overviewData?.playersOnline ?? "N/A"}
         />
       </section>
+
+      <AdminAnalytics />
 
       <section className="mt-6">
         <div className="rounded-lg border border-yellow-700 bg-zinc-900 p-4">
