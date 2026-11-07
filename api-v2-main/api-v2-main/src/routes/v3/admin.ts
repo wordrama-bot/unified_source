@@ -103,7 +103,7 @@ router.get(
 
 router.get(
   '/players/:playerId/identity',
-  requireAdmin,
+  requireAdminPermission('players:read'),
   adminController.getPlayerIdentityReport,
 );
 
