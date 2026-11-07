@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { getPlayerLiveGameSnapshot } from '../services/admin/playerMonitor';
 import { ApiRequest } from '../types/auth.types';
 import { getPermissions } from '../services/admin/roles';
+import { getAdminAnalytics } from '../services/admin/analytics';
 import { getAdminOverview } from '../services/admin/overview';
 import {
   getPlayerAdminProfile,
@@ -36,6 +37,16 @@ async function me(req: ApiRequest, res: Response) {
     },
     message: 'Admin profile loaded',
   });
+}
+
+async function analytics(req: ApiRequest, res: Response) {
+  const days = Number(req.query.days ?? 7);
+  if (![7, 30, 90].includes(days)) {
+    return res.status(400).json({ status: 400, message: 'Range must be 7, 30, or 90 days' });
+  }
+  const data = await getAdminAnalytics(days);
+  res.setHeader('Cache-Control', 'private, max-age=60');
+  return res.status(200).json({ status: 200, count: data.daily.length, data, message: 'Admin analytics loaded' });
 }
 
 async function overview(req: ApiRequest, res: Response) {
@@ -342,6 +353,7 @@ async function suspiciousGameplay(req, res) {
 export default {
   me,
   overview,
+  analytics,
   playerSearch,
   playerProfile,
   playerLiveGame,
