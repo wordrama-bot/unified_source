@@ -74,6 +74,9 @@ export async function banPlayer({
     if (target.banType === 'DISCORD' && !/^\d{15,22}$/.test(value)) {
       throw new Error('Invalid Discord ID ban target.');
     }
+    if (target.banType !== 'PLAYER') {
+      throw new Error('Additional identifier bans are temporarily disabled until linked unban and audit operations are transactional.');
+    }
     normalizedTargets.push({
       banType: target.banType,
       banValue: target.banType === 'EMAIL' || target.banType === 'USERNAME'
