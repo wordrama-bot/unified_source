@@ -883,6 +883,7 @@ export default function AdminPlayerProfilePage() {
 
               <div>
                 <label className="text-sm font-medium">Ban Targets</label>
+                <p className="mt-1 text-xs text-muted-foreground">Only the player account can be banned from this dashboard until linked identifier bans support safe reversal.</p>
                   <div className="mt-2 space-y-2 rounded-md border p-3">
                     {banTargetOptions.map((target: any) => (
                       <label
@@ -1224,50 +1225,18 @@ function ActionButton({
 }
 
 function buildBanTargetOptions(profile: any) {
-  const targets = profile?.banTargets;
+  const playerId = profile?.banTargets?.playerId;
+  if (!playerId) return [];
 
-  if (!targets) return [];
-
-  const options = [
-    {
-      key: "PLAYER",
-      label: "Player Account",
-      value: targets.playerId,
-      defaultChecked: true,
-      locked: true,
-    },
-    {
-      key: "EMAIL",
-      label: "Email",
-      value: targets.email,
-      defaultChecked: Boolean(targets.email),
-      locked: false,
-    },
-    {
-      key: "DISCORD",
-      label: "Discord ID",
-      value: targets.discordId,
-      defaultChecked: Boolean(targets.discordId),
-      locked: false,
-    },
-    {
-      key: "USERNAME",
-      label: "Username",
-      value: targets.username,
-      defaultChecked: false,
-      locked: false,
-    },
-    ...(targets.recentIps ?? []).map((ip: string) => ({
-      key: `IP:${ip}`,
-      label: "IP Address",
-      value: ip,
-      defaultChecked: false,
-      locked: false,
-      banType: "IP",
-    })),
-  ];
-
-  return options.filter((option) => Boolean(option.value));
+  // Additional identifier bans are disabled until they can be safely
+  // reversed together with the player ban and audited transactionally.
+  return [{
+    key: "PLAYER",
+    label: "Player Account",
+    value: playerId,
+    defaultChecked: true,
+    locked: true,
+  }];
 }
 
 function copyPlayerJson(profile: any) {
