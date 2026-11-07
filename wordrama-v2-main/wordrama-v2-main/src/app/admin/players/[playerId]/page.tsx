@@ -121,6 +121,11 @@ export default function AdminPlayerProfilePage() {
   }
 
   const identity = profile.identity;
+  const hasDiscordLinkRecord = Boolean(
+    Array.isArray(identity._discord_link)
+      ? identity._discord_link.some((link: any) => Boolean(link?.user_id))
+      : identity._discord_link?.user_id
+  );
   const gameplay = profile.gameplaySummary;
   const visibleStreaks = (profile.streaks ?? []).filter(
     (streak: any) =>
@@ -312,7 +317,9 @@ export default function AdminPlayerProfilePage() {
                 <span className="text-muted-foreground">Discord:</span>{" "}
                 {identity.discord_connected
                   ? "🟣 Connected"
-                  : "⚪ Not connected"}
+                  : hasDiscordLinkRecord
+                    ? "⚠️ Linked record found (connection flag off)"
+                    : "⚪ Not connected"}
               </p>
             </div>
           </div>
@@ -413,8 +420,8 @@ export default function AdminPlayerProfilePage() {
               </div>
 
               <p className="mt-4 text-xs text-muted-foreground">
-                Write actions are intentionally disabled until their backend
-                audit logging is implemented.
+                Administrative write actions are available to authorized roles.
+                Use caution: grants and moderation actions change player data.
               </p>
             </Panel>
 
