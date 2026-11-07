@@ -194,6 +194,19 @@ async function grantCoins(req: ApiRequest, res: Response) {
 
   const { playerId } = req.params;
   const { amount, reason, requestId } = req.body ?? {};
+  const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  if (
+    !uuid.test(playerId) ||
+    typeof requestId !== 'string' || !uuid.test(requestId) ||
+    typeof amount !== 'number' || !Number.isSafeInteger(amount) ||
+    amount < 1 || amount > 1000000 ||
+    typeof reason !== 'string' || !reason.trim() || reason.length > 2000
+  ) {
+    return res.status(400).json({
+      status: 400, count: 0, data: {},
+      message: 'Valid player ID, request ID, coin amount (1-1000000), and reason are required.',
+    });
+  }
   const data = await grantPlayerCoins({
     targetPlayerId: playerId,
     adminPlayerId: req.userId,
