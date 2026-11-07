@@ -822,6 +822,14 @@ function App(){
   const lastBoardCheckRef = useRef<{ key: string; at: number } | null>(null);
   const pendingBoardCheckRef = useRef<{ key: string; promise: Promise<'ready' | 'completed' | 'retry'> } | null>(null);
   const guessSubmissionInProgressRef = useRef(false);
+  // Only populated for an opted-in Infinite replay. Never persisted or shared.
+  const pendingLastSolveRef = useRef<{
+    gameInstanceId: string;
+    playerId?: string;
+    wordPack: string;
+    guess: string;
+  } | null>(null);
+  const lastSolveSubmissionInProgressRef = useRef(false);
 
   // Refresh statistics alone cannot retire a stale board. Verify the exact
   // instance before resuming it; scoped reducer updates reject late responses.
@@ -1669,6 +1677,17 @@ const activeSolution = isCustom
     const newSolution: string = getRandomWord(validWords);
     const gameInstanceId = crypto.randomUUID();
 
+    if (selected.gameMode === 'INFINITE' && gameUiState.startWithLastSolve === true &&
+        nextBoard.solution.length === newSolution.length &&
+        isWordInWordList(nextBoard.solution, wordleWordPack.data.validGuesses || [], selected.gameMode)) {
+      pendingLastSolveRef.current = {
+        gameInstanceId,
+        playerId: selected.playerId,
+        wordPack: selected.wordPack,
+        guess: nextBoard.solution,
+      };
+    }
+
     shouldPersistGameStateRef.current = true;
     dispatch(setGameState(
       {
@@ -1687,6 +1706,7 @@ const activeSolution = isCustom
 
   // Called when a user presses a key on the virtual or physical keyboard
   function onChar(value: string) {
+    if (pendingLastSolveRef.current || lastSolveSubmissionInProgressRef.current) return;
     if (gameLoading || !isBoardLengthValid) return;
     const key = localeAwareUpperCase(value)
 
@@ -1706,6 +1726,7 @@ const activeSolution = isCustom
 
   // Called when a user presses backspace on the virtual or physical keyboard
   function onDelete() {
+    if (pendingLastSolveRef.current || lastSolveSubmissionInProgressRef.current) return;
     setCurrentGuess(new GraphemeSplitter().splitGraphemes(currentGuessRef.current).slice(0, -1).join(''))
   }
 
@@ -1743,6 +1764,7 @@ const activeSolution = isCustom
 
   // Called when a user presses enter on the virtual or physical keyboard
   async function onEnter() {
+    if (pendingLastSolveRef.current || lastSolveSubmissionInProgressRef.current) return;
     if (gameLoading || !isBoardLengthValid) return;
     if (guessSubmissionInProgressRef.current) return;
     guessSubmissionInProgressRef.current = true;
@@ -1957,6 +1979,32 @@ const activeSolution = isCustom
       setCurrentGuess('');
     }
   }
+
+  // Replay the previous solution only after React has committed the new board.
+  // The ordinary submitGuess path owns the flip animation, colors, and outbox.
+  useEffect(() => {
+    const pending = pendingLastSolveRef.current;
+    if (!pending || gameLoading || !isUiHydrated) return;
+    if (gameMode !== 'INFINITE' || wordPack !== pending.wordPack ||
+        user?.id !== pending.playerId || gameUiState.startWithLastSolve !== true) {
+      pendingLastSolveRef.current = null;
+      return;
+    }
+    if (currentGame.gameInstanceId !== pending.gameInstanceId) return;
+    pendingLastSolveRef.current = null;
+    if (currentGame.isGameWon || currentGame.isGameLost || currentGame.guesses.length !== 0 ||
+        currentGame.solution.length !== pending.guess.length) return;
+
+    lastSolveSubmissionInProgressRef.current = true;
+    void (async () => {
+      try {
+        await submitGuess(pending.guess);
+      } finally {
+        lastSolveSubmissionInProgressRef.current = false;
+      }
+    })();
+  }, [currentGame.gameInstanceId, gameMode, wordPack, gameLoading, isUiHydrated,
+      gameUiState.startWithLastSolve, user?.id]);
 
   // Persist submitted guesses and explicit mode/pack selections.
   // Typing within the active row remains local-only.
@@ -2691,6 +2739,22 @@ const activeSolution = isCustom
                       id="speedRunModeEnabled"
                       checked={gameUiState.speedRunModeEnabled || false}
                       onCheckedChange={(checked) => handleSpeedRunEnabled(checked)}
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between gap-4">
+                    <SettingsToggleLabel
+                      htmlFor="startWithLastSolve"
+                      label={<>Start with<br />Last Solve</>}
+                      tooltip="In Infinite mode, automatically use the previous answer as your first guess when starting the next game"
+                    />
+
+                    <Switch
+                      id="startWithLastSolve"
+                      checked={gameUiState.startWithLastSolve ?? false}
+                      onCheckedChange={(checked) =>
+                        dispatch(setWordleGameUiState({ startWithLastSolve: checked }))
+                      }
                     />
                   </div>
 

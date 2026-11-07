@@ -20,7 +20,8 @@ export type WordleGameUiState = {
     streamerModeEnabled?: boolean,
     showCurrentStreak?: boolean,
     gameSoundEnabled?: boolean,
-    colorblindMode?: boolean
+    colorblindMode?: boolean,
+    startWithLastSolve?: boolean
 };
 
 export type InitialState  = {
