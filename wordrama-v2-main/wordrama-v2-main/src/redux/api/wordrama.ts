@@ -863,14 +863,14 @@ export const wordramaApiV3 = createApi({
 
     grantAdminPlayerCoins: builder.mutation<
       any,
-      { playerId: string; amount: number; reason: string }
+      { playerId: string; amount: number; reason: string; requestId: string }
     >({
-      query: ({ playerId, amount, reason }) => ({
+      query: ({ playerId, amount, reason, requestId }) => ({
         url: `/api/v3/admin/players/${playerId}/coins/grant`,
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: { amount, reason },
+        body: { amount, reason, requestId },
       }),
       invalidatesTags: ["Admin"],
     }),
