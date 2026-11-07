@@ -4,6 +4,7 @@ import { ApiRequest } from '../types/auth.types';
 import { getPermissions } from '../services/admin/roles';
 import { getAdminAnalytics } from '../services/admin/analytics';
 import { getAdminOverview } from '../services/admin/overview';
+import { grantPlayerCoins } from '../services/admin/coins';
 import {
   getPlayerAdminProfile,
   searchPlayers,
@@ -174,14 +175,40 @@ async function createPlayerNote(req: ApiRequest, res: Response) {
   });
 }
 
-// Disabled until an atomic _ledger + moderation audit grant is implemented.
-// Never use the unadopted _player_coin_balances table for live grants.
-async function grantCoins(_req: ApiRequest, res: Response) {
-  return res.status(503).json({
-    status: 503,
-    count: 0,
-    data: {},
-    message: 'Coin grants are temporarily unavailable pending an audited _ledger transaction.',
+// Default-off until the reviewed migration is applied and staging tests pass.
+async function grantCoins(req: ApiRequest, res: Response) {
+  if (process.env.ADMIN_LIVE_COIN_GRANTS_ENABLED !== 'true') {
+    return res.status(503).json({
+      status: 503,
+      count: 0,
+      data: {},
+      message: 'Coin grants are not yet enabled.',
+    });
+  }
+
+  if (!req.userId) {
+    return res.status(401).json({
+      status: 401, count: 0, data: {}, message: 'Unauthorized',
+    });
+  }
+
+  const { playerId } = req.params;
+  const { amount, reason, requestId } = req.body ?? {};
+  const data = await grantPlayerCoins({
+    targetPlayerId: playerId,
+    adminPlayerId: req.userId,
+    amount: Number(amount),
+    reason: typeof reason === 'string' ? reason : '',
+    requestId: typeof requestId === 'string' ? requestId : '',
+    requestIp: req.ip,
+    userAgent: req.headers['user-agent'],
+  });
+
+  return res.status(201).json({
+    status: 201,
+    count: 1,
+    data,
+    message: data.duplicate ? 'Coin grant already processed' : 'Coins granted',
   });
 }
 
