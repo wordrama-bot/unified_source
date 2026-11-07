@@ -778,6 +778,15 @@ export const wordramaApiV3 = createApi({
       providesTags: ["Admin"],
     }),
 
+    getAdminAnalytics: builder.query<any, number>({
+      query: (days) => ({
+        url: `/api/v3/admin/analytics?days=${days}`,
+        method: "GET",
+        credentials: "include",
+      }),
+      keepUnusedDataFor: 60,
+    }),
+
     getAdminOverview: builder.query<any, void>({
       query: () => ({
         url: `/api/v3/admin/overview`,
@@ -1010,6 +1019,7 @@ export const {
   useSubmitSpellbeeResultMutation,
   useGetAdminMeQuery,
   useGetAdminOverviewQuery,
+  useLazyGetAdminAnalyticsQuery,
   useSearchAdminPlayersQuery,
   useGetAdminPlayerNotesQuery,
   useAddAdminPlayerNoteMutation,
