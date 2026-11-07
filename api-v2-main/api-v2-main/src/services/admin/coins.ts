@@ -1,4 +1,3 @@
-import { randomUUID } from 'crypto';
 import { db } from '../../models';
 
 export async function grantPlayerCoins({
@@ -6,6 +5,7 @@ export async function grantPlayerCoins({
   adminPlayerId,
   amount,
   reason,
+  requestId,
   requestIp,
   userAgent,
 }: {
@@ -13,122 +13,40 @@ export async function grantPlayerCoins({
   adminPlayerId: string;
   amount: number;
   reason: string;
+  requestId: string;
   requestIp?: string;
   userAgent?: string;
 }) {
-  const cleanReason = reason.trim();
-
-  if (!Number.isInteger(amount) || amount <= 0) {
-    throw new Error('Amount must be a positive whole number.');
+  const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  if (!uuid.test(requestId) || !uuid.test(targetPlayerId) || !uuid.test(adminPlayerId)) {
+    throw new Error('Valid player, administrator, and request IDs are required.');
+  }
+  if (!Number.isSafeInteger(amount) || amount <= 0 || amount > 1000000) {
+    throw new Error('Amount must be between 1 and 1,000,000 coins.');
+  }
+  if (!reason?.trim() || reason.length > 2000) {
+    throw new Error('A reason of up to 2,000 characters is required.');
   }
 
-  if (!cleanReason) {
-    throw new Error('Reason is required.');
-  }
-
-  const currencyCode = 'COIN';
-
-  const { data: currentBalance, error: balanceError } = await db
-    .from('_player_coin_balances')
-    .select('*')
-    .eq('player_id', targetPlayerId)
-    .eq('currency_code', currencyCode)
-    .maybeSingle();
-
-  if (balanceError) {
-    console.error('[admin.coins] balance lookup error', balanceError);
-    throw new Error('Unable to load coin balance.');
-  }
-
-  const balanceBefore = currentBalance?.available_balance ?? 0;
-  const balanceAfter = balanceBefore + amount;
-
-  let balanceResult;
-
-  if (currentBalance) {
-    balanceResult = await db
-      .from('_player_coin_balances')
-      .update({
-        available_balance: balanceAfter,
-        lifetime_earned: (currentBalance.lifetime_earned ?? 0) + amount,
-        version: (currentBalance.version ?? 0) + 1,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', currentBalance.id)
-      .select('*')
-      .maybeSingle();
-  } else {
-    balanceResult = await db
-      .from('_player_coin_balances')
-      .insert({
-        player_id: targetPlayerId,
-        currency_code: currencyCode,
-        available_balance: balanceAfter,
-        lifetime_earned: amount,
-        lifetime_spent: 0,
-        version: 1,
-      })
-      .select('*')
-      .maybeSingle();
-  }
-
-  if (balanceResult.error) {
-    console.error('[admin.coins] balance update error', balanceResult.error);
-    throw new Error('Unable to update coin balance.');
-  }
-
-  const ledgerIdempotencyKey = `admin-grant:${randomUUID()}`;
-
-  const { data: ledgerEntry, error: ledgerError } = await db
-    .from('_coin_ledger')
-    .insert({
-      player_id: targetPlayerId,
-      currency_code: currencyCode,
-      direction: 'CREDIT',
-      amount,
-      entry_type: 'ADMIN_GRANT',
-      status: 'POSTED',
-      balance_before: balanceBefore,
-      balance_after: balanceAfter,
-      idempotency_key: ledgerIdempotencyKey,
-      metadata: {
-        reason: cleanReason,
-        adminPlayerId,
-      },
-    })
-    .select('*')
-    .maybeSingle();
-
-  if (ledgerError) {
-    console.error('[admin.coins] ledger insert error', ledgerError);
-    throw new Error('Coin balance updated but ledger insert failed.');
-  }
-
-  await db.from('_moderation_actions').insert({
-    action_type: 'COINS_GRANTED',
-    target_user_id: targetPlayerId,
-    reason: cleanReason,
-    performed_by: adminPlayerId,
-    target_type: 'PLAYER',
-    target_id: targetPlayerId,
-    before_value: {
-      available_balance: balanceBefore,
-    },
-    after_value: {
-      available_balance: balanceAfter,
-      amount_granted: amount,
-      ledger_id: ledgerEntry?.id,
-    },
-    request_ip: requestIp ?? null,
-    user_agent: userAgent ?? null,
-    metadata: {
-      currencyCode,
-      ledgerIdempotencyKey,
-    },
+  // This RPC must be installed and explicitly enabled only after staging tests.
+  // Never fall back to direct table writes if it is unavailable.
+  const { data, error } = await db.rpc('admin_grant_live_coins', {
+    p_request_id: requestId,
+    p_player: targetPlayerId,
+    p_admin: adminPlayerId,
+    p_amount: amount,
+    p_reason: reason.trim(),
+    p_request_ip: requestIp ?? null,
+    p_user_agent: userAgent ?? null,
   });
-
-  return {
-    balance: balanceResult.data,
-    ledgerEntry,
-  };
+  if (error) {
+    console.error('[admin.coins] atomic grant failed', error);
+    throw new Error('Unable to grant coins atomically.');
+  }
+  if (!data || typeof data.balanceAfter !== 'number' ||
+      typeof data.balanceBefore !== 'number' ||
+      typeof data.moderationActionId !== 'string') {
+    throw new Error('Coin grant response could not be verified.');
+  }
+  return data;
 }
