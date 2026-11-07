@@ -4,6 +4,7 @@ import { ApiRequest } from '../types/auth.types';
 import { getPermissions } from '../services/admin/roles';
 import { getAdminAnalytics } from '../services/admin/analytics';
 import { getAdminOverview } from '../services/admin/overview';
+import { getRecentlyActivePlayers } from '../services/admin/recentlyActivePlayers';
 import { grantPlayerCoins } from '../services/admin/coins';
 import {
   getPlayerAdminProfile,
@@ -58,6 +59,12 @@ async function overview(req: ApiRequest, res: Response) {
     data,
     message: 'Admin overview loaded',
   });
+}
+
+async function recentlyActivePlayers(req: ApiRequest, res: Response) {
+  res.setHeader('Cache-Control', 'private, no-store');
+  const data = await getRecentlyActivePlayers();
+  return res.status(200).json({ status: 200, count: data.count, data, message: 'Recent player activity loaded' });
 }
 
 async function playerSearch(req: ApiRequest, res: Response) {
@@ -374,6 +381,7 @@ export default {
   me,
   overview,
   analytics,
+  recentlyActivePlayers,
   playerSearch,
   playerProfile,
   playerLiveGame,
