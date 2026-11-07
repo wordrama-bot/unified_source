@@ -61,17 +61,17 @@ export async function banPlayer({
       throw new Error('Invalid ban target.');
     }
     const value = target.banValue.trim();
-    if (!value || value.length > 320 || /[\\x00-\\x1f\\x7f]/.test(value)) {
+    if (!value || value.length > 320 || /[\x00-\x1f\x7f]/.test(value)) {
       throw new Error('Invalid ban target value.');
     }
     if (target.banType === 'PLAYER' && value !== targetPlayerId) {
       throw new Error('Cannot ban a different player ID in this action.');
     }
     if (target.banType === 'EMAIL' &&
-        !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(value)) {
+        !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
       throw new Error('Invalid email ban target.');
     }
-    if (target.banType === 'DISCORD' && !/^\\d{15,22}$/.test(value)) {
+    if (target.banType === 'DISCORD' && !/^\d{15,22}$/.test(value)) {
       throw new Error('Invalid Discord ID ban target.');
     }
     normalizedTargets.push({
