@@ -12,6 +12,12 @@ router.use(requireAdmin);
 router.get('/me', adminController.me);
 
 router.get(
+  '/analytics',
+  requireAdminPermission('admin:read'),
+  adminController.analytics,
+);
+
+router.get(
   '/overview',
   requireAdminPermission('admin:read'),
   adminController.overview,
