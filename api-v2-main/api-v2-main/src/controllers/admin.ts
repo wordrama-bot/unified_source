@@ -12,7 +12,6 @@ import {
   addModeratorNote,
   getModeratorNotes,
 } from '../services/admin/notes';
-import { grantPlayerCoins } from '../services/admin/coins';
 import {
   banPlayer,
   unbanPlayer,
@@ -175,33 +174,14 @@ async function createPlayerNote(req: ApiRequest, res: Response) {
   });
 }
 
-async function grantCoins(req: ApiRequest, res: Response) {
-  const { playerId } = req.params;
-  const { amount, reason } = req.body;
-
-  if (!req.userId) {
-    return res.status(401).json({
-      status: 401,
-      count: 0,
-      data: {},
-      message: 'Unauthorized',
-    });
-  }
-
-  const data = await grantPlayerCoins({
-    targetPlayerId: playerId,
-    adminPlayerId: req.userId,
-    amount: Number(amount),
-    reason: String(reason ?? ''),
-    requestIp: req.ip,
-    userAgent: req.headers['user-agent'],
-  });
-
-  return res.status(201).json({
-    status: 201,
-    count: 1,
-    data,
-    message: 'Coins granted',
+// Disabled until an atomic _ledger + moderation audit grant is implemented.
+// Never use the unadopted _player_coin_balances table for live grants.
+async function grantCoins(_req: ApiRequest, res: Response) {
+  return res.status(503).json({
+    status: 503,
+    count: 0,
+    data: {},
+    message: 'Coin grants are temporarily unavailable pending an audited _ledger transaction.',
   });
 }
 
