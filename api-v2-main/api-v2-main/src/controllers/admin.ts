@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { getPlayerLiveGameSnapshot } from '../services/admin/playerMonitor';
 import { ApiRequest } from '../types/auth.types';
 import { getPermissions } from '../services/admin/roles';
 import { getAdminOverview } from '../services/admin/overview';
@@ -103,6 +104,22 @@ export async function getPlayerIdentityReport(
         : 'Unable to load player identity report.',
     });
   }
+}
+
+async function playerLiveGame(req: ApiRequest, res: Response) {
+  const { playerId } = req.params;
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(playerId)) {
+    return res.status(400).json({ status: 400, message: 'Invalid player ID' });
+  }
+
+  const data = await getPlayerLiveGameSnapshot(playerId);
+  res.setHeader('Cache-Control', 'no-store, private');
+  return res.status(200).json({
+    status: 200,
+    count: 1,
+    data,
+    message: 'Latest persisted player game snapshot loaded',
+  });
 }
 
 async function playerNotes(req: ApiRequest, res: Response) {
@@ -327,6 +344,7 @@ export default {
   overview,
   playerSearch,
   playerProfile,
+  playerLiveGame,
   getPlayerIdentityReport,
   playerNotes,
   createPlayerNote,
