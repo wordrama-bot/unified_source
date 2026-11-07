@@ -21,6 +21,8 @@ import PlayerLiveMonitor from "@/components/admin/PlayerLiveMonitor";
 export default function AdminPlayerProfilePage() {
   const params = useParams();
   const playerId = String(params.playerId);
+  // Opt-in separately from the backend flag after migration and staging verification.
+  const coinGrantsEnabled = process.env.NEXT_PUBLIC_ADMIN_LIVE_COIN_GRANTS_ENABLED === "true";
   const [note, setNote] = useState("");
   const [showGrantCoins, setShowGrantCoins] = useState(false);
   const [coinAmount, setCoinAmount] = useState(100);
@@ -378,8 +380,11 @@ export default function AdminPlayerProfilePage() {
             <Panel title="Quick Actions">
               <div className="grid gap-3 sm:grid-cols-2">
                 <ActionButton
-                  label="Grant Coins (Pending Safe Ledger Integration)"
-                  disabled
+                  label={coinGrantsEnabled ? "Grant Coins" : "Grant Coins (Pending Verification)"}
+                  onClick={() => {
+                    if (coinGrantsEnabled) setShowGrantCoins(true);
+                  }}
+                  disabled={!coinGrantsEnabled}
                 />
 
                 <ActionButton
@@ -787,7 +792,7 @@ export default function AdminPlayerProfilePage() {
         </div>
       )}
 
-      {showGrantCoins && (
+      {coinGrantsEnabled && showGrantCoins && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
           <div className="w-full max-w-md rounded-xl border bg-card p-6 shadow-xl">
             <h2 className="text-xl font-semibold">Grant Coins</h2>
