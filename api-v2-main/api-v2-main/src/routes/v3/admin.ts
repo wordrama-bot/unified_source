@@ -24,6 +24,12 @@ router.get(
 );
 
 router.get(
+  '/players/recently-active',
+  requireAdminPermission('players:read'),
+  adminController.recentlyActivePlayers,
+);
+
+router.get(
   '/players/search',
   requireAdminPermission('players:read'),
   adminController.playerSearch,
