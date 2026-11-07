@@ -16,6 +16,7 @@ import {
   useGrantAdminEntitlementMutation,
 } from "@/redux/api/wordrama";
 import PlayerIdentityPanel from "@/components/admin/PlayerIdentityPanel";
+import PlayerLiveMonitor from "@/components/admin/PlayerLiveMonitor";
 
 export default function AdminPlayerProfilePage() {
   const params = useParams();
@@ -41,7 +42,7 @@ export default function AdminPlayerProfilePage() {
   const [entitlementExpiresAt, setEntitlementExpiresAt] = useState("");
   const [grantPreview, setGrantPreview] = useState<any>(null);
 
-  const [activeTab, setActiveTab] = useState<"overview" | "identity">(
+  const [activeTab, setActiveTab] = useState<"overview" | "identity" | "live">(
     "overview"
   );
 
@@ -341,8 +342,21 @@ export default function AdminPlayerProfilePage() {
           >
             Identity
           </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab("live")}
+            className={`border-b-2 px-4 py-3 text-sm font-medium ${
+              activeTab === "live"
+                ? "border-primary text-foreground"
+                : "border-transparent text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            Live Monitor
+          </button>
         </div>
       </div>
+
+      {activeTab === "live" && <PlayerLiveMonitor key={playerId} playerId={playerId} />}
 
       {activeTab === "overview" && (
         <>
