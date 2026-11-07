@@ -86,17 +86,15 @@ export async function getPlayerAdminProfile(playerId: string) {
       .select('*')
       .eq('player', playerId),
 
+    // Live player balances, Wordle rewards and purchases all use _ledger.
     db
-      .from('_player_coin_balances')
-      .select('*')
-      .eq('player_id', playerId),
+      .from('_ledger')
+      .select('id, player, coin_balance')
+      .eq('player', playerId),
 
-    db
-      .from('_coin_ledger')
-      .select('*')
-      .eq('player_id', playerId)
-      .order('created_at', { ascending: false })
-      .limit(25),
+    // The newer _coin_ledger is not authoritative for live coin activity.
+    // Do not present its partial history as the player's transaction history.
+    Promise.resolve({ data: [] as any[], error: null }),
 
     db
       .from('_player_entitlements')
@@ -231,6 +229,7 @@ export async function getPlayerAdminProfile(playerId: string) {
     },
     streaks: streaks.data ?? [],
     coinBalance: coinBalance.data ?? [],
+    coinBalanceSource: '_ledger',
     coinLedger: coinLedger.data ?? [],
     entitlements: entitlements.data ?? [],
     subscriptions: subscriptions.data ?? [],
