@@ -156,7 +156,6 @@ export default function AdminDashboardPage() {
         />
         <button type="button" onClick={() => setShowRecentlyActive((value) => !value)} aria-expanded={showRecentlyActive} className="text-left">
           <AdminStatCard label="Recently Active Players (5m)" value={recentlyActiveLoading && !recentlyActive ? "..." : recentlyActive?.count ?? "—"} />
-          <span className="mt-1 block text-xs text-muted-foreground">{showRecentlyActive ? "Hide player list" : "View player list"}</span>
         </button>
       </section>
 
