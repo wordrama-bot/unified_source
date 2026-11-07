@@ -48,12 +48,13 @@ export default function AdminAnalytics() {
             Reporting timezone: {report.timezone}. Generated: {new Date(report.generatedAt).toLocaleString()}.
             Leaderboard source refreshes approximately every 10 minutes.
           </p>
-          <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
             {[
               ["Registrations", report.totals.registrations],
               ["Games played", report.totals.gamesPlayed],
               ["Wins", report.totals.wins],
               ["Losses", report.totals.losses],
+              ["Avg. daily active players", Math.round(daily.reduce((total, day) => total + day.activePlayers, 0) / daily.length)],
             ].map(([label, value]) => (
               <div key={label} className="rounded-lg border p-3">
                 <p className="text-xs text-muted-foreground">{label}</p>
