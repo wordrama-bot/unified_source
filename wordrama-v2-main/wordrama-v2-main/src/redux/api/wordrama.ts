@@ -797,6 +797,15 @@ export const wordramaApiV3 = createApi({
       providesTags: ["Admin"],
     }),
 
+    getAdminRecentlyActivePlayers: builder.query<any, void>({
+      query: () => ({
+        url: `/api/v3/admin/players/recently-active`,
+        method: "GET",
+        credentials: "include",
+      }),
+      keepUnusedDataFor: 0,
+    }),
+
     searchAdminPlayers: builder.query<any, string>({
       query: (q) => ({
         url: `/api/v3/admin/players/search?q=${encodeURIComponent(q)}`,
@@ -1019,6 +1028,7 @@ export const {
   useSubmitSpellbeeResultMutation,
   useGetAdminMeQuery,
   useGetAdminOverviewQuery,
+  useGetAdminRecentlyActivePlayersQuery,
   useLazyGetAdminAnalyticsQuery,
   useSearchAdminPlayersQuery,
   useGetAdminPlayerNotesQuery,
