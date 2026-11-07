@@ -392,7 +392,7 @@ export default function AdminPlayerProfilePage() {
                 <ActionButton
                   label={coinGrantsEnabled ? "Grant Coins" : "Grant Coins (Pending Verification)"}
                   onClick={() => {
-                    if (coinGrantsEnabled) setShowGrantCoins(true);
+                    if (coinGrantsEnabled) { coinGrantRequestId.current = null; setCoinGrantError(""); setShowGrantCoins(true); }
                   }}
                   disabled={!coinGrantsEnabled}
                 />
@@ -818,7 +818,7 @@ export default function AdminPlayerProfilePage() {
                   min={1}
                   step={1}
                   value={coinAmount}
-                  onChange={(event) => { coinGrantRequestId.current = null; setCoinAmount(Number(event.target.value)); }}
+                  onChange={(event) => { coinGrantRequestId.current = null; setCoinGrantError(""); setCoinAmount(Number(event.target.value)); }}
                   className="mt-1 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
                 />
               </div>
@@ -827,7 +827,7 @@ export default function AdminPlayerProfilePage() {
                 <label className="text-sm font-medium">Reason</label>
                 <textarea
                   value={coinReason}
-                  onChange={(event) => { coinGrantRequestId.current = null; setCoinReason(event.target.value); }}
+                  onChange={(event) => { coinGrantRequestId.current = null; setCoinGrantError(""); setCoinReason(event.target.value); }}
                   placeholder="Required audit reason..."
                   className="mt-1 min-h-[90px] w-full rounded-md border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
                 />
@@ -839,8 +839,13 @@ export default function AdminPlayerProfilePage() {
               <div className="flex justify-end gap-3">
                 <button
                   type="button"
-                  onClick={() => setShowGrantCoins(false)}
-                  className="rounded-md border px-4 py-2 text-sm hover:bg-muted"
+                  onClick={() => {
+                    coinGrantRequestId.current = null;
+                    setCoinGrantError("");
+                    setShowGrantCoins(false);
+                  }}
+                  disabled={grantingCoins}
+                  className="rounded-md border px-4 py-2 text-sm hover:bg-muted disabled:opacity-50"
                 >
                   Cancel
                 </button>
