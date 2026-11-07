@@ -27,6 +27,7 @@ export default function AdminPlayerProfilePage() {
   const [showGrantCoins, setShowGrantCoins] = useState(false);
   const [coinAmount, setCoinAmount] = useState(100);
   const [coinReason, setCoinReason] = useState("");
+  const [coinGrantError, setCoinGrantError] = useState("");
   const coinGrantRequestId = useRef<string | null>(null);
   const [grantCoins, { isLoading: grantingCoins }] =
     useGrantAdminPlayerCoinsMutation();
@@ -155,23 +156,32 @@ export default function AdminPlayerProfilePage() {
 
     const cleanReason = coinReason.trim();
 
-    if (!coinAmount || coinAmount <= 0 || !cleanReason) return;
+    if (!Number.isSafeInteger(coinAmount) || coinAmount < 1 || coinAmount > 1000000 ||
+        !cleanReason || coinReason.length > 2000 || grantingCoins) {
+      setCoinGrantError("Enter 1 to 1,000,000 whole coins and a reason of up to 2,000 characters.");
+      return;
+    }
+    setCoinGrantError("");
 
     // Keep the same key when retrying an uncertain request.
     if (!coinGrantRequestId.current) {
       coinGrantRequestId.current = crypto.randomUUID();
     }
-    await grantCoins({
-      playerId,
-      amount: Number(coinAmount),
-      reason: cleanReason,
-      requestId: coinGrantRequestId.current,
-    }).unwrap();
-
-    setShowGrantCoins(false);
-    setCoinAmount(100);
-    setCoinReason("");
-    coinGrantRequestId.current = null;
+    try {
+      await grantCoins({
+        playerId,
+        amount: coinAmount,
+        reason: cleanReason,
+        requestId: coinGrantRequestId.current,
+      }).unwrap();
+      setShowGrantCoins(false);
+      setCoinAmount(100);
+      setCoinReason("");
+      coinGrantRequestId.current = null;
+    } catch {
+      // Keep the request ID: the server may have committed before the response was lost.
+      setCoinGrantError("Grant status could not be confirmed. Retry without changing the details to safely check the same request.");
+    }
   }
 
   async function handleBanPlayer(event: React.FormEvent) {
@@ -823,6 +833,9 @@ export default function AdminPlayerProfilePage() {
                 />
               </div>
 
+              {coinGrantError && (
+                <p role="alert" className="text-sm text-destructive">{coinGrantError}</p>
+              )}
               <div className="flex justify-end gap-3">
                 <button
                   type="button"
