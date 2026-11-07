@@ -808,6 +808,16 @@ export const wordramaApiV3 = createApi({
       providesTags: ["Admin"],
     }),
 
+    getAdminPlayerLiveGame: builder.query<any, string>({
+      query: (playerId) => ({
+        url: `/api/v3/admin/players/${encodeURIComponent(playerId)}/live-game`,
+        method: "GET",
+        cache: "no-store",
+        credentials: "include",
+      }),
+      keepUnusedDataFor: 0,
+    }),
+
     getAdminPlayerIdentityReport: builder.query<any, string>({
       query: (playerId) => ({
         url: `/api/v3/admin/players/${playerId}/identity`,
@@ -1007,6 +1017,7 @@ export const {
   useBanAdminPlayerMutation,
   useUnbanAdminPlayerMutation,
   useGetAdminPlayerProfileQuery,
+  useGetAdminPlayerLiveGameQuery,
   useLazyGetAdminPlayerIdentityReportQuery,
   useGetAdminCatalogQuery,
   usePreviewAdminGrantEntitlementMutation,
