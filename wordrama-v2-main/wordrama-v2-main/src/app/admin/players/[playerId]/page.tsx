@@ -371,8 +371,8 @@ export default function AdminPlayerProfilePage() {
             <Panel title="Quick Actions">
               <div className="grid gap-3 sm:grid-cols-2">
                 <ActionButton
-                  label="Grant Coins"
-                  onClick={() => setShowGrantCoins(true)}
+                  label="Grant Coins (Pending Safe Ledger Integration)"
+                  disabled
                 />
 
                 <ActionButton
@@ -516,32 +516,21 @@ export default function AdminPlayerProfilePage() {
               />
             </Panel>
 
-            <Panel title="Coins">
+            <Panel title="Coins (Live Balance)">
+              <p className="mb-3 text-xs text-muted-foreground">
+                Authoritative balance from _ledger. The unfinished marketplace
+                coin tables are not used for this balance.
+              </p>
               {(profile.coinBalance ?? []).length === 0 ? (
                 <p className="text-sm text-muted-foreground">
-                  ✓ No coin balance found.
+                  No live coin balance record found.
                 </p>
               ) : (
                 profile.coinBalance.map((row: any) => (
                   <div key={row.id} className="rounded-lg border p-3">
                     <KeyValue
-                      label="Currency"
-                      value={row.currency_code}
-                    />
-
-                    <KeyValue
-                      label="Available"
-                      value={row.available_balance.toLocaleString()}
-                    />
-
-                    <KeyValue
-                      label="Lifetime Earned"
-                      value={row.lifetime_earned.toLocaleString()}
-                    />
-
-                    <KeyValue
-                      label="Lifetime Spent"
-                      value={row.lifetime_spent.toLocaleString()}
+                      label="Available Coins"
+                      value={Number(row.coin_balance).toLocaleString()}
                     />
                   </div>
                 ))
