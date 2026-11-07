@@ -1,10 +1,11 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import AdminAnalytics from "@/components/admin/AdminAnalytics";
 import {
   useGetAdminMeQuery,
   useGetAdminOverviewQuery,
+  useGetAdminRecentlyActivePlayersQuery,
   useSearchAdminPlayersQuery,
   useGetSuspiciousGameplayQuery,
 } from "@/redux/api/wordrama";
@@ -12,6 +13,21 @@ import {
 export default function AdminDashboardPage() {
   const [search, setSearch] = useState("");
   const [showGameplayReview, setShowGameplayReview] = useState(false);
+  const [showRecentlyActive, setShowRecentlyActive] = useState(false);
+  const [dashboardFocused, setDashboardFocused] = useState(false);
+  useEffect(() => {
+    const syncFocus = () => setDashboardFocused(document.visibilityState === "visible" && document.hasFocus());
+    syncFocus();
+    window.addEventListener("focus", syncFocus);
+    window.addEventListener("blur", syncFocus);
+    document.addEventListener("visibilitychange", syncFocus);
+    return () => {
+      window.removeEventListener("focus", syncFocus);
+      window.removeEventListener("blur", syncFocus);
+      document.removeEventListener("visibilitychange", syncFocus);
+    };
+  }, []);
+
 
   const {
     data: adminMe,
@@ -25,6 +41,18 @@ export default function AdminDashboardPage() {
     error: overviewError,
   } = useGetAdminOverviewQuery();
 
+  const {
+    data: recentlyActiveResponse,
+    isFetching: recentlyActiveLoading,
+    isError: recentlyActiveError,
+  } = useGetAdminRecentlyActivePlayersQuery(undefined, {
+    skip: !dashboardFocused || !adminMe?.data,
+    pollingInterval: 60000,
+    skipPollingIfUnfocused: true,
+    refetchOnFocus: true,
+    refetchOnMountOrArgChange: true,
+  });
+  const recentlyActive = recentlyActiveResponse?.data;
   const shouldSearch = search.trim().length >= 2;
 
   const {
@@ -126,11 +154,32 @@ export default function AdminDashboardPage() {
           label="Errors Requiring Review"
           value={overviewLoading ? "..." : overviewData?.errorsRequiringReview ?? 0}
         />
-        <AdminStatCard
-          label="Players Online"
-          value={overviewLoading ? "..." : overviewData?.playersOnline ?? "N/A"}
-        />
+        <button type="button" onClick={() => setShowRecentlyActive((value) => !value)} aria-expanded={showRecentlyActive} className="text-left">
+          <AdminStatCard label="Recently Active Players (5m)" value={recentlyActiveLoading && !recentlyActive ? "..." : recentlyActive?.count ?? "—"} />
+          <span className="mt-1 block text-xs text-muted-foreground">{showRecentlyActive ? "Hide player list" : "View player list"}</span>
+        </button>
       </section>
+
+      {showRecentlyActive && (
+        <section className="mt-4 rounded-xl border bg-card p-5">
+          <h2 className="text-lg font-semibold">Recently Active Players</h2>
+          <p className="mt-1 text-sm text-muted-foreground">Accounts with qualifying API activity in the past five minutes. This is an activity estimate, not live connection presence.</p>
+          {recentlyActiveError && <p className="mt-3 text-sm text-red-500">Unable to load recent player activity.</p>}
+          {!recentlyActiveError && !recentlyActive && <p className="mt-3 text-sm text-muted-foreground">Loading activity...</p>}
+          {recentlyActive && recentlyActive.players.length === 0 && <p className="mt-3 text-sm text-muted-foreground">No recently active players.</p>}
+          {recentlyActive && recentlyActive.players.length > 0 && (
+            <div className="mt-3 max-h-80 divide-y overflow-y-auto">
+              {recentlyActive.players.map((player: any) => (
+                <a key={player.playerId} href={"/admin/players/" + player.playerId} className="flex items-center justify-between gap-3 py-2 text-sm hover:text-blue-400">
+                  <span>{player.displayName || player.username || player.playerId}</span>
+                  <span className="shrink-0 text-xs text-muted-foreground">{new Date(player.lastActivityAt).toLocaleTimeString()}</span>
+                </a>
+              ))}
+            </div>
+          )}
+          <p className="mt-2 text-xs text-muted-foreground">{dashboardFocused ? "Refreshes every 60 seconds while focused." : "Updates paused while unfocused."}</p>
+        </section>
+      )}
 
       <AdminAnalytics />
 
