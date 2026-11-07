@@ -130,6 +130,15 @@ export default function AdminPlayerProfilePage() {
       ? identity._discord_link.some((link: any) => Boolean(link?.user_id))
       : identity._discord_link?.user_id
   );
+  const authProviders = profile.authIdentity?.providers;
+  const usesDiscordAuth =
+    profile.authIdentity?.provider === "discord" ||
+    (Array.isArray(authProviders) && authProviders.includes("discord"));
+  const discordIntegrationStatus = identity.discord_connected
+    ? "Connected (flag enabled)"
+    : hasDiscordLinkRecord
+      ? "Link exists (flag disabled)"
+      : "Not linked";
   const gameplay = profile.gameplaySummary;
   const visibleStreaks = (profile.streaks ?? []).filter(
     (streak: any) =>
@@ -333,12 +342,12 @@ export default function AdminPlayerProfilePage() {
               </p>
 
               <p>
-                <span className="text-muted-foreground">Discord:</span>{" "}
-                {identity.discord_connected
-                  ? "🟣 Connected"
-                  : hasDiscordLinkRecord
-                    ? "⚠️ Linked record found (connection flag off)"
-                    : "⚪ Not connected"}
+                <span className="text-muted-foreground">Discord sign-in:</span>{" "}
+                {usesDiscordAuth ? "Enabled" : "Not detected"}
+              </p>
+              <p>
+                <span className="text-muted-foreground">Discord integration:</span>{" "}
+                {discordIntegrationStatus}
               </p>
             </div>
           </div>
