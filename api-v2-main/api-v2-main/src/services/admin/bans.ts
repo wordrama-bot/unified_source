@@ -5,15 +5,57 @@ type BanTarget = {
   banValue: string;
 };
 
+function validateTargets(playerId: string, targets?: BanTarget[]) {
+  if (targets !== undefined && !Array.isArray(targets)) {
+    throw new Error('Invalid ban targets.');
+  }
+  if ((targets?.length ?? 0) > 20) {
+    throw new Error('Too many ban targets.');
+  }
+  for (const target of targets ?? []) {
+    if (!target || target.banType !== 'PLAYER' || target.banValue !== playerId) {
+      throw new Error('Only player-account bans are currently supported.');
+    }
+  }
+}
+
+async function changePlayerBan({
+  action, targetPlayerId, adminPlayerId, reason, notes, expiresAt, requestIp, userAgent,
+}: {
+  action: 'BAN' | 'UNBAN';
+  targetPlayerId: string;
+  adminPlayerId: string;
+  reason: string;
+  notes?: string;
+  expiresAt?: string | null;
+  requestIp?: string;
+  userAgent?: string;
+}) {
+  if (!reason?.trim() || reason.length > 2000) {
+    throw new Error('A moderation reason of at most 2000 characters is required.');
+  }
+  const { data, error } = await db.rpc('admin_set_player_ban', {
+    p_action: action,
+    p_player: targetPlayerId,
+    p_admin: adminPlayerId,
+    p_reason: reason.trim(),
+    p_notes: notes ?? null,
+    p_expires_at: expiresAt || null,
+    p_request_ip: requestIp ?? null,
+    p_user_agent: userAgent ?? null,
+  });
+  if (error) {
+    console.error('[admin.bans] atomic moderation failed', error);
+    throw new Error('Unable to update player ban.');
+  }
+  if (!data || !Array.isArray(data.bans) || typeof data.auditId !== 'string') {
+    throw new Error('Moderation transaction returned an invalid acknowledgement.');
+  }
+  return data.bans;
+}
+
 export async function banPlayer({
-  targetPlayerId,
-  adminPlayerId,
-  reason,
-  notes,
-  expiresAt,
-  requestIp,
-  userAgent,
-  banTargets,
+  targetPlayerId, adminPlayerId, reason, notes, expiresAt, requestIp, userAgent, banTargets,
 }: {
   targetPlayerId: string;
   adminPlayerId: string;
@@ -24,86 +66,14 @@ export async function banPlayer({
   userAgent?: string;
   banTargets?: BanTarget[];
 }) {
-  const cleanReason = reason.trim();
-
-  if (!cleanReason) {
-    throw new Error('Reason is required.');
-  }
-
-  const before = await db
-    .from('_admin_bans')
-    .select('*')
-    .eq('ban_type', 'PLAYER')
-    .eq('ban_value', targetPlayerId)
-    .eq('is_active', true);
-
-    const targets: BanTarget[] =
-    banTargets && banTargets.length > 0
-      ? banTargets
-      : [{ banType: 'PLAYER', banValue: targetPlayerId }];
-
-  const uniqueTargets = Array.from(
-    new Map(
-      targets
-        .filter((target) => target.banValue)
-        .map((target) => [
-          `${target.banType}:${target.banValue}`,
-          target,
-        ]),
-    ).values(),
-  );
-
-  const rows = uniqueTargets.map((target) => ({
-    ban_type: target.banType,
-    ban_value: target.banValue,
-    reason: cleanReason,
-    notes: notes?.trim() || null,
-    created_by: adminPlayerId,
-    expires_at: expiresAt || null,
-    is_active: true,
-    metadata: {
-      source: 'admin_dashboard',
-      targetPlayerId,
-    },
-  }));
-
-  const { data: bans, error } = await db
-    .from('_admin_bans')
-    .insert(rows)
-    .select('*');
-
-  if (error) {
-    console.error('[admin.bans] banPlayer error', error);
-    throw new Error('Unable to ban player.');
-  }
-
-  await db.from('_moderation_actions').insert({
-    action_type: 'PLAYER_BANNED',
-    target_user_id: targetPlayerId,
-    reason: cleanReason,
-    performed_by: adminPlayerId,
-    target_type: 'PLAYER',
-    target_id: targetPlayerId,
-    before_value: before.data ?? [],
-    after_value: bans ?? [],
-    request_ip: requestIp ?? null,
-    user_agent: userAgent ?? null,
-    metadata: {
-      banIds: (bans ?? []).map((ban: any) => ban.id),
-      banTargets: uniqueTargets,
-      expiresAt: expiresAt || null,
-    },
+  validateTargets(targetPlayerId, banTargets);
+  return changePlayerBan({
+    action: 'BAN', targetPlayerId, adminPlayerId, reason, notes, expiresAt, requestIp, userAgent,
   });
-
-  return bans ?? [];
 }
 
 export async function unbanPlayer({
-  targetPlayerId,
-  adminPlayerId,
-  reason,
-  requestIp,
-  userAgent,
+  targetPlayerId, adminPlayerId, reason, requestIp, userAgent,
 }: {
   targetPlayerId: string;
   adminPlayerId: string;
@@ -111,59 +81,7 @@ export async function unbanPlayer({
   requestIp?: string;
   userAgent?: string;
 }) {
-  const cleanReason = reason.trim();
-
-  if (!cleanReason) {
-    throw new Error('Reason is required.');
-  }
-
-  const { data: activeBans, error: lookupError } = await db
-    .from('_admin_bans')
-    .select('*')
-    .eq('ban_type', 'PLAYER')
-    .eq('ban_value', targetPlayerId)
-    .eq('is_active', true);
-
-  if (lookupError) {
-    console.error('[admin.bans] unban lookup error', lookupError);
-    throw new Error('Unable to look up active bans.');
-  }
-
-  const { data: updatedBans, error } = await db
-    .from('_admin_bans')
-    .update({
-      is_active: false,
-      metadata: {
-        unbannedBy: adminPlayerId,
-        unbanReason: cleanReason,
-        unbannedAt: new Date().toISOString(),
-      },
-    })
-    .eq('ban_type', 'PLAYER')
-    .eq('ban_value', targetPlayerId)
-    .eq('is_active', true)
-    .select('*');
-
-  if (error) {
-    console.error('[admin.bans] unbanPlayer error', error);
-    throw new Error('Unable to unban player.');
-  }
-
-  await db.from('_moderation_actions').insert({
-    action_type: 'PLAYER_UNBANNED',
-    target_user_id: targetPlayerId,
-    reason: cleanReason,
-    performed_by: adminPlayerId,
-    target_type: 'PLAYER',
-    target_id: targetPlayerId,
-    before_value: activeBans ?? [],
-    after_value: updatedBans ?? [],
-    request_ip: requestIp ?? null,
-    user_agent: userAgent ?? null,
-    metadata: {
-      unbannedCount: updatedBans?.length ?? 0,
-    },
+  return changePlayerBan({
+    action: 'UNBAN', targetPlayerId, adminPlayerId, reason, requestIp, userAgent,
   });
-
-  return updatedBans ?? [];
 }

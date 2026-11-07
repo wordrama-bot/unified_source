@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import AdminAnalytics from "@/components/admin/AdminAnalytics";
 import {
   useGetAdminMeQuery,
   useGetAdminOverviewQuery,
@@ -10,6 +11,7 @@ import {
 
 export default function AdminDashboardPage() {
   const [search, setSearch] = useState("");
+  const [showGameplayReview, setShowGameplayReview] = useState(false);
 
   const {
     data: adminMe,
@@ -36,13 +38,13 @@ export default function AdminDashboardPage() {
   const {
     data: suspiciousGameplayData,
     isLoading: isLoadingSuspiciousGameplay,
-  } = useGetSuspiciousGameplayQuery();
+  } = useGetSuspiciousGameplayQuery(undefined, { skip: !showGameplayReview });
 
   const suspiciousGameplayRows =
     suspiciousGameplayData?.data ?? [];
 
   const suspiciousGameplayCount =
-    suspiciousGameplayRows.length;
+    showGameplayReview ? suspiciousGameplayRows.length : null;
 
   const flagLabels: Record<string, string> = {
     ONE_GUESS_24H: "Multiple 1-Guess Wins",
@@ -117,7 +119,7 @@ export default function AdminDashboardPage() {
           value={
             isLoadingSuspiciousGameplay
               ? "..."
-              : suspiciousGameplayCount
+              : suspiciousGameplayCount ?? "—"
           }
         />
         <AdminStatCard
@@ -129,6 +131,8 @@ export default function AdminDashboardPage() {
           value={overviewLoading ? "..." : overviewData?.playersOnline ?? "N/A"}
         />
       </section>
+
+      <AdminAnalytics />
 
       <section className="mt-6">
         <div className="rounded-lg border border-yellow-700 bg-zinc-900 p-4">
@@ -144,7 +148,7 @@ export default function AdminDashboardPage() {
             </div>
 
             <div className="text-2xl font-bold text-yellow-300">
-              {suspiciousGameplayCount}
+              {suspiciousGameplayCount ?? "—"}
             </div>
           </div>
 
@@ -210,7 +214,17 @@ export default function AdminDashboardPage() {
             </p>
           </div>
 
-          {isLoadingSuspiciousGameplay ? (
+          {!showGameplayReview && (
+            <button
+              type="button"
+              onClick={() => setShowGameplayReview(true)}
+              className="mb-4 rounded-md border border-yellow-700 px-4 py-2 text-sm font-medium text-yellow-200 hover:bg-yellow-900/30"
+            >
+              Load gameplay review queue
+            </button>
+          )}
+
+          {showGameplayReview && (isLoadingSuspiciousGameplay ? (
             <p className="text-sm text-zinc-400">
               Loading review queue...
             </p>
@@ -317,7 +331,7 @@ export default function AdminDashboardPage() {
             <p className="text-sm text-green-400">
               No suspicious gameplay currently flagged.
             </p>
-          )}
+          ))}
         </div>
       </section>
 

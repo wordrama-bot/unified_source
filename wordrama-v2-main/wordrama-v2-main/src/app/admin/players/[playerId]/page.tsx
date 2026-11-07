@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import {
@@ -16,14 +16,19 @@ import {
   useGrantAdminEntitlementMutation,
 } from "@/redux/api/wordrama";
 import PlayerIdentityPanel from "@/components/admin/PlayerIdentityPanel";
+import PlayerLiveMonitor from "@/components/admin/PlayerLiveMonitor";
 
 export default function AdminPlayerProfilePage() {
   const params = useParams();
   const playerId = String(params.playerId);
+  // Opt-in separately from the backend flag after migration and staging verification.
+  const coinGrantsEnabled = process.env.NEXT_PUBLIC_ADMIN_LIVE_COIN_GRANTS_ENABLED === "true";
   const [note, setNote] = useState("");
   const [showGrantCoins, setShowGrantCoins] = useState(false);
   const [coinAmount, setCoinAmount] = useState(100);
   const [coinReason, setCoinReason] = useState("");
+  const [coinGrantError, setCoinGrantError] = useState("");
+  const coinGrantRequestId = useRef<string | null>(null);
   const [grantCoins, { isLoading: grantingCoins }] =
     useGrantAdminPlayerCoinsMutation();
   const [banPlayer, { isLoading: banningPlayer }] = useBanAdminPlayerMutation();
@@ -41,7 +46,7 @@ export default function AdminPlayerProfilePage() {
   const [entitlementExpiresAt, setEntitlementExpiresAt] = useState("");
   const [grantPreview, setGrantPreview] = useState<any>(null);
 
-  const [activeTab, setActiveTab] = useState<"overview" | "identity">(
+  const [activeTab, setActiveTab] = useState<"overview" | "identity" | "live">(
     "overview"
   );
 
@@ -120,6 +125,11 @@ export default function AdminPlayerProfilePage() {
   }
 
   const identity = profile.identity;
+  const hasDiscordLinkRecord = Boolean(
+    Array.isArray(identity._discord_link)
+      ? identity._discord_link.some((link: any) => Boolean(link?.user_id))
+      : identity._discord_link?.user_id
+  );
   const gameplay = profile.gameplaySummary;
   const visibleStreaks = (profile.streaks ?? []).filter(
     (streak: any) =>
@@ -146,17 +156,32 @@ export default function AdminPlayerProfilePage() {
 
     const cleanReason = coinReason.trim();
 
-    if (!coinAmount || coinAmount <= 0 || !cleanReason) return;
+    if (!Number.isSafeInteger(coinAmount) || coinAmount < 1 || coinAmount > 1000000 ||
+        !cleanReason || coinReason.length > 2000 || grantingCoins) {
+      setCoinGrantError("Enter 1 to 1,000,000 whole coins and a reason of up to 2,000 characters.");
+      return;
+    }
+    setCoinGrantError("");
 
-    await grantCoins({
-      playerId,
-      amount: Number(coinAmount),
-      reason: cleanReason,
-    }).unwrap();
-
-    setShowGrantCoins(false);
-    setCoinAmount(100);
-    setCoinReason("");
+    // Keep the same key when retrying an uncertain request.
+    if (!coinGrantRequestId.current) {
+      coinGrantRequestId.current = crypto.randomUUID();
+    }
+    try {
+      await grantCoins({
+        playerId,
+        amount: coinAmount,
+        reason: cleanReason,
+        requestId: coinGrantRequestId.current,
+      }).unwrap();
+      setShowGrantCoins(false);
+      setCoinAmount(100);
+      setCoinReason("");
+      coinGrantRequestId.current = null;
+    } catch {
+      // Keep the request ID: the server may have committed before the response was lost.
+      setCoinGrantError("Grant status could not be confirmed. Retry without changing the details to safely check the same request.");
+    }
   }
 
   async function handleBanPlayer(event: React.FormEvent) {
@@ -311,7 +336,9 @@ export default function AdminPlayerProfilePage() {
                 <span className="text-muted-foreground">Discord:</span>{" "}
                 {identity.discord_connected
                   ? "🟣 Connected"
-                  : "⚪ Not connected"}
+                  : hasDiscordLinkRecord
+                    ? "⚠️ Linked record found (connection flag off)"
+                    : "⚪ Not connected"}
               </p>
             </div>
           </div>
@@ -341,8 +368,21 @@ export default function AdminPlayerProfilePage() {
           >
             Identity
           </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab("live")}
+            className={`border-b-2 px-4 py-3 text-sm font-medium ${
+              activeTab === "live"
+                ? "border-primary text-foreground"
+                : "border-transparent text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            Live Monitor
+          </button>
         </div>
       </div>
+
+      {activeTab === "live" && <PlayerLiveMonitor key={playerId} playerId={playerId} />}
 
       {activeTab === "overview" && (
         <>
@@ -350,8 +390,11 @@ export default function AdminPlayerProfilePage() {
             <Panel title="Quick Actions">
               <div className="grid gap-3 sm:grid-cols-2">
                 <ActionButton
-                  label="Grant Coins"
-                  onClick={() => setShowGrantCoins(true)}
+                  label={coinGrantsEnabled ? "Grant Coins" : "Grant Coins (Pending Verification)"}
+                  onClick={() => {
+                    if (coinGrantsEnabled) { coinGrantRequestId.current = null; setCoinGrantError(""); setShowGrantCoins(true); }
+                  }}
+                  disabled={!coinGrantsEnabled}
                 />
 
                 <ActionButton
@@ -399,8 +442,8 @@ export default function AdminPlayerProfilePage() {
               </div>
 
               <p className="mt-4 text-xs text-muted-foreground">
-                Write actions are intentionally disabled until their backend
-                audit logging is implemented.
+                Administrative write actions are available to authorized roles.
+                Use caution: grants and moderation actions change player data.
               </p>
             </Panel>
 
@@ -495,32 +538,21 @@ export default function AdminPlayerProfilePage() {
               />
             </Panel>
 
-            <Panel title="Coins">
+            <Panel title="Coins (Live Balance)">
+              <p className="mb-3 text-xs text-muted-foreground">
+                Authoritative balance from _ledger. The unfinished marketplace
+                coin tables are not used for this balance.
+              </p>
               {(profile.coinBalance ?? []).length === 0 ? (
                 <p className="text-sm text-muted-foreground">
-                  ✓ No coin balance found.
+                  No live coin balance record found.
                 </p>
               ) : (
                 profile.coinBalance.map((row: any) => (
                   <div key={row.id} className="rounded-lg border p-3">
                     <KeyValue
-                      label="Currency"
-                      value={row.currency_code}
-                    />
-
-                    <KeyValue
-                      label="Available"
-                      value={row.available_balance.toLocaleString()}
-                    />
-
-                    <KeyValue
-                      label="Lifetime Earned"
-                      value={row.lifetime_earned.toLocaleString()}
-                    />
-
-                    <KeyValue
-                      label="Lifetime Spent"
-                      value={row.lifetime_spent.toLocaleString()}
+                      label="Available Coins"
+                      value={Number(row.coin_balance).toLocaleString()}
                     />
                   </div>
                 ))
@@ -770,7 +802,7 @@ export default function AdminPlayerProfilePage() {
         </div>
       )}
 
-      {showGrantCoins && (
+      {coinGrantsEnabled && showGrantCoins && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
           <div className="w-full max-w-md rounded-xl border bg-card p-6 shadow-xl">
             <h2 className="text-xl font-semibold">Grant Coins</h2>
@@ -786,7 +818,7 @@ export default function AdminPlayerProfilePage() {
                   min={1}
                   step={1}
                   value={coinAmount}
-                  onChange={(event) => setCoinAmount(Number(event.target.value))}
+                  onChange={(event) => { coinGrantRequestId.current = null; setCoinGrantError(""); setCoinAmount(Number(event.target.value)); }}
                   className="mt-1 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
                 />
               </div>
@@ -795,17 +827,25 @@ export default function AdminPlayerProfilePage() {
                 <label className="text-sm font-medium">Reason</label>
                 <textarea
                   value={coinReason}
-                  onChange={(event) => setCoinReason(event.target.value)}
+                  onChange={(event) => { coinGrantRequestId.current = null; setCoinGrantError(""); setCoinReason(event.target.value); }}
                   placeholder="Required audit reason..."
                   className="mt-1 min-h-[90px] w-full rounded-md border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
                 />
               </div>
 
+              {coinGrantError && (
+                <p role="alert" className="text-sm text-destructive">{coinGrantError}</p>
+              )}
               <div className="flex justify-end gap-3">
                 <button
                   type="button"
-                  onClick={() => setShowGrantCoins(false)}
-                  className="rounded-md border px-4 py-2 text-sm hover:bg-muted"
+                  onClick={() => {
+                    coinGrantRequestId.current = null;
+                    setCoinGrantError("");
+                    setShowGrantCoins(false);
+                  }}
+                  disabled={grantingCoins}
+                  className="rounded-md border px-4 py-2 text-sm hover:bg-muted disabled:opacity-50"
                 >
                   Cancel
                 </button>
@@ -843,6 +883,7 @@ export default function AdminPlayerProfilePage() {
 
               <div>
                 <label className="text-sm font-medium">Ban Targets</label>
+                <p className="mt-1 text-xs text-muted-foreground">Only the player account can be banned from this dashboard until linked identifier bans support safe reversal.</p>
                   <div className="mt-2 space-y-2 rounded-md border p-3">
                     {banTargetOptions.map((target: any) => (
                       <label
@@ -1184,50 +1225,18 @@ function ActionButton({
 }
 
 function buildBanTargetOptions(profile: any) {
-  const targets = profile?.banTargets;
+  const playerId = profile?.banTargets?.playerId;
+  if (!playerId) return [];
 
-  if (!targets) return [];
-
-  const options = [
-    {
-      key: "PLAYER",
-      label: "Player Account",
-      value: targets.playerId,
-      defaultChecked: true,
-      locked: true,
-    },
-    {
-      key: "EMAIL",
-      label: "Email",
-      value: targets.email,
-      defaultChecked: Boolean(targets.email),
-      locked: false,
-    },
-    {
-      key: "DISCORD",
-      label: "Discord ID",
-      value: targets.discordId,
-      defaultChecked: Boolean(targets.discordId),
-      locked: false,
-    },
-    {
-      key: "USERNAME",
-      label: "Username",
-      value: targets.username,
-      defaultChecked: false,
-      locked: false,
-    },
-    ...(targets.recentIps ?? []).map((ip: string) => ({
-      key: `IP:${ip}`,
-      label: "IP Address",
-      value: ip,
-      defaultChecked: false,
-      locked: false,
-      banType: "IP",
-    })),
-  ];
-
-  return options.filter((option) => Boolean(option.value));
+  // Additional identifier bans are disabled until they can be safely
+  // reversed together with the player ban and audited transactionally.
+  return [{
+    key: "PLAYER",
+    label: "Player Account",
+    value: playerId,
+    defaultChecked: true,
+    locked: true,
+  }];
 }
 
 function copyPlayerJson(profile: any) {

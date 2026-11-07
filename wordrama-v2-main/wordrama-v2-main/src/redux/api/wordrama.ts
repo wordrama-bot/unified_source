@@ -778,6 +778,15 @@ export const wordramaApiV3 = createApi({
       providesTags: ["Admin"],
     }),
 
+    getAdminAnalytics: builder.query<any, number>({
+      query: (days) => ({
+        url: `/api/v3/admin/analytics?days=${days}`,
+        method: "GET",
+        credentials: "include",
+      }),
+      keepUnusedDataFor: 60,
+    }),
+
     getAdminOverview: builder.query<any, void>({
       query: () => ({
         url: `/api/v3/admin/overview`,
@@ -806,6 +815,16 @@ export const wordramaApiV3 = createApi({
         credentials: "include",
       }),
       providesTags: ["Admin"],
+    }),
+
+    getAdminPlayerLiveGame: builder.query<any, string>({
+      query: (playerId) => ({
+        url: `/api/v3/admin/players/${encodeURIComponent(playerId)}/live-game`,
+        method: "GET",
+        cache: "no-store",
+        credentials: "include",
+      }),
+      keepUnusedDataFor: 0,
     }),
 
     getAdminPlayerIdentityReport: builder.query<any, string>({
@@ -844,14 +863,14 @@ export const wordramaApiV3 = createApi({
 
     grantAdminPlayerCoins: builder.mutation<
       any,
-      { playerId: string; amount: number; reason: string }
+      { playerId: string; amount: number; reason: string; requestId: string }
     >({
-      query: ({ playerId, amount, reason }) => ({
+      query: ({ playerId, amount, reason, requestId }) => ({
         url: `/api/v3/admin/players/${playerId}/coins/grant`,
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: { amount, reason },
+        body: { amount, reason, requestId },
       }),
       invalidatesTags: ["Admin"],
     }),
@@ -1000,6 +1019,7 @@ export const {
   useSubmitSpellbeeResultMutation,
   useGetAdminMeQuery,
   useGetAdminOverviewQuery,
+  useLazyGetAdminAnalyticsQuery,
   useSearchAdminPlayersQuery,
   useGetAdminPlayerNotesQuery,
   useAddAdminPlayerNoteMutation,
@@ -1007,6 +1027,7 @@ export const {
   useBanAdminPlayerMutation,
   useUnbanAdminPlayerMutation,
   useGetAdminPlayerProfileQuery,
+  useGetAdminPlayerLiveGameQuery,
   useLazyGetAdminPlayerIdentityReportQuery,
   useGetAdminCatalogQuery,
   usePreviewAdminGrantEntitlementMutation,

@@ -1,7 +1,10 @@
 import { Request, Response } from 'express';
+import { getPlayerLiveGameSnapshot } from '../services/admin/playerMonitor';
 import { ApiRequest } from '../types/auth.types';
 import { getPermissions } from '../services/admin/roles';
+import { getAdminAnalytics } from '../services/admin/analytics';
 import { getAdminOverview } from '../services/admin/overview';
+import { grantPlayerCoins } from '../services/admin/coins';
 import {
   getPlayerAdminProfile,
   searchPlayers,
@@ -10,7 +13,6 @@ import {
   addModeratorNote,
   getModeratorNotes,
 } from '../services/admin/notes';
-import { grantPlayerCoins } from '../services/admin/coins';
 import {
   banPlayer,
   unbanPlayer,
@@ -35,6 +37,16 @@ async function me(req: ApiRequest, res: Response) {
     },
     message: 'Admin profile loaded',
   });
+}
+
+async function analytics(req: ApiRequest, res: Response) {
+  const days = Number(req.query.days ?? 7);
+  if (![7, 30, 90].includes(days)) {
+    return res.status(400).json({ status: 400, message: 'Range must be 7, 30, or 90 days' });
+  }
+  const data = await getAdminAnalytics(days);
+  res.setHeader('Cache-Control', 'private, max-age=60');
+  return res.status(200).json({ status: 200, count: data.daily.length, data, message: 'Admin analytics loaded' });
 }
 
 async function overview(req: ApiRequest, res: Response) {
@@ -105,6 +117,22 @@ export async function getPlayerIdentityReport(
   }
 }
 
+async function playerLiveGame(req: ApiRequest, res: Response) {
+  const { playerId } = req.params;
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(playerId)) {
+    return res.status(400).json({ status: 400, message: 'Invalid player ID' });
+  }
+
+  const data = await getPlayerLiveGameSnapshot(playerId);
+  res.setHeader('Cache-Control', 'no-store, private');
+  return res.status(200).json({
+    status: 200,
+    count: 1,
+    data,
+    message: 'Latest persisted player game snapshot loaded',
+  });
+}
+
 async function playerNotes(req: ApiRequest, res: Response) {
   const { playerId } = req.params;
 
@@ -147,24 +175,44 @@ async function createPlayerNote(req: ApiRequest, res: Response) {
   });
 }
 
+// Default-off until the reviewed migration is applied and staging tests pass.
 async function grantCoins(req: ApiRequest, res: Response) {
-  const { playerId } = req.params;
-  const { amount, reason } = req.body;
-
-  if (!req.userId) {
-    return res.status(401).json({
-      status: 401,
+  if (process.env.ADMIN_LIVE_COIN_GRANTS_ENABLED !== 'true') {
+    return res.status(503).json({
+      status: 503,
       count: 0,
       data: {},
-      message: 'Unauthorized',
+      message: 'Coin grants are not yet enabled.',
     });
   }
 
+  if (!req.userId) {
+    return res.status(401).json({
+      status: 401, count: 0, data: {}, message: 'Unauthorized',
+    });
+  }
+
+  const { playerId } = req.params;
+  const { amount, reason, requestId } = req.body ?? {};
+  const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  if (
+    !uuid.test(playerId) ||
+    typeof requestId !== 'string' || !uuid.test(requestId) ||
+    typeof amount !== 'number' || !Number.isSafeInteger(amount) ||
+    amount < 1 || amount > 1000000 ||
+    typeof reason !== 'string' || !reason.trim() || reason.length > 2000
+  ) {
+    return res.status(400).json({
+      status: 400, count: 0, data: {},
+      message: 'Valid player ID, request ID, coin amount (1-1000000), and reason are required.',
+    });
+  }
   const data = await grantPlayerCoins({
     targetPlayerId: playerId,
     adminPlayerId: req.userId,
     amount: Number(amount),
-    reason: String(reason ?? ''),
+    reason: typeof reason === 'string' ? reason : '',
+    requestId: typeof requestId === 'string' ? requestId : '',
     requestIp: req.ip,
     userAgent: req.headers['user-agent'],
   });
@@ -173,7 +221,7 @@ async function grantCoins(req: ApiRequest, res: Response) {
     status: 201,
     count: 1,
     data,
-    message: 'Coins granted',
+    message: data.duplicate ? 'Coin grant already processed' : 'Coins granted',
   });
 }
 
@@ -313,7 +361,7 @@ async function grantEntitlement(req: ApiRequest, res: Response) {
   });
 }
 
-async function suspiciousGameplay(req, res) {
+async function suspiciousGameplay(req: ApiRequest, res: Response) {
   const data = await getSuspiciousGameplay();
 
   return res.status(200).json({
@@ -325,8 +373,10 @@ async function suspiciousGameplay(req, res) {
 export default {
   me,
   overview,
+  analytics,
   playerSearch,
   playerProfile,
+  playerLiveGame,
   getPlayerIdentityReport,
   playerNotes,
   createPlayerNote,

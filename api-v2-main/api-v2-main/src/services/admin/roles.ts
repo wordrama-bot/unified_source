@@ -30,6 +30,7 @@ export function getPermissions(role: AdminRole | string) {
     ADMINISTRATOR: [
       'admin:read',
       'players:read',
+      'players:live-monitor',
       'moderation:write',
       'economy:write',
       'entitlements:write',

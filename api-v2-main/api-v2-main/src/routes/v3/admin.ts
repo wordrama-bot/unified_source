@@ -12,6 +12,12 @@ router.use(requireAdmin);
 router.get('/me', adminController.me);
 
 router.get(
+  '/analytics',
+  requireAdminPermission('admin:read'),
+  adminController.analytics,
+);
+
+router.get(
   '/overview',
   requireAdminPermission('admin:read'),
   adminController.overview,
@@ -84,6 +90,12 @@ router.get(
 );
 
 router.get(
+  '/players/:playerId/live-game',
+  requireAdminPermission('players:live-monitor'),
+  adminController.playerLiveGame,
+);
+
+router.get(
   '/players/:playerId',
   requireAdminPermission('players:read'),
   adminController.playerProfile,
@@ -91,7 +103,7 @@ router.get(
 
 router.get(
   '/players/:playerId/identity',
-  requireAdmin,
+  requireAdminPermission('players:read'),
   adminController.getPlayerIdentityReport,
 );
 
