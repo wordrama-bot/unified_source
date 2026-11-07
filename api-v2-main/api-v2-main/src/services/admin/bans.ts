@@ -37,21 +37,56 @@ export async function banPlayer({
     .eq('ban_value', targetPlayerId)
     .eq('is_active', true);
 
-    const targets: BanTarget[] =
-    banTargets && banTargets.length > 0
-      ? banTargets
-      : [{ banType: 'PLAYER', banValue: targetPlayerId }];
+  // Always restrict the target account itself, even when additional identifiers
+  // are selected. Reject malformed targets before making any database writes.
+  const allowedTypes = new Set<BanTarget['banType']>([
+    'PLAYER', 'EMAIL', 'DISCORD', 'IP', 'USERNAME',
+  ]);
+  const normalizedTargets: BanTarget[] = [{
+    banType: 'PLAYER',
+    banValue: targetPlayerId,
+  }];
 
-  const uniqueTargets = Array.from(
-    new Map(
-      targets
-        .filter((target) => target.banValue)
-        .map((target) => [
-          `${target.banType}:${target.banValue}`,
-          target,
-        ]),
-    ).values(),
-  );
+  if (banTargets && !Array.isArray(banTargets)) {
+    throw new Error('Invalid ban targets.');
+  }
+
+  if ((banTargets?.length ?? 0) > 20) {
+    throw new Error('Too many ban targets.');
+  }
+
+  for (const target of banTargets ?? []) {
+    if (!target || !allowedTypes.has(target.banType) ||
+        typeof target.banValue !== 'string') {
+      throw new Error('Invalid ban target.');
+    }
+    const value = target.banValue.trim();
+    if (!value || value.length > 320 || /[\\x00-\\x1f\\x7f]/.test(value)) {
+      throw new Error('Invalid ban target value.');
+    }
+    if (target.banType === 'PLAYER' && value !== targetPlayerId) {
+      throw new Error('Cannot ban a different player ID in this action.');
+    }
+    if (target.banType === 'EMAIL' &&
+        !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(value)) {
+      throw new Error('Invalid email ban target.');
+    }
+    if (target.banType === 'DISCORD' && !/^\\d{15,22}$/.test(value)) {
+      throw new Error('Invalid Discord ID ban target.');
+    }
+    normalizedTargets.push({
+      banType: target.banType,
+      banValue: target.banType === 'EMAIL' || target.banType === 'USERNAME'
+        ? value.toLowerCase()
+        : value,
+    });
+  }
+
+  const uniqueTargets = Array.from(new Map(
+    normalizedTargets.map((target) => [
+      `${target.banType}:${target.banValue}`, target,
+    ]),
+  ).values());
 
   const rows = uniqueTargets.map((target) => ({
     ban_type: target.banType,
