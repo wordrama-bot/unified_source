@@ -361,7 +361,7 @@ async function grantEntitlement(req: ApiRequest, res: Response) {
   });
 }
 
-async function suspiciousGameplay(req, res) {
+async function suspiciousGameplay(req: ApiRequest, res: Response) {
   const data = await getSuspiciousGameplay();
 
   return res.status(200).json({
