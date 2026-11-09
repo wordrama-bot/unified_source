@@ -60,7 +60,7 @@ export default function PlayerLiveMonitor({ playerId }: { playerId: string }) {
           <p className="font-semibold">Last persisted board (may be stale)</p>
           {latest && snapshot.gameInstanceId !== latest.gameInstanceId && (
             <p className="text-amber-600 dark:text-amber-400">
-              The saved board differs from the latest completed game. Do not treat this snapshot as live activity.
+              The saved board is a different game instance. This may be a newer game or an outdated snapshot; its freshness cannot be verified.
             </p>
           )}
           <p>Revision: {snapshot.stateRevision ?? "No saved state"}</p>
