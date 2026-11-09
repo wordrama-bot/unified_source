@@ -55,7 +55,7 @@ export const Key = memo(function Key({
         } ${appearanceTheme.keyboard.keyText}`
   
   const classes = classnames(
-    'xxshort:h-8 xxshort:w-8 xxshort:text-xxs xshort:w-10 xshort:h-10 xshort:text-sm flex short:h-12 h-12 items-center justify-center rounded mx-1 text-base sm:text-lg font-bold cursor-pointer select-none border-2 border-border dark:border-darkBorder',
+    'xxshort:h-8 xxshort:w-8 xxshort:text-xxs xshort:w-10 xshort:h-10 xshort:text-sm flex short:h-12 h-12 items-center justify-center rounded mx-0 sm:mx-1 max-sm:min-w-0 max-sm:flex-[1_1_0%] text-base sm:text-lg font-bold cursor-pointer select-none border-2 border-border dark:border-darkBorder',
     {
       'transition ease-in-out': isRevealing,
 
@@ -106,7 +106,7 @@ export const Key = memo(function Key({
     <button
       style={styles}
       aria-label={`${value}${status ? ' ' + status : ''}`}
-      className={`${classes}${customColourClass ? ` ${customColourClass}` : ''}`}
+      className={`${classes}${width > 60 ? ' max-sm:flex-[1.6_1.6_0%]' : ''}${customColourClass ? ` ${customColourClass}` : ''}`}
       onClick={handleClick}
     >
       {children === 'Play Again' ? (
