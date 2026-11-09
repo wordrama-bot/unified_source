@@ -3,8 +3,8 @@
 Branch-only planning; **no production database or deployment changes**.
 
 ## Product rules
-- THREE_LETTER: 3 letters, Plus/Creator subscription entitlement, 1,000 coins or $1.00 (matched production 4 Letter Pack), independent daily/infinite game slots, rankings and streaks.
-- FIVE_LETTER_UNHINGED: 5 letters, $2.99 Stripe-only permanent purchase, not eligible for subscription or coins; explicit 18+ acknowledgement. Payment card is **not** proof of age.
+- THREE_LETTER: 3 letters, Plus/Creator subscription entitlement, 1,000 coins or $0.99 (user-approved pricing; subscription includes access), independent daily/infinite game slots, rankings and streaks.
+- FIVE_LETTER_UNHINGED: 5 letters, $2.99 Stripe-only permanent purchase, not eligible for subscription or coins; real-money checkout required. User accepts payment checkout as the access gate; do not claim this verifies age.
 - Word lists pending. Do not enable either pack until supplied, validated, and deployed.
 - Adult content must not be exposed in public bundles, API responses to non-owners, previews, or public leaderboard labels that disclose answers.
 
@@ -27,7 +27,7 @@ Branch-only planning; **no production database or deployment changes**.
 3. Inventory pg_matviews, pg_views, dependencies, indexes, policies, SQL functions/triggers, all cron definitions and existing pack counts. Record baseline results and cron health.
 4. Add additive SQL migrations in repo, test on staging only; avoid destructive replacements, historical backfills, and production refreshes. Ensure concurrent refresh unique indexes remain valid.
 5. Tests: unauthorized access, forged subscription/coin entitlements, webhook replay/refund, age acknowledgement, paid purchase, 3-letter game length/validation, existing packs, outbox idempotency, cross-tab sync, daily rollover, streak isolation, period leaderboards and team stats.
-6. Verify Stripe account's adult-content policy before enabling payment; confirm whether stronger age verification is legally required.
+6. User does not want an additional age-verification workflow. Retain Stripe-only purchase gate for Unhinged; do not describe card payment as age verification. Any applicable legal or processor requirements remain independent of this preference.
 7. After word lists arrive, validate normalization, length, duplicates, guess dictionary and solutions; stage and enable through explicit rollout.
 
 ## Deployment
