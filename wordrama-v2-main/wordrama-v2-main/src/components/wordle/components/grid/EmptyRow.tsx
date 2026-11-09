@@ -10,7 +10,7 @@ export const EmptyRow = ({ solution }: Props ) => {
   return (
     <div className="mb-1 flex justify-center">
       {emptyCells.map((_, i) => (
-        <Cell key={i} />
+        <Cell key={i} wordLength={solution.length} />
       ))}
     </div>
   )
