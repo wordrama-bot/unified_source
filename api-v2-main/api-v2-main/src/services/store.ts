@@ -340,6 +340,17 @@ async function getStoreItems(playerId: string, filters) {
     const valid = coinPurchase.safeParse({ items: itemIds });
     if (!valid.success) return { error: 'Invalid items' };
     const ids = valid.data.items;
+    // A future catalog entry must never make the Stripe-only Unhinged
+    // pack coin-purchasable. Reject the entire basket before the atomic RPC.
+    const containsUnhinged = ids.some((id) =>
+      CATALOG.some((item) =>
+        item.catalogItemId === id &&
+        item.entitlementKey === 'WORD_PACK:FIVE_LETTER_UNHINGED'
+      )
+    );
+    if (containsUnhinged) {
+      return { error: 'This word pack can only be purchased with Stripe' };
+    }
     const entitlements = ids.flatMap((id) => {
       const item = CATALOG.find((entry: { catalogItemId: string }) => entry.catalogItemId === id);
       return item ? [{ item_id: id, key: item.entitlementKey, type: item.entitlementType }] : [];
