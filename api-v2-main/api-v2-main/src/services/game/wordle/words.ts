@@ -4,9 +4,11 @@ import { db } from '../../../models';
 
 import { getPlayerEntitlements } from '../../marketplaceV2/entitlements';
 
+import THREE_LETTER from '../../../utils/wordPacks/THREE_LETTER';
 import FOUR_LETTER from '../../../utils/wordPacks/FOUR_LETTER';
 import FIVE_LETTER from '../../../utils/wordPacks/FIVE_LETTER';
 import FIVE_LETTER_CRAZY from '../../../utils/wordPacks/FIVE_LETTER_CRAZY';
+import FIVE_LETTER_UNHINGED from '../../../utils/wordPacks/FIVE_LETTER_UNHINGED';
 import SIX_LETTER from '../../../utils/wordPacks/SIX_LETTER';
 import SEVEN_LETTER from '../../../utils/wordPacks/SEVEN_LETTER';
 import EIGHT_LETTER from '../../../utils/wordPacks/EIGHT_LETTER';
@@ -73,9 +75,11 @@ const MEGA_PACK_WORDPACKS = [
 ];
 
 const wordPacks: WordPacks = {
+  THREE_LETTER,
   FOUR_LETTER,
   FIVE_LETTER,
   FIVE_LETTER_CRAZY,
+  FIVE_LETTER_UNHINGED,
   SIX_LETTER,
   SEVEN_LETTER,
   EIGHT_LETTER,
