@@ -19,6 +19,7 @@ export const CompletedRow = memo(function CompletedRow({ solution, guess, isReve
         <Cell
           key={i}
           value={letter}
+          wordLength={solution.length}
           status={statuses[i]}
           position={i}
           isRevealing={isRevealing}
