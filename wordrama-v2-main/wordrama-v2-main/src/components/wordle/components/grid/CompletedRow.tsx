@@ -14,7 +14,7 @@ export const CompletedRow = memo(function CompletedRow({ solution, guess, isReve
   const splitGuess = unicodeSplit(guess)
 
   return (
-    <div className="mb-1 flex justify-center">
+    <div className="mb-1 flex justify-center mobile-word-row" style={{ ['--word-length' as string]: solution.length }}>
       {splitGuess.map((letter, i) => (
         <Cell
           key={i}
