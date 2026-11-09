@@ -55,7 +55,7 @@ export const Key = memo(function Key({
         } ${appearanceTheme.keyboard.keyText}`
   
   const classes = classnames(
-    'xxshort:h-8 xxshort:w-8 xxshort:text-xxs xshort:w-10 xshort:h-10 xshort:text-xs flex short:h-12 h-12 items-center justify-center rounded mx-1 text-sm sm:text-base font-bold cursor-pointer select-none border-2 border-border dark:border-darkBorder',
+    'xxshort:h-8 xxshort:w-8 xxshort:text-xxs xshort:w-10 xshort:h-10 xshort:text-sm flex short:h-12 h-12 items-center justify-center rounded mx-1 text-base sm:text-lg font-bold cursor-pointer select-none border-2 border-border dark:border-darkBorder',
     {
       'transition ease-in-out': isRevealing,
 
@@ -109,7 +109,12 @@ export const Key = memo(function Key({
       className={`${classes}${customColourClass ? ` ${customColourClass}` : ''}`}
       onClick={handleClick}
     >
-      {children || value}
+      {children === 'Play Again' ? (
+        <span className="flex flex-col items-center justify-center leading-none">
+          <span>Play</span>
+          <span>Again</span>
+        </span>
+      ) : children || value}
     </button>
   )
 })
