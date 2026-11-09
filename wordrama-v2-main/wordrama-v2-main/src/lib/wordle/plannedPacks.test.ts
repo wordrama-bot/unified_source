@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'bun:test';
 import { isPlannedPackAvailable, plannedWordPacks } from './plannedPacks';
 
 describe('planned word pack release gates', () => {
