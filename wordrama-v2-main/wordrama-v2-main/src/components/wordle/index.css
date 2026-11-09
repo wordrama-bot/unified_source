@@ -215,7 +215,8 @@ svg.cursor-pointer:hover {
     box-sizing: border-box;
     flex: 0 0 auto;
     width: min(56px, calc((100% - (var(--word-length) - 1) * 2px) / var(--word-length))) !important;
-    height: auto;
+    height: min(56px, calc((100% - (var(--word-length) - 1) * 2px) / var(--word-length))) !important;
+    min-height: 0;
     aspect-ratio: 1 / 1;
     margin-left: 0 !important;
     margin-right: 0 !important;
@@ -223,5 +224,13 @@ svg.cursor-pointer:hover {
   }
   .mobile-word-row > .long-word-cell {
     border-width: 1px;
+  }
+  .mobile-word-row > div > .letter-container {
+    line-height: 1;
+    min-height: 0;
+    max-width: 100%;
+  }
+  .mobile-word-row > div:not(.long-word-cell) > .letter-container {
+    font-size: min(2.25rem, calc((100vw - 48px) * 0.58 / var(--word-length)));
   }
 }
