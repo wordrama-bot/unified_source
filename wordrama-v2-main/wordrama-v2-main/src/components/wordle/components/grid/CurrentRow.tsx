@@ -10,10 +10,10 @@ type Props = {
 export const CurrentRow = ({ solution, guess, className }: Props) => {
   const splitGuess = unicodeSplit(guess)
   const emptyCells = Array.from({ length: Math.max(0, solution.length - splitGuess.length) })
-  const classes = `flex justify-center mb-1 ${className}`
+  const classes = `flex justify-center mb-1 mobile-word-row ${className}`
 
   return (
-    <div className={classes}>
+    <div className={classes} style={{ ['--word-length' as string]: solution.length }}>
       {splitGuess.map((letter, i) => (
         <Cell key={`filled-${i}`} value={letter} wordLength={solution.length} />
       ))}
