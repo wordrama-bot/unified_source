@@ -32,3 +32,17 @@ Branch-only planning; **no production database or deployment changes**.
 
 ## Deployment
 No prod writes or production deploys. Staging verification, migration review, rollback plan and explicit approval required.
+
+## Frontend marketplace findings (2026-11-08, repository inspection)
+- `src/app/marketplace/word-packs/page.tsx` uses `useGetStoreItemsQuery`, `usePurchaseItemsWithCoinsMutation`, and `useCreateItemCheckoutSessionMutation`.
+- The marketplace has a coin basket and direct Stripe checkout handler. Unhinged must be excluded from the basket **and** rejected by the server coin-purchase endpoint. Frontend exclusion is only defense-in-depth.
+- Existing marketplace sorting is keyed by item UUID, not pack identifier. New items need a stable display-order strategy; don't guess future UUIDs.
+- The page currently defines `isCashPrice = false` while rendering cards. Audit the shared `Product` component's real-money button before changing any purchase UI.
+- `src/components/wordle/App.tsx` computes `availableWordPacks` as intersection of `wordleDefaultState` keys and `useGetMyWordPacksQuery` results. New board slots alone do not grant access.
+- The app has a fixed `wordPackAllTimeStatsMap`; update this mapping only alongside server statistics and leaderboard response changes.
+
+## Safe next implementation sequence
+1. Identify actual backend endpoints, authorization and Stripe webhook fulfillment before modifying UI purchase flows.
+2. Implement server-side deny-by-default policy for Unhinged and keep both packs disabled until content and server paths are complete.
+3. Extend marketplace eligibility and sorting based on actual server item metadata, with tests for basket exclusions and subscription handling.
+4. Extend statistics and leaderboards with reviewed migration scripts only; no database execution under current instructions.
