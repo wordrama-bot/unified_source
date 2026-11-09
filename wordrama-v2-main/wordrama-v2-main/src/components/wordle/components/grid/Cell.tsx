@@ -40,7 +40,9 @@ export const Cell = ({
         }`
 
   const isLongWord = wordLength >= 11
-  const mobileLetterSize = `clamp(8px, calc((100vw - 48px) * ${0.72 / wordLength}), 20px)`
+  // Keep the glyph inside the tile's usable width, including at 23 letters.
+  // The previous 8px floor made letters overflow the narrowest mobile cells.
+  const mobileLetterSize = `clamp(3px, calc((100vw - 48px) * ${0.48 / wordLength}), 20px)`
 
   const classes = classnames(
     'xxshort:w-11 short:text-2xl short:w-12 w-[56px] min-w-0 aspect-square self-start border-solid border-2 flex items-center justify-center mx-0.5 text-4xl font-bold rounded select-none caret-transparent',
