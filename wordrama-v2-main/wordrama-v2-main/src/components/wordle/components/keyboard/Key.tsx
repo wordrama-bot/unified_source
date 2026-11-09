@@ -106,10 +106,15 @@ export const Key = memo(function Key({
     <button
       style={styles}
       aria-label={`${value}${status ? ' ' + status : ''}`}
-      className={`${classes}${value === 'ENTER' && children === 'Play Again' ? ' leading-tight' : ''}${customColourClass ? ` ${customColourClass}` : ''}`}
+      className={`${classes}${customColourClass ? ` ${customColourClass}` : ''}`}
       onClick={handleClick}
     >
-      {children || value}
+      {children === 'Play Again' ? (
+        <span className="flex flex-col items-center justify-center leading-none">
+          <span>Play</span>
+          <span>Again</span>
+        </span>
+      ) : children || value}
     </button>
   )
 })
