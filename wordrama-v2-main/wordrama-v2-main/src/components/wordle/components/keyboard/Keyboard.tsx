@@ -78,7 +78,7 @@ export const Keyboard = ({
 
   return (
     <div>
-      <div className="mb-2 flex justify-center">
+      <div className="mb-2 flex w-full justify-center gap-1 sm:gap-0">
         {['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'].map((key) => (
           <Key
             value={key}
@@ -90,7 +90,7 @@ export const Keyboard = ({
           />
         ))}
       </div>
-      <div className="mb-2 flex justify-center">
+      <div className="mb-2 flex w-full justify-center gap-1 sm:gap-0">
         {['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'].map((key) => (
           <Key
             width={60}
@@ -103,7 +103,7 @@ export const Keyboard = ({
           />
         ))}
       </div>
-      <div className="flex justify-center">
+      <div className="flex w-full justify-center gap-1 sm:gap-0">
         <Key
           width={showPlayAgainKey && swapEnterAndDelete ? 110 : 81}
           value={
