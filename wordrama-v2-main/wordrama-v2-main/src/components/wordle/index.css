@@ -202,3 +202,26 @@ svg.cursor-pointer:hover {
     text-align: center;
   }
 }
+
+/* Consistent tile geometry across filled, current, and empty mobile rows. */
+@media (max-width: 640px) {
+  .mobile-word-row {
+    gap: 2px;
+    width: 100%;
+    min-width: 0;
+  }
+  .mobile-word-row > .long-word-cell,
+  .mobile-word-row > div:not(.long-word-cell) {
+    box-sizing: border-box;
+    flex: 0 0 auto;
+    width: min(56px, calc((100% - (var(--word-length) - 1) * 2px) / var(--word-length))) !important;
+    height: auto;
+    aspect-ratio: 1 / 1;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    min-width: 0;
+  }
+  .mobile-word-row > .long-word-cell {
+    border-width: 1px;
+  }
+}
