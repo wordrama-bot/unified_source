@@ -15,10 +15,10 @@ export const CurrentRow = ({ solution, guess, className }: Props) => {
   return (
     <div className={classes}>
       {splitGuess.map((letter, i) => (
-        <Cell key={`filled-${i}`} value={letter} />
+        <Cell key={`filled-${i}`} value={letter} wordLength={solution.length} />
       ))}
       {emptyCells.map((_, i) => (
-        <Cell key={`empty-${splitGuess.length + i}`} />
+        <Cell key={`empty-${splitGuess.length + i}`} wordLength={solution.length} />
       ))}
     </div>
   )
