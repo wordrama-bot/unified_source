@@ -46,7 +46,7 @@ export const Cell = ({
 
   const classes = classnames(
     'xxshort:w-11 short:text-2xl short:w-12 w-[56px] min-w-0 aspect-square self-start border-solid border-2 flex items-center justify-center mx-0.5 text-4xl font-bold rounded select-none caret-transparent',
-    isLongWord && 'max-sm:!text-[var(--long-word-font-size)]',
+    isLongWord && 'long-word-cell',
     {
       'dark:text-white': appearanceTheme.meta.id === 'theme.default',
 
