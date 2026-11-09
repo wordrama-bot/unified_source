@@ -12,6 +12,7 @@ type Props = {
   isRevealing?: boolean
   isCompleted?: boolean
   position?: number
+  wordLength?: number
 }
 
 export const Cell = ({
@@ -21,6 +22,7 @@ export const Cell = ({
   isRevealing,
   isCompleted,
   position = 0,
+  wordLength = 5,
 }: Props) => {
   const isFilled = value && !isCompleted
   const shouldReveal = isRevealing && isCompleted
@@ -37,8 +39,12 @@ export const Cell = ({
           appearanceTheme.board.absentCell || appearanceTheme.board.emptyCell
         }`
 
+  const isLongWord = wordLength >= 11
+  const mobileLetterSize = `clamp(8px, calc((100vw - 48px) * ${0.72 / wordLength}), 20px)`
+
   const classes = classnames(
     'xxshort:w-11 short:text-2xl short:w-12 w-[56px] min-w-0 aspect-square self-start border-solid border-2 flex items-center justify-center mx-0.5 text-4xl font-bold rounded select-none caret-transparent',
+    isLongWord && 'max-sm:!text-[var(--long-word-font-size)]',
     {
       'dark:text-white': appearanceTheme.meta.id === 'theme.default',
 
@@ -69,7 +75,7 @@ export const Cell = ({
   )
 
   return (
-    <div className={classes} style={{ animationDelay }}>
+    <div className={classes} style={{ animationDelay, ...(isLongWord ? { ['--long-word-font-size' as string]: mobileLetterSize } : {}) }}>
       <div className="letter-container" style={{ animationDelay }}>
         {value}
       </div>
