@@ -14,6 +14,20 @@ export async function getPlayerLiveGameSnapshot(playerId: string) {
     throw new Error('Unable to load saved game snapshot.');
   }
 
+  // Indexed, bounded lookup; never scan a player's full result history.
+  const { data: latestResult, error: resultError } = await db
+    .from('_wordle_game_result')
+    .select('created_at,game_instance_id,solution,guesses,game_was_won,word_pack,word_length')
+    .eq('player', playerId)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (resultError) {
+    console.error('[admin.playerMonitor] latest result lookup failed', { code: resultError.code });
+    throw new Error('Unable to load latest completed game.');
+  }
+
   const state = data?.game_state;
   const mode = typeof state?.gameMode === 'string' ? state.gameMode : null;
   const pack = typeof state?.wordPack === 'string' ? state.wordPack : null;
@@ -27,6 +41,17 @@ export async function getPlayerLiveGameSnapshot(playerId: string) {
 
   return {
     playerId,
+    latestCompletedGame: latestResult ? {
+      completedAt: latestResult.created_at,
+      gameInstanceId: latestResult.game_instance_id,
+      solution: latestResult.solution,
+      guesses: Array.isArray(latestResult.guesses)
+        ? latestResult.guesses.filter((guess: unknown): guess is string => typeof guess === 'string').slice(0, 30)
+        : [],
+      isGameWon: latestResult.game_was_won === true,
+      wordPack: latestResult.word_pack,
+      wordLength: latestResult.word_length,
+    } : null,
     observedAt: new Date().toISOString(),
     // No updated_at exists on _wordle_saved_state; observedAt is query time, NOT save time.
     stateRevision: data?.state_revision ?? null,
