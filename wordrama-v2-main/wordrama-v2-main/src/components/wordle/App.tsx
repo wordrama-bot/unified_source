@@ -2176,51 +2176,6 @@ const activeSolution = isCustom
               }
             }
 
-            // If another tab advanced unrelated mode/pack state, do not
-            // discard it or overwrite it with this tab's stale snapshot.
-            // Rebase only the strictly prefix-extending active board onto
-            // the server's latest full snapshot. Keep the local checkpoint
-            // pending because it may contain other unsynchronized changes.
-            if (
-              currentServerRevision !== null &&
-              currentServerState &&
-              newRemoteState.gameMode === currentServerState.gameMode &&
-              newRemoteState.wordPack === currentServerState.wordPack &&
-              progressComparison === 'local-ahead' &&
-              localGame?.gameInstanceId &&
-              localGame.gameInstanceId === serverGame?.gameInstanceId &&
-              !serverGame?.isGameWon &&
-              !serverGame?.isGameLost
-            ) {
-              const rebasedState = JSON.parse(JSON.stringify(currentServerState));
-              if (activeMode === 'CUSTOM') {
-                rebasedState.custom = localGame;
-              } else if (rebasedState.modes?.[activeMode]?.[activeWordPack]) {
-                rebasedState.modes[activeMode][activeWordPack] = localGame;
-              }
-              if (activeMode === 'CUSTOM' ||
-                  rebasedState.modes?.[activeMode]?.[activeWordPack] === localGame) {
-                try {
-                  const retry = await updateRemoteState({
-                    gameState: rebasedState,
-                    expectedRevision: currentServerRevision,
-                  }).unwrap();
-                  const retryRevision = retry?.metadata?.stateRevision;
-                  if (!Number.isSafeInteger(retryRevision) ||
-                      retryRevision <= currentServerRevision) {
-                    throw new Error('Invalid revision in rebased checkpoint response');
-                  }
-                  serverStateRevisionRef.current = retryRevision;
-                  // Do not acknowledge the original full-state checkpoint:
-                  // its other modes may still contain local-only changes.
-                  console.info('[wordle] active board checkpoint rebased safely');
-                  return;
-                } catch (retryError) {
-                  console.warn('[wordle] rebased checkpoint retry failed', retryError);
-                }
-              }
-            }
-
             console.warn(
               '[wordle] server checkpoint conflict; preserving local game progress',
               {
