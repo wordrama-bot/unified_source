@@ -16,9 +16,11 @@ export const customGameDefaultState: CustomGameState = {
 };
 
 export const wordleDefaultState: Mode = {
+  'THREE_LETTER': { ...gameDefaultState },
   'FOUR_LETTER': { ...gameDefaultState },
   'FIVE_LETTER': { ...gameDefaultState },
   'FIVE_LETTER_CRAZY': { ...gameDefaultState },
+  'FIVE_LETTER_UNHINGED': { ...gameDefaultState },
   'SIX_LETTER': { ...gameDefaultState },
   'SEVEN_LETTER': { ...gameDefaultState },
   'EIGHT_LETTER': { ...gameDefaultState },
