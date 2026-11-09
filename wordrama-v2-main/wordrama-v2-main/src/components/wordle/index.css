@@ -234,3 +234,36 @@ svg.cursor-pointer:hover {
     font-size: min(2.25rem, calc((100vw - 48px) * 0.58 / var(--word-length)));
   }
 }
+
+/* Desktop: fit every word length inside the visible game area at browser zoom. */
+@media (min-width: 641px) {
+  .mobile-word-row {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: min(100%, calc(100vw - 48px));
+    min-width: 0;
+    gap: 4px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .mobile-word-row > div {
+    box-sizing: border-box;
+    flex: 0 0 auto;
+    width: min(56px, calc((100% - (var(--word-length) - 1) * 4px) / var(--word-length))) !important;
+    height: min(56px, calc((100vw - 48px - (var(--word-length) - 1) * 4px) / var(--word-length))) !important;
+    max-width: 100%;
+    min-width: 0;
+    min-height: 0;
+    aspect-ratio: 1 / 1;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+  .mobile-word-row > div > .letter-container {
+    font-size: min(2.25rem, calc((100vw - 48px - (var(--word-length) - 1) * 4px) * 0.58 / var(--word-length)));
+    line-height: 1;
+    max-width: 100%;
+    min-width: 0;
+    overflow: hidden;
+    text-align: center;
+  }
+}
