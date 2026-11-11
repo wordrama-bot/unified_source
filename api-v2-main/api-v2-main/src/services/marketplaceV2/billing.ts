@@ -452,8 +452,7 @@ export async function createItemCheckoutSession(
     itemId === HOLIDAY_THEME_BUNDLE.catalogItemId ||
     catalogItem.itemType === 'THEME'
       ? '/marketplace/themes'
-      : catalogItem.itemType === 'WORDLE_WORD_PACK' ||
-          catalogItem.itemType === 'WORD_PACK'
+      : catalogItem.itemType === 'WORD_PACK'
         ? '/marketplace/word-packs'
         : '/marketplace/all-items';
 
