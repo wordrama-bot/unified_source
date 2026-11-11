@@ -1,4 +1,5 @@
 import { describe, expect, test } from 'bun:test';
+import { CATALOG } from '../src/services/marketplaceV2/catalog';
 import {
   PLANNED_WORD_PACKS,
   canPlannedPackBeSubscriptionUnlocked,
@@ -27,5 +28,28 @@ describe('future word pack backend release gates', () => {
     expect(PLANNED_WORD_PACKS.FIVE_LETTER_UNHINGED.coins).toBeNull();
     expect(PLANNED_WORD_PACKS.FIVE_LETTER_UNHINGED.purchaseChannels).toEqual(['STRIPE']);
     expect(PLANNED_WORD_PACKS.FIVE_LETTER_UNHINGED.subscriptionAccess).toEqual([]);
+  });
+});
+
+
+describe('planned marketplace catalog entries', () => {
+  test('each planned pack has unique metadata and remains unavailable for purchase', () => {
+    const expectations = [
+      ['WORD_PACK:THREE_LETTER', 1000, 99],
+      ['WORD_PACK:THREE_LETTER_CRAZY', 1000, 99],
+      ['WORD_PACK:FIVE_LETTER_UNHINGED', 0, 299],
+    ] as const;
+    const ids = new Set(CATALOG.map(item => item.catalogItemId));
+    expect(ids.size).toBe(CATALOG.length);
+    for (const [key, coins, usd] of expectations) {
+      const items = CATALOG.filter(item => item.entitlementKey === key);
+      expect(items).toHaveLength(1);
+      const item = items[0];
+      expect(item.itemType).toBe('WORD_PACK');
+      expect(item.priceCoins).toBe(coins);
+      expect(item.priceUsdCents).toBe(usd);
+      expect(item.isPurchasable).toBe(false);
+      expect(item.isStripePurchasable).toBe(false);
+    }
   });
 });
