@@ -8,6 +8,10 @@ import {
 } from '../../../utils/responses';
 
 import wordsService from '../../../services/game/wordle/words';
+import { PLANNED_WORD_PACKS } from '../../../services/marketplaceV2/plannedWordPackPolicy';
+import THREE_LETTER from '../../../utils/wordPacks/THREE_LETTER';
+import THREE_LETTER_CRAZY from '../../../utils/wordPacks/THREE_LETTER_CRAZY';
+import FIVE_LETTER_UNHINGED from '../../../utils/wordPacks/FIVE_LETTER_UNHINGED';
 
 export function checkIfValidWordPack(wordPack: string): boolean {
   const validWordPacks: string[] = [
@@ -34,7 +38,21 @@ export function checkIfValidWordPack(wordPack: string): boolean {
     'TWENTYTWO_LETTER',
     'TWENTYTHREE_LETTER',
   ];
-  return validWordPacks.includes(wordPack);
+  if (validWordPacks.includes(wordPack)) return true;
+
+  const planned = PLANNED_WORD_PACKS as Record<string, { enabled: boolean }>;
+  const dictionaries: Record<string, { WORD_LIST_LENGTH: number; VALID_GUESSES_LENGTH: number; DAILY_WORD_LIST_LENGTH: number }> = {
+    THREE_LETTER,
+    THREE_LETTER_CRAZY,
+    FIVE_LETTER_UNHINGED,
+  };
+  const config = planned[wordPack];
+  const dictionary = dictionaries[wordPack];
+  return Boolean(config?.enabled && dictionary &&
+    dictionary.WORD_LIST_LENGTH > 0 &&
+    dictionary.VALID_GUESSES_LENGTH > 0 &&
+    dictionary.DAILY_WORD_LIST_LENGTH > 0);
+
 }
 
 async function getWordPack(req: ApiRequest, res: Response) {
