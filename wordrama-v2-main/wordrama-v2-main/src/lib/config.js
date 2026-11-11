@@ -24,6 +24,7 @@ export const showNewYear = month === 0 && day === 1;
 export const wordleWordPackConfig = {
   friendlyNameByName: {
     THREE_LETTER: '3 Letter',
+    THREE_LETTER_CRAZY: '3 Letter Crazy',
     FOUR_LETTER: '4 Letter',
     FIVE_LETTER: '5 Letter',
     FIVE_LETTER_CRAZY: '5 Letter Crazy',
@@ -50,6 +51,7 @@ export const wordleWordPackConfig = {
   },
   solutionLengthByName: {
     THREE_LETTER: 3,
+    THREE_LETTER_CRAZY: 3,
     FOUR_LETTER: 4,
     FIVE_LETTER: 5,
     FIVE_LETTER_CRAZY: 5,
