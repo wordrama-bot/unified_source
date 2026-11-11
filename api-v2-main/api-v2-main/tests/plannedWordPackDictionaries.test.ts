@@ -33,3 +33,15 @@ describe('planned dictionary files', () => {
     });
   }
 });
+
+
+describe('5 Letter Unhinged source-list contract', () => {
+  test('uses exactly 524 five-letter solutions and accepts every regular 5-letter guess', async () => {
+    const FIVE_LETTER = (await import('../src/utils/wordPacks/FIVE_LETTER')).default;
+    expect(FIVE_LETTER_UNHINGED.WORD_LIST).toHaveLength(524);
+    expect(FIVE_LETTER_UNHINGED.DAILY_WORD_LIST).toHaveLength(524);
+    for (const word of FIVE_LETTER.VALID_GUESSES) {
+      expect(FIVE_LETTER_UNHINGED.VALID_GUESSES).toContain(word);
+    }
+  });
+});
