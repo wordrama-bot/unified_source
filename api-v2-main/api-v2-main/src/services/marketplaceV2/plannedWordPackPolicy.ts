@@ -13,6 +13,15 @@ export const PLANNED_WORD_PACKS = {
     purchaseChannels: ['COINS', 'STRIPE'],
     enabled: false,
   },
+  THREE_LETTER_CRAZY: {
+    entitlementKey: 'WORD_PACK:THREE_LETTER_CRAZY',
+    wordLength: 3,
+    usdCents: 99,
+    coins: 1000,
+    subscriptionAccess: ['PLUS', 'CREATOR'],
+    purchaseChannels: ['COINS', 'STRIPE'],
+    enabled: false,
+  },
   FIVE_LETTER_UNHINGED: {
     entitlementKey: 'WORD_PACK:FIVE_LETTER_UNHINGED',
     wordLength: 5,
