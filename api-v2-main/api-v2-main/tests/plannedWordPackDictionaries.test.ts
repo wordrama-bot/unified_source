@@ -1,9 +1,11 @@
 import { describe, expect, test } from 'bun:test';
 import THREE_LETTER from '../src/utils/wordPacks/THREE_LETTER';
+import THREE_LETTER_CRAZY from '../src/utils/wordPacks/THREE_LETTER_CRAZY';
 import FIVE_LETTER_UNHINGED from '../src/utils/wordPacks/FIVE_LETTER_UNHINGED';
 
 const packs = [
   { name: 'THREE_LETTER', length: 3, data: THREE_LETTER },
+  { name: 'THREE_LETTER_CRAZY', length: 3, data: THREE_LETTER_CRAZY },
   { name: 'FIVE_LETTER_UNHINGED', length: 5, data: FIVE_LETTER_UNHINGED },
 ];
 
