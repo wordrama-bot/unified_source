@@ -670,10 +670,12 @@ async function syncSubscriptionEntitlements(subscription: any) {
     };
   }
 
-  const subscriptionEntitlementKeys: readonly string[] =
+  // Keep unreleased packs out of direct subscription entitlement inserts.
+  const subscriptionEntitlementKeys: readonly string[] = (
     SUBSCRIPTION_ENTITLEMENTS[
       subscription.subscription_key as keyof typeof SUBSCRIPTION_ENTITLEMENTS
-    ] ?? [];
+    ] ?? []
+  ).filter(isPlannedPackEntitlementGrantAllowed);
 
   const catalogEntitlementKeys = new Set(
     CATALOG.map((item) => item.entitlementKey),
