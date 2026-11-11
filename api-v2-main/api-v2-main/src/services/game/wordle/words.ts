@@ -3,6 +3,7 @@ import moment from 'moment';
 import { db } from '../../../models';
 
 import { getPlayerEntitlements } from '../../marketplaceV2/entitlements';
+import { PLANNED_WORD_PACKS } from '../../marketplaceV2/plannedWordPackPolicy';
 
 import THREE_LETTER from '../../../utils/wordPacks/THREE_LETTER';
 import THREE_LETTER_CRAZY from '../../../utils/wordPacks/THREE_LETTER_CRAZY';
@@ -43,6 +44,9 @@ type WordPacks = {
 };
 
 const MARKETPLACE_ENTITLEMENT_WORDPACK_MAP: { [key: string]: string } = {
+  'WORD_PACK:THREE_LETTER': 'THREE_LETTER',
+  'WORD_PACK:THREE_LETTER_CRAZY': 'THREE_LETTER_CRAZY',
+  'WORD_PACK:FIVE_LETTER_UNHINGED': 'FIVE_LETTER_UNHINGED',
   'WORD_PACK:FOUR_LETTER': 'FOUR_LETTER',
   'WORD_PACK:FIVE_LETTER_CRAZY': 'FIVE_LETTER_CRAZY',
   'WORD_PACK:ELEVEN_LETTER_EXPANSION': 'ELEVEN_LETTER_EXTENDED',
@@ -147,9 +151,12 @@ const FREE_WORDPACKS = [
 ];
 
 const WORDPACK_ORDER = [
+  'THREE_LETTER',
+  'THREE_LETTER_CRAZY',
   'FOUR_LETTER',
   'FIVE_LETTER',
   'FIVE_LETTER_CRAZY',
+  'FIVE_LETTER_UNHINGED',
   'SIX_LETTER',
   'SEVEN_LETTER',
   'EIGHT_LETTER',
@@ -172,7 +179,8 @@ const WORDPACK_ORDER = [
 ];
 
 function sortWordPacks(wordPacks: string[]): string[] {
-  return Array.from(new Set(wordPacks)).sort(
+  const planned = PLANNED_WORD_PACKS as Record<string, { enabled: boolean }>;
+  return Array.from(new Set(wordPacks)).filter(pack => !planned[pack] || planned[pack].enabled).sort(
     (a, b) => WORDPACK_ORDER.indexOf(a) - WORDPACK_ORDER.indexOf(b),
   );
 }
@@ -244,6 +252,8 @@ async function checkIfUserHasAccessToWordPack(
   userId: string,
   wordPack: string,
 ): Promise<boolean> {
+  const planned = PLANNED_WORD_PACKS as Record<string, { enabled: boolean }>;
+  if (planned[wordPack] && !planned[wordPack].enabled) return false;
   if (FREE_WORDPACKS.includes(wordPack)) return true;
 
   const accessibleWordPacks = await getPurchasedWordPacks(userId);
