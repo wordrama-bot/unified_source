@@ -345,6 +345,8 @@
                   return (
                     <Product
                       key={item.id}
+                      stripeOnly={item.id === 'f8436a71-8395-4cb1-9235-5a0d06d32f03'}
+                      isComingSoon={item.id === 'f8436a71-8395-4cb1-9235-5a0d06d32f03' && !item.isPurchased}
                       itemId={item.id}
                       name={item.name}
                       type={item.type}
