@@ -45,3 +45,19 @@ describe('5 Letter Unhinged source-list contract', () => {
     }
   });
 });
+
+
+describe('new pack boundaries', () => {
+  test('regular 3-letter solutions are a subset of Crazy solutions', () => {
+    for (const word of THREE_LETTER.WORD_LIST) {
+      expect(THREE_LETTER_CRAZY.WORD_LIST).toContain(word);
+    }
+    expect(THREE_LETTER_CRAZY.WORD_LIST).toEqual(THREE_LETTER.VALID_GUESSES);
+  });
+
+  test('daily answers are permutations of their pack solution lists', () => {
+    for (const pack of [THREE_LETTER, THREE_LETTER_CRAZY, FIVE_LETTER_UNHINGED]) {
+      expect([...pack.DAILY_WORD_LIST].sort()).toEqual([...pack.WORD_LIST].sort());
+    }
+  });
+});
