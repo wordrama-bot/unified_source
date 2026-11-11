@@ -2,6 +2,7 @@ import * as changeKeys from 'change-case/keys';
 
 import { db } from '../models';
 import { CATALOG } from './marketplaceV2/catalog';
+import { isPlannedPackEntitlementGrantAllowed } from './marketplaceV2/plannedWordPackPolicy';
 import { HOLIDAY_THEME_BUNDLE } from '../config/holidayThemeBundle';
 import { coinPurchase } from '../schema/store.js';
 import { enqueue, sendMessage } from '../utils/gameLoop';
@@ -340,6 +341,13 @@ async function getStoreItems(playerId: string, filters) {
     const valid = coinPurchase.safeParse({ items: itemIds });
     if (!valid.success) return { error: 'Invalid items' };
     const ids = valid.data.items;
+    // Reject unreleased packs before the atomic coin-purchase RPC.
+    if (ids.some((id) => {
+      const item = CATALOG.find((entry) => entry.catalogItemId === id);
+      return item && !isPlannedPackEntitlementGrantAllowed(item.entitlementKey);
+    })) {
+      return { error: 'This word pack is not yet available' };
+    }
     // A future catalog entry must never make the Stripe-only Unhinged
     // pack coin-purchasable. Reject the entire basket before the atomic RPC.
     const containsUnhinged = ids.some((id) =>
