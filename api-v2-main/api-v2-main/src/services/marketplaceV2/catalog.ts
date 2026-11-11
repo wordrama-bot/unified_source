@@ -1,8 +1,8 @@
 import type { CatalogItem } from '../../types/marketplaceV2'
 
 export const CATALOG: CatalogItem[] = [
-  // Planned packs: catalog metadata only. Both purchase channels remain disabled.
-  // Do not enable until checkout, subscription access, and gameplay are verified.
+  // Feature-branch coin checkout for 3-letter packs only. Stripe stays disabled.
+  // Unhinged remains admin-grant-only until adult checkout is implemented.
   {
     catalogItemId: 'f8436a71-8395-4cb1-9235-5a0d06d32f01',
     sku: 'WP-3',
@@ -13,7 +13,7 @@ export const CATALOG: CatalogItem[] = [
     stripePriceEnvVar: 'wp_3_letter',
     entitlementKey: 'WORD_PACK:THREE_LETTER',
     entitlementType: 'WORD_PACK',
-    isPurchasable: false,
+    isPurchasable: true,
     isStripePurchasable: false,
   },
   {
@@ -26,7 +26,7 @@ export const CATALOG: CatalogItem[] = [
     stripePriceEnvVar: 'wp_3_letter_crazy',
     entitlementKey: 'WORD_PACK:THREE_LETTER_CRAZY',
     entitlementType: 'WORD_PACK',
-    isPurchasable: false,
+    isPurchasable: true,
     isStripePurchasable: false,
   },
   {
