@@ -13,6 +13,16 @@ export const plannedWordPacks = {
     allowStripePurchase: true,
     enabled: false,
   },
+  THREE_LETTER_CRAZY: {
+    id: 'THREE_LETTER_CRAZY',
+    length: 3,
+    coinPrice: 1000,
+    usdPriceCents: 99,
+    includedSubscriptions: ['PLUS', 'CREATOR'],
+    allowCoinPurchase: true,
+    allowStripePurchase: true,
+    enabled: false,
+  },
   FIVE_LETTER_UNHINGED: {
     id: 'FIVE_LETTER_UNHINGED',
     length: 5,
