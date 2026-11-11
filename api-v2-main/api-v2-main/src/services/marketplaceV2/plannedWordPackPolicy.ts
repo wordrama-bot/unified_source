@@ -1,7 +1,7 @@
 /**
- * Future word-pack rules. Not connected to billing, grants, or gameplay yet.
- * A fail-closed rollout gate prevents accidental sales before content and
- * database/API support are available.
+ * New word-pack rules. Gameplay and admin entitlement grants are enabled
+ * on this feature branch. Checkout and coin purchasing remain disabled in
+ * the catalog until billing and database/API cutover are validated.
  */
 export const PLANNED_WORD_PACKS = {
   THREE_LETTER: {
@@ -11,7 +11,7 @@ export const PLANNED_WORD_PACKS = {
     coins: 1000,
     subscriptionAccess: ['PLUS', 'CREATOR'],
     purchaseChannels: ['COINS', 'STRIPE'],
-    enabled: false,
+    enabled: true,
   },
   THREE_LETTER_CRAZY: {
     entitlementKey: 'WORD_PACK:THREE_LETTER_CRAZY',
@@ -20,7 +20,7 @@ export const PLANNED_WORD_PACKS = {
     coins: 1000,
     subscriptionAccess: ['PLUS', 'CREATOR'],
     purchaseChannels: ['COINS', 'STRIPE'],
-    enabled: false,
+    enabled: true,
   },
   FIVE_LETTER_UNHINGED: {
     entitlementKey: 'WORD_PACK:FIVE_LETTER_UNHINGED',
@@ -29,7 +29,7 @@ export const PLANNED_WORD_PACKS = {
     coins: null,
     subscriptionAccess: [],
     purchaseChannels: ['STRIPE'],
-    enabled: false,
+    enabled: true,
   },
 } as const;
 
@@ -55,7 +55,7 @@ export function canPlannedPackBeSubscriptionUnlocked(
     (config.subscriptionAccess as readonly string[]).includes(subscription);
 }
 
-/** Deny entitlement grants for planned packs until their release gate opens. */
+/** Permit controlled admin grants on this feature branch; billing remains off. */
 export function isPlannedPackEntitlementGrantAllowed(entitlementKey: string): boolean {
   const planned = Object.values(PLANNED_WORD_PACKS).find(
     pack => pack.entitlementKey === entitlementKey,
