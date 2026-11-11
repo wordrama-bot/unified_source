@@ -54,3 +54,11 @@ export function canPlannedPackBeSubscriptionUnlocked(
   return config.enabled &&
     (config.subscriptionAccess as readonly string[]).includes(subscription);
 }
+
+/** Deny entitlement grants for planned packs until their release gate opens. */
+export function isPlannedPackEntitlementGrantAllowed(entitlementKey: string): boolean {
+  const planned = Object.values(PLANNED_WORD_PACKS).find(
+    pack => pack.entitlementKey === entitlementKey,
+  );
+  return !planned || planned.enabled;
+}
