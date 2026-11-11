@@ -47,6 +47,9 @@
   import { useMarketplaceAccess } from "@/lib/useMarketplaceAccess";
 
   const MARKETPLACE_WORD_PACK_SORT_ORDER: { [key: string]: number } = {
+    'f8436a71-8395-4cb1-9235-5a0d06d32f01': 3,
+    'f8436a71-8395-4cb1-9235-5a0d06d32f02': 3.5,
+    'f8436a71-8395-4cb1-9235-5a0d06d32f03': 5.75,
     'ba8671aa-7481-43e5-a1ac-f2b73433a315': 4,
     '7ed7d3a6-3d07-4603-b9cf-6a6e717b9d1f': 5.5,
     'b1b96d0e-5b1a-403e-80be-88f3d2bae873': 11.5,
