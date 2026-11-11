@@ -28,3 +28,9 @@ The dictionary loader imports are wired into `src/services/game/wordle/words.ts`
 **Shared master dictionary:** edit only `THREE_LETTER/validGuesses.json` for the complete curated 3-letter dictionary. Both packs accept every entry as a guess. Crazy uses every entry as a possible Infinite and Daily solution. The regular pack uses only `THREE_LETTER/wordList.json` for Infinite and `THREE_LETTER/dailyWordList.json` for Daily. The latter must be a subset of regular solutions. Do not create duplicate Crazy JSON files; its `index.ts` imports the shared master directly. Crazy daily answers currently follow master-list order, so the final release should use a deterministic shuffled schedule before activation.
 
 No production marketplace, subscription, leaderboard database, or deployment changes have been made. Additional rollout integration is still required.
+
+## November 11, 2026: first-pass 3-letter curation (awaiting owner review)
+
+Source: owner-supplied 2,130-entry JSON master and 124-entry common TXT list. The first pass removed 477 entries judged to be abbreviations, acronyms, Roman numerals, or non-gameplay codes, leaving **1,653 master guesses**. All 124 original common solutions were retained and expanded to **495 regular solutions** using recognizable words from the supplied master. The regular daily file contains those same 495 solutions; both daily sequences are deterministically shuffled at load time (different fixed seeds) so no alphabetical daily-answer sequence is exposed. Crazy uses all 1,653 master words for Infinite and Daily. The list is a **review draft**, not a claim that every remaining entry is a dictionary-approved English word. Please review obscure words, slang, offensive terms, proper names and potential abbreviations before enabling.
+
+The Crazy pack is still disabled and its API controller, entitlements, marketplace catalog, database schema and leaderboard integration remain unfinished. Do not deploy yet.
