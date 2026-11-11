@@ -1,4 +1,5 @@
 import { describe, expect, test } from 'bun:test';
+import { SUBSCRIPTION_ENTITLEMENTS } from '../src/config/subscriptionEntitlements';
 import { CATALOG } from '../src/services/marketplaceV2/catalog';
 import {
   PLANNED_WORD_PACKS,
@@ -63,5 +64,19 @@ describe('planned pack entitlement grant gate', () => {
     }
     expect(isPlannedPackEntitlementGrantAllowed('WORD_PACK:FOUR_LETTER')).toBe(true);
     expect(isPlannedPackEntitlementGrantAllowed('THEME:ICE')).toBe(true);
+  });
+});
+
+
+describe('subscription pack release safety', () => {
+  test('PLUS and CREATOR include both three-letter packs but never Unhinged', () => {
+    for (const plan of ['PLUS', 'CREATOR'] as const) {
+      const keys: readonly string[] = SUBSCRIPTION_ENTITLEMENTS[plan];
+      expect(keys).toContain('WORD_PACK:THREE_LETTER');
+      expect(keys).toContain('WORD_PACK:THREE_LETTER_CRAZY');
+      expect(keys).not.toContain('WORD_PACK:FIVE_LETTER_UNHINGED');
+      expect(keys.filter(isPlannedPackEntitlementGrantAllowed)).not.toContain('WORD_PACK:THREE_LETTER');
+      expect(keys.filter(isPlannedPackEntitlementGrantAllowed)).not.toContain('WORD_PACK:THREE_LETTER_CRAZY');
+    }
   });
 });
