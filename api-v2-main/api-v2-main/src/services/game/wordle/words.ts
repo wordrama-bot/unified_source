@@ -5,6 +5,7 @@ import { db } from '../../../models';
 import { getPlayerEntitlements } from '../../marketplaceV2/entitlements';
 
 import THREE_LETTER from '../../../utils/wordPacks/THREE_LETTER';
+import THREE_LETTER_CRAZY from '../../../utils/wordPacks/THREE_LETTER_CRAZY';
 import FOUR_LETTER from '../../../utils/wordPacks/FOUR_LETTER';
 import FIVE_LETTER from '../../../utils/wordPacks/FIVE_LETTER';
 import FIVE_LETTER_CRAZY from '../../../utils/wordPacks/FIVE_LETTER_CRAZY';
@@ -76,6 +77,7 @@ const MEGA_PACK_WORDPACKS = [
 
 const wordPacks: WordPacks = {
   THREE_LETTER,
+  THREE_LETTER_CRAZY,
   FOUR_LETTER,
   FIVE_LETTER,
   FIVE_LETTER_CRAZY,
