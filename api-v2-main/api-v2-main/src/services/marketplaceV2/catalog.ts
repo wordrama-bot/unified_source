@@ -1,6 +1,47 @@
 import type { CatalogItem } from '../../types/marketplaceV2'
 
 export const CATALOG: CatalogItem[] = [
+  // Planned packs: catalog metadata only. Both purchase channels remain disabled.
+  // Do not enable until checkout, subscription access, and gameplay are verified.
+  {
+    catalogItemId: 'f8436a71-8395-4cb1-9235-5a0d06d32f01',
+    sku: 'WP-3',
+    itemType: 'WORD_PACK',
+    itemName: '3 Letter Pack',
+    priceCoins: 1000,
+    priceUsdCents: 99,
+    stripePriceEnvVar: 'wp_3_letter',
+    entitlementKey: 'WORD_PACK:THREE_LETTER',
+    entitlementType: 'WORD_PACK',
+    isPurchasable: false,
+    isStripePurchasable: false,
+  },
+  {
+    catalogItemId: 'f8436a71-8395-4cb1-9235-5a0d06d32f02',
+    sku: 'WP-3-CRAZY',
+    itemType: 'WORD_PACK',
+    itemName: '3 Letter Crazy',
+    priceCoins: 1000,
+    priceUsdCents: 99,
+    stripePriceEnvVar: 'wp_3_letter_crazy',
+    entitlementKey: 'WORD_PACK:THREE_LETTER_CRAZY',
+    entitlementType: 'WORD_PACK',
+    isPurchasable: false,
+    isStripePurchasable: false,
+  },
+  {
+    catalogItemId: 'f8436a71-8395-4cb1-9235-5a0d06d32f03',
+    sku: 'WP-5-UNHINGED',
+    itemType: 'WORD_PACK',
+    itemName: '5 Letter Unhinged (18+)',
+    priceCoins: 0,
+    priceUsdCents: 299,
+    stripePriceEnvVar: 'wp_5_letter_unhinged',
+    entitlementKey: 'WORD_PACK:FIVE_LETTER_UNHINGED',
+    entitlementType: 'WORD_PACK',
+    isPurchasable: false,
+    isStripePurchasable: false,
+  },
   {
     catalogItemId: 'ba8671aa-7481-43e5-a1ac-f2b73433a315',
     sku: 'WP-4',
