@@ -4,6 +4,7 @@ import {
   PLANNED_WORD_PACKS,
   canPlannedPackBeSubscriptionUnlocked,
   isPlannedPackChannelAllowed,
+  isPlannedPackEntitlementGrantAllowed,
 } from '../src/services/marketplaceV2/plannedWordPackPolicy';
 
 describe('future word pack backend release gates', () => {
@@ -51,5 +52,16 @@ describe('planned marketplace catalog entries', () => {
       expect(item.isPurchasable).toBe(false);
       expect(item.isStripePurchasable).toBe(false);
     }
+  });
+});
+
+
+describe('planned pack entitlement grant gate', () => {
+  test('denies all unreleased pack entitlement keys without blocking existing packs', () => {
+    for (const pack of Object.values(PLANNED_WORD_PACKS)) {
+      expect(isPlannedPackEntitlementGrantAllowed(pack.entitlementKey)).toBe(false);
+    }
+    expect(isPlannedPackEntitlementGrantAllowed('WORD_PACK:FOUR_LETTER')).toBe(true);
+    expect(isPlannedPackEntitlementGrantAllowed('THEME:ICE')).toBe(true);
   });
 });
