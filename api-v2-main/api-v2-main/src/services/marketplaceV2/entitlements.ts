@@ -1,6 +1,7 @@
 import { db } from '../../models'
 import { CATALOG } from './catalog';
 import { isWordramaOwner } from '../../config/owner';
+import { isPlannedPackEntitlementGrantAllowed } from './plannedWordPackPolicy';
 
 export async function getPlayerEntitlements(
   playerId: string,
@@ -46,6 +47,10 @@ export async function previewAdminGrantEntitlement({
 
   if (!catalogItem) {
     throw new Error('Catalog item not found.');
+  }
+
+  if (!isPlannedPackEntitlementGrantAllowed(catalogItem.entitlementKey)) {
+    throw new Error('This word pack is not yet available.');
   }
 
   const now = new Date().toISOString();
@@ -189,6 +194,10 @@ export async function grantEntitlement({
   expiresAt?: string | null;
   metadata?: Record<string, any>;
 }) {
+  if (!isPlannedPackEntitlementGrantAllowed(entitlementKey)) {
+    throw new Error('This word pack is not yet available.');
+  }
+
   if (
     entitlementKey === 'FRAME:OWNER' &&
     !isWordramaOwner(playerId)
