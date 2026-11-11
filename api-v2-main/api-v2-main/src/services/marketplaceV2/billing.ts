@@ -8,6 +8,7 @@ import { SUBSCRIPTIONS } from '../../config/subscriptions';
 import { SUBSCRIPTION_ENTITLEMENTS } from '../../config/subscriptionEntitlements';
 import { getPlayerEntitlements } from './entitlements';
 import { CATALOG } from './catalog';
+import { isPlannedPackEntitlementGrantAllowed } from './plannedWordPackPolicy';
 import { randomUUID } from 'node:crypto';
 import { HOLIDAY_THEME_BUNDLE } from '../../config/holidayThemeBundle';
 
@@ -144,6 +145,10 @@ async function processStripePurchase({
 
   if (!catalogItem) {
     return { error: 'Invalid catalog item for Stripe purchase' };
+  }
+
+  if (!isPlannedPackEntitlementGrantAllowed(catalogItem.entitlementKey)) {
+    return { error: 'This word pack is not yet available' };
   }
 
   const { data: existingEntitlement, error: ownershipError } =
@@ -300,6 +305,10 @@ export async function createItemCheckoutSession(
   const catalogItem = CATALOG.find((item) => item.catalogItemId === itemId);
   if (!catalogItem) {
     return { error: 'Invalid catalog item' };
+  }
+
+  if (!isPlannedPackEntitlementGrantAllowed(catalogItem.entitlementKey)) {
+    return { error: 'This word pack is not yet available' };
   }
 
   // Holiday collection: enforce Stripe-only availability
