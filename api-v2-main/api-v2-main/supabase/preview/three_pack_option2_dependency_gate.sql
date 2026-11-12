@@ -1,6 +1,8 @@
 -- Option 2: fail-closed dependency preflight. READ ONLY (except temporary PL/pgSQL execution state).
 -- Run immediately before any proposed cutover; abort if dependency inventory changes.
 -- This does NOT perform cutover, drop, refresh, or change production objects.
+-- Temporary preview-schema dependencies are intentionally excluded from this gate;
+-- preview schema must be retired separately before any live drop/rebuild.
 DO $preflight$
 DECLARE
  unexpected text;
@@ -23,6 +25,9 @@ BEGIN
   ('_v_wordle_yearly_leaderboard','v'),
   ('_v_wordle_yearly_stats','v'),
   ('_v_wordle_yearly_stats_by_type','v'),
+  ('_v_team_leaderboard','v'),
+  ('_mv_team_wordle_stats','m'),
+  ('_mv_team_wordle_stats_legacy','m'),
   ('_mv_wordle_alltime_leaderboard','m'),
   ('_mv_wordle_daily_leaderboard','m'),
   ('_mv_wordle_monthly_leaderboard','m'),
@@ -48,7 +53,7 @@ BEGIN
  )
  SELECT string_agg(format('%I.%I (%s)',d.nspname,d.relname,d.relkind),', ') INTO unexpected
  FROM recursive_deps d LEFT JOIN expected e ON e.name=d.relname AND e.kind=d.relkind::text
- WHERE e.name IS NULL OR d.nspname<>'public';
+ WHERE (e.name IS NULL OR d.nspname<>'public') AND d.nspname <> 'wordrama_pack_preview';
  IF unexpected IS NOT NULL THEN RAISE EXCEPTION 'Option 2 BLOCKED: untracked view/MV dependencies: %',unexpected; END IF;
  WITH expected(name,kind) AS (VALUES
   ('_v_wordle_alltime_leaderboard','v'),
@@ -67,6 +72,9 @@ BEGIN
   ('_v_wordle_yearly_leaderboard','v'),
   ('_v_wordle_yearly_stats','v'),
   ('_v_wordle_yearly_stats_by_type','v'),
+  ('_v_team_leaderboard','v'),
+  ('_mv_team_wordle_stats','m'),
+  ('_mv_team_wordle_stats_legacy','m'),
   ('_mv_wordle_alltime_leaderboard','m'),
   ('_mv_wordle_daily_leaderboard','m'),
   ('_mv_wordle_monthly_leaderboard','m'),
@@ -83,6 +91,6 @@ BEGIN
  LEFT JOIN pg_class c ON c.relname=e.name AND c.relnamespace='public'::regnamespace AND c.relkind::text=e.kind
  WHERE c.oid IS NULL;
  IF missing IS NOT NULL THEN RAISE EXCEPTION 'Option 2 BLOCKED: missing/changed expected objects: %',missing; END IF;
- RAISE NOTICE 'Option 2 dependency inventory matches 16 views and 12 materialized views; no cutover executed.';
+ RAISE NOTICE 'Option 2 dependency inventory matches 17 views and 14 materialized views; no cutover executed.';
 END
 $preflight$;
