@@ -46,6 +46,10 @@ BEGIN
  EXECUTE 'CREATE MATERIALIZED VIEW public._mv_team_wordle_stats AS '||trim(trailing ';' from trim(team_sql))||' WITH DATA';
  EXECUTE 'CREATE VIEW public._v_team_leaderboard AS '||trim(trailing ';' from trim(view_sql));
  EXECUTE 'REVOKE ALL ON public._mv_team_wordle_stats, public._v_team_leaderboard FROM PUBLIC, anon, authenticated';
+ EXECUTE 'GRANT TRUNCATE, REFERENCES, TRIGGER ON public._mv_team_wordle_stats, public._v_team_leaderboard TO anon, authenticated';
+ IF current_setting('server_version_num')::integer >= 170000 THEN
+  EXECUTE 'GRANT MAINTAIN ON public._mv_team_wordle_stats, public._v_team_leaderboard TO anon, authenticated';
+ END IF;
  EXECUTE 'GRANT ALL ON public._mv_team_wordle_stats, public._v_team_leaderboard TO service_role';
 END $rebind$;
 -- Candidate MVs need unique indexes for concurrent refresh and period lookup.
