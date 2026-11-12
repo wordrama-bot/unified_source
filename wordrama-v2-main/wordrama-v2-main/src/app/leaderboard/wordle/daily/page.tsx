@@ -402,7 +402,7 @@ export default function WordleDailyLeaderboardPage() {
                         </div>
                         <div className="mt-2 text-sm text-muted-foreground">
                           <p>Wins: { prefix ? player[`${prefix}GamesWon`] : player.gamesWon  } | Losses: { prefix ? player[`${prefix}GamesLost`] : player.gamesLost  }</p>
-                          <p>Best Streak: {prefix ? player[`bestStreak${prefix}`] : player.dailyBestStreak}</p>
+                          <p>Best Streak: {prefix ? player[`${prefix}BestStreak`] : player.dailyBestStreak}</p>
                         </div>
                       </CardContent>
                     </HoverCardTrigger>
