@@ -53,11 +53,17 @@ BEGIN
  EXECUTE 'GRANT ALL ON public._mv_team_wordle_stats, public._v_team_leaderboard TO service_role';
 END $rebind$;
 -- Candidate MVs need unique indexes for concurrent refresh and period lookup.
-CREATE UNIQUE INDEX wr3_alltime_player_unique ON public._mv_wordle_alltime_leaderboard(player);
-CREATE UNIQUE INDEX wr3_daily_player_period_unique ON public._mv_wordle_daily_leaderboard(player,year,month,day);
-CREATE UNIQUE INDEX wr3_weekly_player_period_unique ON public._mv_wordle_weekly_leaderboard(player,year,week);
-CREATE UNIQUE INDEX wr3_monthly_player_period_unique ON public._mv_wordle_monthly_leaderboard(player,year,month);
-CREATE UNIQUE INDEX wr3_yearly_player_period_unique ON public._mv_wordle_yearly_leaderboard(player,year);
+DO $indexes$
+DECLARE p text; cols text; target regclass;
+BEGIN
+ FOREACH p IN ARRAY ARRAY['alltime','daily','weekly','monthly','yearly'] LOOP
+  target := to_regclass(format('public._mv_wordle_%s_leaderboard',p));
+  IF NOT EXISTS (SELECT 1 FROM pg_index WHERE indrelid=target AND indisunique AND indisvalid) THEN
+   cols := CASE p WHEN 'alltime' THEN 'player' WHEN 'daily' THEN 'player,year,month,day' WHEN 'weekly' THEN 'player,year,week' WHEN 'monthly' THEN 'player,year,month' ELSE 'player,year' END;
+   EXECUTE format('CREATE UNIQUE INDEX %I ON %s (%s)','wr3_'||p||'_active_unique',target,cols);
+  END IF;
+ END LOOP;
+END $indexes$;
 -- Fail transaction if the new team MV references backup MVs.
 DO $verify$
 BEGIN
