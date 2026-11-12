@@ -334,18 +334,20 @@
                     getMarketplaceSortOrder(a) - getMarketplaceSortOrder(b)
                 )
                 .map((item) => {
-                  const isCashPrice = false;
+                  const isUnhinged = item.id === 'f8436a71-8395-4cb1-9235-5a0d06d32f03';
+                  const isNewThreeLetterPack = ['f8436a71-8395-4cb1-9235-5a0d06d32f01', 'f8436a71-8395-4cb1-9235-5a0d06d32f02'].includes(item.id);
+                  const isCashPrice = isUnhinged;
 
                   const isWordPack = item.type === "WORD_PACK";
                   const isLockedBySubscription =
-                    isWordPack && !item.isPurchased && subscriptionKey === "FREE";
+                    isWordPack && !isUnhinged && !isNewThreeLetterPack && !item.isPurchased && subscriptionKey === "FREE";
 
                   const price = isCashPrice ? item.realPrice : item.coinPrice;
 
                   return (
                     <Product
                       key={item.id}
-                      stripeOnly={item.id === 'f8436a71-8395-4cb1-9235-5a0d06d32f03'}
+                      stripeOnly={isUnhinged}
                       isComingSoon={!item.isPurchased && (item.id === 'f8436a71-8395-4cb1-9235-5a0d06d32f03' || (['f8436a71-8395-4cb1-9235-5a0d06d32f01', 'f8436a71-8395-4cb1-9235-5a0d06d32f02'].includes(item.id) && (item.discontinued || !item.purchasableWithCoins)))}
                       itemId={item.id}
                       name={item.name}
