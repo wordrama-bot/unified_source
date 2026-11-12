@@ -43,6 +43,10 @@ BEGIN
  SELECT definition INTO view_sql FROM _wr3_saved_def WHERE name='team_view';
  EXECUTE 'CREATE VIEW public._v_team_leaderboard AS '||trim(trailing ';' from trim(view_sql));
  EXECUTE 'REVOKE ALL ON public._v_team_leaderboard FROM PUBLIC, anon, authenticated';
+ EXECUTE 'GRANT TRUNCATE, REFERENCES, TRIGGER ON public._v_team_leaderboard TO anon, authenticated';
+ IF current_setting('server_version_num')::integer >= 170000 THEN
+  EXECUTE 'GRANT MAINTAIN ON public._v_team_leaderboard TO anon, authenticated';
+ END IF;
  EXECUTE 'GRANT ALL ON public._v_team_leaderboard TO service_role';
 END $rebind$;
 COMMIT;
