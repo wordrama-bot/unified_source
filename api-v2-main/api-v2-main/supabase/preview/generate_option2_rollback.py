@@ -107,6 +107,13 @@ def main():
         for parents in incoming.values():
             parents.difference_update(ready)
 
+    acl_data = json.loads((REFERENCE / "three_pack_option2_privileges_snapshot.json").read_text(encoding="utf-8"))
+    privileges = {item["relname"]: item for item in acl_data["objects"]}
+    if not expected.issubset(privileges):
+        raise ValueError(f"Missing ACL snapshot entries: {sorted(expected - set(privileges))}")
+    if any(privileges[name]["owner"] != "postgres" for name in expected):
+        raise ValueError("Unexpected reporting owner; manual review required")
+
     statements = [
         "-- GENERATED ROLLBACK PLAN; REVIEW ONLY. DO NOT RUN UNTIL APPROVED.",
         "-- Restores captured view/MV definitions, NOT materialized data, grants,",
@@ -130,6 +137,24 @@ def main():
             statements.append(f"CREATE MATERIALIZED VIEW {quoted(name)} AS\n{definition}\nWITH NO DATA;")
             for index in entries[name].get("indexes") or []:
                 statements.append(index["ddl"].strip().rstrip(";") + ";")
+    # CREATE resets ACLs. Revoke defaults from non-owner roles and replay exact
+    # SELECT grants captured from pg_catalog, including role-specific access.
+    # Non-SELECT ACLs require manual review rather than silent approximation.
+    for name in ordered:
+        grants = privileges[name]["grants"]
+        for grant in grants:
+            if grant["grantee"] == "postgres":
+                continue
+            if grant["privilege"] != "SELECT" or grant["grantable"]:
+                raise ValueError(f"Nonstandard ACL requires manual review: {name}: {grant}")
+        statements.append(f"REVOKE ALL ON TABLE {quoted(name)} FROM PUBLIC, anon, authenticated, service_role;")
+        for grant in grants:
+            if grant["grantee"] == "postgres":
+                continue
+            grantee = grant["grantee"]
+            if grantee not in ("PUBLIC", "anon", "authenticated", "service_role"):
+                raise ValueError(f"Unknown ACL role: {name}: {grantee}")
+            statements.append(f"GRANT SELECT ON TABLE {quoted(name)} TO {grantee};")
     statements += [
         "-- Deliberately no REFRESH inside this transaction.",
         "-- NOTE: all restored MVs are UNPOPULATED until explicitly refreshed.",
