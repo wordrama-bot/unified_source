@@ -18,8 +18,8 @@ BEGIN
  
  FOREACH p IN ARRAY ARRAY['alltime','daily','weekly','monthly','yearly'] LOOP
   IF to_regclass(format('public._mv_wordle_%s_leaderboard',p)) IS NULL THEN RAISE EXCEPTION 'Missing live %',p; END IF;
-  IF to_regclass(format('wordrama_pack_preview._wr3_%s_leaderboard_independent_mv',p)) IS NULL THEN RAISE EXCEPTION 'Missing candidate %',p; END IF;
-  SELECT count(*) INTO n FROM pg_attribute a JOIN pg_class c ON c.oid=a.attrelid WHERE c.oid=to_regclass(format('wordrama_pack_preview._wr3_%s_leaderboard_independent_mv',p)) AND a.attnum>0 AND NOT a.attisdropped AND a.attname IN (p||'_rank_three_letter',p||'_rank_three_letter_crazy',p||'_rank_five_letter_unhinged');
+  IF to_regclass(format('public._mv_wordle_%s_leaderboard',p)) IS NULL THEN RAISE EXCEPTION 'Missing promoted leaderboard %',p; END IF;
+  SELECT count(*) INTO n FROM pg_attribute a JOIN pg_class c ON c.oid=a.attrelid WHERE c.oid=to_regclass(format('public._mv_wordle_%s_leaderboard',p)) AND a.attnum>0 AND NOT a.attisdropped AND a.attname IN (p||'_rank_three_letter',p||'_rank_three_letter_crazy',p||'_rank_five_letter_unhinged');
   IF n<>3 THEN RAISE EXCEPTION 'Missing rank columns in %',p; END IF;
  END LOOP;
  IF (SELECT count(*) FROM pg_index WHERE indrelid='public._mv_team_wordle_stats'::regclass)<>0 THEN RAISE EXCEPTION 'Team indexes require explicit preservation'; END IF;
