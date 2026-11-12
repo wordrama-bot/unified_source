@@ -90,6 +90,23 @@ def main():
         if entries[name].get("relkind", "m") != "m":
             raise ValueError(f"Not an MV: {name}")
 
+    edges = json.loads((REFERENCE / "three_pack_option2_dependency_edges.json").read_text(encoding="utf-8"))["edges"]
+    incoming = {name: set() for name in expected}
+    for edge in edges:
+        child, parent = edge["dependent"], edge["referenced"]
+        if child in incoming and parent in incoming:
+            incoming[child].add(parent)
+    ordered = []
+    while incoming:
+        ready = sorted(name for name, parents in incoming.items() if not parents)
+        if not ready:
+            raise ValueError(f"Cyclic or unresolved dependency graph: {incoming}")
+        for name in ready:
+            ordered.append(name)
+            del incoming[name]
+        for parents in incoming.values():
+            parents.difference_update(ready)
+
     statements = [
         "-- GENERATED ROLLBACK PLAN; REVIEW ONLY. DO NOT RUN UNTIL APPROVED.",
         "-- Restores captured view/MV definitions, NOT materialized data, grants,",
@@ -99,23 +116,20 @@ def main():
         "BEGIN;",
         "SET LOCAL lock_timeout = '5s';",
         "SET LOCAL statement_timeout = '2min';",
+        "SET LOCAL search_path = public, pg_catalog;",
     ]
-    # Tear down consumers first; RESTRICT intentionally fails on unknown dependencies.
-    for name in reversed(MVS):
-        statements.append(f"DROP MATERIALIZED VIEW {quoted(name)} RESTRICT;")
-    for name in reversed(VIEWS):
-        statements.append(f"DROP VIEW {quoted(name)} RESTRICT;")
-    # Historical MV definitions may reference yearly stats; create after base views.
-    # Other leaderboard MVs likewise reference the rebuilt leaderboard views.
-    for name in VIEWS:
+    # PostgreSQL-derived topological ordering, not hand-guessed object order.
+    for name in reversed(ordered):
+        kind = "VIEW" if name in VIEWS else "MATERIALIZED VIEW"
+        statements.append(f"DROP {kind} {quoted(name)} RESTRICT;")
+    for name in ordered:
         definition = entries[name]["definition"].strip().rstrip(";")
-        statements.append(f"CREATE VIEW {quoted(name)} AS\n{definition};")
-    for name in MVS:
-        definition = entries[name]["definition"].strip().rstrip(";")
-        statements.append(f"CREATE MATERIALIZED VIEW {quoted(name)} AS\n{definition}\nWITH NO DATA;")
-        for index in entries[name].get("indexes") or []:
-            ddl = index["ddl"].strip().rstrip(";")
-            statements.append(ddl + ";")
+        if name in VIEWS:
+            statements.append(f"CREATE VIEW {quoted(name)} AS\n{definition};")
+        else:
+            statements.append(f"CREATE MATERIALIZED VIEW {quoted(name)} AS\n{definition}\nWITH NO DATA;")
+            for index in entries[name].get("indexes") or []:
+                statements.append(index["ddl"].strip().rstrip(";") + ";")
     statements += [
         "-- Deliberately no REFRESH inside this transaction.",
         "-- NOTE: all restored MVs are UNPOPULATED until explicitly refreshed.",
