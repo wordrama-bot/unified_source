@@ -14,7 +14,10 @@ CREATE TEMP TABLE _wr3_acl_snapshot (object_name text, grantee text, privilege_t
 INSERT INTO _wr3_acl_snapshot
 SELECT c.relname,CASE WHEN x.grantee=0 THEN 'PUBLIC' ELSE pg_get_userbyid(x.grantee) END,x.privilege_type
 FROM pg_class c CROSS JOIN LATERAL aclexplode(c.relacl) x
-WHERE c.oid IN ('public._mv_team_wordle_stats'::regclass,'public._v_team_leaderboard'::regclass);
+WHERE c.oid IN ('public._mv_team_wordle_stats'::regclass,'public._v_team_leaderboard'::regclass,
+ 'public._mv_wordle_alltime_leaderboard'::regclass,'public._mv_wordle_daily_leaderboard'::regclass,
+ 'public._mv_wordle_weekly_leaderboard'::regclass,'public._mv_wordle_monthly_leaderboard'::regclass,
+ 'public._mv_wordle_yearly_leaderboard'::regclass);
 DO $guard$
 DECLARE p text; n integer;
 BEGIN
@@ -52,7 +55,7 @@ BEGIN
  EXECUTE 'CREATE VIEW public._v_team_leaderboard AS '||trim(trailing ';' from trim(view_sql));
  FOR acl IN SELECT object_name,grantee,string_agg(privilege_type,',' ORDER BY privilege_type) privileges
    FROM _wr3_acl_snapshot GROUP BY object_name,grantee LOOP
-  IF acl.object_name='_v_team_leaderboard' OR acl.object_name='_mv_team_wordle_stats' THEN
+  IF acl.object_name='_v_team_leaderboard' OR acl.object_name='_mv_team_wordle_stats' OR acl.object_name LIKE '_mv_wordle_%_leaderboard' THEN
    EXECUTE format('GRANT %s ON public.%I TO %s',acl.privileges,acl.object_name,
      CASE WHEN acl.grantee='PUBLIC' THEN 'PUBLIC' ELSE quote_ident(acl.grantee) END);
   END IF;
