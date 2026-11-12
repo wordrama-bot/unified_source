@@ -137,24 +137,21 @@ def main():
             statements.append(f"CREATE MATERIALIZED VIEW {quoted(name)} AS\n{definition}\nWITH NO DATA;")
             for index in entries[name].get("indexes") or []:
                 statements.append(index["ddl"].strip().rstrip(";") + ";")
-    # CREATE resets ACLs. Revoke defaults from non-owner roles and replay exact
-    # SELECT grants captured from pg_catalog, including role-specific access.
-    # Non-SELECT ACLs require manual review rather than silent approximation.
+    # CREATE resets ACLs. Restore captured privileges exactly, including
+    # existing non-SELECT grants, rather than silently changing production ACLs.
+    allowed_privileges = {"SELECT", "INSERT", "UPDATE", "DELETE", "TRUNCATE", "REFERENCES", "TRIGGER"}
     for name in ordered:
         grants = privileges[name]["grants"]
-        for grant in grants:
-            if grant["grantee"] == "postgres":
-                continue
-            if grant["privilege"] != "SELECT" or grant["grantable"]:
-                raise ValueError(f"Nonstandard ACL requires manual review: {name}: {grant}")
         statements.append(f"REVOKE ALL ON TABLE {quoted(name)} FROM PUBLIC, anon, authenticated, service_role;")
         for grant in grants:
-            if grant["grantee"] == "postgres":
-                continue
             grantee = grant["grantee"]
-            if grantee not in ("PUBLIC", "anon", "authenticated", "service_role"):
-                raise ValueError(f"Unknown ACL role: {name}: {grantee}")
-            statements.append(f"GRANT SELECT ON TABLE {quoted(name)} TO {grantee};")
+            privilege = grant["privilege"]
+            if grantee == "postgres":
+                continue
+            if grantee not in ("PUBLIC", "anon", "authenticated", "service_role") or privilege not in allowed_privileges:
+                raise ValueError(f"Unknown ACL entry: {name}: {grant}")
+            grant_option = " WITH GRANT OPTION" if grant["grantable"] else ""
+            statements.append(f"GRANT {privilege} ON TABLE {quoted(name)} TO {grantee}{grant_option};")
     statements += [
         "-- Deliberately no REFRESH inside this transaction.",
         "-- NOTE: all restored MVs are UNPOPULATED until explicitly refreshed.",
