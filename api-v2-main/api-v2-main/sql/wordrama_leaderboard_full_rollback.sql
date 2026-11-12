@@ -18,12 +18,12 @@ BEGIN
  
  FOREACH p IN ARRAY ARRAY['alltime','daily','weekly','monthly','yearly'] LOOP
   IF to_regclass(format('public._mv_wordle_%s_leaderboard',p)) IS NULL THEN RAISE EXCEPTION 'Missing live %',p; END IF;
-  IF to_regclass(format('public._mv_wordle_%s_leaderboard',p)) IS NULL THEN RAISE EXCEPTION 'Missing promoted leaderboard %',p; END IF;
+  IF to_regclass(format('public._mv_wordle_%s_leaderboard_wr3_backup',p)) IS NULL THEN RAISE EXCEPTION 'Missing original backup %',p; END IF;
   SELECT count(*) INTO n FROM pg_attribute a JOIN pg_class c ON c.oid=a.attrelid WHERE c.oid=to_regclass(format('public._mv_wordle_%s_leaderboard',p)) AND a.attnum>0 AND NOT a.attisdropped AND a.attname IN (p||'_rank_three_letter',p||'_rank_three_letter_crazy',p||'_rank_five_letter_unhinged');
   IF n<>3 THEN RAISE EXCEPTION 'Missing rank columns in %',p; END IF;
  END LOOP;
  IF (SELECT count(*) FROM pg_index WHERE indrelid='public._mv_team_wordle_stats'::regclass)<>0 THEN RAISE EXCEPTION 'Team indexes require explicit preservation'; END IF;
- IF EXISTS(SELECT 1 FROM pg_class WHERE oid IN ('public._mv_team_wordle_stats'::regclass,'public._v_team_leaderboard'::regclass) AND relacl IS NOT NULL) THEN RAISE EXCEPTION 'Team grants require explicit preservation'; END IF;
+ -- Original team MV retains its ACL because it is renamed, not recreated.
 END $guard$;
 DROP VIEW public._v_team_leaderboard;
 DROP MATERIALIZED VIEW public._mv_team_wordle_stats;
@@ -41,7 +41,9 @@ DO $rebind$
 DECLARE view_sql text;
 BEGIN
  SELECT definition INTO view_sql FROM _wr3_saved_def WHERE name='team_view';
- EXECUTE 'CREATE VIEW public._v_team_leaderboard AS '||view_sql;
+ EXECUTE 'CREATE VIEW public._v_team_leaderboard AS '||trim(trailing ';' from trim(view_sql));
+ EXECUTE 'REVOKE ALL ON public._v_team_leaderboard FROM PUBLIC, anon, authenticated';
+ EXECUTE 'GRANT ALL ON public._v_team_leaderboard TO service_role';
 END $rebind$;
 COMMIT;
 -- Restore original RPC with wordrama_leaderboard_streak_page_rollback.sql.
