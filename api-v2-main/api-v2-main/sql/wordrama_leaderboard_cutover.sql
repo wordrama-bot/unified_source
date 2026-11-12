@@ -43,8 +43,8 @@ DECLARE team_sql text; view_sql text;
 BEGIN
  SELECT definition INTO team_sql FROM _wr3_saved_def WHERE name='team';
  SELECT definition INTO view_sql FROM _wr3_saved_def WHERE name='team_view';
- EXECUTE 'CREATE MATERIALIZED VIEW public._mv_team_wordle_stats AS '||regexp_replace(team_sql,';[[:space:]]*
- EXECUTE 'CREATE VIEW public._v_team_leaderboard AS '||regexp_replace(view_sql,';[[:space:]]*
+ EXECUTE 'CREATE MATERIALIZED VIEW public._mv_team_wordle_stats AS '||trim(trailing ';' from trim(team_sql))||' WITH DATA';
+ EXECUTE 'CREATE VIEW public._v_team_leaderboard AS '||trim(trailing ';' from trim(view_sql));
  EXECUTE 'REVOKE ALL ON public._mv_team_wordle_stats, public._v_team_leaderboard FROM PUBLIC, anon, authenticated';
  EXECUTE 'GRANT ALL ON public._mv_team_wordle_stats, public._v_team_leaderboard TO service_role';
 END $rebind$;
@@ -63,7 +63,7 @@ COMMIT;
 -- Apply reviewed streak RPC candidate separately AFTER this transaction.
 -- Keep backups until all validations and refresh schedules are verified.
 ,'')||' WITH DATA';
- EXECUTE 'CREATE VIEW public._v_team_leaderboard AS '||view_sql;
+ EXECUTE 'CREATE VIEW public._v_team_leaderboard AS '||trim(trailing ';' from trim(view_sql));
  EXECUTE 'REVOKE ALL ON public._mv_team_wordle_stats, public._v_team_leaderboard FROM PUBLIC, anon, authenticated';
  EXECUTE 'GRANT ALL ON public._mv_team_wordle_stats, public._v_team_leaderboard TO service_role';
 END $rebind$;
@@ -100,7 +100,7 @@ COMMIT;
 -- Apply reviewed streak RPC candidate separately AFTER this transaction.
 -- Keep backups until all validations and refresh schedules are verified.
 ,'')||' WITH DATA';
- EXECUTE 'CREATE VIEW public._v_team_leaderboard AS '||view_sql;
+ EXECUTE 'CREATE VIEW public._v_team_leaderboard AS '||trim(trailing ';' from trim(view_sql));
  EXECUTE 'REVOKE ALL ON public._mv_team_wordle_stats, public._v_team_leaderboard FROM PUBLIC, anon, authenticated';
  EXECUTE 'GRANT ALL ON public._mv_team_wordle_stats, public._v_team_leaderboard TO service_role';
 END $rebind$;
