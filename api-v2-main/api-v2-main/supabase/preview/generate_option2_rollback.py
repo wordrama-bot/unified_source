@@ -152,6 +152,13 @@ def main():
                 raise ValueError(f"Unknown ACL entry: {name}: {grant}")
             grant_option = " WITH GRANT OPTION" if grant["grantable"] else ""
             statements.append(f"GRANT {privilege} ON TABLE {quoted(name)} TO {grantee}{grant_option};")
+    # Cron snapshot is a hard precondition: scheduled CONCURRENT refreshes must
+    # never race a drop/recreate. This generator does not pause schedules.
+    cron = json.loads((REFERENCE / "three_pack_option2_cron_snapshot.json").read_text(encoding="utf-8"))["jobs"]
+    if len(cron) != 6 or not all(job["active"] for job in cron):
+        raise ValueError("Unexpected reporting cron configuration; review before migration")
+    statements.append("-- IMPORTANT: pause all six reporting cron jobs BEFORE running this SQL.")
+    statements.append("-- IMPORTANT: restore cron jobs only AFTER all MVs are populated and indexed.")
     statements += [
         "-- Deliberately no REFRESH inside this transaction.",
         "-- NOTE: all restored MVs are UNPOPULATED until explicitly refreshed.",
