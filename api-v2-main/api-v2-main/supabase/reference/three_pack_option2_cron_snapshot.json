@@ -1,0 +1,59 @@
+{
+  "description": "Production pg_cron reporting schedules; snapshot only, no schedules modified.",
+  "jobs": [
+    {
+      "jobid": 11,
+      "jobname": "refresh-wordle-daily-leaderboard",
+      "schedule": "2,12,22,32,42,52 * * * *",
+      "command": "SET statement_timeout = '300s'; REFRESH MATERIALIZED VIEW CONCURRENTLY public._mv_wordle_daily_leaderboard;",
+      "active": true,
+      "database": "postgres",
+      "username": "postgres"
+    },
+    {
+      "jobid": 12,
+      "jobname": "refresh-wordle-weekly-leaderboard",
+      "schedule": "6,21,36,51 * * * *",
+      "command": "SET statement_timeout = '300s'; REFRESH MATERIALIZED VIEW CONCURRENTLY public._mv_wordle_weekly_leaderboard;",
+      "active": true,
+      "database": "postgres",
+      "username": "postgres"
+    },
+    {
+      "jobid": 13,
+      "jobname": "refresh-wordle-monthly-leaderboard",
+      "schedule": "9,39 * * * *",
+      "command": "SET statement_timeout = '300s'; REFRESH MATERIALIZED VIEW CONCURRENTLY public._mv_wordle_monthly_leaderboard;",
+      "active": true,
+      "database": "postgres",
+      "username": "postgres"
+    },
+    {
+      "jobid": 14,
+      "jobname": "refresh-wordle-yearly-leaderboard",
+      "schedule": "15 * * * *",
+      "command": "SET statement_timeout = '300s'; REFRESH MATERIALIZED VIEW CONCURRENTLY public._mv_wordle_yearly_leaderboard;",
+      "active": true,
+      "database": "postgres",
+      "username": "postgres"
+    },
+    {
+      "jobid": 16,
+      "jobname": "refresh-wordle-alltime-leaderboard",
+      "schedule": "27 */2 * * *",
+      "command": "SET statement_timeout = '300s'; REFRESH MATERIALIZED VIEW CONCURRENTLY public._mv_wordle_alltime_leaderboard;",
+      "active": true,
+      "database": "postgres",
+      "username": "postgres"
+    },
+    {
+      "jobid": 18,
+      "jobname": "refresh-team-wordle-stats",
+      "schedule": "30 */2 * * *",
+      "command": "\r\n  SET statement_timeout = '300s';\r\n  REFRESH MATERIALIZED VIEW public._mv_team_wordle_stats;\r\n  ",
+      "active": true,
+      "database": "postgres",
+      "username": "postgres"
+    }
+  ]
+}
