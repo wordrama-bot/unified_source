@@ -8,15 +8,21 @@ import {
   isPlannedPackEntitlementGrantAllowed,
 } from '../src/services/marketplaceV2/plannedWordPackPolicy';
 
-describe('future word pack backend release gates', () => {
-  test('both packs fail closed on every purchase channel', () => {
-    for (const pack of ['THREE_LETTER', 'THREE_LETTER_CRAZY', 'FIVE_LETTER_UNHINGED'] as const) {
-      for (const channel of ['COINS', 'STRIPE', 'SUBSCRIPTION'] as const) {
-        expect(isPlannedPackChannelAllowed(pack, channel)).toBe(false);
-      }
-      expect(canPlannedPackBeSubscriptionUnlocked(pack, 'PLUS')).toBe(false);
-      expect(canPlannedPackBeSubscriptionUnlocked(pack, 'CREATOR')).toBe(false);
+describe('new word pack channel rules', () => {
+  test('allows only the intended channels and subscriptions', () => {
+    for (const pack of ['THREE_LETTER', 'THREE_LETTER_CRAZY'] as const) {
+      expect(isPlannedPackChannelAllowed(pack, 'COINS')).toBe(true);
+      expect(isPlannedPackChannelAllowed(pack, 'STRIPE')).toBe(true);
+      expect(isPlannedPackChannelAllowed(pack, 'SUBSCRIPTION')).toBe(false);
+      expect(canPlannedPackBeSubscriptionUnlocked(pack, 'PLUS')).toBe(true);
+      expect(canPlannedPackBeSubscriptionUnlocked(pack, 'CREATOR')).toBe(true);
+      expect(canPlannedPackBeSubscriptionUnlocked(pack, 'FREE')).toBe(false);
     }
+    expect(isPlannedPackChannelAllowed('FIVE_LETTER_UNHINGED', 'COINS')).toBe(false);
+    expect(isPlannedPackChannelAllowed('FIVE_LETTER_UNHINGED', 'STRIPE')).toBe(true);
+    expect(isPlannedPackChannelAllowed('FIVE_LETTER_UNHINGED', 'SUBSCRIPTION')).toBe(false);
+    expect(canPlannedPackBeSubscriptionUnlocked('FIVE_LETTER_UNHINGED', 'PLUS')).toBe(false);
+    expect(canPlannedPackBeSubscriptionUnlocked('FIVE_LETTER_UNHINGED', 'CREATOR')).toBe(false);
   });
 
   test('captures permanent pricing and subscription requirements', () => {
@@ -58,9 +64,9 @@ describe('planned marketplace catalog entries', () => {
 
 
 describe('planned pack entitlement grant gate', () => {
-  test('denies all unreleased pack entitlement keys without blocking existing packs', () => {
+  test('allows enabled pack entitlements without blocking existing packs', () => {
     for (const pack of Object.values(PLANNED_WORD_PACKS)) {
-      expect(isPlannedPackEntitlementGrantAllowed(pack.entitlementKey)).toBe(false);
+      expect(isPlannedPackEntitlementGrantAllowed(pack.entitlementKey)).toBe(true);
     }
     expect(isPlannedPackEntitlementGrantAllowed('WORD_PACK:FOUR_LETTER')).toBe(true);
     expect(isPlannedPackEntitlementGrantAllowed('THEME:ICE')).toBe(true);
@@ -75,8 +81,8 @@ describe('subscription pack release safety', () => {
       expect(keys).toContain('WORD_PACK:THREE_LETTER');
       expect(keys).toContain('WORD_PACK:THREE_LETTER_CRAZY');
       expect(keys).not.toContain('WORD_PACK:FIVE_LETTER_UNHINGED');
-      expect(keys.filter(isPlannedPackEntitlementGrantAllowed)).not.toContain('WORD_PACK:THREE_LETTER');
-      expect(keys.filter(isPlannedPackEntitlementGrantAllowed)).not.toContain('WORD_PACK:THREE_LETTER_CRAZY');
+      expect(keys.filter(isPlannedPackEntitlementGrantAllowed)).toContain('WORD_PACK:THREE_LETTER');
+      expect(keys.filter(isPlannedPackEntitlementGrantAllowed)).toContain('WORD_PACK:THREE_LETTER_CRAZY');
     }
   });
 });
