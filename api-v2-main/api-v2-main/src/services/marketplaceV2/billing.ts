@@ -311,6 +311,12 @@ export async function createItemCheckoutSession(
     return { error: 'This word pack is not yet available' };
   }
 
+  // Never permit direct checkout of catalog items that are not Stripe-enabled.
+  // This also protects staged word packs until their launch is authorized.
+  if (catalogItem.isStripePurchasable !== true) {
+    return { error: 'This item is not available for card purchase' };
+  }
+
   // Holiday collection: enforce Stripe-only availability
   // and staging restrictions without changing existing items.
   const isHolidayProduct =
