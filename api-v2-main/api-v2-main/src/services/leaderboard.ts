@@ -10,6 +10,9 @@ const ALLOWED_ORDER_COLUMNS = new Set([
   'weekly_rank',
   'daily_rank',
 
+  'alltime_rank_three_letter',
+  'alltime_rank_three_letter_crazy',
+  'alltime_rank_five_letter_unhinged',
   'alltime_rank_4_letter',
   'alltime_rank_5_letter',
   'alltime_rank_five_letter_crazy',
@@ -33,6 +36,9 @@ const ALLOWED_ORDER_COLUMNS = new Set([
   'alltime_rank_22_letter',
   'alltime_rank_23_letter',
 
+  'yearly_rank_three_letter',
+  'yearly_rank_three_letter_crazy',
+  'yearly_rank_five_letter_unhinged',
   'yearly_rank_4_letter',
   'yearly_rank_5_letter',
   'yearly_rank_five_letter_crazy',
@@ -55,6 +61,9 @@ const ALLOWED_ORDER_COLUMNS = new Set([
   'yearly_rank_22_letter',
   'yearly_rank_23_letter',
 
+  'monthly_rank_three_letter',
+  'monthly_rank_three_letter_crazy',
+  'monthly_rank_five_letter_unhinged',
   'monthly_rank_4_letter',
   'monthly_rank_5_letter',
   'monthly_rank_five_letter_crazy',
@@ -77,6 +86,9 @@ const ALLOWED_ORDER_COLUMNS = new Set([
   'monthly_rank_22_letter',
   'monthly_rank_23_letter',
 
+  'weekly_rank_three_letter',
+  'weekly_rank_three_letter_crazy',
+  'weekly_rank_five_letter_unhinged',
   'weekly_rank_4_letter',
   'weekly_rank_5_letter',
   'weekly_rank_five_letter_crazy',
@@ -99,6 +111,9 @@ const ALLOWED_ORDER_COLUMNS = new Set([
   'weekly_rank_22_letter',
   'weekly_rank_23_letter',
 
+  'daily_rank_three_letter',
+  'daily_rank_three_letter_crazy',
+  'daily_rank_five_letter_unhinged',
   'daily_rank_4_letter',
   'daily_rank_5_letter',
   'daily_rank_five_letter_crazy',
@@ -124,6 +139,9 @@ const ALLOWED_ORDER_COLUMNS = new Set([
 
 // Rank columns are whitelisted above. Only derive filters from whitelisted ranks.
 const PACK_STAT_PREFIX: Record<string, string> = {
+  'three_letter': 'three_letter',
+  'three_letter_crazy': 'three_letter_crazy',
+  'five_letter_unhinged': 'five_letter_unhinged',
   'five_letter_crazy': 'five_letter_crazy',
   '11_letter_extended': 'eleven_letter_extended',
 };
