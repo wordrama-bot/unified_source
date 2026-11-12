@@ -43,7 +43,63 @@ DECLARE team_sql text; view_sql text;
 BEGIN
  SELECT definition INTO team_sql FROM _wr3_saved_def WHERE name='team';
  SELECT definition INTO view_sql FROM _wr3_saved_def WHERE name='team_view';
- EXECUTE 'CREATE MATERIALIZED VIEW public._mv_team_wordle_stats AS '||team_sql||' WITH DATA';
+ EXECUTE 'CREATE MATERIALIZED VIEW public._mv_team_wordle_stats AS '||regexp_replace(team_sql,';[[:space:]]*
+ EXECUTE 'CREATE VIEW public._v_team_leaderboard AS '||regexp_replace(view_sql,';[[:space:]]*
+ EXECUTE 'REVOKE ALL ON public._mv_team_wordle_stats, public._v_team_leaderboard FROM PUBLIC, anon, authenticated';
+ EXECUTE 'GRANT ALL ON public._mv_team_wordle_stats, public._v_team_leaderboard TO service_role';
+END $rebind$;
+-- Candidate MVs need unique indexes for concurrent refresh and period lookup.
+CREATE UNIQUE INDEX wr3_alltime_player_unique ON public._mv_wordle_alltime_leaderboard(player);
+CREATE UNIQUE INDEX wr3_daily_player_period_unique ON public._mv_wordle_daily_leaderboard(player,year,month,day);
+CREATE UNIQUE INDEX wr3_weekly_player_period_unique ON public._mv_wordle_weekly_leaderboard(player,year,week);
+CREATE UNIQUE INDEX wr3_monthly_player_period_unique ON public._mv_wordle_monthly_leaderboard(player,year,month);
+CREATE UNIQUE INDEX wr3_yearly_player_period_unique ON public._mv_wordle_yearly_leaderboard(player,year);
+-- Fail transaction if the new team MV references backup MVs.
+DO $verify$
+BEGIN
+ IF EXISTS(SELECT 1 FROM pg_depend d JOIN pg_rewrite r ON r.oid=d.objid WHERE r.ev_class='public._mv_team_wordle_stats'::regclass AND d.refobjid::regclass::text LIKE '%wr3_backup%') THEN RAISE EXCEPTION 'Team MV still references backup'; END IF;
+END $verify$;
+COMMIT;
+-- Apply reviewed streak RPC candidate separately AFTER this transaction.
+-- Keep backups until all validations and refresh schedules are verified.
+,'')||' WITH DATA';
+ EXECUTE 'CREATE VIEW public._v_team_leaderboard AS '||view_sql;
+ EXECUTE 'REVOKE ALL ON public._mv_team_wordle_stats, public._v_team_leaderboard FROM PUBLIC, anon, authenticated';
+ EXECUTE 'GRANT ALL ON public._mv_team_wordle_stats, public._v_team_leaderboard TO service_role';
+END $rebind$;
+-- Candidate MVs need unique indexes for concurrent refresh and period lookup.
+CREATE UNIQUE INDEX wr3_alltime_player_unique ON public._mv_wordle_alltime_leaderboard(player);
+CREATE UNIQUE INDEX wr3_daily_player_period_unique ON public._mv_wordle_daily_leaderboard(player,year,month,day);
+CREATE UNIQUE INDEX wr3_weekly_player_period_unique ON public._mv_wordle_weekly_leaderboard(player,year,week);
+CREATE UNIQUE INDEX wr3_monthly_player_period_unique ON public._mv_wordle_monthly_leaderboard(player,year,month);
+CREATE UNIQUE INDEX wr3_yearly_player_period_unique ON public._mv_wordle_yearly_leaderboard(player,year);
+-- Fail transaction if the new team MV references backup MVs.
+DO $verify$
+BEGIN
+ IF EXISTS(SELECT 1 FROM pg_depend d JOIN pg_rewrite r ON r.oid=d.objid WHERE r.ev_class='public._mv_team_wordle_stats'::regclass AND d.refobjid::regclass::text LIKE '%wr3_backup%') THEN RAISE EXCEPTION 'Team MV still references backup'; END IF;
+END $verify$;
+COMMIT;
+-- Apply reviewed streak RPC candidate separately AFTER this transaction.
+-- Keep backups until all validations and refresh schedules are verified.
+,'');
+ EXECUTE 'REVOKE ALL ON public._mv_team_wordle_stats, public._v_team_leaderboard FROM PUBLIC, anon, authenticated';
+ EXECUTE 'GRANT ALL ON public._mv_team_wordle_stats, public._v_team_leaderboard TO service_role';
+END $rebind$;
+-- Candidate MVs need unique indexes for concurrent refresh and period lookup.
+CREATE UNIQUE INDEX wr3_alltime_player_unique ON public._mv_wordle_alltime_leaderboard(player);
+CREATE UNIQUE INDEX wr3_daily_player_period_unique ON public._mv_wordle_daily_leaderboard(player,year,month,day);
+CREATE UNIQUE INDEX wr3_weekly_player_period_unique ON public._mv_wordle_weekly_leaderboard(player,year,week);
+CREATE UNIQUE INDEX wr3_monthly_player_period_unique ON public._mv_wordle_monthly_leaderboard(player,year,month);
+CREATE UNIQUE INDEX wr3_yearly_player_period_unique ON public._mv_wordle_yearly_leaderboard(player,year);
+-- Fail transaction if the new team MV references backup MVs.
+DO $verify$
+BEGIN
+ IF EXISTS(SELECT 1 FROM pg_depend d JOIN pg_rewrite r ON r.oid=d.objid WHERE r.ev_class='public._mv_team_wordle_stats'::regclass AND d.refobjid::regclass::text LIKE '%wr3_backup%') THEN RAISE EXCEPTION 'Team MV still references backup'; END IF;
+END $verify$;
+COMMIT;
+-- Apply reviewed streak RPC candidate separately AFTER this transaction.
+-- Keep backups until all validations and refresh schedules are verified.
+,'')||' WITH DATA';
  EXECUTE 'CREATE VIEW public._v_team_leaderboard AS '||view_sql;
  EXECUTE 'REVOKE ALL ON public._mv_team_wordle_stats, public._v_team_leaderboard FROM PUBLIC, anon, authenticated';
  EXECUTE 'GRANT ALL ON public._mv_team_wordle_stats, public._v_team_leaderboard TO service_role';
