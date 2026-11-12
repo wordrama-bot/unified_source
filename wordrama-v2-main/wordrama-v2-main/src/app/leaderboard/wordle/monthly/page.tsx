@@ -91,6 +91,24 @@ export default function WordleMonthlyLeaderboardPage() {
       columnPrefix: "",
       rankColumn: "monthly_rank",
     },
+    "3 letter": {
+      label: "3 Letter",
+      prefix: "threeLetter",
+      columnPrefix: "three_letter",
+      rankColumn: "monthly_rank_3_letter",
+    },
+    "3 letter crazy": {
+      label: "3 Letter Crazy",
+      prefix: "threeLetterCrazy",
+      columnPrefix: "three_letter_crazy",
+      rankColumn: "monthly_rank_three_letter_crazy",
+    },
+    "5 letter unhinged": {
+      label: "5 Letter Unhinged (18+)",
+      prefix: "fiveLetterUnhinged",
+      columnPrefix: "five_letter_unhinged",
+      rankColumn: "monthly_rank_five_letter_unhinged",
+    },
     "4 letter": {
       label: "4 Letter",
       prefix: "fourLetter",
