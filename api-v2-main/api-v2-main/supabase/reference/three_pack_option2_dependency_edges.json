@@ -1,0 +1,169 @@
+{
+  "description": "Live PostgreSQL view/MV dependency edges for deterministic cutover/rollback ordering.",
+  "edges": [
+    {
+      "dependent": "_mv_team_wordle_stats",
+      "referenced": "_mv_wordle_alltime_leaderboard"
+    },
+    {
+      "dependent": "_mv_team_wordle_stats",
+      "referenced": "_mv_wordle_daily_leaderboard"
+    },
+    {
+      "dependent": "_mv_team_wordle_stats",
+      "referenced": "_mv_wordle_monthly_leaderboard"
+    },
+    {
+      "dependent": "_mv_team_wordle_stats",
+      "referenced": "_mv_wordle_weekly_leaderboard"
+    },
+    {
+      "dependent": "_mv_team_wordle_stats",
+      "referenced": "_mv_wordle_yearly_leaderboard"
+    },
+    {
+      "dependent": "_mv_team_wordle_stats_legacy",
+      "referenced": "_mv_wordle_alltime_leaderboard_legacy"
+    },
+    {
+      "dependent": "_mv_team_wordle_stats_legacy",
+      "referenced": "_mv_wordle_daily_leaderboard_legacy"
+    },
+    {
+      "dependent": "_mv_team_wordle_stats_legacy",
+      "referenced": "_mv_wordle_monthly_leaderboard_legacy"
+    },
+    {
+      "dependent": "_mv_team_wordle_stats_legacy",
+      "referenced": "_mv_wordle_weekly_leaderboard_legacy"
+    },
+    {
+      "dependent": "_mv_team_wordle_stats_legacy",
+      "referenced": "_mv_wordle_yearly_leaderboard_legacy"
+    },
+    {
+      "dependent": "_mv_wordle_alltime_leaderboard",
+      "referenced": "_v_wordle_alltime_leaderboard"
+    },
+    {
+      "dependent": "_mv_wordle_alltime_leaderboard_legacy",
+      "referenced": "_v_wordle_alltime_leaderboard"
+    },
+    {
+      "dependent": "_mv_wordle_daily_leaderboard",
+      "referenced": "_v_wordle_daily_leaderboard"
+    },
+    {
+      "dependent": "_mv_wordle_daily_leaderboard_legacy",
+      "referenced": "_v_wordle_daily_leaderboard"
+    },
+    {
+      "dependent": "_mv_wordle_monthly_leaderboard",
+      "referenced": "_v_wordle_monthly_leaderboard"
+    },
+    {
+      "dependent": "_mv_wordle_monthly_leaderboard_legacy",
+      "referenced": "_v_wordle_monthly_leaderboard"
+    },
+    {
+      "dependent": "_mv_wordle_stats_2024",
+      "referenced": "_v_wordle_yearly_stats"
+    },
+    {
+      "dependent": "_mv_wordle_stats_2024_by_type",
+      "referenced": "_v_wordle_yearly_stats_by_type"
+    },
+    {
+      "dependent": "_mv_wordle_stats_2024_recovered",
+      "referenced": "_v_wordle_stats_2024_pivot"
+    },
+    {
+      "dependent": "_mv_wordle_weekly_leaderboard",
+      "referenced": "_v_wordle_weekly_leaderboard"
+    },
+    {
+      "dependent": "_mv_wordle_weekly_leaderboard_legacy",
+      "referenced": "_v_wordle_weekly_leaderboard"
+    },
+    {
+      "dependent": "_mv_wordle_yearly_leaderboard",
+      "referenced": "_v_wordle_yearly_leaderboard"
+    },
+    {
+      "dependent": "_mv_wordle_yearly_leaderboard_legacy",
+      "referenced": "_v_wordle_yearly_leaderboard"
+    },
+    {
+      "dependent": "_v_team_leaderboard",
+      "referenced": "_mv_team_wordle_stats"
+    },
+    {
+      "dependent": "_v_wordle_alltime_leaderboard",
+      "referenced": "_v_wordle_alltime_stats_with_2024_preview"
+    },
+    {
+      "dependent": "_v_wordle_alltime_stats",
+      "referenced": "_mv_wordle_stats_2024"
+    },
+    {
+      "dependent": "_v_wordle_alltime_stats",
+      "referenced": "_v_wordle_yearly_stats"
+    },
+    {
+      "dependent": "_v_wordle_alltime_stats_by_type",
+      "referenced": "_mv_wordle_stats_2024_by_type"
+    },
+    {
+      "dependent": "_v_wordle_alltime_stats_by_type",
+      "referenced": "_v_wordle_yearly_stats_by_type"
+    },
+    {
+      "dependent": "_v_wordle_alltime_stats_with_2024_preview",
+      "referenced": "_v_wordle_alltime_stats"
+    },
+    {
+      "dependent": "_v_wordle_daily_leaderboard",
+      "referenced": "_v_wordle_daily_stats"
+    },
+    {
+      "dependent": "_v_wordle_monthly_leaderboard",
+      "referenced": "_v_wordle_monthly_stats"
+    },
+    {
+      "dependent": "_v_wordle_monthly_stats",
+      "referenced": "_v_wordle_daily_stats"
+    },
+    {
+      "dependent": "_v_wordle_monthly_stats_by_type",
+      "referenced": "_v_wordle_daily_stats_by_type"
+    },
+    {
+      "dependent": "_v_wordle_stats_2024_pivot",
+      "referenced": "_v_wordle_stats_2024_recovered"
+    },
+    {
+      "dependent": "_v_wordle_weekly_leaderboard",
+      "referenced": "_v_wordle_weekly_stats"
+    },
+    {
+      "dependent": "_v_wordle_weekly_stats",
+      "referenced": "_v_wordle_daily_stats"
+    },
+    {
+      "dependent": "_v_wordle_weekly_stats_by_type",
+      "referenced": "_v_wordle_daily_stats_by_type"
+    },
+    {
+      "dependent": "_v_wordle_yearly_leaderboard",
+      "referenced": "_v_wordle_yearly_stats"
+    },
+    {
+      "dependent": "_v_wordle_yearly_stats",
+      "referenced": "_v_wordle_daily_stats"
+    },
+    {
+      "dependent": "_v_wordle_yearly_stats_by_type",
+      "referenced": "_v_wordle_daily_stats_by_type"
+    }
+  ]
+}
