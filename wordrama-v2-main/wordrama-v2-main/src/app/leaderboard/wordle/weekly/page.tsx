@@ -474,6 +474,9 @@ export default function WordleWeeklyLeaderboardPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Word Packs</SelectItem>
+                  <SelectItem value="3 letter">3 Letter</SelectItem>
+                  <SelectItem value="3 letter crazy">3 Letter Crazy</SelectItem>
+                  <SelectItem value="5 letter unhinged">5 Letter Unhinged (18+)</SelectItem>
 
                   <SelectItem value="4 letter">4 Letter</SelectItem>
                   <SelectItem value="5 letter">5 Letter</SelectItem>
