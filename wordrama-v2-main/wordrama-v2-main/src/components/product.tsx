@@ -1,3 +1,6 @@
+'use client'
+
+import { useState } from 'react'
 import { Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -43,6 +46,9 @@ export default function Product({
   isInCart?: boolean
   marketplaceImage?: string
 }) {
+  const isAdultPack = itemId === 'f8436a71-8395-4cb1-9235-5a0d06d32f03'
+  const [adultAcknowledged, setAdultAcknowledged] = useState(false)
+
   return (
     <div className="border-border dark:border-darkBorder dark:bg-darkBg flex flex-col justify-between rounded-base border-2 bg-bg p-5">
       <div>
@@ -73,6 +79,9 @@ export default function Product({
           )}
         </div>
         <p className="mb-3 mt-1">{type === 'AVATAR' ? 'Avatar' : description}</p>
+        {isAdultPack && (
+          <p className="mb-3 font-semibold">NSFW / 18+: Contains profanity, vulgar language, and adult-oriented words.</p>
+        )}
         <div>
           { isCashPrice ? (
             <>
@@ -144,8 +153,20 @@ export default function Product({
           )}
 
           {/* Stripe purchases for eligible products */}
+          {isAdultPack && (
+            <label className="flex items-start gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={adultAcknowledged}
+                onChange={(event) => setAdultAcknowledged(event.target.checked)}
+                className="mt-1"
+              />
+              <span>I confirm that I am at least 18 years old and understand this pack contains adult language.</span>
+            </label>
+          )}
           {hasStripePrice && buyWithStripe && (
             <Button
+              disabled={isAdultPack && !adultAcknowledged}
               variant="neutral"
               size={isPopular ? 'lg' : 'default'}
               className="w-full"
