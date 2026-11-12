@@ -95,7 +95,7 @@ export default function WordleMonthlyLeaderboardPage() {
       label: "3 Letter",
       prefix: "threeLetter",
       columnPrefix: "three_letter",
-      rankColumn: "monthly_rank_3_letter",
+      rankColumn: "monthly_rank_three_letter",
     },
     "3 letter crazy": {
       label: "3 Letter Crazy",
