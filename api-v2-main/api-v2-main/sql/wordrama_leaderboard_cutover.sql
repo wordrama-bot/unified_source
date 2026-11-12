@@ -10,6 +10,11 @@ CREATE TEMP TABLE _wr3_saved_def (name text PRIMARY KEY, definition text NOT NUL
 INSERT INTO _wr3_saved_def VALUES
  ('team',pg_get_viewdef('public._mv_team_wordle_stats'::regclass,true)),
  ('team_view',pg_get_viewdef('public._v_team_leaderboard'::regclass,true));
+CREATE TEMP TABLE _wr3_acl_snapshot (object_name text, grantee text, privilege_type text) ON COMMIT DROP;
+INSERT INTO _wr3_acl_snapshot
+SELECT c.relname,CASE WHEN x.grantee=0 THEN 'PUBLIC' ELSE pg_get_userbyid(x.grantee) END,x.privilege_type
+FROM pg_class c CROSS JOIN LATERAL aclexplode(c.relacl) x
+WHERE c.oid IN ('public._mv_team_wordle_stats'::regclass,'public._v_team_leaderboard'::regclass);
 DO $guard$
 DECLARE p text; n integer;
 BEGIN
@@ -39,18 +44,19 @@ BEGIN
 END $swap$;
 -- Rebind team MV to new public MVs using original SQL, preserving its aggregate logic.
 DO $rebind$
-DECLARE team_sql text; view_sql text;
+DECLARE team_sql text; view_sql text; acl record;
 BEGIN
  SELECT definition INTO team_sql FROM _wr3_saved_def WHERE name='team';
  SELECT definition INTO view_sql FROM _wr3_saved_def WHERE name='team_view';
  EXECUTE 'CREATE MATERIALIZED VIEW public._mv_team_wordle_stats AS '||trim(trailing ';' from trim(team_sql))||' WITH DATA';
  EXECUTE 'CREATE VIEW public._v_team_leaderboard AS '||trim(trailing ';' from trim(view_sql));
- EXECUTE 'REVOKE ALL ON public._mv_team_wordle_stats, public._v_team_leaderboard FROM PUBLIC, anon, authenticated';
- EXECUTE 'GRANT TRUNCATE, REFERENCES, TRIGGER ON public._mv_team_wordle_stats, public._v_team_leaderboard TO anon, authenticated';
- IF current_setting('server_version_num')::integer >= 170000 THEN
-  EXECUTE 'GRANT MAINTAIN ON public._mv_team_wordle_stats, public._v_team_leaderboard TO anon, authenticated';
- END IF;
- EXECUTE 'GRANT ALL ON public._mv_team_wordle_stats, public._v_team_leaderboard TO service_role';
+ FOR acl IN SELECT object_name,grantee,string_agg(privilege_type,',' ORDER BY privilege_type) privileges
+   FROM _wr3_acl_snapshot GROUP BY object_name,grantee LOOP
+  IF acl.object_name='_v_team_leaderboard' OR acl.object_name='_mv_team_wordle_stats' THEN
+   EXECUTE format('GRANT %s ON public.%I TO %s',acl.privileges,acl.object_name,
+     CASE WHEN acl.grantee='PUBLIC' THEN 'PUBLIC' ELSE quote_ident(acl.grantee) END);
+  END IF;
+ END LOOP;
 END $rebind$;
 -- Candidate MVs need unique indexes for concurrent refresh and period lookup.
 DO $indexes$
