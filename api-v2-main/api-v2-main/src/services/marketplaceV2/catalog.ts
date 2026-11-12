@@ -1,8 +1,8 @@
 import type { CatalogItem } from '../../types/marketplaceV2'
 
 export const CATALOG: CatalogItem[] = [
-  // Feature-branch coin checkout for 3-letter packs only. Stripe stays disabled.
-  // Unhinged remains admin-grant-only until adult checkout is implemented.
+  // Launch hold: keep new pack definitions for existing entitlements/admin tests,
+  // but hide all three from public catalog and disable coin/Stripe purchases.
   {
     catalogItemId: 'f8436a71-8395-4cb1-9235-5a0d06d32f01',
     sku: 'WP-3',
@@ -13,7 +13,7 @@ export const CATALOG: CatalogItem[] = [
     stripePriceEnvVar: 'wp_3_letter',
     entitlementKey: 'WORD_PACK:THREE_LETTER',
     entitlementType: 'WORD_PACK',
-    isPurchasable: true,
+    isPurchasable: false,
     isStripePurchasable: false,
   },
   {
@@ -26,7 +26,7 @@ export const CATALOG: CatalogItem[] = [
     stripePriceEnvVar: 'wp_3_letter_crazy',
     entitlementKey: 'WORD_PACK:THREE_LETTER_CRAZY',
     entitlementType: 'WORD_PACK',
-    isPurchasable: true,
+    isPurchasable: false,
     isStripePurchasable: false,
   },
   {
@@ -692,6 +692,8 @@ export function getCatalogItemsByIds(ids: string[]): CatalogItem[] {
   return ids.map(id => map.get(id)).filter(Boolean) as CatalogItem[]
 }
 
+const UNRELEASED_WORD_PACK_SKUS = new Set(['WP-3', 'WP-3-CRAZY', 'WP-5-UNHINGED'])
+
 export function getCatalogItems(): CatalogItem[] {
-  return CATALOG;
+  return CATALOG.filter(item => !UNRELEASED_WORD_PACK_SKUS.has(item.sku))
 }
