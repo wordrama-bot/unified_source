@@ -1,0 +1,47 @@
+-- Execute ONLY after staging rehearsal and explicit production authorization.
+-- One transaction. Existing source game results, rewards and streak tables are untouched.
+-- Requires postgres owner; coordinate refresh jobs and API traffic before execution.
+-- WARNING: _mv_team_wordle_stats is rebuilt WITH DATA and may take time.
+BEGIN;
+SET LOCAL lock_timeout='10s';
+SET LOCAL statement_timeout='15min';
+SET LOCAL search_path=public,pg_catalog;
+CREATE TEMP TABLE _wr3_saved_def (name text PRIMARY KEY, definition text NOT NULL) ON COMMIT DROP;
+INSERT INTO _wr3_saved_def VALUES
+ ('team',pg_get_viewdef('public._mv_team_wordle_stats'::regclass,true)),
+ ('team_view',pg_get_viewdef('public._v_team_leaderboard'::regclass,true));
+DO $guard$
+DECLARE p text; n integer;
+BEGIN
+ IF NOT EXISTS(SELECT 1 FROM pg_class WHERE relnamespace='public'::regnamespace AND relname LIKE '_mv_wordle_%_leaderboard_wr3_backup') THEN RAISE EXCEPTION 'No backups found'; END IF;
+ IF NOT EXISTS(SELECT 1 FROM pg_class WHERE relnamespace='public'::regnamespace AND relname='_mv_team_wordle_stats_wr3_backup') THEN RAISE EXCEPTION 'Team backup missing'; END IF;
+ 
+ FOREACH p IN ARRAY ARRAY['alltime','daily','weekly','monthly','yearly'] LOOP
+  IF to_regclass(format('public._mv_wordle_%s_leaderboard',p)) IS NULL THEN RAISE EXCEPTION 'Missing live %',p; END IF;
+  IF to_regclass(format('wordrama_pack_preview._wr3_%s_leaderboard_independent_mv',p)) IS NULL THEN RAISE EXCEPTION 'Missing candidate %',p; END IF;
+  SELECT count(*) INTO n FROM pg_attribute a JOIN pg_class c ON c.oid=a.attrelid WHERE c.oid=to_regclass(format('wordrama_pack_preview._wr3_%s_leaderboard_independent_mv',p)) AND a.attnum>0 AND NOT a.attisdropped AND a.attname IN (p||'_rank_three_letter',p||'_rank_three_letter_crazy',p||'_rank_five_letter_unhinged');
+  IF n<>3 THEN RAISE EXCEPTION 'Missing rank columns in %',p; END IF;
+ END LOOP;
+ IF (SELECT count(*) FROM pg_index WHERE indrelid='public._mv_team_wordle_stats'::regclass)<>0 THEN RAISE EXCEPTION 'Team indexes require explicit preservation'; END IF;
+ IF EXISTS(SELECT 1 FROM pg_class WHERE oid IN ('public._mv_team_wordle_stats'::regclass,'public._v_team_leaderboard'::regclass) AND relacl IS NOT NULL) THEN RAISE EXCEPTION 'Team grants require explicit preservation'; END IF;
+END $guard$;
+DROP VIEW public._v_team_leaderboard;
+DROP MATERIALIZED VIEW public._mv_team_wordle_stats;
+DO $swap$
+DECLARE p text;
+BEGIN
+ FOREACH p IN ARRAY ARRAY['alltime','daily','weekly','monthly','yearly'] LOOP
+  EXECUTE format('ALTER MATERIALIZED VIEW public.%I RENAME TO %I','_mv_wordle_'||p||'_leaderboard','_wr3_'||p||'_leaderboard_independent_mv');
+  EXECUTE format('ALTER MATERIALIZED VIEW public.%I SET SCHEMA wordrama_pack_preview','_wr3_'||p||'_leaderboard_independent_mv');
+  EXECUTE format('ALTER MATERIALIZED VIEW public.%I RENAME TO %I','_mv_wordle_'||p||'_leaderboard_wr3_backup','_mv_wordle_'||p||'_leaderboard');
+ END LOOP;
+END $swap$;
+ALTER MATERIALIZED VIEW public._mv_team_wordle_stats_wr3_backup RENAME TO _mv_team_wordle_stats;
+DO $rebind$
+DECLARE view_sql text;
+BEGIN
+ SELECT definition INTO view_sql FROM _wr3_saved_def WHERE name='team_view';
+ EXECUTE 'CREATE VIEW public._v_team_leaderboard AS '||view_sql;
+END $rebind$;
+COMMIT;
+-- Restore original RPC with wordrama_leaderboard_streak_page_rollback.sql.
