@@ -204,8 +204,8 @@ export default function AllItemsMarketplacePage() {
   );
 
   const renderProduct = (item: any) => {
-  const isCashPrice = false;
-  const cashPrice = "1";
+  const isStripeOnly = item.purchasableWithMoney && !item.purchasableWithCoins;
+  const isCashPrice = isStripeOnly;
 
   return (
     <Product
@@ -214,8 +214,9 @@ export default function AllItemsMarketplacePage() {
       name={item.name}
       type={item.type}
       description={item.description}
-      price={isCashPrice ? cashPrice : item.coinPrice}
+      price={String(isCashPrice ? item.realPrice : item.coinPrice)}
       isCashPrice={isCashPrice}
+      stripeOnly={isStripeOnly}
       isPurchased={item.isPurchased}
       isUnlockedBySubscription={item.isUnlockedBySubscription}
       subItems={[]}
