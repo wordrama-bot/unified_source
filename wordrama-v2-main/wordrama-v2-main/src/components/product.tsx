@@ -80,7 +80,7 @@ export default function Product({
         </div>
         <p className="mb-3 mt-1">{type === 'AVATAR' ? 'Avatar' : description}</p>
         {isAdultPack && (
-          <p className="mb-3 font-semibold">NSFW / 18+: Contains profanity, vulgar language, and adult-oriented words.</p>
+          <p className="mb-3 font-semibold">NSFW / 18+: Contains profanity, vulgar language, and adult-oriented words. By purchasing this pack, you agree that you are 18 or older.</p>
         )}
         <div>
           { isCashPrice ? (
@@ -161,7 +161,7 @@ export default function Product({
                 onChange={(event) => setAdultAcknowledged(event.target.checked)}
                 className="mt-1"
               />
-              <span>I confirm that I am at least 18 years old and understand this pack contains adult language.</span>
+              <span>I confirm that I am 18 or older and acknowledge the NSFW content warning above.</span>
             </label>
           )}
           {hasStripePrice && buyWithStripe && (
