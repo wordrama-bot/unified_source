@@ -47,9 +47,12 @@ import {
 import { useEffect } from 'react';
 
 const MARKETPLACE_WORD_PACK_SORT_ORDER: { [key: string]: number } = {
-  'ba8671aa-7481-43e5-a1ac-f2b73433a315': 4,
-  '7ed7d3a6-3d07-4603-b9cf-6a6e717b9d1f': 5.5,
-  'b1b96d0e-5b1a-403e-80be-88f3d2bae873': 11.5,
+  'f8436a71-8395-4cb1-9235-5a0d06d32f01': 3,   // 3 Letter Pack
+  'f8436a71-8395-4cb1-9235-5a0d06d32f02': 3.1, // 3 Letter Crazy
+  'ba8671aa-7481-43e5-a1ac-f2b73433a315': 4,   // 4 Letter Pack
+  '7ed7d3a6-3d07-4603-b9cf-6a6e717b9d1f': 5.5, // 5 Letter Crazy
+  'f8436a71-8395-4cb1-9235-5a0d06d32f03': 5.6, // 5 Letter Unhinged (18+)
+  'b1b96d0e-5b1a-403e-80be-88f3d2bae873': 11.5, // 11 Letter Extended
   '7f06b10e-d52a-4ae3-b77f-a7e9a7c5e5fb': 12,
   'b8c73f14-79ad-4495-9fd9-a4be65d5fcbc': 13,
   '3159552d-8c96-4bb5-aafa-ebf36aa5a2c2': 14,
@@ -62,7 +65,7 @@ const MARKETPLACE_WORD_PACK_SORT_ORDER: { [key: string]: number } = {
   '72215e5b-6638-4388-84bc-55dcd36c0e05': 21,
   'db526774-11da-47de-b410-5b47a4168db8': 22,
   'ab14511c-f2ac-4b16-a8ef-7cb8ed61a2cc': 23,
-  '3d3ff93b-65c1-4d36-902e-3a889c71ac86': 999,
+  '3d3ff93b-65c1-4d36-902e-3a889c71ac86': 999, // 12 - 23 Bundle
 };
 
 const MARKETPLACE_THEME_SORT_ORDER: { [key: string]: number } = {

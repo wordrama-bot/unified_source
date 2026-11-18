@@ -1,8 +1,6 @@
 import type { CatalogItem } from '../../types/marketplaceV2'
 
 export const CATALOG: CatalogItem[] = [
-  // Launch hold: keep new pack definitions for existing entitlements/admin tests,
-  // but hide all three from public catalog and disable coin/Stripe purchases.
   {
     catalogItemId: 'f8436a71-8395-4cb1-9235-5a0d06d32f01',
     sku: 'WP-3',
@@ -14,8 +12,8 @@ export const CATALOG: CatalogItem[] = [
     stripePriceEnvVar: 'wp_3_letter',
     entitlementKey: 'WORD_PACK:THREE_LETTER',
     entitlementType: 'WORD_PACK',
-    isPurchasable: false,
-    isStripePurchasable: false,
+    isPurchasable: true,
+    isStripePurchasable: true,
   },
   {
     catalogItemId: 'f8436a71-8395-4cb1-9235-5a0d06d32f02',
@@ -28,8 +26,8 @@ export const CATALOG: CatalogItem[] = [
     stripePriceEnvVar: 'wp_3_letter_crazy',
     entitlementKey: 'WORD_PACK:THREE_LETTER_CRAZY',
     entitlementType: 'WORD_PACK',
-    isPurchasable: false,
-    isStripePurchasable: false,
+    isPurchasable: true,
+    isStripePurchasable: true,
   },
   {
     catalogItemId: 'f8436a71-8395-4cb1-9235-5a0d06d32f03',
@@ -43,7 +41,7 @@ export const CATALOG: CatalogItem[] = [
     entitlementKey: 'WORD_PACK:FIVE_LETTER_UNHINGED',
     entitlementType: 'WORD_PACK',
     isPurchasable: false,
-    isStripePurchasable: false,
+    isStripePurchasable: true,
   },
   {
     catalogItemId: 'ba8671aa-7481-43e5-a1ac-f2b73433a315',
@@ -695,8 +693,6 @@ export function getCatalogItemsByIds(ids: string[]): CatalogItem[] {
   return ids.map(id => map.get(id)).filter(Boolean) as CatalogItem[]
 }
 
-const UNRELEASED_WORD_PACK_SKUS = new Set(['WP-3', 'WP-3-CRAZY', 'WP-5-UNHINGED'])
-
 export function getCatalogItems(): CatalogItem[] {
-  return CATALOG.filter(item => !UNRELEASED_WORD_PACK_SKUS.has(item.sku))
+  return CATALOG
 }

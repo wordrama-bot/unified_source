@@ -190,10 +190,15 @@ async function getStoreItems(playerId: string, filters) {
 
     const purchasedItemSources = await getPurchasedItems(playerId);
     const purchasedItems = Array.from(purchasedItemSources.keys());
+    const catalogById = new Map(CATALOG.map((item) => [item.catalogItemId, item]));
 
     const filteredData = data
       .map((item) => {
         const hasStripePrice = Boolean(STRIPE_ITEM_PRICE_ENV_VARS[item.id]);
+        const catalogItem = catalogById.get(item.id);
+        // New pack images are stored in the app, not the legacy _items image column.
+        const marketplaceImage = item.marketplace_image || catalogItem?.image || null;
+        item = { ...item, marketplace_image: marketplaceImage };
 
         if (purchasedItems.includes(item.id)) {
           return {
@@ -238,7 +243,8 @@ async function getStoreItems(playerId: string, filters) {
         }
 
         if (filters.showPurchased === 'false' && item.isPurchased) return false;
-        if (filters.showUnavailable === 'false' && item.discontinued)
+        if (filters.showUnavailable === 'false' &&
+            (item.discontinued || (!item.purchasable_with_coins && !item.purchasable_with_money && !item.isPurchased && !item.isUnlockedBySubscription)))
           return false;
 
         return true;

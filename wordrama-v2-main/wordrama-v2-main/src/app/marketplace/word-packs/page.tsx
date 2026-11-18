@@ -112,7 +112,7 @@
     const [ gameFilter, setGameFilter ] = useState('ALL');
     const [ itemTypeFilter, setItemTypeFilter ] = useState('WORDLE_WORD_PACK');
     const [ showPurchased, setShowPurchased ] = useState(true);
-    const [ showUnavailable, setShowUnavailable ] = useState(true);
+    const [ showUnavailable, setShowUnavailable ] = useState(false);
     const [ itemsInCart, addItemToCart ] = useState([] as string[]);
     const [ alertTitle, setAlertTitle ] = useState('');
     const [ alertText, setAlertText ] = useState('');
