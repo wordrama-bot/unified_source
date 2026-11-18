@@ -68,11 +68,14 @@ async function getPurchasedItems(playerId: string) {
     const entitlements = await getPlayerEntitlements(playerId);
     const now = Date.now();
 
-    // Map theme entitlement keys to marketplace product IDs.
-    // This covers existing themes and the seven holiday themes.
-    const themeCatalogIdsByEntitlementKey = new Map(
+    // Map theme and word-pack entitlements to marketplace product IDs.
+    const catalogIdsByEntitlementKey = new Map(
       CATALOG
-        .filter((item) => item.entitlementKey.startsWith('THEME:'))
+        .filter(
+          (item) =>
+            item.entitlementKey.startsWith('THEME:') ||
+            item.entitlementKey.startsWith('WORD_PACK:')
+        )
         .map((item) => [item.entitlementKey, item.catalogItemId])
     );
 
@@ -82,7 +85,10 @@ async function getPurchasedItems(playerId: string) {
         if (
           entitlement.status !== 'ACTIVE' ||
           entitlement.source_type !== 'ADMIN' ||
-          !entitlement.entitlement_key?.startsWith('THEME:') ||
+          !(
+            entitlement.entitlement_key?.startsWith('THEME:') ||
+            entitlement.entitlement_key?.startsWith('WORD_PACK:')
+          ) ||
           entitlement.revoked_at
         ) {
           return false;
@@ -102,7 +108,7 @@ async function getPurchasedItems(playerId: string) {
         );
       })
       .forEach((entitlement: any) => {
-        const catalogItemId = themeCatalogIdsByEntitlementKey.get(
+        const catalogItemId = catalogIdsByEntitlementKey.get(
           entitlement.entitlement_key
         );
 
