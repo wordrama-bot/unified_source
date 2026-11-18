@@ -348,7 +348,7 @@
                     <Product
                       key={item.id}
                       stripeOnly={isUnhinged}
-                      isComingSoon={!item.isPurchased && (item.id === 'f8436a71-8395-4cb1-9235-5a0d06d32f03' || (['f8436a71-8395-4cb1-9235-5a0d06d32f01', 'f8436a71-8395-4cb1-9235-5a0d06d32f02'].includes(item.id) && (item.discontinued || !item.purchasableWithCoins)))}
+                      isComingSoon={!item.isPurchased && (isUnhinged || isNewThreeLetterPack) && (item.discontinued || (isUnhinged ? !item.purchasableWithMoney : (!item.purchasableWithCoins && !item.purchasableWithMoney)))}
                       itemId={item.id}
                       name={item.name}
                       type={item.type}
