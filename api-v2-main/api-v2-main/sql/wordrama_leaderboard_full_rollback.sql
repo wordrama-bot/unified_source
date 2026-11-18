@@ -46,7 +46,7 @@ DO $rebind$
 DECLARE view_sql text; acl record;
 BEGIN
  SELECT definition INTO view_sql FROM _wr3_saved_def WHERE name='team_view';
- EXECUTE 'CREATE VIEW public._v_team_leaderboard AS '||trim(trailing ';' from trim(view_sql));
+ EXECUTE 'CREATE VIEW public._v_team_leaderboard WITH (security_invoker = true) AS '||trim(trailing ';' from trim(view_sql));
  FOR acl IN SELECT object_name,grantee,string_agg(privilege_type,',' ORDER BY privilege_type) privileges
    FROM _wr3_acl_snapshot GROUP BY object_name,grantee LOOP
   IF acl.object_name='_v_team_leaderboard' THEN

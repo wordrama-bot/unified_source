@@ -52,7 +52,7 @@ BEGIN
  SELECT definition INTO team_sql FROM _wr3_saved_def WHERE name='team';
  SELECT definition INTO view_sql FROM _wr3_saved_def WHERE name='team_view';
  EXECUTE 'CREATE MATERIALIZED VIEW public._mv_team_wordle_stats AS '||trim(trailing ';' from trim(team_sql))||' WITH DATA';
- EXECUTE 'CREATE VIEW public._v_team_leaderboard AS '||trim(trailing ';' from trim(view_sql));
+ EXECUTE 'CREATE VIEW public._v_team_leaderboard WITH (security_invoker = true) AS '||trim(trailing ';' from trim(view_sql));
  FOR acl IN SELECT object_name,grantee,string_agg(privilege_type,',' ORDER BY privilege_type) privileges
    FROM _wr3_acl_snapshot GROUP BY object_name,grantee LOOP
   IF acl.object_name='_v_team_leaderboard' OR acl.object_name='_mv_team_wordle_stats' OR acl.object_name LIKE '_mv_wordle_%_leaderboard' THEN
