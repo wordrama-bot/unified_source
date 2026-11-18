@@ -1,6 +1,50 @@
 import type { CatalogItem } from '../../types/marketplaceV2'
 
 export const CATALOG: CatalogItem[] = [
+  // Launch hold: keep new pack definitions for existing entitlements/admin tests,
+  // but hide all three from public catalog and disable coin/Stripe purchases.
+  {
+    catalogItemId: 'f8436a71-8395-4cb1-9235-5a0d06d32f01',
+    sku: 'WP-3',
+    itemType: 'WORD_PACK',
+    image: '/images/word-packs/3-letter.png',
+    itemName: '3 Letter Pack',
+    priceCoins: 1000,
+    priceUsdCents: 99,
+    stripePriceEnvVar: 'wp_3_letter',
+    entitlementKey: 'WORD_PACK:THREE_LETTER',
+    entitlementType: 'WORD_PACK',
+    isPurchasable: false,
+    isStripePurchasable: false,
+  },
+  {
+    catalogItemId: 'f8436a71-8395-4cb1-9235-5a0d06d32f02',
+    sku: 'WP-3-CRAZY',
+    itemType: 'WORD_PACK',
+    image: '/images/word-packs/3-letter-crazy.png',
+    itemName: '3 Letter Crazy',
+    priceCoins: 1000,
+    priceUsdCents: 99,
+    stripePriceEnvVar: 'wp_3_letter_crazy',
+    entitlementKey: 'WORD_PACK:THREE_LETTER_CRAZY',
+    entitlementType: 'WORD_PACK',
+    isPurchasable: false,
+    isStripePurchasable: false,
+  },
+  {
+    catalogItemId: 'f8436a71-8395-4cb1-9235-5a0d06d32f03',
+    sku: 'WP-5-UNHINGED',
+    itemType: 'WORD_PACK',
+    image: '/images/word-packs/5-letter-unhinged.png',
+    itemName: '5 Letter Unhinged (18+)',
+    priceCoins: 0,
+    priceUsdCents: 299,
+    stripePriceEnvVar: 'wp_5_letter_unhinged',
+    entitlementKey: 'WORD_PACK:FIVE_LETTER_UNHINGED',
+    entitlementType: 'WORD_PACK',
+    isPurchasable: false,
+    isStripePurchasable: false,
+  },
   {
     catalogItemId: 'ba8671aa-7481-43e5-a1ac-f2b73433a315',
     sku: 'WP-4',
@@ -651,6 +695,8 @@ export function getCatalogItemsByIds(ids: string[]): CatalogItem[] {
   return ids.map(id => map.get(id)).filter(Boolean) as CatalogItem[]
 }
 
+const UNRELEASED_WORD_PACK_SKUS = new Set(['WP-3', 'WP-3-CRAZY', 'WP-5-UNHINGED'])
+
 export function getCatalogItems(): CatalogItem[] {
-  return CATALOG;
+  return CATALOG.filter(item => !UNRELEASED_WORD_PACK_SKUS.has(item.sku))
 }

@@ -93,6 +93,24 @@ export default function WordleAllTimeLeaderboardPage() {
       columnPrefix: "",
       rankColumn: "alltime_rank",
     },
+    "3 letter": {
+      label: "3 Letter",
+      prefix: "threeLetter",
+      columnPrefix: "three_letter",
+      rankColumn: "alltime_rank_three_letter",
+    },
+    "3 letter crazy": {
+      label: "3 Letter Crazy",
+      prefix: "threeLetterCrazy",
+      columnPrefix: "three_letter_crazy",
+      rankColumn: "alltime_rank_three_letter_crazy",
+    },
+    "5 letter unhinged": {
+      label: "5 Letter Unhinged (18+)",
+      prefix: "fiveLetterUnhinged",
+      columnPrefix: "five_letter_unhinged",
+      rankColumn: "alltime_rank_five_letter_unhinged",
+    },
     "4 letter": {
       label: "4 Letter",
       prefix: "fourLetter",
@@ -473,6 +491,9 @@ export default function WordleAllTimeLeaderboardPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Word Packs</SelectItem>
+                  <SelectItem value="3 letter">3 Letter</SelectItem>
+                  <SelectItem value="3 letter crazy">3 Letter Crazy</SelectItem>
+                  <SelectItem value="5 letter unhinged">5 Letter Unhinged (18+)</SelectItem>
 
                   <SelectItem value="4 letter">4 Letter</SelectItem>
                   <SelectItem value="5 letter">5 Letter</SelectItem>

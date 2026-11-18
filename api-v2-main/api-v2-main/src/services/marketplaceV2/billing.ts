@@ -8,6 +8,7 @@ import { SUBSCRIPTIONS } from '../../config/subscriptions';
 import { SUBSCRIPTION_ENTITLEMENTS } from '../../config/subscriptionEntitlements';
 import { getPlayerEntitlements } from './entitlements';
 import { CATALOG } from './catalog';
+import { isPlannedPackEntitlementGrantAllowed } from './plannedWordPackPolicy';
 import { randomUUID } from 'node:crypto';
 import { HOLIDAY_THEME_BUNDLE } from '../../config/holidayThemeBundle';
 
@@ -144,6 +145,10 @@ async function processStripePurchase({
 
   if (!catalogItem) {
     return { error: 'Invalid catalog item for Stripe purchase' };
+  }
+
+  if (!isPlannedPackEntitlementGrantAllowed(catalogItem.entitlementKey)) {
+    return { error: 'This word pack is not yet available' };
   }
 
   const { data: existingEntitlement, error: ownershipError } =
@@ -302,6 +307,16 @@ export async function createItemCheckoutSession(
     return { error: 'Invalid catalog item' };
   }
 
+  if (!isPlannedPackEntitlementGrantAllowed(catalogItem.entitlementKey)) {
+    return { error: 'This word pack is not yet available' };
+  }
+
+  // Never permit direct checkout of catalog items that are not Stripe-enabled.
+  // This also protects staged word packs until their launch is authorized.
+  if (catalogItem.isStripePurchasable !== true) {
+    return { error: 'This item is not available for card purchase' };
+  }
+
   // Holiday collection: enforce Stripe-only availability
   // and staging restrictions without changing existing items.
   const isHolidayProduct =
@@ -443,8 +458,7 @@ export async function createItemCheckoutSession(
     itemId === HOLIDAY_THEME_BUNDLE.catalogItemId ||
     catalogItem.itemType === 'THEME'
       ? '/marketplace/themes'
-      : catalogItem.itemType === 'WORDLE_WORD_PACK' ||
-          catalogItem.itemType === 'WORD_PACK'
+      : catalogItem.itemType === 'WORD_PACK'
         ? '/marketplace/word-packs'
         : '/marketplace/all-items';
 
@@ -662,10 +676,12 @@ async function syncSubscriptionEntitlements(subscription: any) {
     };
   }
 
-  const subscriptionEntitlementKeys: readonly string[] =
+  // Keep unreleased packs out of direct subscription entitlement inserts.
+  const subscriptionEntitlementKeys: readonly string[] = (
     SUBSCRIPTION_ENTITLEMENTS[
       subscription.subscription_key as keyof typeof SUBSCRIPTION_ENTITLEMENTS
-    ] ?? [];
+    ] ?? []
+  ).filter(isPlannedPackEntitlementGrantAllowed);
 
   const catalogEntitlementKeys = new Set(
     CATALOG.map((item) => item.entitlementKey),

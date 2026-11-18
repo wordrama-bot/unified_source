@@ -92,6 +92,24 @@ export default function WordleWeeklyLeaderboardPage() {
       columnPrefix: "",
       rankColumn: "weekly_rank",
     },
+    "3 letter": {
+      label: "3 Letter",
+      prefix: "threeLetter",
+      columnPrefix: "three_letter",
+      rankColumn: "weekly_rank_three_letter",
+    },
+    "3 letter crazy": {
+      label: "3 Letter Crazy",
+      prefix: "threeLetterCrazy",
+      columnPrefix: "three_letter_crazy",
+      rankColumn: "weekly_rank_three_letter_crazy",
+    },
+    "5 letter unhinged": {
+      label: "5 Letter Unhinged (18+)",
+      prefix: "fiveLetterUnhinged",
+      columnPrefix: "five_letter_unhinged",
+      rankColumn: "weekly_rank_five_letter_unhinged",
+    },
     "4 letter": {
       label: "4 Letter",
       prefix: "fourLetter",
@@ -385,7 +403,7 @@ export default function WordleWeeklyLeaderboardPage() {
                         </div>
                         <div className="mt-2 text-sm text-muted-foreground">
                           <p>Wins: { prefix ? player[`${prefix}GamesWon`] : player.gamesWon  } | Losses: { prefix ? player[`${prefix}GamesLost`] : player.gamesLost  }</p>
-                          <p>Best Streak: {prefix ? player[`bestStreak${prefix}`] : player.weeklyBestStreak}</p>
+                          <p>Best Streak: {prefix ? player[`${prefix}BestStreak`] : player.weeklyBestStreak}</p>
                         </div>
                       </CardContent>
                     </HoverCardTrigger>
@@ -456,6 +474,9 @@ export default function WordleWeeklyLeaderboardPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Word Packs</SelectItem>
+                  <SelectItem value="3 letter">3 Letter</SelectItem>
+                  <SelectItem value="3 letter crazy">3 Letter Crazy</SelectItem>
+                  <SelectItem value="5 letter unhinged">5 Letter Unhinged (18+)</SelectItem>
 
                   <SelectItem value="4 letter">4 Letter</SelectItem>
                   <SelectItem value="5 letter">5 Letter</SelectItem>
