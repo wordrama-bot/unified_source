@@ -1,4 +1,4 @@
-import {
+﻿import {
   CircleUser, Menu, Coins, Trophy
 } from "lucide-react";
 import Link from "next/link";
@@ -44,7 +44,7 @@ export default function NavBar({
   } = useMarketplaceAccess();
   const upgradeLabel =
     isCreator
-      ? "Creator ✓"
+      ? "Creator \u2713"
       : isPlus
         ? "Upgrade to Creator"
         : "Upgrade";
@@ -176,6 +176,26 @@ export default function NavBar({
               How to Play
             </Link>
             <Link
+              href="/academy"
+              className={
+                themeClassName
+                  ? "text-current hover:underline"
+                  : "text-muted-foreground hover:text-foreground"
+              }
+            >
+              Wordrama Academy
+            </Link>
+            <Link
+              href="/whats-new"
+              className={
+                themeClassName
+                  ? "text-current hover:underline"
+                  : "text-muted-foreground hover:text-foreground"
+              }
+            >
+              What's New
+            </Link>
+            <Link
               href="/wordle-strategy"
               className={
                 themeClassName
@@ -286,7 +306,7 @@ export default function NavBar({
           <div className="ml-0 sm:ml-2">
             <Button onClick={handleUpgradeClick}>
               <span className="sm:hidden">
-                {isCreator ? "Creator ✓" : "Upgrade"}
+                {isCreator ? "Creator \u2713" : "Upgrade"}
               </span>
               <span className="hidden sm:inline">
                 {upgradeLabel}

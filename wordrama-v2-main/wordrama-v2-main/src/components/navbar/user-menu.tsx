@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 import {
   DropdownMenuContent,
   DropdownMenuItem,
@@ -100,6 +100,16 @@ export default function UserMenu({
                   <Link href="/how-to-play">
                     <DropdownMenuItem>
                       How to Play
+                    </DropdownMenuItem>
+                  </Link>
+                  <Link href="/academy">
+                    <DropdownMenuItem>
+                      Wordrama Academy
+                    </DropdownMenuItem>
+                  </Link>
+                  <Link href="/whats-new">
+                    <DropdownMenuItem>
+                      What's New
                     </DropdownMenuItem>
                   </Link>
                   <Link href="/wordle-strategy">

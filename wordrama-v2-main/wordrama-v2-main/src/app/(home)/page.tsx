@@ -1,4 +1,5 @@
-"use client"
+﻿"use client"
+import DiscoverWordrama from '@/sections/discover-wordrama';
 import { useAuth } from '@/providers/auth-provider';
 import Features from '@/sections/features';
 import { ThemeSwitcher } from '@/components/theme-switcher';
@@ -39,7 +40,7 @@ import GoogleAd from "@/components/GoogleAd";
 //       <Header
 //         ctaLink='/free-play'
 //         ctaText='Play Now! 🎮'
-//         heroText='Play 🕹️ Challenge 🏆 Level Up 📈'
+//         heroText='Play 🕹 Challenge 🏆 Level Up 📈'
 //         showSocialIcons={true}
 //       />
 //       <Features />
@@ -101,14 +102,14 @@ function PublicHome() {
 
               <section className="my-8  flex flex-col items-center justify-center">
                 <h2 className="text-2xl font-semibold">Wordrama is the ultimate word-guessing site!</h2>
-                <p className="mt-2 text-center">While we’re not affiliated with the original Wordle, we bring a fresh take by implementing exciting features like cross-device stats, streaks, 4-23 letter word packs, leaderboards, a friends system, a leveling system, and even streamer teams. With many TikTok streamers already on our platform, Wordrama offers a unique and social twist on the classic game you know and love.</p>
-                <p className="mt-4 text-center">Playing Wordrama is easy to start but endlessly rewarding. For each game, you’ll see a word of a chosen length, and your goal is to guess it. With each attempt, feedback is provided such as, letters that are in the correct position light up in green, letters that are part of the word but in the wrong position turn yellow, and incorrect letters are greyed out. This hint-based system helps you narrow down the word with each guess. We also offer a color blind mode to ensure inclusion for everyone!</p>
+                <p className="mt-2 text-center">While we're not affiliated with the original Wordle, we bring a fresh take by implementing exciting features like cross-device stats, streaks, 4-23 letter word packs, leaderboards, a friends system, a leveling system, and even streamer teams. With many TikTok streamers already on our platform, Wordrama offers a unique and social twist on the classic game you know and love.</p>
+                <p className="mt-4 text-center">Playing Wordrama is easy to start but endlessly rewarding. For each game, you'll see a word of a chosen length, and your goal is to guess it. With each attempt, feedback is provided such as, letters that are in the correct position light up in green, letters that are part of the word but in the wrong position turn yellow, and incorrect letters are greyed out. This hint-based system helps you narrow down the word with each guess. We also offer a color blind mode to ensure inclusion for everyone!</p>
               </section>
 
               <section className="my-8  flex flex-col items-center justify-center">
                 <h2 className="text-2xl font-semibold">How is Wordrama different from all the other Wordle websites?</h2>
-                <p className="mt-2 text-center">With Wordrama’s tracking features, each game won builds your streak and boosts your level. You can monitor your stats across devices, climb up the leaderboard, and compare your skills with friends and the global community. Our friends system lets you play alongside others, whilst streamer teams give you a chance to connect with and compete alongside your favorite TikTok creators. From daily challenges to custom games, Wordrama has a mode for every player.</p>
-                <p className="mt-2 text-center">Ready to dive in? Whether you’re looking to improve your skills, challenge friends, or explore unique word packs, Wordrama brings you a fun, social experience that reimagines the classic word game.</p>
+                <p className="mt-2 text-center">With Wordrama's tracking features, each game won builds your streak and boosts your level. You can monitor your stats across devices, climb up the leaderboard, and compare your skills with friends and the global community. Our friends system lets you play alongside others, whilst streamer teams give you a chance to connect with and compete alongside your favorite TikTok creators. From daily challenges to custom games, Wordrama has a mode for every player.</p>
+                <p className="mt-2 text-center">Ready to dive in? Whether you're looking to improve your skills, challenge friends, or explore unique word packs, Wordrama brings you a fun, social experience that reimagines the classic word game.</p>
               </section>
 
               <section className="my-8  flex flex-col items-center justify-center">
@@ -117,7 +118,7 @@ function PublicHome() {
 
                   <p className="mt-2 text-center">With each attempt, you receive valuable feedback through a color-coding system:</p>
                   <ul className="mt-2 list-disc list-inside text-center">
-                      <li className="mt-2"><strong className='text-green-400'>Green:</strong> Letters that are in the correct position are highlighted in green. This indicates that you’ve guessed that letter correctly and placed it in the right spot.</li>
+                      <li className="mt-2"><strong className='text-green-400'>Green:</strong> Letters that are in the correct position are highlighted in green. This indicates that you've guessed that letter correctly and placed it in the right spot.</li>
                       <li className="mt-2"><strong className='text-yellow-300'>Yellow:</strong> Letters that are part of the word but in the wrong position are marked in yellow. This tells you that the letter is in the word, but you need to find its correct placement.</li>
                       <li className="mt-2"><strong className='text-slate-300'>Grey:</strong> Incorrect letters are greyed out, meaning they are not part of the word at all. Use this information to eliminate possibilities and refine your guesses.</li>
                   </ul>
@@ -126,7 +127,7 @@ function PublicHome() {
 
                   <p className="mt-2">Utilize these hints strategically to narrow down your guesses and identify the word before you run out of attempts!</p>
 
-                  <p className="mt-2 text-center">In daily mode, all players tackle the same word each day, creating an environment of friendly competition. If you’re looking to practice, you can also explore unlimited mode to hone your skills or try custom word packs for a tailored challenge.</p>
+                  <p className="mt-2 text-center">In daily mode, all players tackle the same word each day, creating an environment of friendly competition. If you're looking to practice, you can also explore unlimited mode to hone your skills or try custom word packs for a tailored challenge.</p>
               </section>
 
               <section className="my-8 flex flex-col items-center justify-center">
@@ -226,7 +227,7 @@ function PublicHome() {
                     <h3 className="text-xl font-semibold">About Wordrama</h3>
 
                     <p className="mt-3 text-sm text-gray-700 dark:text-gray-100">
-                      Learn about Wordrama’s mission, features, educational approach,
+                      Learn about Wordrama's mission, features, educational approach,
                       and community-focused word game experience.
                     </p>
                   </Link>
@@ -336,8 +337,8 @@ function PublicHome() {
 
               <section className="my-8 flex flex-col items-center justify-center">
                 <h2 className="text-2xl font-semibold">Join the Wordrama Community</h2>
-                <p className="mt-2 text-center">Wordrama isn’t just a game; it’s a growing community of word lovers and puzzle enthusiasts. Compete with friends, form or join streamer teams, and meet new people through your shared passion for wordplay. With a dedicated leaderboard, you can see how you rank against others, push your skills, and enjoy friendly rivalries. Our unique leveling system keeps track of your achievements and rewards you as you improve, adding a sense of accomplishment and growth to each win.</p>
-                <p className="mt-2 text-center">Whether you’re a casual player or a seasoned word puzzle enthusiast, Wordrama is here to provide hours of challenging, engaging, and social gameplay that’s fun for all ages. Start playing today, and see how Wordrama redefines the word puzzle experience!</p>
+                <p className="mt-2 text-center">Wordrama isn't just a game; it's a growing community of word lovers and puzzle enthusiasts. Compete with friends, form or join streamer teams, and meet new people through your shared passion for wordplay. With a dedicated leaderboard, you can see how you rank against others, push your skills, and enjoy friendly rivalries. Our unique leveling system keeps track of your achievements and rewards you as you improve, adding a sense of accomplishment and growth to each win.</p>
+                <p className="mt-2 text-center">Whether you're a casual player or a seasoned word puzzle enthusiast, Wordrama is here to provide hours of challenging, engaging, and social gameplay that's fun for all ages. Start playing today, and see how Wordrama redefines the word puzzle experience!</p>
               </section>
 
           </div>
@@ -439,6 +440,7 @@ function AuthenticatedHome() {
           text: 'Upgrade to Casual or Pro/Streamer',
           } */]}
       />
+      <DiscoverWordrama />
       <Footer />
     </div>
   )

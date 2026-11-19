@@ -1,4 +1,4 @@
-/** @type {import('next-sitemap').IConfig} */
+﻿/** @type {import('next-sitemap').IConfig} */
 
 module.exports = {
   siteUrl: 'https://wordrama.io',
@@ -25,6 +25,14 @@ module.exports = {
     }
   },
   additionalPaths: async (config) => [
+    await config.transform(config, '/academy'),
+    await config.transform(config, '/academy/getting-started'),
+    await config.transform(config, '/academy/coins-xp-rewards'),
+    await config.transform(config, '/academy/marketplace'),
+    await config.transform(config, '/academy/customization'),
+    await config.transform(config, '/academy/friends-teams-custom-games'),
+    await config.transform(config, '/academy/achievements-leaderboards'),
+    await config.transform(config, '/academy/plus-creator'),
     await config.transform(config, '/'),
     await config.transform(config, '/about'),
     await config.transform(config, '/acceptable-use'),
@@ -37,6 +45,9 @@ module.exports = {
     await config.transform(config, '/free-play'),
     await config.transform(config, '/games/wordrama'),
     await config.transform(config, '/how-to-play'),
+    await config.transform(config, '/whats-new'),
+    await config.transform(config, '/whats-new/2026'),
+    await config.transform(config, '/whats-new/2026/welcome-to-whats-new'),
     await config.transform(config, '/marketplace'),
     await config.transform(config, '/marketplace/word-packs'),
     await config.transform(config, '/privacy-policy'),

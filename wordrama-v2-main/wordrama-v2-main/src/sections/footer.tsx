@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Image from "next/image";
 import Link from "next/link";
@@ -12,7 +12,7 @@ export default function Footer({
         themeClassName ?? "bg-bg text-text dark:bg-darkBg dark:text-darkText"
       }`}
     >
-      <p>© 2023-{new Date().getFullYear()} Wordrama. All rights reserved.</p>
+      <p>&copy; 2023-{new Date().getFullYear()} Wordrama. All rights reserved.</p>
 
       <div className="mt-6 grid gap-6 md:grid-cols-3">
         <div>
@@ -27,6 +27,8 @@ export default function Footer({
           <h2 className="font-semibold">Tutorials</h2>
           <div className="mt-3 flex flex-col gap-2">
             <Link className="hover:underline" href="/how-to-play">How to Play</Link>
+            <Link className="hover:underline" href="/academy">Wordrama Academy</Link>
+            <Link className="hover:underline" href="/whats-new">What's New</Link>
             <Link className="hover:underline" href="/wordle-strategy">Wordle Strategy</Link>
             <Link className="hover:underline" href="/best-starting-words">Best Starting Words</Link>
             <Link className="hover:underline" href="/wordle-tips">Wordle Tips</Link>
