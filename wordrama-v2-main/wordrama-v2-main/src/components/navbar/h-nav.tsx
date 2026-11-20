@@ -63,7 +63,7 @@ export default function NavBar({
 
   return (
     <header
-      className={`sticky top-0 flex h-16 items-center gap-4 border-b px-4 md:px-6 ${
+      className={`sticky top-0 z-50 flex h-16 items-center gap-4 border-b px-4 md:px-6 ${
         themeClassName ??
         "bg-bg dark:bg-darkBg text-text dark:text-darkText dark:border-darkBorder"
       }`}
@@ -193,7 +193,7 @@ export default function NavBar({
                   : "text-muted-foreground hover:text-foreground"
               }
             >
-              What's New
+              What&apos;s New
             </Link>
             <Link
               href="/wordle-strategy"
