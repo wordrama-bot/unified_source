@@ -2571,7 +2571,9 @@ const activeSolution = isCustom
                         onValueChange={(value) => {
                           if (!myWordPacks?.data?.includes(value)) {
                             setRequestedLockedWordPack(
-                              wordleWordPackConfig.friendlyNameByName[value] || value
+                              wordleWordPackConfig.friendlyNameByName[
+                                value as keyof typeof wordleWordPackConfig.friendlyNameByName
+                              ] || value
                             );
                             setOpenSettingsSelect(null);
                             setIsSettingsModalOpen(false);
@@ -2614,7 +2616,9 @@ const activeSolution = isCustom
                                     value={pack}
                                     className={!isOwned ? "opacity-50" : ""}
                                   >
-                                    {wordleWordPackConfig.friendlyNameByName[pack] || pack}
+                                    {wordleWordPackConfig.friendlyNameByName[
+                                      pack as keyof typeof wordleWordPackConfig.friendlyNameByName
+                                    ] || pack}
                                     {!isOwned && " 🔒"}
                                   </SelectItem>
                                 );
