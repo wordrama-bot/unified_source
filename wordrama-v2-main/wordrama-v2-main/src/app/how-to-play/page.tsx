@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 import Link from "next/link";
 import PublicNav from '@/components/navbar/public-nav';
 import Footer from '@/sections/footer';
@@ -43,15 +43,15 @@ export default function HowToPlayPage() {
         <h2 className="text-2xl font-semibold mt-8">Tile Colors Explained</h2>
 
         <ul className="list-disc ml-8 mt-4">
-          <li><strong>Green</strong> — correct letter in the correct position</li>
-          <li><strong>Yellow</strong> — correct letter in the wrong position</li>
-          <li><strong>Gray</strong> — letter is not in the word</li>
+          <li><strong>Green</strong> - correct letter in the correct position</li>
+          <li><strong>Yellow</strong> - correct letter in the wrong position</li>
+          <li><strong>Gray</strong> - letter is not in the word</li>
         </ul>
 
         <h2 className="text-2xl font-semibold mt-8">Wordrama Features</h2>
 
         <ul className="list-disc ml-8 mt-4">
-          <li>Multiple word lengths (4–23 letters)</li>
+          <li>Multiple word lengths (4-23 letters)</li>
           <li>Unlimited practice mode</li>
           <li>Daily challenges</li>
           <li>Leaderboards and achievements</li>
@@ -62,6 +62,22 @@ export default function HowToPlayPage() {
           you can solve.
         </p>
 
+        <div className="mt-10 rounded-base border-2 border-border p-6 dark:border-darkBorder">
+          <h2 className="text-2xl font-semibold">
+            Want to Learn Everything Wordrama Offers?
+          </h2>
+          <p className="mt-3">
+            Visit Wordrama Academy to discover coins, rewards,
+            word packs, themes, teams, achievements,
+            and subscription features.
+          </p>
+          <Link
+            href="/academy"
+            className="mt-5 inline-block rounded-base border-2 border-border px-5 py-3 font-semibold hover:underline dark:border-darkBorder"
+          >
+            Explore Wordrama Academy
+          </Link>
+        </div>
         <section className="mx-auto mt-14 w-full max-w-5xl rounded-2xl border border-gray-300 p-6 dark:border-white/10 dark:bg-white/5">
           <h2 className="text-2xl font-semibold">
             Continue Learning

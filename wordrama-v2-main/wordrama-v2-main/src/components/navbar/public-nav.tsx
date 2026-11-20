@@ -13,6 +13,8 @@ import { showChristmas } from "@/lib/config";
 
 const tutorialLinks = [
   { href: "/how-to-play", text: "How to Play" },
+  { href: "/academy", text: "Wordrama Academy" },
+  { href: "/whats-new", text: "What's New" },
   { href: "/wordle-strategy", text: "Wordle Strategy" },
   { href: "/best-starting-words", text: "Best Starting Words" },
   { href: "/wordle-tips", text: "Wordle Tips" },

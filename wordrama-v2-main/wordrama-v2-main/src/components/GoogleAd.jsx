@@ -12,9 +12,10 @@ const GoogleAd = ({
   const adRef = useRef(null);
   const initializedRef = useRef(false);
   const [isUnfilled, setIsUnfilled] = useState(false);
+  const isDevelopment = process.env.NODE_ENV === "development";
 
   useEffect(() => {
-    if (!adRef.current || initializedRef.current) return;
+    if (isDevelopment || !adRef.current || initializedRef.current) return;
 
     const observer = new MutationObserver(() => {
       if (adRef.current?.getAttribute("data-ad-status") === "unfilled") {
@@ -36,9 +37,9 @@ const GoogleAd = ({
     }
 
     return () => observer.disconnect();
-  }, []);
+  }, [isDevelopment]);
 
-  if (isUnfilled) return null;
+  if (isDevelopment || isUnfilled) return null;
 
   return (
     <div

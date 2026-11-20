@@ -6,44 +6,46 @@ import {
   useGetCurrentSubscriptionQuery,
 } from '@/redux/api/wordrama';
 
+
 export const plans = {
   FREE: {
     planName: "Free",
-    description: "Available to everyone with a registered account",
+    description: "Jump into Wordrama, challenge yourself, and compete with other players. No subscription required.",
     price: "0.00",
     perks: [
       "Custom username",
-      "5-11 letter word packs"
-    ]
+      "Standard 5-11 letter word packs",
+      "Daily and Infinite gameplay",
+      "Achievements and leaderboards",
+      "Earn coins and XP through gameplay",
+    ],
   },
 
   PLUS: {
     planName: "Plus",
-    description: "Perfect for wordle lovers of all ages and skill levels",
+    description: "Take your Wordrama experience further with more word packs, more customization, and more ways to play.",
     price: "2.99",
     perks: [
-      "Custom username",
-      "All word packs (4-23)",
-      "Premium themes",
-      "Join multiple teams"
-    ]
+      "Everything in Free",
+      "Eligible 3-23 letter word packs",
+      "Eligible premium appearance themes",
+      "A PLUS badge next to your name on the global leaderboard",
+      "The ability to join multiple teams",
+    ],
   },
-  
+
   CREATOR: {
     planName: "Creator",
-    description: "Best for streamers, educators, community leaders, and hardcore wordle fans",
+    description: "The ultimate Wordrama membership for streamers, community builders, and players who want even more.",
     price: "4.99",
     perks: [
-      "Custom username",
-      "All word packs (4-23)",
-      "Premium themes",
-      "Create a team",
-      "Join multiple teams",
-      "Avatars (Coming Soon!)",
-      "Future creator features"
-    ]
-  }
-}
+      "Everything in Plus",
+      "The ability to create and manage your own team",
+      "Your PLUS badge is upgraded to CREATOR on the leaderboard",
+      "Access to future Creator-specific features as released",
+    ],
+  },
+};
 
 export function PricingSection() {
   const [createCheckoutSession, { isLoading }] =
@@ -138,6 +140,11 @@ export function PricingSection() {
             />
           ))}
         </div>
+        <p className="mx-auto mt-8 max-w-3xl text-center text-sm text-text/75 dark:text-darkText/75">
+          Subscription benefits apply to eligible content only.
+          Certain specialty word packs and themes may be sold separately.
+          Individual Marketplace purchases may also be available without a subscription.
+        </p>
       </div>
     </section>
   )

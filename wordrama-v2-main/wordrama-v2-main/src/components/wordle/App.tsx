@@ -16,6 +16,7 @@ import { getAppearanceTheme } from '@/config/themes';
 import { appearanceThemes } from '@/config/themes';
 import { KEYBOARD_STYLES, KEYBOARD_STYLE_IDS } from '@/config/keyboardStyles';
 import { InfoModal } from './components/modals/InfoModal'
+import GameplayHelpMenu from "./components/GameplayHelpMenu";
 import Loader, { Loading } from '../../sections/loading';
 import {
   Tooltip,
@@ -936,6 +937,10 @@ const activeSolution = isCustom
 
   // Local State
   const [gameLoading, setGameLoading] = useState(true);
+  const [pendingLockedTheme, setPendingLockedTheme] = useState<string | null>(null);
+  const [requestedLockedTheme, setRequestedLockedTheme] = useState<string | null>(null);
+  const [requestedLockedWordPack, setRequestedLockedWordPack] = useState<string | null>(null);
+  const [pendingLockedWordPack, setPendingLockedWordPack] = useState<string | null>(null);
   const [isUpdatingRemoteState, setUpdatingRemoteState] = useState(false);
   const [currentRowClass, setCurrentRowClass] = useState('');
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false)
@@ -2465,8 +2470,17 @@ const activeSolution = isCustom
           christmasEnabled={showChristmas}
         />
         <div className="flex min-h-full flex-col">
+          {/* Gameplay Help */}
+          <GameplayHelpMenu
+            buttonClassName={gameActionButtonThemeClasses}
+            panelClassName={appearanceTheme.app.panel}
+            titleClassName={appearanceTheme.modal.title}
+            backgroundColor={gamePageBackgroundColor}
+            textColor={gamePanelTextColor}
+            isCustom={isCustom}
+          />
           {/*  Game Settings  */}
-          <Button className={`fixed top-20 right-4 ${gameActionButtonThemeClasses}`} variant='default' onClick={e => {
+          <Button className={`absolute top-20 right-4 z-10 ${gameActionButtonThemeClasses}`} variant='default' onClick={e => {
             e.preventDefault();
             setIsSettingsModalOpen(!isSettingsModalOpen)
           }}>
@@ -2485,6 +2499,17 @@ const activeSolution = isCustom
             <SheetContent
               className={`${appearanceTheme.app.panel} overflow-y-auto`}
               style={{ backgroundColor: gamePageBackgroundColor }}
+              onCloseAutoFocus={(event) => {
+                if (requestedLockedTheme) {
+                  event.preventDefault();
+                  setPendingLockedTheme(requestedLockedTheme);
+                  setRequestedLockedTheme(null);
+                } else if (requestedLockedWordPack) {
+                  event.preventDefault();
+                  setPendingLockedWordPack(requestedLockedWordPack);
+                  setRequestedLockedWordPack(null);
+                }
+              }}
             >
               <SheetHeader>
                 <SheetTitle className={appearanceTheme.modal.title}>
@@ -2542,8 +2567,21 @@ const activeSolution = isCustom
                     <>
                       <Label htmlFor="wordPack">Word Pack</Label>
                       <Select
-                        defaultValue={wordPack}
-                        onValueChange={(value) => handleWordPackChange(value)}
+                        value={wordPack}
+                        onValueChange={(value) => {
+                          if (!myWordPacks?.data?.includes(value)) {
+                            setRequestedLockedWordPack(
+                              wordleWordPackConfig.friendlyNameByName[
+                                value as keyof typeof wordleWordPackConfig.friendlyNameByName
+                              ] || value
+                            );
+                            setOpenSettingsSelect(null);
+                            setIsSettingsModalOpen(false);
+                            return;
+                          }
+
+                          handleWordPackChange(value);
+                        }}
                         open={openSettingsSelect === 'wordPack'}
                         onOpenChange={(open) =>
                           setOpenSettingsSelect((current) =>
@@ -2565,16 +2603,42 @@ const activeSolution = isCustom
                           }}
                         >
                           <SelectGroup>
-                            <SelectLabel>Word Pack</SelectLabel>
+                            <SelectLabel>Word Packs</SelectLabel>
+
                             {!isLoadingWordPacks &&
-                              availableWordPacks.map((wordPack) => (
-                                <SelectItem key={wordPack} value={wordPack}>
-                                  {wordleWordPackConfig.friendlyNameByName[wordPack]}
-                                </SelectItem>
-                              ))}
+                              Array.isArray(myWordPacks?.data) &&
+                              Object.keys(wordleDefaultState).map((pack) => {
+                                const isOwned = myWordPacks.data.includes(pack);
+
+                                return (
+                                  <SelectItem
+                                    key={pack}
+                                    value={pack}
+                                    className={!isOwned ? "opacity-50" : ""}
+                                  >
+                                    {wordleWordPackConfig.friendlyNameByName[
+                                      pack as keyof typeof wordleWordPackConfig.friendlyNameByName
+                                    ] || pack}
+                                    {!isOwned && " 🔒"}
+                                  </SelectItem>
+                                );
+                              })}
                           </SelectGroup>
                         </SelectContent>
                       </Select>
+                      <div className="mt-2 space-y-2">
+                        <p className="text-xs opacity-75">
+                          Looking for more? Discover additional
+                          word packs in the Wordrama Marketplace.
+                        </p>
+
+                        <Link
+                          href="/marketplace/word-packs"
+                          className="inline-flex items-center gap-2 text-sm font-semibold underline underline-offset-4 hover:opacity-75"
+                        >
+                          Browse More Word Packs
+                        </Link>
+                      </div>
                     </>
                   )}
                 </div>
@@ -2597,9 +2661,9 @@ const activeSolution = isCustom
                       if (!selectedTheme) return;
 
                       if (!canUseAppearanceTheme(selectedTheme)) {
-                        showErrorAlert(
-                          'This premium theme is locked. Get it in the Marketplace or upgrade to Wordrama Plus or Creator for access.'
-                        );
+                        setRequestedLockedTheme(selectedTheme.meta.name);
+                        setOpenSettingsSelect(null);
+                        setIsSettingsModalOpen(false);
                         return;
                       }
 
@@ -2643,6 +2707,19 @@ const activeSolution = isCustom
                       </SelectGroup>
                     </SelectContent>
                   </Select>
+                  <div className="mt-2 space-y-2">
+                    <p className="text-xs opacity-75">
+                      Want a different look? Browse more themes
+                      and see how to unlock them.
+                    </p>
+
+                    <Link
+                      href="/marketplace/themes"
+                      className="inline-flex items-center gap-2 text-sm font-semibold underline underline-offset-4 hover:opacity-75"
+                    >
+                      Explore Premium Themes
+                    </Link>
+                  </div>
                 </div>
 
                 <div className="space-y-2">
@@ -2838,9 +2915,129 @@ const activeSolution = isCustom
             </SheetContent>
           </Sheet>
 
+          {/* Locked Theme Marketplace Confirmation */}
+          <AlertDialog
+            open={pendingLockedTheme !== null}
+            onOpenChange={(open) => {
+              if (!open) setPendingLockedTheme(null);
+            }}
+          >
+            <AlertDialogContent
+              className={[
+                "max-w-md",
+                appearanceTheme.app.panel,
+              ].join(" ")}
+              style={{
+                backgroundColor: gamePageBackgroundColor,
+                borderColor: gameSurfaceBorderColor,
+                color: gamePanelTextColor,
+              }}
+            >
+              <AlertDialogHeader>
+                <AlertDialogTitle
+                  className={appearanceTheme.modal.title}
+                >
+                  Unlock {pendingLockedTheme}
+                </AlertDialogTitle>
+
+                <AlertDialogDescription
+                  className={`${appearanceTheme.app.text} opacity-80`}
+                >
+                  This theme isn&apos;t currently unlocked on your account.
+                  Visit the Wordrama Marketplace to unlock this theme or{" "}
+                  <Link
+                    href="/subscribe"
+                    className="font-semibold underline underline-offset-4 hover:opacity-75"
+                  >
+                    explore subscription options
+                  </Link>
+                  .
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+
+              <AlertDialogFooter className="gap-2 sm:gap-2">
+                <AlertDialogCancel
+                  className={`${gameActionButtonThemeClasses} mt-0`}
+                  onClick={() => setPendingLockedTheme(null)}
+                >
+                  Keep Playing
+                </AlertDialogCancel>
+
+                <AlertDialogAction
+                  className={gameActionButtonThemeClasses}
+                  onClick={() => {
+                    setPendingLockedTheme(null);
+                    window.location.assign("/marketplace/themes");
+                  }}
+                >
+                  View in Marketplace
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+
+          {/* Locked Word Pack Confirmation */}
+          <AlertDialog
+            open={pendingLockedWordPack !== null}
+            onOpenChange={(open) => {
+              if (!open) setPendingLockedWordPack(null);
+            }}
+          >
+            <AlertDialogContent
+              className={[
+                "max-w-md",
+                appearanceTheme.app.panel,
+              ].join(" ")}
+              style={{
+                backgroundColor: gamePageBackgroundColor,
+                borderColor: gameSurfaceBorderColor,
+                color: gamePanelTextColor,
+              }}
+            >
+              <AlertDialogHeader>
+                <AlertDialogTitle className={appearanceTheme.modal.title}>
+                  Unlock {pendingLockedWordPack}
+                </AlertDialogTitle>
+
+                <AlertDialogDescription
+                  className={`${appearanceTheme.app.text} opacity-80`}
+                >
+                  Want to get this word pack? Visit the Wordrama Marketplace
+                  to unlock it or{" "}
+                  <Link
+                    href="/subscribe"
+                    className="font-semibold underline underline-offset-4 hover:opacity-75"
+                  >
+                    explore subscription options
+                  </Link>
+                  .
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+
+              <AlertDialogFooter className="gap-2 sm:gap-2">
+                <AlertDialogCancel
+                  className={`${gameActionButtonThemeClasses} mt-0`}
+                  onClick={() => setPendingLockedWordPack(null)}
+                >
+                  Keep Playing
+                </AlertDialogCancel>
+
+                <AlertDialogAction
+                  className={gameActionButtonThemeClasses}
+                  onClick={() => {
+                    setPendingLockedWordPack(null);
+                    window.location.assign("/marketplace/word-packs");
+                  }}
+                >
+                  View in Marketplace
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+
           <Sheet>
             <SheetTrigger asChild>
-              <Button variant='default' className={`fixed top-20 left-4 ${gameActionButtonThemeClasses}`}>
+              <Button variant='default' className={`absolute top-20 left-4 z-10 ${gameActionButtonThemeClasses}`}>
                 <HistoryIcon className='w-6 h-6'/>
               </Button>
             </SheetTrigger>
@@ -2848,6 +3045,12 @@ const activeSolution = isCustom
               side="left"
               className={`${appearanceTheme.app.panel} overflow-y-auto`}
               style={{ backgroundColor: gamePageBackgroundColor }}
+              onCloseAutoFocus={(event) => {
+                event.preventDefault();
+                if (document.activeElement instanceof HTMLElement) {
+                  document.activeElement.blur();
+                }
+              }}
             >
               <SheetHeader>
                 <SheetTitle className={appearanceTheme.modal.title}>
@@ -2913,7 +3116,13 @@ const activeSolution = isCustom
                 ${gameSurfaceThemeClasses}
               `}
             >
-              <div className="relative mb-4 flex justify-center">
+              <div
+                className={`relative flex justify-center ${
+                  gameUiState.showCurrentStreak && !isCustom
+                    ? "mb-8"
+                    : "mb-4"
+                }`}
+              >
                 <GameThemeLogo
                   theme={appearanceTheme}
                   className="w-64 sm:w-72 h-auto max-w-full object-contain"
@@ -2921,7 +3130,7 @@ const activeSolution = isCustom
 
                 {gameUiState.showCurrentStreak && !isCustom && (
                   <div
-                    className={`absolute top-full -translate-y-1 flex items-center justify-center gap-1 text-xs font-semibold leading-none ${appearanceTheme.app.text}`}
+                    className={`absolute top-full mt-1 flex items-center justify-center gap-1 whitespace-nowrap text-xs font-semibold leading-none ${appearanceTheme.app.text}`}
                     aria-live="polite"
                   >
                     <span aria-hidden="true">🔥</span>
@@ -2971,7 +3180,7 @@ const activeSolution = isCustom
                     setIsStatsModalOpen(!isStatsModalOpen)
                   }}
                   variant="default"
-                  className={`fixed top-20 right-24 ${gameActionButtonThemeClasses}`}
+                  className={`absolute top-20 right-24 z-10 ${gameActionButtonThemeClasses}`}
                 >
                   <ChartBarIcon className='w-6 h-6' />
                 </Button>
@@ -2979,7 +3188,7 @@ const activeSolution = isCustom
               <Link href="/games/wordrama/custom">
                 <Button
                   variant="default"
-                  className={`fixed top-20 left-24 ${gameActionButtonThemeClasses}`}
+                  className={`absolute top-20 left-24 z-10 ${gameActionButtonThemeClasses}`}
                 >
                   <GamepadIcon className='w-6 h-6' />
                 </Button>
@@ -2987,7 +3196,7 @@ const activeSolution = isCustom
             </div>
             {isCustom && (
               <Button
-                className={`fixed top-20 right-52 ${gameActionButtonThemeClasses}`}
+                className={`absolute top-20 right-52 z-10 ${gameActionButtonThemeClasses}`}
                 onClick={() => {
                   setIsStatsModalOpen(false);
                   setShowConfetti(false);
@@ -3001,7 +3210,7 @@ const activeSolution = isCustom
             )}
             {isCustom && !isGameWon && !isGameLost && (
               <Button
-                className={`fixed top-20 right-24 ${gameActionButtonThemeClasses}`}
+                className={`absolute top-20 right-24 z-10 ${gameActionButtonThemeClasses}`}
                 onClick={() => {
                   if (!isGameWon && !isGameLost) {
                     updateGameState({
