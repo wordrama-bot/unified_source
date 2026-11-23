@@ -24,7 +24,8 @@ export const Cell = ({
   position = 0,
   wordLength = 5,
 }: Props) => {
-  const isFilled = value && !isCompleted
+  const hasLetter = Boolean(value?.trim())
+  const isFilled = hasLetter && !isCompleted
   const shouldReveal = isRevealing && isCompleted
   const animationDelay = `${position * REVEAL_TIME_MS}ms`
   const gameUiState = getWordleGameUiState()
@@ -51,10 +52,10 @@ export const Cell = ({
       'dark:text-white': appearanceTheme.meta.id === 'theme.default',
 
       [appearanceTheme.board.emptyCell]:
-        !value && !status && !customColour,
+        !hasLetter && !status && !customColour,
 
       [appearanceTheme.board.filledCell]:
-        value && !status && !customColour,
+        hasLetter && !status && !customColour,
 
       [absentCellClasses]:
         status === 'absent',
@@ -79,7 +80,7 @@ export const Cell = ({
   return (
     <div className={classes} style={{ animationDelay, ...(isLongWord ? { ['--long-word-font-size' as string]: mobileLetterSize } : {}) }}>
       <div className="letter-container" style={{ animationDelay }}>
-        {value}
+        {hasLetter ? value : ''}
       </div>
     </div>
   )
