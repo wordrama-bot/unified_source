@@ -19,6 +19,20 @@ export interface SiteUpdate {
 
 export const siteUpdates: SiteUpdate[] = [
   {
+    slug: "blank-spaces-and-settings-update",
+    date: "2026-11-23",
+    title: "More Flexibility with Blank Spaces",
+    summary:
+      "Skip letter positions while drafting guesses with the new optional Allow Blank Spaces setting, plus a refreshed settings layout.",
+    category: "NEW_FEATURE",
+    content: [
+      "Sometimes you know exactly where a letter belongs, even if you haven't figured out the rest of the word. The new Allow Blank Spaces setting lets you press Space to skip a position and keep building your guess.",
+      "Turn on Allow Blank Spaces in Game Settings to use it with your keyboard or the on-screen Space key. Empty positions stay blank while you work, and you'll still need to fill every position before you can submit your guess.",
+      "This feature is optional and turned off by default, so Wordrama plays exactly as before unless you choose to enable it.",
+      "We've also reorganized the Game Settings toggles to make your favorite options easier to find, from Dark Mode and accessibility settings to gameplay preferences, confetti, and sound."
+    ]
+  },
+  {
     slug: "introducing-wordrama-academy",
     date: "2026-11-20",
     title: "Introducing Wordrama Academy & Gameplay Improvements",
