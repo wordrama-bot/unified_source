@@ -3151,13 +3151,7 @@ const activeSolution = isCustom
                 ${gameSurfaceThemeClasses}
               `}
             >
-              <div
-                className={`relative flex justify-center ${
-                  gameUiState.showCurrentStreak && !isCustom
-                    ? "mb-8"
-                    : "mb-4"
-                }`}
-              >
+              <div className="mb-4 flex flex-col items-center justify-center">
                 <GameThemeLogo
                   theme={appearanceTheme}
                   className="w-64 sm:w-72 h-auto max-w-full object-contain"
@@ -3165,10 +3159,15 @@ const activeSolution = isCustom
 
                 {gameUiState.showCurrentStreak && !isCustom && (
                   <div
-                    className={`absolute top-full mt-1 flex items-center justify-center gap-1 whitespace-nowrap text-xs font-semibold leading-none ${appearanceTheme.app.text}`}
+                    className={`-mt-3 flex items-center justify-center gap-1 whitespace-nowrap text-xs font-semibold leading-none ${appearanceTheme.app.text}`}
                     aria-live="polite"
                   >
-                    <span aria-hidden="true">🔥</span>
+                    <span>
+                      {wordleWordPackConfig.friendlyNameByName[
+                        wordPack as keyof typeof wordleWordPackConfig.friendlyNameByName
+                      ] ?? wordPack.replace(/_/g, ' ')}
+                      {' - '}
+                    </span>
                     <span>
                       Current Streak:{' '}
                       {isLoadingStreakData || isErrorStreakData
