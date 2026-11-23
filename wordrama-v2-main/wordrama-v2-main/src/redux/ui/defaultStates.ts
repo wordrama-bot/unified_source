@@ -23,7 +23,8 @@ export const wordleGameUiDefaultState: WordleGameUiState = {
   showCurrentStreak: false,
   gameSoundEnabled: true,
   colorblindMode: false,
-  startWithLastSolve: false
+  startWithLastSolve: false,
+  allowBlankSpaces: false
 };
 
 export const initialState: InitialState = {
