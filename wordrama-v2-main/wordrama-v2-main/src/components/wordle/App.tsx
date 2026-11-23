@@ -2798,45 +2798,59 @@ const activeSolution = isCustom
                 <div className="grid grid-cols-1 gap-y-6 py-2">
                   <div className="flex items-center justify-between gap-4">
                     <SettingsToggleLabel
-                      htmlFor="swapDeleteAndEnter"
-                      label={<>Swap<br />Keys</>}
-                      tooltip="Swap the delete and enter keys on the on-screen keyboard"
+                      htmlFor="theme"
+                      label={<>Dark<br />Mode</>}
+                      tooltip="Switch between light and dark appearance"
                     />
 
                     <Switch
-                      id="swapDeleteAndEnter"
-                      checked={gameUiState.swapDeleteAndEnter || false}
-                      onCheckedChange={(checked) => handleSwapDeleteAndEnter(checked)}
+                      id="theme"
+                      checked={resolvedTheme === 'dark'}
+                      onCheckedChange={(checked) => setTheme(checked ? 'dark' : 'light')}
                     />
                   </div>
 
                   <div className="flex items-center justify-between gap-4">
                     <SettingsToggleLabel
-                      htmlFor="allowBlankSpaces"
-                      label={<>Allow Blank<br />Spaces</>}
-                      tooltip="Press Space to skip a cell while drafting. Fill every cell before submitting."
+                      htmlFor="colorblindMode"
+                      label={<>Colorblind<br />Mode</>}
+                      tooltip="Uses an alternative color palette for improved accessibility"
                     />
 
                     <Switch
-                      id="allowBlankSpaces"
-                      checked={gameUiState.allowBlankSpaces ?? false}
+                      id="colorblindMode"
+                      checked={gameUiState.colorblindMode || false}
+                      onCheckedChange={(checked) => handleColorblindModeEnabled(checked)}
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between gap-4">
+                    <SettingsToggleLabel
+                      htmlFor="showCurrentStreak"
+                      label={<>Show Current<br />Streak</>}
+                      tooltip="Display your current solve streak above the game board for the selected mode and word length"
+                    />
+
+                    <Switch
+                      id="showCurrentStreak"
+                      checked={gameUiState.showCurrentStreak ?? false}
+                      onCheckedChange={handleShowCurrentStreak}
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between gap-4">
+                    <SettingsToggleLabel
+                      htmlFor="streamerModeEnabled"
+                      label={<>Streamer<br />Mode</>}
+                      tooltip="Centers post-game stats to better fit livestream layouts"
+                    />
+
+                    <Switch
+                      id="streamerModeEnabled"
+                      checked={gameUiState.streamerModeEnabled || false}
                       onCheckedChange={(checked) =>
-                        dispatch(setWordleGameUiState({ allowBlankSpaces: checked }))
+                        dispatch(setWordleGameUiState({ streamerModeEnabled: checked }))
                       }
-                    />
-                  </div>
-
-                  <div className="flex items-center justify-between gap-4">
-                    <SettingsToggleLabel
-                      htmlFor="confettiEnabled"
-                      label={<>Show<br />Confetti</>}
-                      tooltip="Enable or disable confetti when you win a game"
-                    />
-
-                    <Switch
-                      id="confettiEnabled"
-                      checked={gameUiState.confettiEnabled || false}
-                      onCheckedChange={(checked) => handleConfettiEnabled(checked)}
                     />
                   </div>
 
@@ -2872,59 +2886,45 @@ const activeSolution = isCustom
 
                   <div className="flex items-center justify-between gap-4">
                     <SettingsToggleLabel
-                      htmlFor="streamerModeEnabled"
-                      label={<>Streamer<br />Mode</>}
-                      tooltip="Centers post-game stats to better fit livestream layouts"
+                      htmlFor="allowBlankSpaces"
+                      label={<>Allow Blank<br />Spaces</>}
+                      tooltip="Press Space to skip a cell while drafting. Fill every cell before submitting."
                     />
 
                     <Switch
-                      id="streamerModeEnabled"
-                      checked={gameUiState.streamerModeEnabled || false}
+                      id="allowBlankSpaces"
+                      checked={gameUiState.allowBlankSpaces ?? false}
                       onCheckedChange={(checked) =>
-                        dispatch(setWordleGameUiState({ streamerModeEnabled: checked }))
+                        dispatch(setWordleGameUiState({ allowBlankSpaces: checked }))
                       }
                     />
                   </div>
 
                   <div className="flex items-center justify-between gap-4">
                     <SettingsToggleLabel
-                      htmlFor="showCurrentStreak"
-                      label={<>Show Current<br />Streak</>}
-                      tooltip="Display your current solve streak above the game board for the selected mode and word length"
+                      htmlFor="swapDeleteAndEnter"
+                      label={<>Swap<br />Keys</>}
+                      tooltip="Swap the delete and enter keys on the on-screen keyboard"
                     />
 
                     <Switch
-                      id="showCurrentStreak"
-                      checked={gameUiState.showCurrentStreak ?? false}
-                      onCheckedChange={handleShowCurrentStreak}
+                      id="swapDeleteAndEnter"
+                      checked={gameUiState.swapDeleteAndEnter || false}
+                      onCheckedChange={(checked) => handleSwapDeleteAndEnter(checked)}
                     />
                   </div>
 
                   <div className="flex items-center justify-between gap-4">
                     <SettingsToggleLabel
-                      htmlFor="theme"
-                      label={<>Dark<br />Mode</>}
-                      tooltip="Switch between light and dark appearance"
+                      htmlFor="confettiEnabled"
+                      label={<>Show<br />Confetti</>}
+                      tooltip="Enable or disable confetti when you win a game"
                     />
 
                     <Switch
-                      id="theme"
-                      checked={resolvedTheme === 'dark'}
-                      onCheckedChange={(checked) => setTheme(checked ? 'dark' : 'light')}
-                    />
-                  </div>
-
-                  <div className="flex items-center justify-between gap-4">
-                    <SettingsToggleLabel
-                      htmlFor="colorblindMode"
-                      label={<>Colorblind<br />Mode</>}
-                      tooltip="Uses an alternative color palette for improved accessibility"
-                    />
-
-                    <Switch
-                      id="colorblindMode"
-                      checked={gameUiState.colorblindMode || false}
-                      onCheckedChange={(checked) => handleColorblindModeEnabled(checked)}
+                      id="confettiEnabled"
+                      checked={gameUiState.confettiEnabled || false}
+                      onCheckedChange={(checked) => handleConfettiEnabled(checked)}
                     />
                   </div>
 
