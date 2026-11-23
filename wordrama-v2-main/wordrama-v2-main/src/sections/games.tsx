@@ -49,14 +49,14 @@ export default function Games({
         link: '/games/wordrama',
         image: '/images/games/wordrama.png',
         Icon: Wordle,
-        text: '4-23 letter Daily and Infinite Wordle modes to play solo.',
+        text: '5-11 letter Daily and Infinite Wordle modes to play solo. 3, 4, and 12-23 also available and unlockable in the Marketplace.',
       },
       {
         title: 'Wordrama Custom',
         link: '/games/wordrama/custom',
         image: '/images/games/wordrama-custom.png',
         Icon: Wordle,
-        text: 'Create a custom Wordle game to play with friends.',
+        text: 'Create a custom Wordle game to play with friends. You can create a word and generate a code to share with them so they can try to solve it.',
       }
       /*,{
         title: 'Spell Bee',
