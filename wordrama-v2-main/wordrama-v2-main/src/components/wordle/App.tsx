@@ -3159,7 +3159,7 @@ const activeSolution = isCustom
 
                 {gameUiState.showCurrentStreak && !isCustom && (
                   <div
-                    className={`-mt-5 mb-2 flex items-center justify-center gap-1 whitespace-nowrap text-xs font-semibold leading-none ${appearanceTheme.app.text}`}
+                    className={`mt-0 mb-2 flex items-center justify-center gap-1 whitespace-nowrap text-xs font-semibold leading-none ${appearanceTheme.app.text}`}
                     aria-live="polite"
                   >
                     <span>
