@@ -55,7 +55,13 @@ export default function UserMenu({
 
       <Link href={`/player/${user?.id}`}>
         <DropdownMenuItem>
-          Profile
+          View My Profile
+        </DropdownMenuItem>
+      </Link>
+
+      <Link href="/settings/profile">
+        <DropdownMenuItem>
+          Customize Profile
         </DropdownMenuItem>
       </Link>
 
@@ -67,7 +73,7 @@ export default function UserMenu({
 
       <Link href="/settings">
         <DropdownMenuItem>
-          Settings
+          Account Settings
         </DropdownMenuItem>
       </Link>
 
@@ -157,7 +163,7 @@ export default function UserMenu({
                       TikTok
                     </DropdownMenuItem>
                   </a>
-                  <a href="https://discord.gg/cRunwK229g" target="_blank" rel="noopener noreferrer">
+                  <a href="https://discord.gg/QSY6yMYuvM" target="_blank" rel="noopener noreferrer">
                     <DropdownMenuItem>
                       Discord
                     </DropdownMenuItem>
