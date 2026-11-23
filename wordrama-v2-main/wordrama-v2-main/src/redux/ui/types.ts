@@ -21,7 +21,8 @@ export type WordleGameUiState = {
     showCurrentStreak?: boolean,
     gameSoundEnabled?: boolean,
     colorblindMode?: boolean,
-    startWithLastSolve?: boolean
+    startWithLastSolve?: boolean,
+    allowBlankSpaces?: boolean
 };
 
 export type InitialState  = {
