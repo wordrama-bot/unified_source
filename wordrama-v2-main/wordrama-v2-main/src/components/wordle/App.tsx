@@ -3151,7 +3151,7 @@ const activeSolution = isCustom
                 ${gameSurfaceThemeClasses}
               `}
             >
-              <div className="mb-4 flex flex-col items-center justify-center">
+              <div className="mb-1 flex flex-col items-center justify-center">
                 <GameThemeLogo
                   theme={appearanceTheme}
                   className="w-64 sm:w-72 h-auto max-w-full object-contain"
@@ -3159,7 +3159,7 @@ const activeSolution = isCustom
 
                 {gameUiState.showCurrentStreak && !isCustom && (
                   <div
-                    className={`-mt-3 flex items-center justify-center gap-1 whitespace-nowrap text-xs font-semibold leading-none ${appearanceTheme.app.text}`}
+                    className={`-mt-5 mb-2 flex items-center justify-center gap-1 whitespace-nowrap text-xs font-semibold leading-none ${appearanceTheme.app.text}`}
                     aria-live="polite"
                   >
                     <span>
