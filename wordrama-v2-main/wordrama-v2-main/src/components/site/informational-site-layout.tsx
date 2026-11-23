@@ -16,7 +16,7 @@ const publicLinks = [
 ];
 
 const memberLinks = [
-  { href: "/games/wordrama", text: "Games" },
+  { href: "/games", text: "Games" },
   { href: "/leaderboard", text: "Leaderboard" },
   { href: "/marketplace", text: "Marketplace" },
   { href: "/achievements", text: "Achievements" },
