@@ -9,6 +9,8 @@ type Props = {
   onChar: (value: string) => void
   onDelete: () => void
   onEnter: () => void
+  onSpace: () => void
+  allowBlankSpaces: boolean
   solution: string
   guesses: string[]
   isRevealing?: boolean
@@ -20,6 +22,8 @@ export const Keyboard = ({
   onChar,
   onDelete,
   onEnter,
+  onSpace,
+  allowBlankSpaces,
   solution,
   guesses,
   isRevealing,
@@ -27,16 +31,18 @@ export const Keyboard = ({
   showPlayAgainKey = false,
 }: Props) => {
   const charStatuses = useMemo(() => getStatuses(solution, guesses), [solution, guesses])
-  const handlersRef = useRef({ onChar, onDelete, onEnter })
+  const handlersRef = useRef({ onChar, onDelete, onEnter, onSpace, allowBlankSpaces })
   useLayoutEffect(() => {
-    handlersRef.current = { onChar, onDelete, onEnter }
-  }, [onChar, onDelete, onEnter])
+    handlersRef.current = { onChar, onDelete, onEnter, onSpace, allowBlankSpaces }
+  }, [onChar, onDelete, onEnter, onSpace, allowBlankSpaces])
 
   const onClick = useCallback((value: string) => {
     if (value === 'ENTER') {
       handlersRef.current.onEnter()
     } else if (value === 'DELETE') {
       handlersRef.current.onDelete()
+    } else if (value === 'SPACE') {
+      handlersRef.current.onSpace()
     } else {
       handlersRef.current.onChar(value)
     }
@@ -62,6 +68,12 @@ export const Keyboard = ({
       if (e.key === 'Backspace' || e.key === 'Delete') {
         e.preventDefault()
         handlersRef.current.onDelete()
+        return
+      }
+
+      if (e.key === ' ' && handlersRef.current.allowBlankSpaces) {
+        e.preventDefault()
+        handlersRef.current.onSpace()
         return
       }
 
@@ -143,6 +155,11 @@ export const Keyboard = ({
             : showPlayAgainKey ? 'Play Again' : ENTER_TEXT}
         </Key>
       </div>
+      {allowBlankSpaces && (
+        <div className="mt-2 flex w-full justify-center">
+          <Key value="SPACE" width={144} onClick={onClick} solution={solution}>Space</Key>
+        </div>
+      )}
     </div>
   )
 }
