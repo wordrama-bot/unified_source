@@ -1735,6 +1735,17 @@ const activeSolution = isCustom
     setCurrentGuess(new GraphemeSplitter().splitGraphemes(currentGuessRef.current).slice(0, -1).join(''))
   }
 
+  // Optional blank entry affects only the in-progress row, never submitted guesses.
+  function onSpace() {
+    if (!gameUiState.allowBlankSpaces) return;
+    if (pendingLastSolveRef.current || lastSolveSubmissionInProgressRef.current) return;
+    if (gameLoading || !isBoardLengthValid || isGameWon || isGameLost) return;
+    if (guesses.length >= MAX_CHALLENGES) return;
+    if (unicodeLength(currentGuessRef.current) >= solution.length) return;
+    if (revealTimerRef.current !== null) finishReveal();
+    setCurrentGuess(`${currentGuessRef.current} `);
+  }
+
   async function queueCompletedWordleGame(
     completedGuesses: string[],
   ) {
@@ -1819,6 +1830,14 @@ const activeSolution = isCustom
     if (isStatsModalOpen) return;
 
     if (unicodeLength(submittedGuess) !== solution.length) {
+      setCurrentRowClass('jiggle')
+      return showErrorAlert(NOT_ENOUGH_LETTERS_MESSAGE, {
+        onClose: clearCurrentRowClass,
+      })
+    }
+
+    // A blank occupies a position but can never be a submitted letter, including in CUSTOM games.
+    if (submittedGuess.includes(' ')) {
       setCurrentRowClass('jiggle')
       return showErrorAlert(NOT_ENOUGH_LETTERS_MESSAGE, {
         onClose: clearCurrentRowClass,
@@ -2793,6 +2812,22 @@ const activeSolution = isCustom
 
                   <div className="flex items-center justify-between gap-4">
                     <SettingsToggleLabel
+                      htmlFor="allowBlankSpaces"
+                      label={<>Allow Blank<br />Spaces</>}
+                      tooltip="Press Space to skip a cell while drafting. Fill every cell before submitting."
+                    />
+
+                    <Switch
+                      id="allowBlankSpaces"
+                      checked={gameUiState.allowBlankSpaces ?? false}
+                      onCheckedChange={(checked) =>
+                        dispatch(setWordleGameUiState({ allowBlankSpaces: checked }))
+                      }
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between gap-4">
+                    <SettingsToggleLabel
                       htmlFor="confettiEnabled"
                       label={<>Show<br />Confetti</>}
                       tooltip="Enable or disable confetti when you win a game"
@@ -3161,6 +3196,8 @@ const activeSolution = isCustom
                 onChar={onChar}
                 onDelete={onDelete}
                 onEnter={onEnter}
+                onSpace={onSpace}
+                allowBlankSpaces={gameUiState.allowBlankSpaces ?? false}
                 solution={isCustom ? gameState.custom.solution : gameState.modes[gameState.gameMode][gameState.wordPack].solution}
                 guesses={isCustom ? gameState.custom.guesses : gameState.modes[gameState.gameMode][gameState.wordPack].guesses || []}
                 isRevealing={isRevealing}
