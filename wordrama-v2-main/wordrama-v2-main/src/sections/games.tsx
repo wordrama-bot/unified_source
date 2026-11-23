@@ -49,7 +49,7 @@ export default function Games({
         link: '/games/wordrama',
         image: '/images/games/wordrama.png',
         Icon: Wordle,
-        text: '5-11 letter Daily and Infinite Wordle modes to play solo. 3, 4, and 12-23 also available and unlockable in the Marketplace.',
+        text: '5-11 letter Daily and Infinite Wordle modes to play solo. Word packs with 3, 4, and 12-23 letter are also available and unlockable in the Marketplace.',
       },
       {
         title: 'Wordrama Custom',
