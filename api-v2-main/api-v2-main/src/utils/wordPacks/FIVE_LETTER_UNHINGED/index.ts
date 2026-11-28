@@ -4,7 +4,7 @@ import DAILY_WORD_LIST from './dailyWordList.json';
 import FIVE_LETTER from '../FIVE_LETTER';
 
 // Accept every regular 5-letter guess plus every Unhinged answer.
-// Only the 524 curated Unhinged words can ever be solutions.
+// Only the 503 curated Unhinged words can ever be solutions.
 const VALID_GUESSES = Array.from(new Set([
   ...FIVE_LETTER.VALID_GUESSES,
   ...UNHINGED_GUESSES,
