@@ -162,7 +162,7 @@ export default function AdminDashboardPage() {
       {showRecentlyActive && (
         <section className="mt-4 rounded-xl border bg-card p-5">
           <h2 className="text-lg font-semibold">Recently Active Players</h2>
-          <p className="mt-1 text-sm text-muted-foreground">Accounts with qualifying API activity in the past five minutes. This is an activity estimate, not live connection presence.</p>
+          <p className="mt-1 text-sm text-muted-foreground">Accounts with qualifying API activity or recent completed Wordle puzzles in the past five minutes. This is an activity estimate, not live connection presence.</p>
           {recentlyActiveError && <p className="mt-3 text-sm text-red-500">Unable to load recent player activity.</p>}
           {!recentlyActiveError && !recentlyActive && <p className="mt-3 text-sm text-muted-foreground">Loading activity...</p>}
           {recentlyActive && recentlyActive.players.length === 0 && <p className="mt-3 text-sm text-muted-foreground">No recently active players.</p>}
